@@ -1,0 +1,413 @@
+%% Define parameters - adjust parameters here to fix tracking and ROI segmentation errors
+
+% Experimental parameters
+exp_duration=handles.expDuration;           % Duration of the experiment in minutes
+referenceStackSize=handles.refStack;        % Number of images to keep in rolling reference
+referenceFreq=handles.refTime;              % Seconds between reference images
+armThresh=7;                                % Minimum pixel distance to end of maze arm for turn scoring
+referenceTime = 120;                        % Seconds over which intial reference images are taken
+% Tracking parameters
+imageThresh=get(handles.slider2,'value');                             % Difference image threshold for detecting centroids
+distanceThresh=20;                          % Maximum allowed pixel distance matching centroids to ROIs
+
+% ROI detection parameters
+ROI_thresh=get(handles.slider1,'value');    % Binary image threshold from zero (black) to one (white) for segmentation  
+sigma=0.47;                                 % Sigma expressed as a fraction of the image height
+kernelWeight=0.34;                          % Scalar weighting of kernel when applied to the image
+
+%% Save labels and create placeholder files for data
+
+t = datestr(clock,'mm-dd-yyyy_HH-MM-SS');
+labelID = [handles.fpath '\' t '_labels.dat'];     % File ID for label data
+labels = cell2table(labelMaker(handles.labels),'VariableNames',{'Strain' 'Sex' 'Treatment'});
+writetable(labels, labelID);
+
+% Create placeholder files
+
+ cenID = [handles.fpath '\' t '_Centroid.dat'];            % File ID for centroid data
+ oriID = [handles.fpath '\' t '_Orientation.dat'];         % File ID for orientation angle
+ turnID = [handles.fpath '\' t '_RightTurns.dat'];         % File ID for turn data
+ 
+dlmwrite(cenID, []);                          % create placeholder ASCII file
+dlmwrite(oriID, []);                          % create placeholder ASCII file
+dlmwrite(turnID, []);                         % create placeholder ASCII file
+
+%% Setup the camera and video object
+imaqreset
+pause(0.5);
+% Camera mode set to 8-bit with 664x524 resolution
+vid = initializeCamera('pointgrey',1,'F7_BayerRG8_664x524_Mode1');
+pause(0.5);
+
+%% Grab image for ROI detection and segment out ROIs
+stop=get(handles.togglebutton10,'value');
+
+while stop~=1;
+tic
+stop=get(handles.togglebutton10,'value');
+
+% Take single frame
+imagedata=peekdata(vid,1);
+% Extract red channel
+ROI_image=imagedata(:,:,1);
+
+% Update threshold value
+ROI_thresh=get(handles.slider1,'value');
+
+% Build a kernel to smooth vignetting
+gaussianKernel=buildGaussianKernel(size(ROI_image,2),size(ROI_image,1),sigma,kernelWeight);
+ROI_image=(uint8(double(ROI_image).*gaussianKernel));
+
+% Extract ROIs from thresholded image
+[ROI_bounds,ROI_coords,ROI_widths,ROI_heights,binaryimage] = detect_ROIs(ROI_image,ROI_thresh);
+
+% Create orientation vector for mazes (upside down Y = 0, right-side up = 1)
+mazeOri=optoDetermineMazeOrientation(binaryimage,ROI_coords);
+mazeOri=boolean(mazeOri);
+
+% Define a permutation vector to sort ROIs from top-right to bottom left
+[ROI_coords,mazeOri]=optoSortROIs(binaryimage,ROI_coords,mazeOri);
+
+% Calculate coords of ROI centers
+[xCenters,yCenters]=optoROIcenters(binaryimage,ROI_coords);
+centers=[xCenters,yCenters];
+
+set(handles.edit7,'String',num2str(size(ROI_bounds,1)));
+
+if get(handles.togglebutton7,'value')==1
+    imshow(binaryimage);
+    hold on
+    for i = 1:size(ROI_bounds,1)
+        rectangle('Position',ROI_bounds(i,:),'EdgeColor','r')
+        if mazeOri(i)
+            text(centers(i,1)-5,centers(i,2),int2str(i),'Color','m')
+        else
+            text(centers(i,1)-5,centers(i,2),int2str(i),'Color','b')
+        end
+    end
+    hold off
+    drawnow
+end
+
+    
+set(handles.edit8,'String',num2str(round(1/toc)));
+end
+
+
+%% Automatically average out flies from reference image
+
+refImage=imagedata(:,:,1);                                     % Assign reference image
+lastCentroid=NaN(size(ROI_coords,1),2);                 % Create placeholder for most recent non-NaN centroids
+referenceCentroids=zeros(size(ROI_coords,1),2,10);      % Create placeholder for cen. coords when references are taken
+propFields={'Centroid';'Orientation';'Area'};           % Define fields for regionprops
+nRefs=zeros(size(ROI_coords,1),1);                      % Reference number placeholder
+numbers=1:size(ROI_coords,1);                           % Numbers to display while tracking
+imshow(refImage);
+%title('Reference Acquisition In Progress - Press any key to continue')
+shg
+
+tElapsed=0;
+tic
+previous_tStamp=toc;
+current_tStamp=0;
+while toc<referenceTime&&get(handles.togglebutton11,'value')~=1
+    
+    % Update image threshold value from GUI
+    imageThresh=get(handles.slider2,'value');
+    
+        timeRemaining = round(referenceTime - toc);
+        if timeRemaining < 60; 
+            set(handles.edit6, 'String', ['00:00:' sprintf('%0.2d',timeRemaining)]);
+            set(handles.edit6, 'BackgroundColor', [1 0.4 0.4]);
+        elseif (3600 > timeRemaining) && (timeRemaining > 60);
+            min = floor(timeRemaining/60);
+            sec = rem(timeRemaining, 60);
+            set(handles.edit6, 'String', ['00:' sprintf('%0.2d',min) ':' sprintf('%0.2d',sec)]);
+            set(handles.edit6, 'BackgroundColor', [1 1 1]);
+        elseif timeRemaining > 3600;
+            hr = floor(timeRemaining/3600);
+            min = floor(rem(timeRemaining, 3600)/60);
+            sec = timeRemaining - hr*3600 - min*60;
+            set(handles.edit6, 'String', [sprintf('%0.2d', hr) ':' sprintf('%0.2d',min) ':' sprintf('%0.2d',sec)]);
+            set(handles.edit6, 'BackgroundColor', [1 1 1]);
+        end
+        
+        % Take difference image
+        imagedata=peekdata(vid,1);
+        imagedata=imagedata(:,:,1);
+        subtractedData=refImage-imagedata;
+
+        % Extract regionprops and record centroid for blobs with (11 > area > 30) pixels
+        props=regionprops((subtractedData>imageThresh),propFields);
+        validCentroids=boolean(([props.Area]>4)&([props.Area]<56));
+        cenDat=reshape([props(validCentroids).Centroid],2,length([props(validCentroids).Centroid])/2)';
+        oriDat=reshape([props(validCentroids).Orientation],1,length([props(validCentroids).Orientation]))';
+
+        % Match centroids to ROIs by finding nearest ROI center
+        [cenDat,oriDat,centerDistance]=optoMatchCentroids2ROIs(cenDat,oriDat,centers,distanceThresh);
+        lastCentroid(~isnan(cenDat))=cenDat(~isnan(cenDat));    
+
+        % Step through each ROI one-by-one
+        for i=1:size(ROI_coords,1)
+
+        % Calculate distance to previous locations where references were taken
+        tCen=repmat(cenDat(i,:),size(referenceCentroids,3),1);
+        d=abs(sqrt(dot((tCen-squeeze(referenceCentroids(i,:,:))'),(squeeze(referenceCentroids(i,:,:))'-tCen),2)));
+
+            % Create a new reference image for the ROI if fly is greater than distance thresh
+            % from previous reference locations
+            if sum(d<10)==0&&sum(isnan(cenDat(i,:)))==0
+                nRefs(i)=sum(sum(referenceCentroids(i,:,:)>0));
+                referenceCentroids(i,:,mod(nRefs(i)+1,10))=cenDat(i,:);
+                newRef=imagedata(ROI_coords(i,2):ROI_coords(i,4),ROI_coords(i,1):ROI_coords(i,3));
+                oldRef=refImage(ROI_coords(i,2):ROI_coords(i,4),ROI_coords(i,1):ROI_coords(i,3));
+                nRefs(i)=sum(sum(referenceCentroids(i,:,:)>0));                                         % Update num Refs
+                averagedRef=newRef.*(1/nRefs(i))+oldRef.*(1-(1/nRefs(i)));               % Weight new reference by 1/nRefs
+                refImage(ROI_coords(i,2):ROI_coords(i,4),ROI_coords(i,1):ROI_coords(i,3))=averagedRef;
+            end
+        end
+        
+        
+       if get(handles.togglebutton7,'value')==1
+           % Update the plot with new reference
+           imshow(subtractedData>imageThresh);
+
+           % Draw last known centroid for each ROI and update ref. number indicator
+           hold on
+           for i=1:size(ROI_coords,1)
+               color=[(1/nRefs(i)) 0 (1-1/nRefs(i))];
+               color(color>1)=1;
+               color(color<0)=0;
+               plot(ROI_coords(i,1),ROI_coords(i,2),'o','Linew',3,'Color',color);      
+               text(ROI_coords(i,1),ROI_coords(i,2)+15,int2str(numbers(i)),'Color','m')
+               text(lastCentroid(i,1),lastCentroid(i,2),int2str(numbers(i)),'Color','R')
+           end
+       hold off
+       drawnow
+       end
+ 
+       
+    if get(handles.togglebutton9, 'Value') == 1;
+        waitfor(handles.togglebutton9, 'Value', 0)
+    end
+    current_tStamp=toc;
+    tElapsed=current_tStamp-previous_tStamp;
+    previous_tStamp=current_tStamp;
+    set(handles.edit8,'String',num2str(round(1/tElapsed)));
+end
+
+%% Display tracking to screen for tracking errors
+
+
+    
+        imshow(imagedata);
+        shg
+        %title('Displaying Tracking for 120s - Please check tracking and ROIs')
+        tic   
+while  toc<referenceTime && get(handles.togglebutton12,'value')~=1
+            
+imageThresh=get(handles.slider2,'value');
+
+            timeRemaining = round(referenceTime - toc);
+                if timeRemaining < 60; 
+                    set(handles.edit6, 'String', ['00:00:' sprintf('%0.2d',timeRemaining)]);
+                    set(handles.edit6, 'BackgroundColor', [1 0.4 0.4]);
+                elseif (3600 > timeRemaining) && (timeRemaining > 60);
+                    min = floor(timeRemaining/60);
+                    sec = rem(timeRemaining, 60);
+                    set(handles.edit6, 'String', ['00:' sprintf('%0.2d',min) ':' sprintf('%0.2d',sec)]);
+                    set(handles.edit6, 'BackgroundColor', [1 1 1]);
+                elseif timeRemaining > 3600;
+                    hr = floor(timeRemaining/3600);
+                    min = floor(rem(timeRemaining, 3600)/60);
+                    sec = timeRemaining - hr*3600 - min*60;
+                    set(handles.edit6, 'String', [sprintf('%0.2d', hr) ':' sprintf('%0.2d',min) ':' sprintf('%0.2d',sec)]);
+                    set(handles.edit6, 'BackgroundColor', [1 1 1]);
+                end
+               % Define previous position
+               lastCentroid=cenDat;
+
+               % Get centroids and sort to ROIs
+               imagedata=peekdata(vid,1);
+               imagedata=refImage-imagedata(:,:,1);
+               props=regionprops((imagedata>imageThresh),propFields);
+
+               % Match centroids to ROIs by finding nearest ROI center
+               validCentroids=boolean(([props.Area]>4)&([props.Area]<56));
+               cenDat=reshape([props(validCentroids).Centroid],2,length([props(validCentroids).Centroid])/2)';
+               oriDat=reshape([props(validCentroids).Orientation],1,length([props(validCentroids).Orientation]))';
+               [cenDat,oriDat,centerDistance]=optoMatchCentroids2ROIs(cenDat,oriDat,centers,distanceThresh);
+               lastCentroid(~isnan(cenDat))=cenDat(~isnan(cenDat));    
+
+               %Update display if display tracking is ON
+               if get(handles.togglebutton7,'Value') == 1;
+                   imshow(imagedata>imageThresh);
+                   hold on
+                   % Mark centroids
+                   plot(lastCentroid(:,1),lastCentroid(:,2),'o','Color','r');
+                   % Draw rectangles to indicate ROI bounds
+                   for i = 1:size(ROI_coords,1)
+                    rectangle('Position',ROI_bounds(i,:),'EdgeColor','r')
+                   end
+               hold off
+               drawnow
+               end
+
+   
+   % Pause the script if the pause button is hit
+   if get(handles.togglebutton9, 'Value') == 1;
+      waitfor(handles.togglebutton9, 'Value', 0)    
+   end
+    current_tStamp=toc;
+    tElapsed=current_tStamp-previous_tStamp;
+    previous_tStamp=current_tStamp;
+    set(handles.edit8,'String',num2str(round(1/tElapsed)));
+
+end
+   
+
+
+%% Calculate coordinates of end of each maze arm
+
+arm_coords=zeros(size(ROI_coords,1),2,6);
+
+% Coords 1-3 are for right-side down mazes
+arm_coords(:,:,1)=[ROI_coords(:,1)+7 ROI_coords(:,4)-7];
+arm_coords(:,:,2)=[xCenters ROI_coords(:,2)+7];
+arm_coords(:,:,3)=[ROI_coords(:,3)-7 ROI_coords(:,4)-7];
+
+% Coords 4-6 are for right-side up mazes
+arm_coords(:,:,4)=[ROI_coords(:,1)+7 ROI_coords(:,2)+7];
+arm_coords(:,:,5)=[xCenters ROI_coords(:,2)+7];
+arm_coords(:,:,6)=[ROI_coords(:,3)-7 ROI_coords(:,2)+7];
+
+%% Set experiment parameters
+
+exp_duration = exp_duration*60;                     % Convert duration from min. to seconds
+referenceFreq = referenceFreq;                   
+refStack=repmat(refImage,1,1,referenceStackSize);   % Create placeholder for 5-image rolling reference.
+refCount=0;
+ct=1;                                               % Frame counter
+lastCentroid=cenDat;                                % Define previous centroids
+propFields={'Centroid';'Orientation';'Area'};       % Features to record
+tempCount=1;
+previous_tStamp=0;
+tElapsed=0;
+previous_refUpdater=0;                          % Compared to current_refUpdater to update the reference at correct freq.
+write=boolean(0);                               % Data written to hard drive when true
+
+display=boolean(1);                             % Updates display every 2s when true
+mazes=1:size(ROI_coords,1);
+previous_arm=zeros(size(ROI_coords,1),1);
+
+%% Run Experiment
+shg
+tic
+while toc < exp_duration
+        timeRemaining = round(exp_duration - toc);
+        if timeRemaining < 60; 
+            set(handles.edit6, 'String', ['00:00:' sprintf('%0.2d',timeRemaining)]);
+            set(handles.edit6, 'BackgroundColor', [1 0.4 0.4]);
+        elseif (3600 > timeRemaining) && (timeRemaining > 60);
+            min = floor(timeRemaining/60);
+            sec = rem(timeRemaining, 60);
+            set(handles.edit6, 'String', ['00:' sprintf('%0.2d',min) ':' sprintf('%0.2d',sec)]);
+            set(handles.edit6, 'BackgroundColor', [1 1 1]);
+        elseif timeRemaining > 3600;
+            hr = floor(timeRemaining/3600);
+            min = floor(rem(timeRemaining, 3600)/60);
+            sec = timeRemaining - hr*3600 - min*60;
+            set(handles.edit6, 'String', [sprintf('%0.2d', hr) ':' sprintf('%0.2d',min) ':' sprintf('%0.2d',sec)]);
+            set(handles.edit6, 'BackgroundColor', [1 1 1]);
+        end
+        
+        % Capture frame and extract centroid
+        imagedata=peekdata(vid,1);
+        diffImage=refImage-imagedata(:,:,1);
+        props=regionprops((diffImage>imageThresh),propFields);
+
+        % Match centroids to ROIs by finding nearest ROI center
+        validCentroids=boolean(([props.Area]>4)&([props.Area]<56));
+        cenDat=reshape([props(validCentroids).Centroid],2,length([props(validCentroids).Centroid])/2)';
+        oriDat=reshape([props(validCentroids).Orientation],1,length([props(validCentroids).Orientation]))';
+        [cenDat,oriDat,centerDistance]=optoMatchCentroids2ROIs(cenDat,oriDat,centers,distanceThresh);
+
+        % Find the props elements corresponding to previous flies
+        lastCentroid=cenDat;
+
+        % Determine if fly has changed to a new arm
+        [current_arm,previous_arm,changedArm,rightTurns]=detectArmChange(cenDat,arm_coords,previous_arm,mazeOri,armThresh);
+
+        %Displays the turn scores of maze 12 in real time as a sanity check
+
+    %     if changedArm(12)
+    %        disp(rightTurns(12))
+    %     end
+
+
+        % Write data to the hard drive
+        dlmwrite(cenID, cenDat', '-append');
+        dlmwrite(oriID, [tElapsed oriDat'], '-append');
+        dlmwrite(turnID, rightTurns', '-append');
+
+        % Update the display every 30 frames
+        if mod(ct,30)==0 && get(handles.togglebutton7,'value')==1
+           imshow(imagedata(:,:,1))
+           hold on
+           plot(cenDat(:,1),cenDat(:,2),'o','Color','r')
+           hold off
+           drawnow
+        end
+
+        % update reference image at the reference frequency and print time remaining 
+        current_refUpdater=mod(toc,referenceFreq);
+        if current_refUpdater<previous_refUpdater
+           tRemaining=ceil((exp_duration-toc)/60);
+           disp(strcat(int2str(tRemaining),' minutes remaining'))
+           refCount=refCount+1;
+           refStack(:,:,mod(size(refStack,3),refCount)+1)=imagedata(:,:,1);
+           refImage=uint8(mean(refStack,3));
+        end 
+        previous_refUpdater=current_refUpdater;
+
+        % Grab new time stamp
+        current_tStamp = toc;
+        tElapsed=tElapsed+current_tStamp-previous_tStamp;
+        set(handles.edit8,'String',num2str(round(1/(current_tStamp-previous_tStamp))));
+        previous_tStamp=current_tStamp;
+        ct=ct+1;
+        tempCount=tempCount+1;
+   
+   if get(handles.togglebutton9, 'Value') == 1;
+      waitfor(handles.togglebutton9, 'Value', 0)   
+   end
+end
+
+%% Pull in ASCII data, format into matrices
+
+disp('Experiment Complete')
+disp('Importing Data - may take a few minutes...')
+flyTracks.nFlies = size(ROI_coords,1);
+tmpOri = dlmread(oriID);
+flyTracks.tStamps=tmpOri(:,1);
+flyTracks.orientation=tmpOri(:,2:end);
+flyTracks.rightTurns=dlmread(turnID);
+flyTracks.mazeOri=mazeOri;
+flyTracks.labels = readtable(labelID);
+
+tmp = dlmread(cenID);
+for i = 1:size(tmp,1)/2
+    for k = 1:flyTracks.nFlies
+        flyTracks.centroid(i, :, k) = tmp(i*2-1:i*2, k)';
+    end
+end
+
+% Clean up the workspace
+save('label
+
+    
+close all
+clearvars -except flyTracks
+close(gcf)
+
+
