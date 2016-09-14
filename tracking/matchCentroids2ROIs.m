@@ -1,4 +1,4 @@
-function [lastCentroid,centStamp]=matchCentroids2ROIs(cenDat,centers,speedThresh,distanceThresh,lastCentroid,centStamp,tElapsed)
+function [varargout]=matchCentroids2ROIs(cenDat,centers,speedThresh,distanceThresh,lastCentroid,centStamp,tElapsed)
 
 % Define placeholder data variables equal to number ROIs
 tempCenDat=NaN(size(centers,1),2);
@@ -21,6 +21,7 @@ g=abs(g);
 % Returns minimum distance to each previous centroid and the indeces (j)
 % Of the temp centroid with that distance
 [lastCenDistance,j]=min(g);
+speed=NaN(size(centers,1),1);
 
     % For the centroids j, calculate speed and distance to ROI center for thresholding
     if size(cenDat,1)>0
@@ -56,6 +57,15 @@ g=abs(g);
     % Update last known centroid and orientations
     lastCentroid(~isnan(j),:)=cenDat(j(~isnan(j)),:);
     end
+    
+    out{1}=lastCentroid;
+    out{2}=centStamp;
+    out{3}=speed;
+    
+    for i=1:nargout
+        varargout{i}=out{i};
+    end
+        
 
 end
 

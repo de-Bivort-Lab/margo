@@ -29,6 +29,8 @@ for i=1:numFlies
             mu=-sin(tmpAngle);
             surface([xTrace';xTrace'],[yTrace';yTrace'],[z';z'],[mu';mu'],...
                 'facecol','no','edgecol','interp','linew',0.5);
+            axis([0,max(xTrace),0,max(yTrace)]);
+            
 
 
     % Plot angle histogram
