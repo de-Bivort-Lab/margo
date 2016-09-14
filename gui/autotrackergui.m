@@ -23,7 +23,7 @@ function varargout = autotrackergui(varargin)
 
 % Edit the above text to modify the response to help autotrackergui
 
-% Last Modified by GUIDE v2.5 05-Sep-2016 20:44:24
+% Last Modified by GUIDE v2.5 14-Sep-2016 17:49:12
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -247,13 +247,13 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 % --- Executes during object creation, after setting all properties.
-function togglebutton7_CreateFcn(~, ~, ~)
-% hObject    handle to togglebutton7 (see GCBO)
+function COM_refresh_togglebutton_CreateFcn(~, ~, ~)
+% hObject    handle to COM_refresh_togglebutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
 % --- Executes on button press in Refresh COM.
-function togglebutton7_Callback(hObject, ~, handles)
+function COM_refresh_togglebutton_Callback(hObject, ~, handles)
 
 % Refresh items on the COM ports
 if get(hObject,'value')==1
@@ -279,9 +279,9 @@ end
 
 guidata(hObject,handles);
 
-% --- Executes on button press in pushbutton3.
-function pushbutton3_Callback(hObject, ~, handles)
-% hObject    handle to pushbutton3 (see GCBO)
+% --- Executes on button press in save_path_pushbutton.
+function save_path_pushbutton_Callback(hObject, ~, handles)
+% hObject    handle to save_path_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
@@ -292,9 +292,9 @@ set(handles.edit_file_path,'String',fpath);
 
 guidata(hObject,handles);
 
-% --- Executes on button press in pushbutton2.
-function pushbutton2_Callback(hObject, ~, handles)
-% hObject    handle to pushbutton2 (see GCBO)
+% --- Executes on button press in run_exp_pushbutton.
+function run_exp_pushbutton_Callback(hObject, ~, handles)
+% hObject    handle to run_exp_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
@@ -361,8 +361,8 @@ function edit_ref_freq_DeleteFcn(~, ~, ~)
 
 
 % --- Executes during object deletion, before destroying properties.
-function pushbutton2_DeleteFcn(~, ~, ~)
-% hObject    handle to pushbutton2 (see GCBO)
+function run_exp_pushbutton_DeleteFcn(~, ~, ~)
+% hObject    handle to run_exp_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 % 
@@ -888,3 +888,17 @@ function edit_cam_shutter_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --- Executes during object deletion, before destroying properties.
+function save_path_pushbutton_DeleteFcn(hObject, eventdata, handles)
+% hObject    handle to save_path_pushbutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes during object deletion, before destroying properties.
+function COM_refresh_togglebutton_DeleteFcn(hObject, eventdata, handles)
+% hObject    handle to COM_refresh_togglebutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
