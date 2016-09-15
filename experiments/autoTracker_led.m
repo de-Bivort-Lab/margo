@@ -8,7 +8,7 @@ cmd_str = 'wmic process where name="MATLAB.exe" CALL setpriority 128';
 %% Define parameters - adjust parameters here to fix tracking and ROI segmentation errors
 
 % Experimental parameters
-exp_duration=handles.exp-duration;           % Duration of the experiment in minutes
+exp_duration=handles.exp_duration;           % Duration of the experiment in minutes
 ref_stack_size=handles.ref_stack_size;        % Number of images to keep in rolling reference
 ref_freq=handles.ref_freq;              % Seconds between reference images                           % Minimum pixel distance to end of maze arm for turn scoring
 referenceTime = 60;                        % Seconds over which intial reference images are taken

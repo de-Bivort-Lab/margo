@@ -305,14 +305,14 @@ elseif handles.experiment == 1
 else
     switch handles.experiment
     	case 2
-            autoTrackerV2_ymaze120;
+            autoTracker_ymaze120;
         case 3
-            autoTrackerV2_ymaze96;
+            autoTracker_ymaze96;
            
         case 4
-            autoTrackerV2_arena;
+            autoTracker_arena;
         case 5
-            autoTrackerV2_led;
+            autoTracker_led;
     end
 end
 
@@ -828,7 +828,7 @@ pause(0.02);
 handles.vid=initializeCamera(handles.camInfo);
 handles.src=getselectedsource(handles.vid);
 start(handles.vid);
-pause(0.1);
+pause(0.5);
 im=peekdata(handles.vid,1);
 handles.hImage=image(im);
 set(gca,'Xtick',[],'Ytick',[]);
