@@ -55,7 +55,7 @@ fopen(s);                               % Open the port
 
 %% Set LED board permutation vector and initialize LEDs
 
-targetPWM=4000;      % Sets the max PWM for LEDs
+targetPWM=1500;      % Sets the max PWM for LEDs
 
 % Set LED permutation vector that converts LED number by maze
 % into a unique address for each LED driver board on the teensy
