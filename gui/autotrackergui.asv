@@ -823,8 +823,7 @@ function Cam_confirm_pushbutton_Callback(hObject, eventdata, handles)
 % hObject    handle to Cam_confirm_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-cla reset
+    
 imaqreset;
 pause(0.02);
 handles.vid=initializeCamera(handles.camInfo);
@@ -846,6 +845,7 @@ function Cam_preview_pushbutton_Callback(hObject, eventdata, handles)
 if isfield(handles, 'vid') == 0
     errordlg('Please confirm camera settings')
 else
+    disp('showing
     preview(handles.vid,handles.hImage);       
 end
 
