@@ -1,4 +1,4 @@
-function out=avgAngle(cData,widths)
+function out=avgAngle_optomotor(cData,widths,stim_status,rotDat)
 
 % out=avgAngle(dataCluster,roi)
 
@@ -10,10 +10,14 @@ haall=zeros(numFlies,length(bins)-1);
 
 for i=1:numFlies
     fly=cData(i);
-    valid_trials=fly.speed>0.2 & fly.r<0.6*widths(i);
+    moving=fly.speed>0.02;
+    in_center=fly.r<0.5*widths(i);
+    stim_ON=stim_status(:,i);
+    valid_trials = moving & in_center & stim_ON;
     s=fly.speed;
     r=fly.r;
     a=fly.theta;
+    a(rotDat(:,i))=-a(rotDat(:,i));
     da=[0;diff(a)];
     da=da(valid_trials);
     s=s(valid_trials);

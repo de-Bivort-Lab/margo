@@ -1,9 +1,11 @@
-function [xCenters,yCenters]=ROIcenters(binaryimage,ROI_coords)
+function [xCenters,yCenters]=ROIcenters(grayscale_im,binaryimage,ROI_coords)
 
 %% Calculate ROI center coordinates
 
 xCenters=zeros(size(ROI_coords,1),1);
 yCenters=zeros(size(ROI_coords,1),1);
+masked_im = grayscale_im;
+masked_im(~binaryimage)=0;
 
 % For each ROI
     for i=1:size(ROI_coords,1)

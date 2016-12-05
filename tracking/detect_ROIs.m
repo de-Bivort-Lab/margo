@@ -43,8 +43,8 @@ warning('off');
 
         %% Exclude ROIs that are too far to the left or right edge of the image
         width=size(binaryimage,2);
-        minEdge=ROI_coords(:,1)<0.1*width;
-        maxEdge=ROI_coords(:,3)>0.93*width;
+        minEdge=ROI_coords(:,1)<0.05*width;
+        maxEdge=ROI_coords(:,3)>0.95*width;
         exclude=minEdge|maxEdge;
         ROI_coords(exclude,:)=[];
         ROI_bounds(exclude,:)=[];

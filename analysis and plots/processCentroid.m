@@ -16,6 +16,7 @@ for j=1:numFlies
     out(j).direction(2:end)=atan2(diff(iny),diff(inx));
     out(j).turning(2:end) = diff(out(j).direction);
     out(j).speed(2:end)=sqrt(diff(iny).^2+diff(iny).^2);
+    out(j).turn_distance=out(j).speed.*sin(out(j).turning);
     out(j).speed(out(j).speed>12)=NaN;
 end
 
