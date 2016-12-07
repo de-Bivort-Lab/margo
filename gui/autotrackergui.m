@@ -182,7 +182,7 @@ function edit_exp_duration_Callback(hObject, ~, handles)
 % hObject    handle to edit_exp_duration (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-handles.expDuration = str2double(get(hObject,'String'));
+handles.exp_duration = str2double(get(hObject,'String'));
 guidata(hObject, handles)
 % Hints: get(hObject,'String') returns contents of edit_exp_duration as text
 %        str2double(get(hObject,'String')) returns contents of edit_exp_duration as a double
