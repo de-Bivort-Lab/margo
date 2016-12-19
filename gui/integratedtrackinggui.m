@@ -209,21 +209,26 @@ function Cam_confirm_pushbutton_Callback(hObject, eventdata, handles)
 % import experiment data struct
 exp = getappdata(handles.figure1,'expData');
 
-if ~isempty(exp.camInfo.DeviceInfo)
-    cla reset
-    imaqreset;
-    pause(0.02);
-    exp.vid = initializeCamera(exp.camInfo);
-    exp.src = getselectedsource(exp.vid);
-    start(exp.vid);
-    pause(0.5);
-    im = peekdata(exp.vid,1);
-    handles.hImage = image(im);
-    set(gca,'Xtick',[],'Ytick',[]);
-    stop(exp.vid);
+if exist(exp.camInfo.DeviceInfo)
+    if ~isempty(exp.camInfo.DeviceInfo)
+        cla reset
+        imaqreset;
+        pause(0.02);
+        exp.vid = initializeCamera(exp.camInfo);
+        exp.src = getselectedsource(exp.vid);
+        start(exp.vid);
+        pause(0.5);
+        im = peekdata(exp.vid,1);
+        handles.hImage = image(im);
+        set(gca,'Xtick',[],'Ytick',[]);
+        stop(exp.vid);
+    else
+        errordlg('Settings not confirmed, no camera detected');
+    end
 else
-    errordlg('Settings not confirmed, no camera detected');
+    errordlg('No cameras adaptors installed');
 end
+
 guidata(hObject,handles);
 
 % Store experiment data struct
