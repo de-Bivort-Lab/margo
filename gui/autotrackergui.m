@@ -23,7 +23,7 @@ function varargout = autotrackergui(varargin)
 
 % Edit the above text to modify the response to help autotrackergui
 
-% Last Modified by GUIDE v2.5 14-Sep-2016 17:49:12
+% Last Modified by GUIDE v2.5 15-Dec-2016 10:44:04
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -64,10 +64,12 @@ for i=1:length(c.InstalledAdaptors)
         adaptor=i;
     end
 end
-camInfo=imaqhwinfo(c.InstalledAdaptors{adaptor});
+if exist('adaptor')
+    camInfo=imaqhwinfo(c.InstalledAdaptors{adaptor});
+end
 
 % Set the device to default format and populate pop-up menu
-if ~isempty(camInfo.DeviceInfo.SupportedFormats);
+if ~isempty(camInfo.DeviceInfo);
 set(handles.Cam_popupmenu,'String',camInfo.DeviceInfo.SupportedFormats);
 default_format=camInfo.DeviceInfo.DefaultFormat;
 
@@ -824,17 +826,21 @@ function Cam_confirm_pushbutton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-cla reset
-imaqreset;
-pause(0.02);
-handles.vid=initializeCamera(handles.camInfo);
-handles.src=getselectedsource(handles.vid);
-start(handles.vid);
-pause(0.5);
-im=peekdata(handles.vid,1);
-handles.hImage=image(im);
-set(gca,'Xtick',[],'Ytick',[]);
-stop(handles.vid);
+if ~isempty(handles.camInfo.DeviceInfo)
+    cla reset
+    imaqreset;
+    pause(0.02);
+    handles.vid=initializeCamera(handles.camInfo);
+    handles.src=getselectedsource(handles.vid);
+    start(handles.vid);
+    pause(0.5);
+    im=peekdata(handles.vid,1);
+    handles.hImage=image(im);
+    set(gca,'Xtick',[],'Ytick',[]);
+    stop(handles.vid);
+else
+    errordlg('Settings not confirmed, no camera detected');
+end
 guidata(hObject, handles);
 
 
@@ -904,3 +910,22 @@ function COM_refresh_togglebutton_DeleteFcn(hObject, eventdata, handles)
 % hObject    handle to COM_refresh_togglebutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in labels_pushbutton.
+function labels_pushbutton_Callback(hObject, eventdata, handles)
+% hObject    handle to labels_pushbutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+if isfield(handles,'labels')
+    tmp_lbl=label_subgui(handles.labels);
+    if ~isempty(tmp_lbl)
+        handles.labels=tmp_lbl;
+    end
+else
+    tmp_lbl=label_subgui;
+    if ~isempty(tmp_lbl)
+        handles.labels=tmp_lbl;
+    end
+end
+guidata(hObject,handles);

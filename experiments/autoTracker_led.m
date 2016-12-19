@@ -101,7 +101,7 @@ end
 imaqreset
 pause(0.2);
 
-% Create camera object, set mode to 8-bit with 664x524 resolution
+% Create camera object with input parameters
 vid = initializeCamera(handles.camInfo);
 start(vid);
 pause(0.2);
