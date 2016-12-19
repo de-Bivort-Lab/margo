@@ -56,39 +56,45 @@ function integratedtrackinggui_OpeningFcn(hObject, eventdata, handles, varargin)
 handles.output = hObject;
 set(handles.ROI_thresh_slider,'value',40);
 set(gca,'Xtick',[],'Ytick',[]);
-exp=[];
+exp = [];
 
 % Query available camera and modes
 imaqreset
-c=imaqhwinfo;
+c = imaqhwinfo;
 
-% Select appropriate adaptor for connected camera
-for i=1:length(c.InstalledAdaptors)
-    camInfo=imaqhwinfo(c.InstalledAdaptors{i});
-    if ~isempty(camInfo.DeviceIDs)
-        adaptor=i;
-    end
-end
-if exist('adaptor')
-    camInfo=imaqhwinfo(c.InstalledAdaptors{adaptor});
-end
-
-% Set the device to default format and populate pop-up menu
-if ~isempty(camInfo.DeviceInfo);
-set(handles.Cam_popupmenu,'String',camInfo.DeviceInfo.SupportedFormats);
-default_format=camInfo.DeviceInfo.DefaultFormat;
-
-    for i=1:length(camInfo.DeviceInfo.SupportedFormats)
-        if strcmp(default_format,camInfo.DeviceInfo.SupportedFormats{i})
-            set(handles.Cam_popupmenu,'Value',i);
-            camInfo.ActiveMode=camInfo.DeviceInfo.SupportedFormats(i);
+if length(c.InstalledAdaptors)>0
+    % Select appropriate adaptor for connected camera
+    for i = 1:length(c.InstalledAdaptors)
+        camInfo = imaqhwinfo(c.InstalledAdaptors{i});
+        if ~isempty(camInfo.DeviceIDs)
+            adaptor = i;
         end
     end
-    
+    if exist('adaptor')
+        camInfo = imaqhwinfo(c.InstalledAdaptors{adaptor});
+    end
+
+    % Set the device to default format and populate pop-up menu
+    if ~isempty(camInfo.DeviceInfo);
+    set(handles.Cam_popupmenu,'String',camInfo.DeviceInfo.SupportedFormats);
+    default_format = camInfo.DeviceInfo.DefaultFormat;
+
+        for i = 1:length(camInfo.DeviceInfo.SupportedFormats)
+            if strcmp(default_format,camInfo.DeviceInfo.SupportedFormats{i})
+                set(handles.Cam_popupmenu,'Value',i);
+                camInfo.ActiveMode = camInfo.DeviceInfo.SupportedFormats(i);
+            end
+        end
+
+    else
+    set(handles.Cam_popupmenu,'String','Camera not detected');
+    end
+    exp.camInfo = camInfo;
 else
-set(handles.Cam_popupmenu,'String','Camera not detected');
+    exp.camInfo=[];
+    set(handles.Cam_popupmenu,'String','No camera adaptors installed');
 end
-exp.camInfo=camInfo;
+    
 
 
 % Initialize teensy for motor and light board control
@@ -100,25 +106,25 @@ delete(instrfindall);           % Delete any serial objects in memory
 end
 
 % Attempt handshake with light panel teensy
-[exp.teensy_port,ports]=identifyMicrocontrollers;
+[exp.teensy_port,ports] = identifyMicrocontrollers;
 
 % Update GUI menus with port names
 set(handles.microcontroller_popupmenu,'string',exp.teensy_port);
 
 % Initialize light panel at default values
-IR_intensity=str2num(get(handles.edit_IR_intensity,'string'));
-White_intensity=str2num(get(handles.edit_White_intensity,'string'));
+IR_intensity = str2num(get(handles.edit_IR_intensity,'string'));
+White_intensity = str2num(get(handles.edit_White_intensity,'string'));
 
 % Convert intensity percentage to uint8 PWM value 0-255
-exp.IR_intensity=uint8((IR_intensity/100)*255);
-exp.White_intensity=uint8((White_intensity/100)*255);
+exp.IR_intensity = uint8((IR_intensity/100)*255);
+exp.White_intensity = uint8((White_intensity/100)*255);
 
 % Write values to microcontroller
 writeInfraredWhitePanel(exp.teensy_port,1,exp.IR_intensity);
 writeInfraredWhitePanel(exp.teensy_port,0,exp.White_intensity);
 
 % Initialize experiment parameters from text boxes in the GUI
-exp.ref_stack_size = str2num(get(handles.edit_ref_stack_size,'String')); %#ok<*ST2NM>
+exp.ref_stack_size  =  str2num(get(handles.edit_ref_stack_size,'String')); %#ok<*ST2NM>
 exp.ref_freq = str2num(get(handles.edit_ref_freq,'String'));
 exp.duration = str2num(get(handles.edit_exp_duration,'String'));
 exp.camInfo.Gain = str2num(get(handles.edit_gain,'String'));
@@ -128,8 +134,11 @@ exp.ROI_thresh = get(handles.ROI_thresh_slider,'Value');
 exp.tracking_thresh = get(handles.track_thresh_slider,'Value');
 exp.speed_thresh = 45;
 exp.distance_thresh = 20;
-exp.target_rate = estimateFrameRate(exp.camInfo);
-exp.vignette_sigma = 
+exp.vignette_sigma = 0.47;
+exp.vignette_weight = 0.35;
+
+if 
+    exp.target_rate = estimateFrameRate(exp.camInfo);
 
 setappdata(handles.figure1,'expData',exp);
 
@@ -167,10 +176,10 @@ function Cam_popupmenu_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-exp=getappdata(handles.figure1,'expData');
+exp = getappdata(handles.figure1,'expData');
 
-strCell=get(handles.Cam_popupmenu,'string');
-exp.camInfo.ActiveMode=strCell(get(handles.Cam_popupmenu,'Value'));
+strCell = get(handles.Cam_popupmenu,'string');
+exp.camInfo.ActiveMode = strCell(get(handles.Cam_popupmenu,'Value'));
 guidata(hObject,handles);
 
 % Store experiment data struct
@@ -197,18 +206,18 @@ function Cam_confirm_pushbutton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import experiment data struct
-exp=getappdata(handles.figure1,'expData');
+exp = getappdata(handles.figure1,'expData');
 
 if ~isempty(exp.camInfo.DeviceInfo)
     cla reset
     imaqreset;
     pause(0.02);
-    exp.vid=initializeCamera(exp.camInfo);
-    exp.src=getselectedsource(exp.vid);
+    exp.vid = initializeCamera(exp.camInfo);
+    exp.src = getselectedsource(exp.vid);
     start(exp.vid);
     pause(0.5);
-    im=peekdata(exp.vid,1);
-    handles.hImage=image(im);
+    im = peekdata(exp.vid,1);
+    handles.hImage = image(im);
     set(gca,'Xtick',[],'Ytick',[]);
     stop(exp.vid);
 else
@@ -228,7 +237,7 @@ function Cam_preview_pushbutton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import experiment data struct
-exp=getappdata(handles.figure1,'expData');
+exp = getappdata(handles.figure1,'expData');
 
 if isfield(exp, 'vid') == 0
     errordlg('Please confirm camera settings')
@@ -247,7 +256,7 @@ function Cam_stopPreview_pushbutton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import experiment data struct
-exp=getappdata(handles.figure1,'expData');
+exp = getappdata(handles.figure1,'expData');
 
 set(handles.Cam_preview_pushbutton,'Value',0);
 set(handles.Cam_stopPreview_pushbutton,'Value',0);
@@ -264,12 +273,12 @@ function edit_exposure_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import experiment data struct
-exp=getappdata(handles.figure1,'expData');
-exp.camInfo.Exposure=str2num(get(handles.edit_exposure,'String'));
+exp = getappdata(handles.figure1,'expData');
+exp.camInfo.Exposure = str2num(get(handles.edit_exposure,'String'));
 
 % If video is in preview mode, update the camera immediately
 if isfield(handles,'src')
-    exp.src.Exposure=exp.camInfo.Exposure;
+    exp.src.Exposure = exp.camInfo.Exposure;
 end
 
 guidata(hObject,handles);
@@ -297,12 +306,12 @@ function edit_gain_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import experiment data struct
-exp=getappdata(handles.figure1,'expData');
-exp.camInfo.Gain=str2num(get(handles.edit_gain,'String'));
+exp = getappdata(handles.figure1,'expData');
+exp.camInfo.Gain = str2num(get(handles.edit_gain,'String'));
 
 % If video is in preview mode, update the camera immediately
 if isfield(handles,'src')
-    exp.src.Gain=exp.camInfo.Gain;
+    exp.src.Gain = exp.camInfo.Gain;
 end
 
 guidata(hObject,handles);
@@ -330,13 +339,13 @@ function edit_cam_shutter_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import experiment data struct
-exp=getappdata(handles.figure1,'expData');
+exp = getappdata(handles.figure1,'expData');
 
-exp.camInfo.Shutter=str2num(get(handles.edit_cam_shutter,'String'));
+exp.camInfo.Shutter = str2num(get(handles.edit_cam_shutter,'String'));
 
 % If video is in preview mode, update the camera immediately
 if isfield(handles,'src')
-    exp.src.Shutter=exp.camInfo.Shutter;
+    exp.src.Shutter = exp.camInfo.Shutter;
 end
 
 guidata(hObject,handles);
@@ -393,12 +402,12 @@ function edit_IR_intensity_Callback(hObject, eventdata, handles)
 % Initialize light panel at default values
 
 % import experiment data struct
-exp=getappdata(handles.figure1,'expData');
+exp = getappdata(handles.figure1,'expData');
 
-exp.IR_intensity=str2num(get(handles.edit_IR_intensity,'string'));
+exp.IR_intensity = str2num(get(handles.edit_IR_intensity,'string'));
 
 % Convert intensity percentage to uint8 PWM value 0-255
-exp.IR_intensity=uint8((exp.IR_intensity/100)*255);
+exp.IR_intensity = uint8((exp.IR_intensity/100)*255);
 
 writeInfraredWhitePanel(exp.teensy_port,1,exp.IR_intensity);
 
@@ -424,12 +433,12 @@ function edit_White_intensity_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import experiment data struct
-exp=getappdata(handles.figure1,'expData');
+exp = getappdata(handles.figure1,'expData');
 
-White_intensity=str2num(get(handles.edit_White_intensity,'string'));
+White_intensity = str2num(get(handles.edit_White_intensity,'string'));
 
 % Convert intensity percentage to uint8 PWM value 0-255
-exp.White_intensity=uint8((White_intensity/100)*255);
+exp.White_intensity = uint8((White_intensity/100)*255);
 writeInfraredWhitePanel(exp.teensy_port,0,exp.White_intensity);
 
 guidata(hObject,handles);
@@ -457,10 +466,10 @@ function save_path_button1_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import experiment data struct
-exp=getappdata(handles.figure1,'expData');
+exp = getappdata(handles.figure1,'expData');
 
-[fpath] = uigetdir('E:\Decathlon Raw Data','Select a save destination');
-exp.fpath=fpath;
+[fpath]  =  uigetdir('E:\Decathlon Raw Data','Select a save destination');
+exp.fpath = fpath;
 set(handles.save_path,'String',fpath);
 guidata(hObject,handles);
 
@@ -499,12 +508,12 @@ function labels_uitable_CreateFcn(hObject, eventdata, handles)
 % handles    empty - handles not created until after all CreateFcns called
 
 % import experiment data struct
-exp=getappdata(handles.figure1,'expData');
+exp = getappdata(handles.figure1,'expData');
 
-data=cell(5,8);
-data(:)={''};
+data = cell(5,8);
+data(:) = {''};
 set(hObject, 'Data', data);
-exp.labels=data;
+exp.labels = data;
 guidata(hObject,handles);
 
 % Store experiment data struct
@@ -523,7 +532,7 @@ function labels_uitable_CellEditCallback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import experiment data struct
-exp=getappdata(handles.figure1,'expData');
+exp = getappdata(handles.figure1,'expData');
 
 exp.labels{eventdata.Indices(1), eventdata.Indices(2)} = {''};
 exp.labels{eventdata.Indices(1), eventdata.Indices(2)} = eventdata.NewData;
@@ -537,7 +546,7 @@ function edit_ref_stack_size_Callback(hObject, eventdata, handles)
 % hObject    handle to edit_ref_stack_size (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-exp.ref_stack_size=str2num(get(handles.edit_ref_stack_size,'String'));
+exp.ref_stack_size = str2num(get(handles.edit_ref_stack_size,'String'));
 guidata(hObject,handles);
 
 % Store experiment data struct
@@ -564,9 +573,9 @@ function edit_ref_freq_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import experiment data struct
-exp=getappdata(handles.figure1,'expData');
+exp = getappdata(handles.figure1,'expData');
 
-exp.ref_freq=str2num(get(handles.edit_ref_freq,'String'));
+exp.ref_freq = str2num(get(handles.edit_ref_freq,'String'));
 guidata(hObject,handles);
 
 % Store experiment data struct
@@ -593,9 +602,9 @@ function edit_exp_duration_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import experiment data struct
-exp=getappdata(handles.figure1,'expData');
+exp = getappdata(handles.figure1,'expData');
 
-exp.duration=str2num(get(handles.edit_exp_duration,'String'));
+exp.duration = str2num(get(handles.edit_exp_duration,'String'));
 guidata(hObject,handles);
 
 % Store experiment data struct
@@ -622,7 +631,7 @@ function pushbutton6_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import experiment data struct
-exp=getappdata(handles.figure1,'expData');
+exp = getappdata(handles.figure1,'expData');
 
 if isfield(handles, 'fpath') == 0 
     errordlg('Please specify Save Location')
@@ -650,9 +659,9 @@ function ROI_thresh_slider_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import experiment data struct
-exp=getappdata(handles.figure1,'expData');
+exp = getappdata(handles.figure1,'expData');
 
-exp.ROI_thresh=get(handles.ROI_thresh_slider,'Value');
+exp.ROI_thresh = get(handles.ROI_thresh_slider,'Value');
 set(handles.disp_ROI_thresh,'string',num2str(uint8(exp.ROI_thresh)));
 guidata(hObject,handles);
 
@@ -679,7 +688,7 @@ function accept_ROI_thresh_pushbutton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import experiment data struct
-exp=getappdata(handles.figure1,'expData');
+exp = getappdata(handles.figure1,'expData');
 
 set(handles.accept_ROI_thresh_pushbutton,'value',1);
 guidata(hObject,handles);
@@ -718,9 +727,9 @@ function exp_select_popupmenu_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import experiment data struct
-exp=getappdata(handles.figure1,'expData');
+exp = getappdata(handles.figure1,'expData');
 
-exp.experiment=get(handles.exp_select_popupmenu,'Value');
+exp.experiment = get(handles.exp_select_popupmenu,'Value');
 guidata(hObject,handles);
 
 % Store experiment data struct
@@ -750,27 +759,27 @@ function begin_reg_button_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import experiment data struct
-exp=getappdata(handles.figure1,'expData');
+exp = getappdata(handles.figure1,'expData');
 
 
 % Turn infrared and white background illumination off during registration
 writeInfraredWhitePanel(exp.teensy_port,1,0);
 writeInfraredWhitePanel(exp.teensy_port,0,0);
 
-msg_title=['Projector Registration Tips'];
-spc=[' '];
-intro=['Please check the following before continuing to ensure successful registration:'];
-item1=['1.) Both the infrared and white lights for imaging illumination are set to OFF. '...
+msg_title = ['Projector Registration Tips'];
+spc = [' '];
+intro = ['Please check the following before continuing to ensure successful registration:'];
+item1 = ['1.) Both the infrared and white lights for imaging illumination are set to OFF. '...
     'Make sure the projector is the only light source visible to the camera'];
-item2=['2.) Camera is not imaging through infrared filter. '...
+item2 = ['2.) Camera is not imaging through infrared filter. '...
     'Projector display should be visible through the camera.'];
-item3=['3.) Projector is turned on and set to desired resolution.'];
-item4=['4.) Camera shutter speed is adjusted to match the refresh rate of the projector.'...
+item3 = ['3.) Projector is turned on and set to desired resolution.'];
+item4 = ['4.) Camera shutter speed is adjusted to match the refresh rate of the projector.'...
     ' This will appear as moving streaks in the camera if not properly adjusted.'];
-item5=['5.) Both camera and projector are in fixed positions and will not need to be adjusted'...
+item5 = ['5.) Both camera and projector are in fixed positions and will not need to be adjusted'...
     ' after registration.'];
-closing=['Click OK to continue with the registration'];
-message={intro spc item1 spc item2 spc item3 spc item4 spc item5 spc closing};
+closing = ['Click OK to continue with the registration'];
+message = {intro spc item1 spc item2 spc item3 spc item4 spc item5 spc closing};
 
 % Display registration tips
 waitfor(msgbox(message,msg_title));
@@ -817,7 +826,7 @@ function exp_parameter_pushbutton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import experiment data struct
-exp=getappdata(handles.figure1,'expData');
+exp = getappdata(handles.figure1,'expData');
 
 if exp.experiment<2
 errordlg('Please select an experiment first')
@@ -827,28 +836,28 @@ else
 
         case 3
              if isfield(exp,'parameters') && strcmp(exp.parameters.name,'Optomotor');
-                tmp_param=optomotor_parameter_gui(exp.parameters);
+                tmp_param = optomotor_parameter_gui(exp.parameters);
                 if ~isempty(tmp_param)
-                    exp.parameters=tmp_param;
+                    exp.parameters = tmp_param;
                 end
             else
-                tmp_param=optomotor_parameter_gui;
+                tmp_param = optomotor_parameter_gui;
                 if ~isempty(tmp_param)
-                    exp.parameters=tmp_param;
+                    exp.parameters = tmp_param;
                 end
              end
              
              
         case 4                       
              if isfield(exp,'parameters') && strcmp(exp.parameters.name,'Slow Phototaxis');
-                tmp_param=slowphototaxis_parameter_gui(exp.parameters);
+                tmp_param = slowphototaxis_parameter_gui(exp.parameters);
                 if ~isempty(tmp_param)
-                    exp.parameters=tmp_param;
+                    exp.parameters = tmp_param;
                 end
             else
-                tmp_param=slowphototaxis_parameter_gui;
+                tmp_param = slowphototaxis_parameter_gui;
                 if ~isempty(tmp_param)
-                    exp.parameters=tmp_param;
+                    exp.parameters = tmp_param;
                 end
              end
             
@@ -868,11 +877,11 @@ function refresh_COM_pushbutton_Callback(hObject, eventdata, handles)
 % Refresh items on the COM ports
 
 % import experiment data struct
-exp=getappdata(handles.figure1,'expData');
+exp = getappdata(handles.figure1,'expData');
 
    
 % Attempt handshake with light panel teensy
-[exp.teensy_port,ports]=identifyMicrocontrollers;
+[exp.teensy_port,ports] = identifyMicrocontrollers;
 
 if ~isempty(ports)
 % Update GUI menus with port names
@@ -894,17 +903,17 @@ function enter_labels_pushbutton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import experiment data struct
-exp=getappdata(handles.figure1,'expData');
+exp = getappdata(handles.figure1,'expData');
 
 if isfield(handles,'labels')
-    tmp_lbl=label_subgui(handles.labels);
+    tmp_lbl = label_subgui(handles.labels);
     if ~isempty(tmp_lbl)
-        handles.labels=tmp_lbl;
+        handles.labels = tmp_lbl;
     end
 else
-    tmp_lbl=label_subgui;
+    tmp_lbl = label_subgui;
     if ~isempty(tmp_lbl)
-        handles.labels=tmp_lbl;
+        handles.labels = tmp_lbl;
     end
 end
 
@@ -926,9 +935,9 @@ function track_thresh_slider_Callback(hObject, eventdata, handles)
 %        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
 
 % import experiment data struct
-exp=getappdata(handles.figure1,'expData');
+exp = getappdata(handles.figure1,'expData');
 
-exp.tracking_thresh=get(handles.track_thresh_slider,'Value');
+exp.tracking_thresh = get(handles.track_thresh_slider,'Value');
 set(handles.disp_track_thresh,'string',num2str(round(exp.tracking_thresh*100)/100));
 guidata(hObject,handles);
 
@@ -955,7 +964,7 @@ function accept_track_thresh_pushbutton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import experiment data struct
-exp=getappdata(handles.figure1,'expData');
+exp = getappdata(handles.figure1,'expData');
 
 set(handles.accept_track_thresh_pushbutton,'value',1);
 guidata(hObject,handles);
@@ -971,9 +980,16 @@ function adv_track_param_pushbutton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import experiment data struct
-exp=getappdata(handles.figure1,'expData');
+exp = getappdata(handles.figure1,'expData');
 
-tmp_param = advancedTrackingParam_subgui(exp);
+tmp = advancedTrackingParam_subgui(exp);
+if ~isempty(tmp)
+    exp.speed_thresh = tmp.speed_thresh;
+    exp.distance_thresh = tmp.distance_thresh;
+    exp.target_rate = tmp.target_rate;
+    exp.vignette_sigma = tmp.vignette_sigma;
+    exp.vignette_weight = tmp.vignette_weight;
+end
              
              % Store experiment data struct
 setappdata(handles.figure1,'expData',exp);
@@ -1041,20 +1057,20 @@ function begin_reg_pushbutton_Callback(hObject, eventdata, handles)
 writeInfraredWhitePanel(handles.teensy_port,1,0);
 writeInfraredWhitePanel(handles.teensy_port,0,0);
 
-msg_title=['Projector Registration Tips'];
-spc=[' '];
-intro=['Please check the following before continuing to ensure successful registration:'];
-item1=['1.) Both the infrared and white lights for imaging illumination are set to OFF. '...
+msg_title = ['Projector Registration Tips'];
+spc = [' '];
+intro = ['Please check the following before continuing to ensure successful registration:'];
+item1 = ['1.) Both the infrared and white lights for imaging illumination are set to OFF. '...
     'Make sure the projector is the only light source visible to the camera'];
-item2=['2.) Camera is not imaging through infrared filter. '...
+item2 = ['2.) Camera is not imaging through infrared filter. '...
     'Projector display should be visible through the camera.'];
-item3=['3.) Projector is turned on and set to desired resolution.'];
-item4=['4.) Camera shutter speed is adjusted to match the refresh rate of the projector.'...
+item3 = ['3.) Projector is turned on and set to desired resolution.'];
+item4 = ['4.) Camera shutter speed is adjusted to match the refresh rate of the projector.'...
     ' This will appear as moving streaks in the camera if not properly adjusted.'];
-item5=['5.) Both camera and projector are in fixed positions and will not need to be adjusted'...
+item5 = ['5.) Both camera and projector are in fixed positions and will not need to be adjusted'...
     ' after registration.'];
-closing=['Click OK to continue with the registration'];
-message={intro spc item1 spc item2 spc item3 spc item4 spc item5 spc closing};
+closing = ['Click OK to continue with the registration'];
+message = {intro spc item1 spc item2 spc item3 spc item4 spc item5 spc closing};
 
 % Display registration tips
 waitfor(msgbox(message,msg_title));
@@ -1093,7 +1109,7 @@ function aux_COM_popupmenu_Callback(hObject, eventdata, handles)
 %        contents{get(hObject,'Value')} returns selected item from aux_COM_popupmenu
 
 % import experiment data struct
-exp=getappdata(handles.figure1,'expData');
+exp = getappdata(handles.figure1,'expData');
 
 % Update GUI menus with port names
 set(handles.aux_COM_popupmenu,'string',ports);
@@ -1124,17 +1140,17 @@ function refresh_aux_COM_pushbutton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import experiment data struct
-exp=getappdata(handles.figure1,'expData');
+exp = getappdata(handles.figure1,'expData');
 
 % Attempt handshake with light panel teensy
-[lightBoardPort,ports]=identifyMicrocontrollers;
+[lightBoardPort,ports] = identifyMicrocontrollers;
 
 % Assign unidentified ports to LED ymaze menu
 if ~isempty(ports)
-handles.aux_COM_port=ports(1);
+handles.aux_COM_port = ports(1);
 else
-ports='COM not detected';
-handles.aux_COM_port={ports};
+ports = 'COM not detected';
+handles.aux_COM_port = {ports};
 end
 
 % Update GUI menus with port names

@@ -134,9 +134,12 @@ exp.ROI_thresh = get(handles.ROI_thresh_slider,'Value');
 exp.tracking_thresh = get(handles.track_thresh_slider,'Value');
 exp.speed_thresh = 45;
 exp.distance_thresh = 20;
-exp.target_rate = estimateFrameRate(exp.camInfo);
 exp.vignette_sigma = 0.47;
 exp.vignette_weight = 0.35;
+
+if ~isempty(exp.camInfo)
+    exp.target_rate = estimateFrameRate(exp.camInfo);
+end
 
 setappdata(handles.figure1,'expData',exp);
 
