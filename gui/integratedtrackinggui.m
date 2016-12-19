@@ -62,33 +62,39 @@ exp = [];
 imaqreset
 c = imaqhwinfo;
 
-% Select appropriate adaptor for connected camera
-for i = 1:length(c.InstalledAdaptors)
-    camInfo = imaqhwinfo(c.InstalledAdaptors{i});
-    if ~isempty(camInfo.DeviceIDs)
-        adaptor = i;
-    end
-end
-if exist('adaptor')
-    camInfo = imaqhwinfo(c.InstalledAdaptors{adaptor});
-end
-
-% Set the device to default format and populate pop-up menu
-if ~isempty(camInfo.DeviceInfo);
-set(handles.Cam_popupmenu,'String',camInfo.DeviceInfo.SupportedFormats);
-default_format = camInfo.DeviceInfo.DefaultFormat;
-
-    for i = 1:length(camInfo.DeviceInfo.SupportedFormats)
-        if strcmp(default_format,camInfo.DeviceInfo.SupportedFormats{i})
-            set(handles.Cam_popupmenu,'Value',i);
-            camInfo.ActiveMode = camInfo.DeviceInfo.SupportedFormats(i);
+if length(c.InstalledAdaptors)>0
+    % Select appropriate adaptor for connected camera
+    for i = 1:length(c.InstalledAdaptors)
+        camInfo = imaqhwinfo(c.InstalledAdaptors{i});
+        if ~isempty(camInfo.DeviceIDs)
+            adaptor = i;
         end
     end
-    
+    if exist('adaptor')
+        camInfo = imaqhwinfo(c.InstalledAdaptors{adaptor});
+    end
+
+    % Set the device to default format and populate pop-up menu
+    if ~isempty(camInfo.DeviceInfo);
+    set(handles.Cam_popupmenu,'String',camInfo.DeviceInfo.SupportedFormats);
+    default_format = camInfo.DeviceInfo.DefaultFormat;
+
+        for i = 1:length(camInfo.DeviceInfo.SupportedFormats)
+            if strcmp(default_format,camInfo.DeviceInfo.SupportedFormats{i})
+                set(handles.Cam_popupmenu,'Value',i);
+                camInfo.ActiveMode = camInfo.DeviceInfo.SupportedFormats(i);
+            end
+        end
+
+    else
+    set(handles.Cam_popupmenu,'String','Camera not detected');
+    end
+    exp.camInfo = camInfo;
 else
-set(handles.Cam_popupmenu,'String','Camera not detected');
+    exp.camInfo=[];
+    set(handles.Cam_popupmenu,'String','No camera adaptors installed');
 end
-exp.camInfo = camInfo;
+    
 
 
 % Initialize teensy for motor and light board control
