@@ -127,9 +127,6 @@ writeInfraredWhitePanel(exp.teensy_port,0,exp.White_intensity);
 exp.ref_stack_size  =  str2num(get(handles.edit_ref_stack_size,'String')); %#ok<*ST2NM>
 exp.ref_freq = str2num(get(handles.edit_ref_freq,'String'));
 exp.duration = str2num(get(handles.edit_exp_duration,'String'));
-exp.camInfo.Gain = str2num(get(handles.edit_gain,'String'));
-exp.camInfo.Exposure = str2num(get(handles.edit_exposure,'String'));
-exp.camInfo.Shutter = str2num(get(handles.edit_cam_shutter,'String'));
 exp.ROI_thresh = get(handles.ROI_thresh_slider,'Value');
 exp.tracking_thresh = get(handles.track_thresh_slider,'Value');
 exp.speed_thresh = 45;
@@ -139,6 +136,9 @@ exp.vignette_weight = 0.35;
 
 if ~isempty(exp.camInfo)
     exp.target_rate = estimateFrameRate(exp.camInfo);
+    exp.camInfo.Gain = str2num(get(handles.edit_gain,'String'));
+    exp.camInfo.Exposure = str2num(get(handles.edit_exposure,'String'));
+    exp.camInfo.Shutter = str2num(get(handles.edit_cam_shutter,'String'));
 end
 
 setappdata(handles.figure1,'expData',exp);
