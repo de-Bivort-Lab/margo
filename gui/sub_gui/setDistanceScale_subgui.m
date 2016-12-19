@@ -1,35 +1,35 @@
-function varargout = advancedTrackingParam_subgui(varargin)
-% ADVANCEDTRACKINGPARAM_SUBGUI MATLAB code for advancedTrackingParam_subgui.fig
-%      ADVANCEDTRACKINGPARAM_SUBGUI, by itself, creates a new ADVANCEDTRACKINGPARAM_SUBGUI or raises the existing
+function varargout = setDistanceScale_subgui(varargin)
+% SETDISTANCESCALE_SUBGUI MATLAB code for setDistanceScale_subgui.fig
+%      SETDISTANCESCALE_SUBGUI, by itself, creates a new SETDISTANCESCALE_SUBGUI or raises the existing
 %      singleton*.
 %
-%      H = ADVANCEDTRACKINGPARAM_SUBGUI returns the handle to a new ADVANCEDTRACKINGPARAM_SUBGUI or the handle to
+%      H = SETDISTANCESCALE_SUBGUI returns the handle to a new SETDISTANCESCALE_SUBGUI or the handle to
 %      the existing singleton*.
 %
-%      ADVANCEDTRACKINGPARAM_SUBGUI('CALLBACK',hObject,eventData,handles,...) calls the local
-%      function named CALLBACK in ADVANCEDTRACKINGPARAM_SUBGUI.M with the given input arguments.
+%      SETDISTANCESCALE_SUBGUI('CALLBACK',hObject,eventData,handles,...) calls the local
+%      function named CALLBACK in SETDISTANCESCALE_SUBGUI.M with the given input arguments.
 %
-%      ADVANCEDTRACKINGPARAM_SUBGUI('Property','Value',...) creates a new ADVANCEDTRACKINGPARAM_SUBGUI or raises the
+%      SETDISTANCESCALE_SUBGUI('Property','Value',...) creates a new SETDISTANCESCALE_SUBGUI or raises the
 %      existing singleton*.  Starting from the left, property value pairs are
-%      applied to the GUI before advancedTrackingParam_subgui_OpeningFcn gets called.  An
+%      applied to the GUI before setDistanceScale_subgui_OpeningFcn gets called.  An
 %      unrecognized property name or invalid value makes property application
-%      stop.  All inputs are passed to advancedTrackingParam_subgui_OpeningFcn via varargin.
+%      stop.  All inputs are passed to setDistanceScale_subgui_OpeningFcn via varargin.
 %
 %      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
 %      instance to run (singleton)".
 %
 % See also: GUIDE, GUIDATA, GUIHANDLES
 
-% Edit the above text to modify the response to help advancedTrackingParam_subgui
+% Edit the above text to modify the response to help setDistanceScale_subgui
 
-% Last Modified by GUIDE v2.5 19-Dec-2016 16:34:30
+% Last Modified by GUIDE v2.5 19-Dec-2016 16:50:58
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
                    'gui_Singleton',  gui_Singleton, ...
-                   'gui_OpeningFcn', @advancedTrackingParam_subgui_OpeningFcn, ...
-                   'gui_OutputFcn',  @advancedTrackingParam_subgui_OutputFcn, ...
+                   'gui_OpeningFcn', @setDistanceScale_subgui_OpeningFcn, ...
+                   'gui_OutputFcn',  @setDistanceScale_subgui_OutputFcn, ...
                    'gui_LayoutFcn',  [] , ...
                    'gui_Callback',   []);
 if nargin && ischar(varargin{1})
@@ -46,13 +46,13 @@ end
 
 
 
-% --- Executes just before advancedTrackingParam_subgui is made visible.
-function advancedTrackingParam_subgui_OpeningFcn(hObject, eventdata, handles, varargin)
+% --- Executes just before setDistanceScale_subgui is made visible.
+function setDistanceScale_subgui_OpeningFcn(hObject, eventdata, handles, varargin)
 % This function has no output args, see OutputFcn.
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-% varargin   command line arguments to advancedTrackingParam_subgui (see VARARGIN)
+% varargin   command line arguments to setDistanceScale_subgui (see VARARGIN)
 
 param_data = varargin{1};
 
@@ -73,13 +73,13 @@ handles.output.vignette_weight=str2num(get(handles.edit_vignette_weight,'string'
 % Update handles structure
 guidata(hObject, handles);
 
-% UIWAIT makes advancedTrackingParam_subgui wait for user response (see UIRESUME)
+% UIWAIT makes setDistanceScale_subgui wait for user response (see UIRESUME)
 uiwait(handles.figure1);
 
 
 
 % --- Outputs from this function are returned to the command line.
-function varargout = advancedTrackingParam_subgui_OutputFcn(hObject, eventdata, handles) 
+function varargout = setDistanceScale_subgui_OutputFcn(hObject, eventdata, handles) 
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -305,3 +305,70 @@ function edit_speed_thresh_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+
+function edit29_Callback(hObject, eventdata, handles)
+% hObject    handle to edit29 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit29 as text
+%        str2double(get(hObject,'String')) returns contents of edit29 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit29_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit29 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit30_Callback(hObject, eventdata, handles)
+% hObject    handle to edit30 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit30 as text
+%        str2double(get(hObject,'String')) returns contents of edit30 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit30_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit30 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in pushbutton25.
+function pushbutton25_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton25 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in pushbutton26.
+function pushbutton26_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton26 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in pushbutton27.
+function pushbutton27_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton27 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
