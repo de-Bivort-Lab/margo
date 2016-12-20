@@ -141,6 +141,8 @@ if isfield(handles.output,'target_size')
     set(handles.edit_mm_per_pixel,'string',num2str(round(handles.output.mm_per_pixel*100)/100));
 end
 
+figure(handles.figure1);
+
 guidata(hObject,handles);
 
 
@@ -201,26 +203,31 @@ function help_button_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-msg_title=['Parameter Info'];
+msg_title=['Set Distance Scale'];
 spc=[' '];
 item1=['\bfDescription\rm - This function estimates the pixel to millimeter ' ...
     'ratio by comparing the length of a line drawn in the main camera window.  '...
     'For this to work, a target object (eg. an ROI or the length of tracking '...
-    'platform) of known size must be within the field of view of the camera.'];
+    'platform) of known size must be within the field of view of the camera '...
+    '(\ittip: Confirm Camera Settings to take a still image and display it ];
     
 item2 = ['\bfTarget object size\rm - enter size of the target object in mm '...
     'before calculating the conversion factor.'];
     
-item3 = ['Draw a line along the known dimension of the target using \bfDraw new line\rm. The mm/pixel conversion '...
-    'factor will automatically be calculated and displayed. \bfUpdate\rm '...
-    'the calculation if the line is repositioned after initial placement.'];
+item3 = ['\bfDraw new line\rm - draw a line along a previously measured'...
+    'dimension of the target. After pressing the button, click and drag '...
+    'in the camera window to initiate drawing. The mm/pixel conversion '...
+    'factor will automatically be calculated and displayed.'];
 
-item2=['Press \bfAccept\rm to save the conversion factor and close the '...
-    'window \itor\rm just close the window to cancel the operation and discard '...
-    'changes. See the manual for more detailed instructions and practical '...
-    'tips for accurately estimating absolute distance from pixel distance.'];
+item4 = ['\bfUpdate\rm - the calculation if the line is repositioned after initial placement.'];
 
-message={spc item1 spc item2};
+item5=['\bfAccept\rm - save the conversion factor and close the '...
+    'window.'];
+
+closing = ['\itSee manual for additional tips and details on estimating absolute' ...
+    ' distance from pixel distance.'];
+
+message={spc item1 spc item2 spc item3 spc item4 spc item5 spc closing};
 
 % Display info
 Opt.Interpreter='tex';
