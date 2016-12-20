@@ -1000,7 +1000,7 @@ if ~isempty(tmp)
     exp.vignette_weight = tmp.vignette_weight;
 end
              
-             % Store experiment data struct
+% Store experiment data struct
 setappdata(handles.figure1,'expData',exp);
 
 
@@ -1010,8 +1010,17 @@ function set_dist_scale_pushbutton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-tmp=setDistanceScale_subgui(handles);
-tmp
+% import experiment data struct
+exp = getappdata(handles.figure1,'expData');
+
+tmp=setDistanceScale_subgui(handles,exp);
+if ~isempty(tmp)
+    exp.mm_per_pixel = tmp.mm_per_pixel;
+    exp.target_size = tmp.target_size;
+end
+
+% Store experiment data struct
+setappdata(handles.figure1,'expData',exp);
 
 
 

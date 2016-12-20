@@ -129,10 +129,10 @@ end
 % Create new image line object
 handles.line_handle = imline(handles.input.axes_handle);
 
-if isfield(handles,'target_size')
+if isfield(handles.ouput,'target_size')
     pos = handles.line_handle.getPosition();
     d = sqrt((pos(1)+pos(3))^2+(pos(2)+pos(4))^2);
-    handles.output.mm_per_pixel = handles.target_size/d;
+    handles.output.mm_per_pixel = handles.output.target_size/d;
     set(handles.edit_mm_per_pixel,'string',num2str(round(handles.output.mm_per_pixel*100)/100));
 end
 
@@ -148,7 +148,7 @@ function edit_target_size_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit_target_size as text
 %        str2double(get(hObject,'String')) returns contents of edit_target_size as a double
-handles.target_size = str2num(get(handles.edit_target_size,'string'));
+handles.output.target_size = str2num(get(handles.edit_target_size,'string'));
 guidata(hObject,handles);
 
 
