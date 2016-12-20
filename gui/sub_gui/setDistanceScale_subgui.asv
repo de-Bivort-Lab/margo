@@ -122,22 +122,20 @@ function draw_button_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 if isfield(handles,'line_handle')
-    disp('here')
     delete(handles.line_handle);
 end
 
 % Create new image line object
 handles.line_handle = imline(handles.input.axes_handle);
 
-if isfield(handles,'target_size')
+while ~get(handles.accept_button,'value')
+    if isfield(handles,'target_size')
     pos = handles.line_handle.getPosition();
     d = sqrt((pos(1)+pos(3))^2+(pos(2)+pos(4))^2);
     handles.output.mm_per_pixel = handles.target_size/d;
     set(handles.edit_mm_per_pixel,'string',num2str(round(handles.output.mm_per_pixel*100)/100));
+    end
 end
-
-guidata(hObject,handles);
-
 
 
 
@@ -161,9 +159,6 @@ function edit_mm_per_pixel_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit_mm_per_pixel as text
 %        str2double(get(hObject,'String')) returns contents of edit_mm_per_pixel as a double
-
-set(handles.edit_mm_per_pixel,'string',num2str(round(handles.output.mm_per_pixel*100)/100));
-guidata(hObject,handles);
 
 
 
@@ -225,11 +220,6 @@ function accept_button_Callback(hObject, eventdata, handles)
 % hObject    handle to accept_button (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-if isfield(handles,'line_handle')
-    disp('here')
-    delete(handles.line_handle);
-end
 
 guidata(hObject, handles);
 uiresume(handles.figure1);

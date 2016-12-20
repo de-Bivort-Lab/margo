@@ -54,6 +54,7 @@ function integratedtrackinggui_OpeningFcn(hObject, eventdata, handles, varargin)
 
 % Choose default command line output for integratedtrackinggui
 handles.output = hObject;
+handles.axes_handle = gca;
 set(handles.ROI_thresh_slider,'value',40);
 set(gca,'Xtick',[],'Ytick',[]);
 exp = [];
@@ -139,6 +140,8 @@ if ~isempty(exp.camInfo)
     exp.camInfo.Gain = str2num(get(handles.edit_gain,'String'));
     exp.camInfo.Exposure = str2num(get(handles.edit_exposure,'String'));
     exp.camInfo.Shutter = str2num(get(handles.edit_cam_shutter,'String'));
+else
+    exp.target_rate = 60;
 end
 
 setappdata(handles.figure1,'expData',exp);
@@ -1006,6 +1009,9 @@ function set_dist_scale_pushbutton_Callback(hObject, eventdata, handles)
 % hObject    handle to set_dist_scale_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+tmp=setDistanceScale_subgui(handles);
+tmp
 
 
 
