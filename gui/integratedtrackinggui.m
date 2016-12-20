@@ -1015,8 +1015,7 @@ exp = getappdata(handles.figure1,'expData');
 
 tmp=setDistanceScale_subgui(handles,exp);
 if ~isempty(tmp)
-    exp.mm_per_pixel = tmp.mm_per_pixel;
-    exp.target_size = tmp.target_size;
+    exp.distance_scale = tmp;
 end
 
 % Store experiment data struct

@@ -22,7 +22,7 @@ function varargout = setDistanceScale_subgui(varargin)
 
 % Edit the above text to modify the response to help setDistanceScale_subgui
 
-% Last Modified by GUIDE v2.5 19-Dec-2016 19:16:07
+% Last Modified by GUIDE v2.5 19-Dec-2016 20:22:00
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -55,14 +55,16 @@ function setDistanceScale_subgui_OpeningFcn(hObject, eventdata, handles, varargi
 % varargin   command line arguments to setDistanceScale_subgui (see VARARGIN)
 
 handles.input = varargin{1};
+exp = varargin{2};
 handles.output=[];
 
 
-if isfield(handles.input,'target_size') && isfield(handles.input,'mm_per_pixel')
+if isfield(exp,'distance_scale')
     
     % Set GUI strings with input parameters
-    set(handles.edit_target_size,'string',input.target_size);
-    set(handles.edit_mm_per_pixel,'string',input.mm_per_pixel);
+    set(handles.edit_target_size,'string',exp.distance_scale.target_size);
+    set(handles.edit_mm_per_pixel,'string',round(exp.distance_scale.mm_per_pixel*100)/100);
+    handles.line_handle = imline(handles.input.axes_handle,exp.distance_scale.pos);
 
     % Assign current values as default output
     handles.output.target_size=str2num(get(handles.edit_target_size,'string'));
@@ -88,7 +90,11 @@ function varargout = setDistanceScale_subgui_OutputFcn(hObject, eventdata, handl
 
 % Get default command line output from handles structure
 if isfield(handles,'output')
+    handles.output.pos = handles.line_handle.getPosition();
     varargout{1} = handles.output;
+    if isfield(handles,'line_handle')
+        delete(handles.line_handle);
+    end
     close(handles.figure1);
 else
     varargout{1} = [];
@@ -128,14 +134,36 @@ end
 % Create new image line object
 handles.line_handle = imline(handles.input.axes_handle);
 
-while ~get(handles.accept_button,'value')
-    if isfield(handles,'target_size')
+if isfield(handles.output,'target_size')
     pos = handles.line_handle.getPosition();
     d = sqrt((pos(1)+pos(3))^2+(pos(2)+pos(4))^2);
-    handles.output.mm_per_pixel = handles.target_size/d;
+    handles.output.mm_per_pixel = handles.output.target_size/d;
     set(handles.edit_mm_per_pixel,'string',num2str(round(handles.output.mm_per_pixel*100)/100));
-    end
 end
+
+guidata(hObject,handles);
+
+
+
+% --- Executes on button press in update_button.
+function update_button_Callback(hObject, eventdata, handles)
+% hObject    handle to update_button (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+if isfield(handles,'line_handle')
+
+    if isfield(handles.output,'target_size')
+        pos = handles.line_handle.getPosition();
+        d = sqrt((pos(1)+pos(3))^2+(pos(2)+pos(4))^2);
+        handles.output.mm_per_pixel = handles.output.target_size/d;
+        set(handles.edit_mm_per_pixel,'string',num2str(round(handles.output.mm_per_pixel*100)/100));
+    end
+    
+end
+
+guidata(hObject,handles);
+
 
 
 
@@ -146,7 +174,7 @@ function edit_target_size_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit_target_size as text
 %        str2double(get(hObject,'String')) returns contents of edit_target_size as a double
-handles.target_size = str2num(get(handles.edit_target_size,'string'));
+handles.output.target_size = str2num(get(handles.edit_target_size,'string'));
 guidata(hObject,handles);
 
 
@@ -160,6 +188,9 @@ function edit_mm_per_pixel_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of edit_mm_per_pixel as text
 %        str2double(get(hObject,'String')) returns contents of edit_mm_per_pixel as a double
 
+set(handles.edit_mm_per_pixel,'string',num2str(round(handles.output.mm_per_pixel*100)/100));
+guidata(hObject,handles);
+
 
 
 
@@ -172,40 +203,24 @@ function help_button_Callback(hObject, eventdata, handles)
 
 msg_title=['Parameter Info'];
 spc=[' '];
-item1=['\bfSpeed Threshold\rm - sets the upper bound for maximum allowable frame ' ...
-    'to frame speed for centroid tracking and sorting. Centroids that move '...
-    'faster than the speed threshold are considered either a frame to '...
-    'frame mismatch or false positive due to noise and are dropped for '...
-    'the current frame. \it(tip: raise speed '...
-    'thresh if tracking appears to lag behind the tracked object).\rm'];
+item1=['\bfDescription\rm - This function estimates the pixel to millimeter ' ...
+    'ratio by comparing the length of a line drawn in the main camera window.  '...
+    'For this to work, a target object (eg. an ROI or the length of tracking '...
+    'platform) of known size must be within the field of view of the camera.'];
+    
+item2 = ['\bfTarget object size\rm - enter size of the target object in mm '...
+    'before calculating the conversion factor.'];
+    
+item3 = ['Draw a line along the known dimension of the target using \bfDraw new line\rm. The mm/pixel conversion '...
+    'factor will automatically be calculated and displayed. \bfUpdate\rm '...
+    'the calculation if the line is repositioned after initial placement.'];
 
-item2=['\bfDistance Threshold\rm - sets the upper bound for maximum allowable frame ' ...
-    'to frame distance between an object and the center of its ROI. '...
-    'If distance thresh is exceeded between a centroid and its matched ROI, '...
-    'the centroid is dropped for the current frame. \it(tip: Lower distance '...
-    'thresh if IDs switch between neighboring ROIs).\rm'];
+item2=['Press \bfAccept\rm to save the conversion factor and close the '...
+    'window \itor\rm just close the window to cancel the operation and discard '...
+    'changes. See the manual for more detailed instructions and practical '...
+    'tips for accurately estimating absolute distance from pixel distance.'];
 
-item3=['\bfTarget Acquisition Rate\rm - sets the upper bound for the acquisition ' ...
-    'frame rate. This parameter can be used to improve consistency of '...
-    'interframe interval (ifi) or lower the acquisition rate to reduce the amount '...
-    'of data saved. Setting this parameter to -1 disable this parameter and '...
-    'at the maximum possible speed (this will result in less consistent ifi). '...
-    '\it(tip: acquisition rates of 5-10Hz are often sufficient and result in '...
-    'smaller file sizes).\rm'];
-
-item4=['\bfVignette Gaussian Sigma\rm - defines the standard deviation of a gaussian'...
-    ' used to correct for vignetting in illumination. This gaussian is subtracted '...
-    'off of the image to achieve more evenly lit ROIs. This strategy is used '...
-    'only in the initial detection of ROIs and is not applied to object tracking. '...
-    ' Sigma is expressed as a fraction of the image height in pixels \it(tip: '...
-    'adjust this parameter if thresholded ROIs are occluded in a circular shape).\rm'];
-
-item5=['\bfVignette Gaussian Weight\rm - sets the weight of the above gaussian ' ...
-    'before subtracting it off of the ROI image. Weight is expressed as '...
-    'a fraction of the maximum intensity.'];
-
-closing=['See Manual for additional tips and details.'];
-message={spc item1 spc item2 spc item3 spc item4 spc item5 spc closing};
+message={spc item1 spc item2};
 
 % Display info
 Opt.Interpreter='tex';
@@ -271,4 +286,5 @@ function figure1_ButtonDownFcn(hObject, eventdata, handles)
 % hObject    handle to figure1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
 
