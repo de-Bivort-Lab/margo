@@ -141,6 +141,8 @@ if isfield(handles.output,'target_size')
     set(handles.edit_mm_per_pixel,'string',num2str(round(handles.output.mm_per_pixel*100)/100));
 end
 
+figure(handles.figure1);
+
 guidata(hObject,handles);
 
 
