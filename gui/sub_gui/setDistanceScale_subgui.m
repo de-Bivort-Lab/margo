@@ -55,14 +55,15 @@ function setDistanceScale_subgui_OpeningFcn(hObject, eventdata, handles, varargi
 % varargin   command line arguments to setDistanceScale_subgui (see VARARGIN)
 
 handles.input = varargin{1};
+exp = varargin{2};
 handles.output=[];
 
 
-if isfield(handles.input,'target_size') && isfield(handles.input,'mm_per_pixel')
+if isfield(exp,'target_size') && isfield(exp,'mm_per_pixel')
     
     % Set GUI strings with input parameters
-    set(handles.edit_target_size,'string',input.target_size);
-    set(handles.edit_mm_per_pixel,'string',input.mm_per_pixel);
+    set(handles.edit_target_size,'string',exp.target_size);
+    set(handles.edit_mm_per_pixel,'string',round(exp.mm_per_pixel*100)/100);
 
     % Assign current values as default output
     handles.output.target_size=str2num(get(handles.edit_target_size,'string'));
@@ -122,14 +123,13 @@ function draw_button_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 if isfield(handles,'line_handle')
-    disp('here')
     delete(handles.line_handle);
 end
 
 % Create new image line object
 handles.line_handle = imline(handles.input.axes_handle);
 
-if isfield(handles.ouput,'target_size')
+if isfield(handles.output,'target_size')
     pos = handles.line_handle.getPosition();
     d = sqrt((pos(1)+pos(3))^2+(pos(2)+pos(4))^2);
     handles.output.mm_per_pixel = handles.output.target_size/d;
@@ -227,7 +227,6 @@ function accept_button_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 if isfield(handles,'line_handle')
-    disp('here')
     delete(handles.line_handle);
 end
 
