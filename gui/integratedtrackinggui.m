@@ -212,7 +212,7 @@ function Cam_confirm_pushbutton_Callback(hObject, eventdata, handles)
 % import experiment data struct
 exp = getappdata(handles.figure1,'expData');
 
-if exist(exp.camInfo.DeviceInfo)
+if ~isempty(exp.camInfo)
     if ~isempty(exp.camInfo.DeviceInfo)
         cla reset
         imaqreset;
