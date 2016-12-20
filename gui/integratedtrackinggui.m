@@ -52,9 +52,13 @@ function integratedtrackinggui_OpeningFcn(hObject, eventdata, handles, varargin)
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to integratedtrackinggui (see VARARGIN)
 
+warning('off','MATLAB:JavaEDTAutoDelegation');
+
 % Choose default command line output for integratedtrackinggui
 handles.output = hObject;
 handles.axes_handle = gca;
+handles.gui_dir = which('autotrackergui');
+handles.gui_dir = handles.gui_dir(1:strfind(handles.gui_dir,'\gui\'));
 set(handles.ROI_thresh_slider,'value',40);
 set(gca,'Xtick',[],'Ytick',[]);
 exp = [];
@@ -184,10 +188,11 @@ exp = getappdata(handles.figure1,'expData');
 
 strCell = get(handles.Cam_popupmenu,'string');
 exp.camInfo.ActiveMode = strCell(get(handles.Cam_popupmenu,'Value'));
-guidata(hObject,handles);
 
 % Store experiment data struct
 setappdata(handles.figure1,'expData',exp);
+
+guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -232,10 +237,12 @@ else
     errordlg('No cameras adaptors installed');
 end
 
-guidata(hObject,handles);
-
 % Store experiment data struct
 setappdata(handles.figure1,'expData',exp);
+
+guidata(hObject,handles);
+
+
 
 
 
@@ -271,10 +278,13 @@ set(handles.Cam_preview_pushbutton,'Value',0);
 set(handles.Cam_stopPreview_pushbutton,'Value',0);
 stoppreview(exp.vid);
 rmfield(handles,'src');
-guidata(hObject,handles);
 
 % Store experiment data struct
 setappdata(handles.figure1,'expData',exp);
+
+guidata(hObject,handles);
+
+
 
 function edit_exposure_Callback(hObject, eventdata, handles)
 % hObject    handle to edit_exposure (see GCBO)
@@ -290,10 +300,12 @@ if isfield(handles,'src')
     exp.src.Exposure = exp.camInfo.Exposure;
 end
 
-guidata(hObject,handles);
-
 % Store experiment data struct
 setappdata(handles.figure1,'expData',exp);
+
+guidata(hObject,handles);
+
+
 
 
 % --- Executes during object creation, after setting all properties.
@@ -323,10 +335,12 @@ if isfield(handles,'src')
     exp.src.Gain = exp.camInfo.Gain;
 end
 
-guidata(hObject,handles);
-
 % Store experiment data struct
 setappdata(handles.figure1,'expData',exp);
+
+guidata(hObject,handles);
+
+
 
 
 % --- Executes during object creation, after setting all properties.
@@ -357,10 +371,12 @@ if isfield(handles,'src')
     exp.src.Shutter = exp.camInfo.Shutter;
 end
 
-guidata(hObject,handles);
-
 % Store experiment data struct
 setappdata(handles.figure1,'expData',exp);
+
+guidata(hObject,handles);
+
+
 
 
 
@@ -450,6 +466,9 @@ White_intensity = str2num(get(handles.edit_White_intensity,'string'));
 exp.White_intensity = uint8((White_intensity/100)*255);
 writeInfraredWhitePanel(exp.teensy_port,0,exp.White_intensity);
 
+% Store experiment data struct
+setappdata(handles.figure1,'expData',exp);
+
 guidata(hObject,handles);
 
 
@@ -476,14 +495,30 @@ function save_path_button1_Callback(hObject, eventdata, handles)
 
 % import experiment data struct
 exp = getappdata(handles.figure1,'expData');
+mat_dir = handles.gui_dir(1:strfind(handles.gui_dir,'MATLAB\')+6);
+default_path = [mat_dir 'autotracker_data\'];
+if exist(default_path) ~= 7
+    mkdir(default_path);
+    msg_title = 'New Data Path';
+    message = ['Autotracker has automatically generated a new default directory'...
+        ' for data in ' default_path];
+    
+    % Display info
+    waitfor(msgbox(message,msg_title));
+end    
 
-[fpath]  =  uigetdir('E:\Decathlon Raw Data','Select a save destination');
+[fpath]  =  uigetdir(default_path,'Select a save destination');
 exp.fpath = fpath;
-set(handles.save_path,'String',fpath);
-guidata(hObject,handles);
+set(handles.save_path,'string',fpath);
+
 
 % Store experiment data struct
 setappdata(handles.figure1,'expData',exp);
+
+guidata(hObject,handles);
+
+
+
 
 
 
@@ -523,10 +558,13 @@ data = cell(5,8);
 data(:) = {''};
 set(hObject, 'Data', data);
 exp.labels = data;
-guidata(hObject,handles);
 
 % Store experiment data struct
 setappdata(handles.figure1,'expData',exp);
+
+guidata(hObject,handles);
+
+
 
 
 % --- Executes when entered data in editable cell(s) in labels_uitable.
@@ -545,21 +583,29 @@ exp = getappdata(handles.figure1,'expData');
 
 exp.labels{eventdata.Indices(1), eventdata.Indices(2)} = {''};
 exp.labels{eventdata.Indices(1), eventdata.Indices(2)} = eventdata.NewData;
-guidata(hObject,handles);
 
 % Store experiment data struct
 setappdata(handles.figure1,'expData',exp);
+
+guidata(hObject,handles);
+
+
 
 
 function edit_ref_stack_size_Callback(hObject, eventdata, handles)
 % hObject    handle to edit_ref_stack_size (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+% import experiment data struct
+exp = getappdata(handles.figure1,'expData');
+
 exp.ref_stack_size = str2num(get(handles.edit_ref_stack_size,'String'));
-guidata(hObject,handles);
 
 % Store experiment data struct
 setappdata(handles.figure1,'expData',exp);
+
+guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -585,10 +631,13 @@ function edit_ref_freq_Callback(hObject, eventdata, handles)
 exp = getappdata(handles.figure1,'expData');
 
 exp.ref_freq = str2num(get(handles.edit_ref_freq,'String'));
-guidata(hObject,handles);
 
 % Store experiment data struct
 setappdata(handles.figure1,'expData',exp);
+
+guidata(hObject,handles);
+
+
 
 
 % --- Executes during object creation, after setting all properties.
@@ -614,10 +663,14 @@ function edit_exp_duration_Callback(hObject, eventdata, handles)
 exp = getappdata(handles.figure1,'expData');
 
 exp.duration = str2num(get(handles.edit_exp_duration,'String'));
-guidata(hObject,handles);
+
 
 % Store experiment data struct
 setappdata(handles.figure1,'expData',exp);
+
+guidata(hObject,handles);
+
+
 
 
 % --- Executes during object creation, after setting all properties.
@@ -872,10 +925,14 @@ else
             
     end
 end
-guidata(hObject,handles);
+
+
 
 % Store experiment data struct
 setappdata(handles.figure1,'expData',exp);
+
+guidata(hObject,handles);
+
 
 
 % --- Executes on button press in refresh_COM_pushbutton.
@@ -914,23 +971,24 @@ function enter_labels_pushbutton_Callback(hObject, eventdata, handles)
 % import experiment data struct
 exp = getappdata(handles.figure1,'expData');
 
-if isfield(handles,'labels')
-    tmp_lbl = label_subgui(handles.labels);
+if isfield(exp,'labels')
+    tmp_lbl = label_subgui(exp.labels);
     if ~isempty(tmp_lbl)
-        handles.labels = tmp_lbl;
+        exp.labels = tmp_lbl;
     end
 else
     tmp_lbl = label_subgui;
     if ~isempty(tmp_lbl)
-        handles.labels = tmp_lbl;
+        exp.labels = tmp_lbl;
     end
 end
 
-guidata(hObject,handles);
+
 
 % Store experiment data struct
 setappdata(handles.figure1,'expData',exp);
 
+guidata(hObject,handles);
 
 
 
@@ -948,10 +1006,14 @@ exp = getappdata(handles.figure1,'expData');
 
 exp.tracking_thresh = get(handles.track_thresh_slider,'Value');
 set(handles.disp_track_thresh,'string',num2str(round(exp.tracking_thresh*100)/100));
-guidata(hObject,handles);
 
 % Store experiment data struct
 setappdata(handles.figure1,'expData',exp);
+
+
+guidata(hObject,handles);
+
+
 
 
 % --- Executes during object creation, after setting all properties.
@@ -976,10 +1038,13 @@ function accept_track_thresh_pushbutton_Callback(hObject, eventdata, handles)
 exp = getappdata(handles.figure1,'expData');
 
 set(handles.accept_track_thresh_pushbutton,'value',1);
-guidata(hObject,handles);
 
 % Store experiment data struct
 setappdata(handles.figure1,'expData',exp);
+
+guidata(hObject,handles);
+
+
 
 
 % --- Executes on button press in adv_track_param_pushbutton.
@@ -1134,10 +1199,12 @@ exp = getappdata(handles.figure1,'expData');
 % Update GUI menus with port names
 set(handles.aux_COM_popupmenu,'string',ports);
 
-guidata(hObject,handles);
-
 % Store experiment data struct
 setappdata(handles.figure1,'expData',exp);
+
+guidata(hObject,handles);
+
+
 
 
 % --- Executes during object creation, after setting all properties.
@@ -1176,10 +1243,12 @@ end
 % Update GUI menus with port names
 set(handles.aux_COM_popupmenu,'string',ports);
 
-guidata(hObject,handles);
-
 % Store experiment data struct
 setappdata(handles.figure1,'expData',exp);
+
+guidata(hObject,handles);
+
+
 
 
 % --- Executes on selection change in param_prof_popupmenu.
@@ -1188,8 +1257,19 @@ function param_prof_popupmenu_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: contents = cellstr(get(hObject,'String')) returns param_prof_popupmenu contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from param_prof_popupmenu
+if get(handles.param_prof_popupmenu,'value') ~= 1
+    profiles = get(handles.param_prof_popupmenu,'string');
+    profile = profiles(get(handles.param_prof_popupmenu,'value'));
+    exp = loadSavedParameters(handles,profile{:});
+end
+
+% Store experiment data struct
+setappdata(handles.figure1,'expData',exp);
+guidata(hObject,handles);
+
+
+
+
 
 
 % --- Executes during object creation, after setting all properties.
@@ -1204,9 +1284,70 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
+% Get existing profile list
+gui_dir = which('autotrackergui');
+gui_dir = gui_dir(1:strfind(gui_dir,'\gui\'));
+load_path =[gui_dir 'profiles\'];
+tmp_profiles = ls(load_path);
+profiles = cell(size(tmp_profiles,1)+1,1);
+profiles(1) = {'Select saved settings'};
+remove = [];
+
+for i = 1:size(profiles,1)-1;
+    k = strfind(tmp_profiles(i,:),'.mat');
+    if isempty(k)
+        remove = [remove i+1];
+    else
+        profiles(i+1) = {tmp_profiles(i,1:k-1)};
+    end
+end
+
+profiles(remove)=[];
+if size(profiles,1) > 1
+    set(hObject,'string',profiles);
+else
+    set(hObject,'string',{'No profiles detected'});
+end
+
 
 % --- Executes on button press in save_params_pushbutton.
 function save_params_pushbutton_Callback(hObject, eventdata, handles)
 % hObject    handle to save_params_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+% import experiment data struct
+exp = getappdata(handles.figure1,'expData');
+
+% set profile save path
+save_path = [handles.gui_dir 'profiles\'];
+
+[FileName,PathName] = uiputfile('*.mat','Enter name for new profile',save_path);
+
+if any(FileName)
+    replace = exist(strcat(PathName,FileName))==2;
+    save(strcat(PathName,FileName),'exp');
+
+    if replace
+        profile_name = FileName(1:strfind(FileName,'.mat')-1);
+        profiles = get(handles.param_prof_popupmenu,'string');
+        
+        for i = 1:length(profiles)
+            if strcmp(profile_name,profiles{i});
+                ri = i;
+            end
+        end
+        
+        profiles(ri) = {profile_name};
+        set(handles.param_prof_popupmenu,'string',profiles);
+        set(handles.param_prof_popupmenu,'value',ri);
+        
+    else
+        profile_name = FileName(1:strfind(FileName,'.mat')-1);
+        profiles = get(handles.param_prof_popupmenu,'string');
+        profiles(1) = {'Select saved settings'};
+        profiles(size(profiles,1)+1) = {profile_name};
+        set(handles.param_prof_popupmenu,'string',profiles);
+        set(handles.param_prof_popupmenu,'value',size(profiles,1));
+    end
+end
