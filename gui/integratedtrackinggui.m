@@ -136,10 +136,10 @@ exp.vignette_sigma = 0.47;
 exp.vignette_weight = 0.35;
 
 if ~isempty(exp.camInfo)
-    exp.target_rate = estimateFrameRate(exp.camInfo);
     exp.camInfo.Gain = str2num(get(handles.edit_gain,'String'));
     exp.camInfo.Exposure = str2num(get(handles.edit_exposure,'String'));
     exp.camInfo.Shutter = str2num(get(handles.edit_cam_shutter,'String'));
+    exp.target_rate = estimateFrameRate(exp.camInfo);
 else
     exp.target_rate = 60;
 end
