@@ -14,9 +14,16 @@ stp_sz = reg_params.pixel_step_size;
 stp_t = reg_params.step_interval;
 r = reg_params.spot_r;
 
+%% Estimate camera frame rate
+
+frameRate=estimateFrameRate(camInfo);
+stp_t = stp_t*60/frameRate;
+
+
 %% Initialize the camera with settings tailored to imaging the projector
 
 imaqreset
+pause(0.1);
 vid=initializeCamera(camInfo);
 start(vid);
 pause(0.1);
@@ -36,10 +43,6 @@ text(size(ref,2)*0.75,size(ref,1)*0.05,'Registration in progress','fontsize',18,
 % Save the camera resolution that the registration was performed at
 [reg_yPixels,reg_xPixels] = size(ref);
 
-%% Estimate camera frame rate
-
-frameRate=estimateFrameRate(vid);
-stp_t = stp_t*60/frameRate;
 
 %% Set registration parameters
 
@@ -127,7 +130,7 @@ for i=1:x_stp
         
         % Advance y by stp_sz pixels
         y = y + stp_sz;
-        iCount=(i-1)*x_stp+j;
+        iCount=(i-1)*y_stp+j;
         
         iTime(mod(iCount,length(iTime))+1)=toc;
         if iCount >= length(iTime)

@@ -1157,19 +1157,22 @@ if isfield(exp,'reg_params')
         'Make sure the projector is the only light source visible to the camera'];
     item2 = ['2.) Camera is not imaging through infrared filter. '...
         'Projector display should be visible through the camera.'];
-    item3 = ['3.) Projector is turned on and set to desired resolution.'];
+    item3 = ['3.) Projector is connected to the computer, turned on and set to desired resolution.'];
     item4 = ['4.) Camera shutter speed is adjusted to match the refresh rate of the projector.'...
         ' This will appear as moving streaks in the camera if not properly adjusted.'];
     item5 = ['5.) Both camera and projector are in fixed positions and will not need to be adjusted'...
         ' after registration.'];
+    item6 = ['6.) The projector is set as the most external display (ie. the highest number display). Hint: '...
+        'this is the most likely problem if the projector is connected but psych Toolbox is drawing to '...
+        'the primary display. MATLAB must be restarted before this change will take effect.'];
     closing = ['Click OK to continue with the registration'];
-    message = {intro spc item1 spc item2 spc item3 spc item4 spc item5 spc closing};
+    message = {intro spc item1 spc item2 spc item3 spc item4 spc item5 spc item6 spc closing};
 
     % Display registration tips
     waitfor(msgbox(message,msg_title));
 
     % Register projector
-    reg_projector(exp.camInfo,exp.reg_params,handles.edit_time_remaining);
+    reg_projector(exp.camInfo,exp.reg_params,handles);
 
     % Reset infrared and white lights to prior values
     writeInfraredWhitePanel(handles.teensy_port,1,handles.IR_intensity);

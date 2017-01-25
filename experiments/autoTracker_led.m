@@ -7,6 +7,7 @@ cmd_str = 'wmic process where name="MATLAB.exe" CALL setpriority 128';
 
 %% Define parameters - adjust parameters here to fix tracking and ROI segmentation errors
 
+% import data from gui
 exp = getappdata(handles.figure1,'expData');
 
 % Experimental parameters

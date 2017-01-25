@@ -14,9 +14,16 @@ stp_sz = reg_params.pixel_step_size;
 stp_t = reg_params.step_interval;
 r = reg_params.spot_r;
 
+%% Estimate camera frame rate
+
+frameRate=estimateFrameRate(camInfo);
+stp_t = stp_t*60/frameRate;
+
+
 %% Initialize the camera with settings tailored to imaging the projector
 
 imaqreset
+pause(0.1);
 vid=initializeCamera(camInfo);
 start(vid);
 pause(0.1);
@@ -36,10 +43,6 @@ text(size(ref,2)*0.75,size(ref,1)*0.05,'Registration in progress','fontsize',18,
 % Save the camera resolution that the registration was performed at
 [reg_yPixels,reg_xPixels] = size(ref);
 
-%% Estimate camera frame rate
-
-frameRate=estimateFrameRate(vid);
-stp_t = stp_t*60/frameRate;
 
 %% Set registration parameters
 
@@ -186,8 +189,10 @@ reg_data.proj_xCoords = proj_x;
 reg_data.proj_yCoords = proj_y;
 
 if exist([handles.gui_dir 'hardware\projector_fit\'])
-    save([handles.gui_dir 'hardware\projector_fit\projector_fit.mat'],''reg_data');
+    save([handles.gui_dir 'hardware\projector_fit\projector_fit.mat'],'reg_data');
 else
     mkdir([handles.gui_dir 'hardware\projector_fit\']);
+    save([handles.gui_dir 'hardware\projector_fit\projector_fit.mat'],'reg_data');
+end
     
 

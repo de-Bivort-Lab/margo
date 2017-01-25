@@ -338,8 +338,7 @@ h=ROI_bounds(:,4);
 
 
 %% Set experiment parameters
-exp.duration=exp.duration*60;                   
-referenceFreq = referenceFreq;                   
+exp.duration=exp.duration*60;                            
 refStack=repmat(refImage,1,1,referenceStackSize);   % Create placeholder for 5-image rolling reference.
 refCount=0;
 aboveThresh=ones(10,1)*pixMean;                      % Num pixels above threshold last 5 frames
@@ -367,7 +366,7 @@ fName = 'projector_fit.mat';
 
 if exist([gui_dir 'hardware\projector_fit\']) == 7
     
-    load([gui_dir 'projector_fit\' fName]);
+    load([gui_dir '\hardware\projector_fit\' fName]);
     
 else
     
