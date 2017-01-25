@@ -1168,7 +1168,7 @@ message = {intro spc item1 spc item2 spc item3 spc item4 spc item5 spc closing};
 waitfor(msgbox(message,msg_title));
 
 % Register projector
-reg_projector(handles.camInfo,handles.pixel_step_size,handles.step_interval,handles.reg_spot_r,handles.edit_time_remaining);
+reg_projector(exp.camInfo,handles.pixel_step_size,handles.step_interval,handles.reg_spot_r,handles.edit_time_remaining);
 
 % Reset infrared and white lights to prior values
 writeInfraredWhitePanel(handles.teensy_port,1,handles.IR_intensity);
@@ -1182,6 +1182,24 @@ function reg_param_pushbutton_Callback(hObject, eventdata, handles)
 % hObject    handle to reg_param_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+% import experiment data struct
+exp = getappdata(handles.figure1,'expData');
+
+if isfield(exp,'reg_params')
+    tmp = registration_parameter_subgui(exp);
+    if ~isempty(tmp)
+        exp.reg_params = tmp;
+    end
+else
+        tmp = registration_parameter_subgui();
+    if ~isempty(tmp)
+        exp.reg_params = tmp;
+    end
+end
+
+% Store experiment data struct
+setappdata(handles.figure1,'expData',exp);
 
 
 % --- Executes on button press in reg_test_pushbutton.

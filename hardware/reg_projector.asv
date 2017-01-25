@@ -186,10 +186,8 @@ reg_data.proj_xCoords = proj_x;
 reg_data.proj_yCoords = proj_y;
 
 if exist([handles.gui_dir 'hardware\projector_fit\'])
-    save([handles.gui_dir 'hardware\projector_fit\projector_fit.mat'],'reg_data');
+    save([handles.gui_dir 'hardware\projector_fit\projector_fit.mat'],''reg_data');
 else
     mkdir([handles.gui_dir 'hardware\projector_fit\']);
-    save([handles.gui_dir 'hardware\projector_fit\projector_fit.mat'],'reg_data');
-end
     
 

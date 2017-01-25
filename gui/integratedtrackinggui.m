@@ -1145,34 +1145,38 @@ function begin_reg_pushbutton_Callback(hObject, eventdata, handles)
 
 exp = getappdata(handles.figure1,'expData');
 
-% Turn infrared and white background illumination off during registration
-writeInfraredWhitePanel(exp.teensy_port,1,0);
-writeInfraredWhitePanel(exp.teensy_port,0,0);
+if isfield(exp,'reg_params')
+    % Turn infrared and white background illumination off during registration
+    writeInfraredWhitePanel(exp.teensy_port,1,0);
+    writeInfraredWhitePanel(exp.teensy_port,0,0);
 
-msg_title = ['Projector Registration Tips'];
-spc = [' '];
-intro = ['Please check the following before continuing to ensure successful registration:'];
-item1 = ['1.) Both the infrared and white lights for imaging illumination are set to OFF. '...
-    'Make sure the projector is the only light source visible to the camera'];
-item2 = ['2.) Camera is not imaging through infrared filter. '...
-    'Projector display should be visible through the camera.'];
-item3 = ['3.) Projector is turned on and set to desired resolution.'];
-item4 = ['4.) Camera shutter speed is adjusted to match the refresh rate of the projector.'...
-    ' This will appear as moving streaks in the camera if not properly adjusted.'];
-item5 = ['5.) Both camera and projector are in fixed positions and will not need to be adjusted'...
-    ' after registration.'];
-closing = ['Click OK to continue with the registration'];
-message = {intro spc item1 spc item2 spc item3 spc item4 spc item5 spc closing};
+    msg_title = ['Projector Registration Tips'];
+    spc = [' '];
+    intro = ['Please check the following before continuing to ensure successful registration:'];
+    item1 = ['1.) Both the infrared and white lights for imaging illumination are set to OFF. '...
+        'Make sure the projector is the only light source visible to the camera'];
+    item2 = ['2.) Camera is not imaging through infrared filter. '...
+        'Projector display should be visible through the camera.'];
+    item3 = ['3.) Projector is turned on and set to desired resolution.'];
+    item4 = ['4.) Camera shutter speed is adjusted to match the refresh rate of the projector.'...
+        ' This will appear as moving streaks in the camera if not properly adjusted.'];
+    item5 = ['5.) Both camera and projector are in fixed positions and will not need to be adjusted'...
+        ' after registration.'];
+    closing = ['Click OK to continue with the registration'];
+    message = {intro spc item1 spc item2 spc item3 spc item4 spc item5 spc closing};
 
-% Display registration tips
-waitfor(msgbox(message,msg_title));
+    % Display registration tips
+    waitfor(msgbox(message,msg_title));
 
-% Register projector
-reg_projector(exp.camInfo,handles.pixel_step_size,handles.step_interval,handles.reg_spot_r,handles.edit_time_remaining);
+    % Register projector
+    reg_projector(exp.camInfo,exp.reg_params,handles.edit_time_remaining);
 
-% Reset infrared and white lights to prior values
-writeInfraredWhitePanel(handles.teensy_port,1,handles.IR_intensity);
-writeInfraredWhitePanel(handles.teensy_port,0,handles.White_intensity);
+    % Reset infrared and white lights to prior values
+    writeInfraredWhitePanel(handles.teensy_port,1,handles.IR_intensity);
+    writeInfraredWhitePanel(handles.teensy_port,0,handles.White_intensity);
+else
+    errordlg('Set registration parameters before running projector registration.');
+end
 
 guidata(hObject, handles);
 
@@ -1182,6 +1186,24 @@ function reg_param_pushbutton_Callback(hObject, eventdata, handles)
 % hObject    handle to reg_param_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+% import experiment data struct
+exp = getappdata(handles.figure1,'expData');
+
+if isfield(exp,'reg_params')
+    tmp = registration_parameter_subgui(exp);
+    if ~isempty(tmp)
+        exp.reg_params = tmp;
+    end
+else
+        tmp = registration_parameter_subgui();
+    if ~isempty(tmp)
+        exp.reg_params = tmp;
+    end
+end
+
+% Store experiment data struct
+setappdata(handles.figure1,'expData',exp);
 
 
 % --- Executes on button press in reg_test_pushbutton.
