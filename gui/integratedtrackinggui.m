@@ -22,7 +22,7 @@ function varargout = integratedtrackinggui(varargin)
 
 % Edit the above text to modify the response to help integratedtrackinggui
 
-% Last Modified by GUIDE v2.5 15-Dec-2016 17:55:34
+% Last Modified by GUIDE v2.5 24-Jan-2017 22:03:34
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -59,7 +59,7 @@ handles.output = hObject;
 handles.axes_handle = gca;
 handles.gui_dir = which('autotrackergui');
 handles.gui_dir = handles.gui_dir(1:strfind(handles.gui_dir,'\gui\'));
-set(handles.ROI_thresh_slider,'value',40);
+set(handles.ROI_thresh_slider,'value',0.15);
 set(gca,'Xtick',[],'Ytick',[]);
 exp = [];
 
@@ -698,9 +698,9 @@ function pushbutton6_Callback(hObject, eventdata, handles)
 % import experiment data struct
 exp = getappdata(handles.figure1,'expData');
 
-if isfield(handles, 'fpath') == 0 
+if isfield(exp, 'fpath') == 0 
     errordlg('Please specify Save Location')
-elseif isfield(handles, 'vid') == 0
+elseif ~isfield(exp, 'camInfo')
     errordlg('Please confirm camera settings')
 else
     switch exp.experiment
@@ -729,7 +729,7 @@ function ROI_thresh_slider_Callback(hObject, eventdata, handles)
 exp = getappdata(handles.figure1,'expData');
 
 exp.ROI_thresh = get(handles.ROI_thresh_slider,'Value');
-set(handles.disp_ROI_thresh,'string',num2str(uint8(exp.ROI_thresh)));
+set(handles.disp_ROI_thresh,'string',num2str(round(100*exp.ROI_thresh)/100));
 guidata(hObject,handles);
 
 % Store experiment data struct
@@ -1356,3 +1356,10 @@ if any(FileName)
         set(handles.param_prof_popupmenu,'value',size(profiles,1));
     end
 end
+
+
+% --- Executes during object deletion, before destroying properties.
+function ROI_thresh_slider_DeleteFcn(hObject, eventdata, handles)
+% hObject    handle to ROI_thresh_slider (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
