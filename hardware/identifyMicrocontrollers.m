@@ -24,9 +24,9 @@ for i=1:size(ports,1)
     fwrite(s,writeData,'uchar');
     pause(0.25);
     
-    if s.BytesAvailable>0
+    if s.BytesAvailable == numel(IR_white_panel_handshake)
     handshake=fread(s,7);
-        if sum(handshake==IR_white_panel_handshake)
+        if length(handshake) == length(IR_white_panel_handshake)
             panelNum=i;
         end
     end
