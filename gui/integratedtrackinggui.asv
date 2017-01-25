@@ -1168,7 +1168,7 @@ message = {intro spc item1 spc item2 spc item3 spc item4 spc item5 spc closing};
 waitfor(msgbox(message,msg_title));
 
 % Register projector
-reg_projector(exp.camInfo,handles.pixel_step_size,handles.step_interval,handles.reg_spot_r,handles.edit_time_remaining);
+reg_projector(handles.camInfo,handles.pixel_step_size,handles.step_interval,handles.reg_spot_r,handles.edit_time_remaining);
 
 % Reset infrared and white lights to prior values
 writeInfraredWhitePanel(handles.teensy_port,1,handles.IR_intensity);
