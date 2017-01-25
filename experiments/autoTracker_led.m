@@ -320,7 +320,7 @@ tic
 while ct<pixDistSize;
         
         % Grab image thresh from GUI slider
-        imageThresh=get(handles.track_thresh_slider,'value')*255;
+        imageThresh=get(handles.track_thresh_slider,'value');
 
         % Update time stamps
         current_tStamp=toc;
@@ -406,7 +406,7 @@ arm_coords(:,:,5)=[centers(:,1) ROI_coords(:,4)-yShift];
 arm_coords(:,:,6)=[ROI_coords(:,3)-xShift ROI_coords(:,2)+yShift];
 
 %% Set experiment parameters
-exp.duration=exp.duration*60;                       % Convert duration in min to sec           
+exp.duration=exp.duration*3600;                       % Convert duration in min to sec           
 refStack=repmat(refImage,1,1,ref_stack_size);   % Create placeholder for 5-image rolling reference.
 refCount=0;
 aboveThresh=ones(10,1)*pixMean;                      % Num pixels above threshold last 5 frames
@@ -673,7 +673,7 @@ flyTracks.pBias=nansum(flyTracks.lSeq)./nansum(~isnan(flyTracks.lSeq));
 
 %% Save data to struct
 strain(ismember(strain,' ')) = [];
-save(strcat(handles.fpath,'\',t,'LEDymaze','_',strain,'.mat'),'flyTracks');
+save(strcat(exp.fpath,'\',t,'LEDymaze','_',strain,'.mat'),'flyTracks');
 
 %% Create histogram plots of turn bias and light choice probability
 inc=0.05;
