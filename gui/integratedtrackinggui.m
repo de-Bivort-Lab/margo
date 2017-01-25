@@ -222,14 +222,14 @@ if ~isempty(exp.camInfo)
         cla reset
         imaqreset;
         pause(0.02);
-        exp.vid = initializeCamera(exp.camInfo);
-        exp.src = getselectedsource(exp.vid);
-        start(exp.vid);
+        exp.camInfo.vid = initializeCamera(exp.camInfo);
+        exp.camInfo.src = getselectedsource(exp.camInfo.vid);
+        start(exp.camInfo.vid);
         pause(0.5);
-        im = peekdata(exp.vid,1);
+        im = peekdata(exp.camInfo.vid,1);
         handles.hImage = image(im);
         set(gca,'Xtick',[],'Ytick',[]);
-        stop(exp.vid);
+        stop(exp.camInfo.vid);
     else
         errordlg('Settings not confirmed, no camera detected');
     end
@@ -255,10 +255,10 @@ function Cam_preview_pushbutton_Callback(hObject, eventdata, handles)
 % import experiment data struct
 exp = getappdata(handles.figure1,'expData');
 
-if isfield(exp, 'vid') == 0
+if ~isempty(exp.camInfo) && ~isfield(exp.camInfo, 'vid')
     errordlg('Please confirm camera settings')
 else
-    preview(exp.vid,handles.hImage);       
+    preview(exp.camInfo.vid,handles.hImage);       
 end
 
 % Store experiment data struct
@@ -274,10 +274,13 @@ function Cam_stopPreview_pushbutton_Callback(hObject, eventdata, handles)
 % import experiment data struct
 exp = getappdata(handles.figure1,'expData');
 
-set(handles.Cam_preview_pushbutton,'Value',0);
-set(handles.Cam_stopPreview_pushbutton,'Value',0);
-stoppreview(exp.vid);
-rmfield(handles,'src');
+if ~isempty(exp.camInfo) && isfield(exp.camInfo,'vid');
+    set(handles.Cam_preview_pushbutton,'Value',0);
+    set(handles.Cam_stopPreview_pushbutton,'Value',0);
+    stoppreview(exp.camInfo.vid);
+    rmfield(exp.camInfo,'src');
+    rmfield(exp.camInfo,'vid');
+end
 
 % Store experiment data struct
 setappdata(handles.figure1,'expData',exp);
@@ -296,7 +299,7 @@ exp = getappdata(handles.figure1,'expData');
 exp.camInfo.Exposure = str2num(get(handles.edit_exposure,'String'));
 
 % If video is in preview mode, update the camera immediately
-if isfield(handles,'src')
+if isfield(exp,'vid')
     exp.src.Exposure = exp.camInfo.Exposure;
 end
 
@@ -707,6 +710,8 @@ else
             projector_optomotor;
         case 4
             projector_slow_phototaxis;
+        case 5
+            autoTracker_led;
     end
 end
 
