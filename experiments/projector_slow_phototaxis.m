@@ -772,7 +772,7 @@ blank_total_time = blank_total_time./3600;
 %% Generate plots
 
 min_active_period = 0.4;        % Minimum time spent off the boundary divider (hours)
-active = flyTracks.speed >0.01;
+active = flyTracks.speed >0.01
 %active = boolean(ones(size(flyTracks.speed)));
 
 % Histogram for stimulus ON period
@@ -848,4 +848,4 @@ disp(['load(',char(39),strcat(exp.fpath,'\',t,'Optomotor','_',strain,'.mat'),cha
 cmd_str = 'wmic process where name="MATLAB.exe" CALL setpriority 32768';
 [~,~] = system(cmd_str);
 
-clearvars -except handles
+clearvars -except handles exp
