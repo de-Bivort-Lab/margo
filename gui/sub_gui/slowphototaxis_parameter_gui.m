@@ -52,20 +52,27 @@ function optomotor_parameter_gui_OpeningFcn(hObject, eventdata, handles, varargi
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to optomotor_parameter_gui (see VARARGIN)
 
-if ~isempty(varargin)
-    param_data = varargin{1};
-    handles.output=param_data;
-    set(handles.edit_stim_duration,'string',param_data.stim_duration);
-    set(handles.edit_stim_divider_size,'string',param_data.divider_size);
-    set(handles.edit_stim_contrast,'string',param_data.stim_contrast);
-else
+
+    parameters = varargin{1};
+    handles.output=parameters;
+
+    if isfield(parameters,'stim_duration')
+        set(handles.edit_stim_duration,'string',parameters.stim_duration);     
+    end
+
+    if isfield(parameters,'divider_size')
+        set(handles.edit_stim_divider_size,'string',parameters.divider_size);
+    end
+
+    if isfield(parameters,'stim_contrast')
+        set(handles.edit_stim_contrast,'string',parameters.stim_contrast);
+    end
+    
     % Choose default command line output for optomotor_parameter_gui
-    handles.output = [];
-    handles.output.name = 'Slow Phototaxis';
     handles.output.stim_duration=str2num(get(handles.edit_stim_duration,'string'));
     handles.output.divider_size=str2num(get(handles.edit_stim_divider_size,'string'));
     handles.output.stim_contrast=str2num(get(handles.edit_stim_contrast,'string'));
-end
+
 
 
 % Update handles structure

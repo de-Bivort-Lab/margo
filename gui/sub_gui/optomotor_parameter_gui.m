@@ -54,23 +54,35 @@ function optomotor_parameter_gui_OpeningFcn(hObject, eventdata, handles, varargi
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to optomotor_parameter_gui (see VARARGIN)
 
-if ~isempty(varargin)
-    param_data = varargin{1};
-    handles.output=param_data;
-    set(handles.edit_stim_duration,'string',param_data.stim_duration);
-    set(handles.edit_stim_int,'string',param_data.stim_int);
-    set(handles.edit_ang_per_frame,'string',param_data.ang_per_frame);
-    set(handles.edit_num_cycles,'string',param_data.num_cycles);
-    set(handles.edit_mask_r,'string',param_data.mask_r);
-else
-    handles.output = [];
-    handles.output.name = 'Optomotor';
+    parameters = varargin{1};
+    handles.output=parameters;
+    
+    if isfield(parameters,'stim_duration')
+        set(handles.edit_stim_duration,'string',parameters.stim_duration);
+    end
+    
+    if isfield(parameters,'stim_int')
+        set(handles.edit_stim_int,'string',parameters.stim_int);
+    end
+    
+    if isfield(parameters,'ang_per_frame')
+        set(handles.edit_ang_per_frame,'string',parameters.ang_per_frame);
+    end
+    
+    if isfield(parameters,'num_cycles')
+        set(handles.edit_num_cycles,'string',parameters.num_cycles);
+    end
+    
+    if isfield(parameters,'mask_r')
+        set(handles.edit_mask_r,'string',parameters.mask_r);
+    end
+
+
     handles.output.stim_duration=str2num(get(handles.edit_stim_duration,'string'));
     handles.output.stim_int=str2num(get(handles.edit_stim_int,'string'));
     handles.output.ang_per_frame=str2num(get(handles.edit_ang_per_frame,'string'));
     handles.output.num_cycles=str2num(get(handles.edit_num_cycles,'string'));
     handles.output.mask_r=str2num(get(handles.edit_mask_r,'string'));
-end
 
 % Update handles structure
 guidata(hObject, handles);

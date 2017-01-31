@@ -61,7 +61,7 @@ handles.gui_dir = which('autotrackergui');
 handles.gui_dir = handles.gui_dir(1:strfind(handles.gui_dir,'\gui\'));
 set(handles.ROI_thresh_slider,'value',0.15);
 set(gca,'Xtick',[],'Ytick',[]);
-exp = [];
+expmt = [];
 
 % Query available camera and modes
 imaqreset
@@ -94,9 +94,9 @@ if length(c.InstalledAdaptors)>0
     else
     set(handles.Cam_popupmenu,'String','Camera not detected');
     end
-    exp.camInfo = camInfo;
+    expmt.camInfo = camInfo;
 else
-    exp.camInfo=[];
+    expmt.camInfo=[];
     set(handles.Cam_popupmenu,'String','No camera adaptors installed');
 end
     
@@ -111,44 +111,44 @@ delete(instrfindall);           % Delete any serial objects in memory
 end
 
 % Attempt handshake with light panel teensy
-[exp.teensy_port,ports] = identifyMicrocontrollers;
+[expmt.teensy_port,ports] = identifyMicrocontrollers;
 
 % Update GUI menus with port names
-set(handles.microcontroller_popupmenu,'string',exp.teensy_port);
+set(handles.microcontroller_popupmenu,'string',expmt.teensy_port);
 
 % Initialize light panel at default values
 IR_intensity = str2num(get(handles.edit_IR_intensity,'string'));
 White_intensity = str2num(get(handles.edit_White_intensity,'string'));
 
 % Convert intensity percentage to uint8 PWM value 0-255
-exp.IR_intensity = uint8((IR_intensity/100)*255);
-exp.White_intensity = uint8((White_intensity/100)*255);
+expmt.IR_intensity = uint8((IR_intensity/100)*255);
+expmt.White_intensity = uint8((White_intensity/100)*255);
 
 % Write values to microcontroller
-writeInfraredWhitePanel(exp.teensy_port,1,exp.IR_intensity);
-writeInfraredWhitePanel(exp.teensy_port,0,exp.White_intensity);
+writeInfraredWhitePanel(expmt.teensy_port,1,expmt.IR_intensity);
+writeInfraredWhitePanel(expmt.teensy_port,0,expmt.White_intensity);
 
-% Initialize experiment parameters from text boxes in the GUI
-exp.ref_stack_size  =  str2num(get(handles.edit_ref_stack_size,'String')); %#ok<*ST2NM>
-exp.ref_freq = str2num(get(handles.edit_ref_freq,'String'));
-exp.duration = str2num(get(handles.edit_exp_duration,'String'));
-exp.ROI_thresh = get(handles.ROI_thresh_slider,'Value');
-exp.tracking_thresh = get(handles.track_thresh_slider,'Value');
-exp.speed_thresh = 45;
-exp.distance_thresh = 20;
-exp.vignette_sigma = 0.47;
-exp.vignette_weight = 0.35;
+% Initialize expmteriment parameters from text boxes in the GUI
+expmt.parameters.ref_stack_size  =  str2num(get(handles.edit_ref_stack_size,'String'));
+expmt.parameters.ref_freq = str2num(get(handles.edit_ref_freq,'String'));
+expmt.parameters.duration = str2num(get(handles.edit_exp_duration,'String'));
+expmt.parameters.ROI_thresh = get(handles.ROI_thresh_slider,'Value');
+expmt.parameters.tracking_thresh = get(handles.track_thresh_slider,'Value');
+expmt.parameters.speed_thresh = 45;
+expmt.parameters.distance_thresh = 20;
+expmt.parameters.vignette_sigma = 0.47;
+expmt.parameters.vignette_weight = 0.35;
 
-if ~isempty(exp.camInfo)
-    exp.camInfo.Gain = str2num(get(handles.edit_gain,'String'));
-    exp.camInfo.Exposure = str2num(get(handles.edit_exposure,'String'));
-    exp.camInfo.Shutter = str2num(get(handles.edit_cam_shutter,'String'));
-    exp.target_rate = estimateFrameRate(exp.camInfo);
+if ~isempty(expmt.camInfo)
+    expmt.camInfo.Gain = str2num(get(handles.edit_gain,'String'));
+    expmt.camInfo.exposure = str2num(get(handles.edit_exposure,'String'));
+    expmt.camInfo.Shutter = str2num(get(handles.edit_cam_shutter,'String'));
+    expmt.parameters.target_rate = estimateFrameRate(expmt.camInfo);
 else
-    exp.target_rate = 60;
+    expmt.parameters.target_rate = 60;
 end
 
-setappdata(handles.figure1,'expData',exp);
+setappdata(handles.figure1,'expmt',expmt);
 
 % Update handles structure
 guidata(hObject,handles);
@@ -184,13 +184,13 @@ function Cam_popupmenu_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-exp = getappdata(handles.figure1,'expData');
+expmt = getappdata(handles.figure1,'expmt');
 
 strCell = get(handles.Cam_popupmenu,'string');
-exp.camInfo.ActiveMode = strCell(get(handles.Cam_popupmenu,'Value'));
+expmt.camInfo.ActiveMode = strCell(get(handles.Cam_popupmenu,'Value'));
 
-% Store experiment data struct
-setappdata(handles.figure1,'expData',exp);
+% Store expmteriment data struct
+setappdata(handles.figure1,'expmt',expmt);
 
 guidata(hObject,handles);
 
@@ -214,22 +214,22 @@ function Cam_confirm_pushbutton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% import experiment data struct
-exp = getappdata(handles.figure1,'expData');
+% import expmteriment data struct
+expmt = getappdata(handles.figure1,'expmt');
 
-if ~isempty(exp.camInfo)
-    if ~isempty(exp.camInfo.DeviceInfo)
+if ~isempty(expmt.camInfo)
+    if ~isempty(expmt.camInfo.DeviceInfo)
         cla reset
         imaqreset;
         pause(0.02);
-        exp.camInfo.vid = initializeCamera(exp.camInfo);
-        exp.camInfo.src = getselectedsource(exp.camInfo.vid);
-        start(exp.camInfo.vid);
+        expmt.camInfo.vid = initializeCamera(expmt.camInfo);
+        expmt.camInfo.src = getselectedsource(expmt.camInfo.vid);
+        start(expmt.camInfo.vid);
         pause(0.5);
-        im = peekdata(exp.camInfo.vid,1);
+        im = peekdata(expmt.camInfo.vid,1);
         handles.hImage = image(im);
         set(gca,'Xtick',[],'Ytick',[]);
-        stop(exp.camInfo.vid);
+        stop(expmt.camInfo.vid);
     else
         errordlg('Settings not confirmed, no camera detected');
     end
@@ -237,8 +237,8 @@ else
     errordlg('No cameras adaptors installed');
 end
 
-% Store experiment data struct
-setappdata(handles.figure1,'expData',exp);
+% Store expmteriment data struct
+setappdata(handles.figure1,'expmt',expmt);
 
 guidata(hObject,handles);
 
@@ -252,17 +252,17 @@ function Cam_preview_pushbutton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% import experiment data struct
-exp = getappdata(handles.figure1,'expData');
+% import expmteriment data struct
+expmt = getappdata(handles.figure1,'expmt');
 
-if ~isempty(exp.camInfo) && ~isfield(exp.camInfo, 'vid')
+if ~isempty(expmt.camInfo) && ~isfield(expmt.camInfo, 'vid')
     errordlg('Please confirm camera settings')
 else
-    preview(exp.camInfo.vid,handles.hImage);       
+    preview(expmt.camInfo.vid,handles.hImage);       
 end
 
-% Store experiment data struct
-setappdata(handles.figure1,'expData',exp);
+% Store expmteriment data struct
+setappdata(handles.figure1,'expmt',expmt);
 
 
 % --- Executes on button press in Cam_stopPreview_pushbutton.
@@ -271,19 +271,19 @@ function Cam_stopPreview_pushbutton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% import experiment data struct
-exp = getappdata(handles.figure1,'expData');
+% import expmteriment data struct
+expmt = getappdata(handles.figure1,'expmt');
 
-if ~isempty(exp.camInfo) && isfield(exp.camInfo,'vid');
+if ~isempty(expmt.camInfo) && isfield(expmt.camInfo,'vid');
     set(handles.Cam_preview_pushbutton,'Value',0);
     set(handles.Cam_stopPreview_pushbutton,'Value',0);
-    stoppreview(exp.camInfo.vid);
-    rmfield(exp.camInfo,'src');
-    rmfield(exp.camInfo,'vid');
+    stoppreview(expmt.camInfo.vid);
+    rmfield(expmt.camInfo,'src');
+    rmfield(expmt.camInfo,'vid');
 end
 
-% Store experiment data struct
-setappdata(handles.figure1,'expData',exp);
+% Store expmteriment data struct
+setappdata(handles.figure1,'expmt',expmt);
 
 guidata(hObject,handles);
 
@@ -294,17 +294,17 @@ function edit_exposure_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% import experiment data struct
-exp = getappdata(handles.figure1,'expData');
-exp.camInfo.Exposure = str2num(get(handles.edit_exposure,'String'));
+% import expmteriment data struct
+expmt = getappdata(handles.figure1,'expmt');
+expmt.camInfo.exposure = str2num(get(handles.edit_exposure,'String'));
 
 % If video is in preview mode, update the camera immediately
-if isfield(exp,'vid')
-    exp.src.Exposure = exp.camInfo.Exposure;
+if isfield(expmt,'vid')
+    expmt.src.exposure = expmt.camInfo.exposure;
 end
 
-% Store experiment data struct
-setappdata(handles.figure1,'expData',exp);
+% Store expmteriment data struct
+setappdata(handles.figure1,'expmt',expmt);
 
 guidata(hObject,handles);
 
@@ -329,17 +329,17 @@ function edit_gain_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% import experiment data struct
-exp = getappdata(handles.figure1,'expData');
-exp.camInfo.Gain = str2num(get(handles.edit_gain,'String'));
+% import expmteriment data struct
+expmt = getappdata(handles.figure1,'expmt');
+expmt.camInfo.Gain = str2num(get(handles.edit_gain,'String'));
 
 % If video is in preview mode, update the camera immediately
 if isfield(handles,'src')
-    exp.src.Gain = exp.camInfo.Gain;
+    expmt.src.Gain = expmt.camInfo.Gain;
 end
 
-% Store experiment data struct
-setappdata(handles.figure1,'expData',exp);
+% Store expmteriment data struct
+setappdata(handles.figure1,'expmt',expmt);
 
 guidata(hObject,handles);
 
@@ -364,18 +364,18 @@ function edit_cam_shutter_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% import experiment data struct
-exp = getappdata(handles.figure1,'expData');
+% import expmteriment data struct
+expmt = getappdata(handles.figure1,'expmt');
 
-exp.camInfo.Shutter = str2num(get(handles.edit_cam_shutter,'String'));
+expmt.camInfo.Shutter = str2num(get(handles.edit_cam_shutter,'String'));
 
 % If video is in preview mode, update the camera immediately
 if isfield(handles,'src')
-    exp.src.Shutter = exp.camInfo.Shutter;
+    expmt.src.Shutter = expmt.camInfo.Shutter;
 end
 
-% Store experiment data struct
-setappdata(handles.figure1,'expData',exp);
+% Store expmteriment data struct
+setappdata(handles.figure1,'expmt',expmt);
 
 guidata(hObject,handles);
 
@@ -429,18 +429,18 @@ function edit_IR_intensity_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 % Initialize light panel at default values
 
-% import experiment data struct
-exp = getappdata(handles.figure1,'expData');
+% import expmteriment data struct
+expmt = getappdata(handles.figure1,'expmt');
 
-exp.IR_intensity = str2num(get(handles.edit_IR_intensity,'string'));
+expmt.IR_intensity = str2num(get(handles.edit_IR_intensity,'string'));
 
 % Convert intensity percentage to uint8 PWM value 0-255
-exp.IR_intensity = uint8((exp.IR_intensity/100)*255);
+expmt.IR_intensity = uint8((expmt.IR_intensity/100)*255);
 
-writeInfraredWhitePanel(exp.teensy_port,1,exp.IR_intensity);
+writeInfraredWhitePanel(expmt.teensy_port,1,expmt.IR_intensity);
 
-% Store experiment data struct
-setappdata(handles.figure1,'expData',exp);
+% Store expmteriment data struct
+setappdata(handles.figure1,'expmt',expmt);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -460,17 +460,17 @@ function edit_White_intensity_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% import experiment data struct
-exp = getappdata(handles.figure1,'expData');
+% import expmteriment data struct
+expmt = getappdata(handles.figure1,'expmt');
 
 White_intensity = str2num(get(handles.edit_White_intensity,'string'));
 
 % Convert intensity percentage to uint8 PWM value 0-255
-exp.White_intensity = uint8((White_intensity/100)*255);
-writeInfraredWhitePanel(exp.teensy_port,0,exp.White_intensity);
+expmt.White_intensity = uint8((White_intensity/100)*255);
+writeInfraredWhitePanel(expmt.teensy_port,0,expmt.White_intensity);
 
-% Store experiment data struct
-setappdata(handles.figure1,'expData',exp);
+% Store expmteriment data struct
+setappdata(handles.figure1,'expmt',expmt);
 
 guidata(hObject,handles);
 
@@ -496,8 +496,8 @@ function save_path_button1_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% import experiment data struct
-exp = getappdata(handles.figure1,'expData');
+% import expmteriment data struct
+expmt = getappdata(handles.figure1,'expmt');
 mat_dir = handles.gui_dir(1:strfind(handles.gui_dir,'MATLAB\')+6);
 default_path = [mat_dir 'autotracker_data\'];
 if exist(default_path) ~= 7
@@ -511,12 +511,12 @@ if exist(default_path) ~= 7
 end    
 
 [fpath]  =  uigetdir(default_path,'Select a save destination');
-exp.fpath = fpath;
+expmt.fpath = fpath;
 set(handles.save_path,'string',fpath);
 
 
-% Store experiment data struct
-setappdata(handles.figure1,'expData',exp);
+% Store expmteriment data struct
+setappdata(handles.figure1,'expmt',expmt);
 
 guidata(hObject,handles);
 
@@ -554,16 +554,16 @@ function labels_uitable_CreateFcn(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
-% import experiment data struct
-exp = getappdata(handles.figure1,'expData');
+% import expmteriment data struct
+expmt = getappdata(handles.figure1,'expmt');
 
 data = cell(5,8);
 data(:) = {''};
 set(hObject, 'Data', data);
-exp.labels = data;
+expmt.labels = data;
 
-% Store experiment data struct
-setappdata(handles.figure1,'expData',exp);
+% Store expmteriment data struct
+setappdata(handles.figure1,'expmt',expmt);
 
 guidata(hObject,handles);
 
@@ -581,14 +581,14 @@ function labels_uitable_CellEditCallback(hObject, eventdata, handles)
 %	Error: error string when failed to convert EditData to appropriate value for Data
 % handles    structure with handles and user data (see GUIDATA)
 
-% import experiment data struct
-exp = getappdata(handles.figure1,'expData');
+% import expmteriment data struct
+expmt = getappdata(handles.figure1,'expmt');
 
-exp.labels{eventdata.Indices(1), eventdata.Indices(2)} = {''};
-exp.labels{eventdata.Indices(1), eventdata.Indices(2)} = eventdata.NewData;
+expmt.labels{eventdata.Indices(1), eventdata.Indices(2)} = {''};
+expmt.labels{eventdata.Indices(1), eventdata.Indices(2)} = eventdata.NewData;
 
-% Store experiment data struct
-setappdata(handles.figure1,'expData',exp);
+% Store expmteriment data struct
+setappdata(handles.figure1,'expmt',expmt);
 
 guidata(hObject,handles);
 
@@ -600,13 +600,13 @@ function edit_ref_stack_size_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% import experiment data struct
-exp = getappdata(handles.figure1,'expData');
+% import expmteriment data struct
+expmt = getappdata(handles.figure1,'expmt');
 
-exp.ref_stack_size = str2num(get(handles.edit_ref_stack_size,'String'));
+expmt.parameters.ref_stack_size = str2num(get(handles.edit_ref_stack_size,'String'));
 
-% Store experiment data struct
-setappdata(handles.figure1,'expData',exp);
+% Store expmteriment data struct
+setappdata(handles.figure1,'expmt',expmt);
 
 guidata(hObject,handles);
 
@@ -630,13 +630,13 @@ function edit_ref_freq_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% import experiment data struct
-exp = getappdata(handles.figure1,'expData');
+% import expmteriment data struct
+expmt = getappdata(handles.figure1,'expmt');
 
-exp.ref_freq = str2num(get(handles.edit_ref_freq,'String'));
+expmt.parameters.ref_freq = str2num(get(handles.edit_ref_freq,'String'));
 
-% Store experiment data struct
-setappdata(handles.figure1,'expData',exp);
+% Store expmteriment data struct
+setappdata(handles.figure1,'expmt',expmt);
 
 guidata(hObject,handles);
 
@@ -662,14 +662,14 @@ function edit_exp_duration_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% import experiment data struct
-exp = getappdata(handles.figure1,'expData');
+% import expmteriment data struct
+expmt = getappdata(handles.figure1,'expmt');
 
-exp.duration = str2num(get(handles.edit_exp_duration,'String'));
+expmt.parameters.duration = str2num(get(handles.edit_exp_duration,'String'));
 
 
-% Store experiment data struct
-setappdata(handles.figure1,'expData',exp);
+% Store expmteriment data struct
+setappdata(handles.figure1,'expmt',expmt);
 
 guidata(hObject,handles);
 
@@ -695,15 +695,15 @@ function pushbutton6_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% import experiment data struct
-exp = getappdata(handles.figure1,'expData');
+% import expmteriment data struct
+expmt = getappdata(handles.figure1,'expmt');
 
-if isfield(exp, 'fpath') == 0 
+if isfield(expmt, 'fpath') == 0 
     errordlg('Please specify Save Location')
-elseif ~isfield(exp, 'camInfo')
+elseif ~isfield(expmt, 'camInfo')
     errordlg('Please confirm camera settings')
 else
-    switch exp.experiment
+    switch expmt.expID
     	case 2
             projector_escape_response;
         case 3
@@ -717,8 +717,8 @@ else
     end
 end
 
-% Store experiment data struct
-setappdata(handles.figure1,'expData',exp);
+% Store expmteriment data struct
+setappdata(handles.figure1,'expmt',expmt);
 
 
 % --- Executes on slider movement.
@@ -727,15 +727,15 @@ function ROI_thresh_slider_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% import experiment data struct
-exp = getappdata(handles.figure1,'expData');
+% import expmteriment data struct
+expmt = getappdata(handles.figure1,'expmt');
 
-exp.ROI_thresh = get(handles.ROI_thresh_slider,'Value');
-set(handles.disp_ROI_thresh,'string',num2str(round(100*exp.ROI_thresh)/100));
+expmt.parameters.ROI_thresh = get(handles.ROI_thresh_slider,'Value');
+set(handles.disp_ROI_thresh,'string',num2str(round(100*expmt.parameters.ROI_thresh)/100));
 guidata(hObject,handles);
 
-% Store experiment data struct
-setappdata(handles.figure1,'expData',exp);
+% Store expmteriment data struct
+setappdata(handles.figure1,'expmt',expmt);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -756,14 +756,14 @@ function accept_ROI_thresh_pushbutton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% import experiment data struct
-exp = getappdata(handles.figure1,'expData');
+% import expmteriment data struct
+expmt = getappdata(handles.figure1,'expmt');
 
 set(handles.accept_ROI_thresh_pushbutton,'value',1);
 guidata(hObject,handles);
 
-% Store experiment data struct
-setappdata(handles.figure1,'expData',exp);
+% Store expmteriment data struct
+setappdata(handles.figure1,'expmt',expmt);
 
 
 
@@ -795,14 +795,16 @@ function exp_select_popupmenu_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% import experiment data struct
-exp = getappdata(handles.figure1,'expData');
+% import expmteriment data struct
+expmt = getappdata(handles.figure1,'expmt');
 
-exp.experiment = get(handles.exp_select_popupmenu,'Value');
+expmt.expID = get(handles.exp_select_popupmenu,'Value');
+names = get(handles.exp_select_popupmenu,'string');
+expmt.Name = names{expmt.expID};
+
+% Store expmteriment data struct
+setappdata(handles.figure1,'expmt',expmt);
 guidata(hObject,handles);
-
-% Store experiment data struct
-setappdata(handles.figure1,'expData',exp);
 
 % Hints: contents = cellstr(get(hObject,'String')) returns exp_select_popupmenu contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from exp_select_popupmenu
@@ -827,13 +829,13 @@ function begin_reg_button_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% import experiment data struct
-exp = getappdata(handles.figure1,'expData');
+% import expmteriment data struct
+expmt = getappdata(handles.figure1,'expmt');
 
 
 % Turn infrared and white background illumination off during registration
-writeInfraredWhitePanel(exp.teensy_port,1,0);
-writeInfraredWhitePanel(exp.teensy_port,0,0);
+writeInfraredWhitePanel(expmt.teensy_port,1,0);
+writeInfraredWhitePanel(expmt.teensy_port,0,0);
 
 msg_title = ['Projector Registration Tips'];
 spc = [' '];
@@ -854,16 +856,16 @@ message = {intro spc item1 spc item2 spc item3 spc item4 spc item5 spc closing};
 waitfor(msgbox(message,msg_title));
 
 % Register projector
-reg_projector(exp.camInfo,exp.pixel_step_size,exp.step_interval,exp.reg_spot_r,handles.edit_time_remaining);
+reg_projector(expmt.camInfo,expmt.pixel_step_size,expmt.step_interval,expmt.reg_spot_r,handles.edit_time_remaining);
 
 % Reset infrared and white lights to prior values
-writeInfraredWhitePanel(exp.teensy_port,1,exp.IR_intensity);
-writeInfraredWhitePanel(exp.teensy_port,0,exp.White_intensity);
+writeInfraredWhitePanel(expmt.teensy_port,1,expmt.IR_intensity);
+writeInfraredWhitePanel(expmt.teensy_port,0,expmt.White_intensity);
 
 guidata(hObject,handles);
 
-% Store experiment data struct
-setappdata(handles.figure1,'expData',exp);
+% Store expmteriment data struct
+setappdata(handles.figure1,'expmt',expmt);
 
 
 function edit_time_remaining_Callback(hObject, eventdata, handles)
@@ -894,49 +896,44 @@ function exp_parameter_pushbutton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% import experiment data struct
-exp = getappdata(handles.figure1,'expData');
+% import expmteriment data struct
+expmt = getappdata(handles.figure1,'expmt');
 
-if exp.experiment<2
-errordlg('Please select an experiment first')
+if expmt.expID<2
+errordlg('Please select an expmteriment first')
 else
-    switch exp.experiment
+    switch expmt.expID
         case 2
 
         case 3
-             if isfield(exp,'parameters') && strcmp(exp.parameters.name,'Optomotor');
-                tmp_param = optomotor_parameter_gui(exp.parameters);
+            
+             if isfield(expmt,'parameters') && strcmp(expmt.parameters.name,'Optomotor');
+                tmp_param = optomotor_parameter_gui(expmt.parameters);
                 if ~isempty(tmp_param)
-                    exp.parameters = tmp_param;
+                    expmt.parameters = tmp_param;
                 end
             else
                 tmp_param = optomotor_parameter_gui;
                 if ~isempty(tmp_param)
-                    exp.parameters = tmp_param;
+                    expmt.parameters = tmp_param;
                 end
              end
              
              
         case 4                       
-             if isfield(exp,'parameters') && strcmp(exp.parameters.name,'Slow Phototaxis');
-                tmp_param = slowphototaxis_parameter_gui(exp.parameters);
+
+                tmp_param = slowphototaxis_parameter_gui(expmt.parameters);
                 if ~isempty(tmp_param)
-                    exp.parameters = tmp_param;
+                    expmt.parameters = tmp_param;
                 end
-            else
-                tmp_param = slowphototaxis_parameter_gui;
-                if ~isempty(tmp_param)
-                    exp.parameters = tmp_param;
-                end
-             end
-            
+                
     end
 end
 
 
 
-% Store experiment data struct
-setappdata(handles.figure1,'expData',exp);
+% Store expmteriment data struct
+setappdata(handles.figure1,'expmt',expmt);
 
 guidata(hObject,handles);
 
@@ -949,24 +946,24 @@ function refresh_COM_pushbutton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 % Refresh items on the COM ports
 
-% import experiment data struct
-exp = getappdata(handles.figure1,'expData');
+% import expmteriment data struct
+expmt = getappdata(handles.figure1,'expmt');
 
    
 % Attempt handshake with light panel teensy
-[exp.teensy_port,ports] = identifyMicrocontrollers;
+[expmt.teensy_port,ports] = identifyMicrocontrollers;
 
 if ~isempty(ports)
 % Update GUI menus with port names
-set(handles.microcontroller_popupmenu,'string',exp.teensy_port);
+set(handles.microcontroller_popupmenu,'string',expmt.teensy_port);
 else
 set(handles.microcontroller_popupmenu,'string','COM not detected');
 end
 
 guidata(hObject,handles);
 
-% Store experiment data struct
-setappdata(handles.figure1,'expData',exp);
+% Store expmteriment data struct
+setappdata(handles.figure1,'expmt',expmt);
 
 
 % --- Executes on button press in enter_labels_pushbutton.
@@ -975,25 +972,25 @@ function enter_labels_pushbutton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% import experiment data struct
-exp = getappdata(handles.figure1,'expData');
+% import expmteriment data struct
+expmt = getappdata(handles.figure1,'expmt');
 
-if isfield(exp,'labels')
-    tmp_lbl = label_subgui(exp.labels);
+if isfield(expmt,'labels')
+    tmp_lbl = label_subgui(expmt.labels);
     if ~isempty(tmp_lbl)
-        exp.labels = tmp_lbl;
+        expmt.labels = tmp_lbl;
     end
 else
     tmp_lbl = label_subgui;
     if ~isempty(tmp_lbl)
-        exp.labels = tmp_lbl;
+        expmt.labels = tmp_lbl;
     end
 end
 
 
 
-% Store experiment data struct
-setappdata(handles.figure1,'expData',exp);
+% Store expmteriment data struct
+setappdata(handles.figure1,'expmt',expmt);
 
 guidata(hObject,handles);
 
@@ -1008,14 +1005,14 @@ function track_thresh_slider_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'Value') returns position of slider
 %        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
 
-% import experiment data struct
-exp = getappdata(handles.figure1,'expData');
+% import expmteriment data struct
+expmt = getappdata(handles.figure1,'expmt');
 
-exp.tracking_thresh = get(handles.track_thresh_slider,'Value');
-set(handles.disp_track_thresh,'string',num2str(round(exp.tracking_thresh*100)/100));
+expmt.parameters.tracking_thresh = get(handles.track_thresh_slider,'Value');
+set(handles.disp_track_thresh,'string',num2str(round(expmt.parameters.tracking_thresh*100)/100));
 
-% Store experiment data struct
-setappdata(handles.figure1,'expData',exp);
+% Store expmteriment data struct
+setappdata(handles.figure1,'expmt',expmt);
 
 
 guidata(hObject,handles);
@@ -1041,13 +1038,13 @@ function accept_track_thresh_pushbutton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% import experiment data struct
-exp = getappdata(handles.figure1,'expData');
+% import expmteriment data struct
+expmt = getappdata(handles.figure1,'expmt');
 
 set(handles.accept_track_thresh_pushbutton,'value',1);
 
-% Store experiment data struct
-setappdata(handles.figure1,'expData',exp);
+% Store expmteriment data struct
+setappdata(handles.figure1,'expmt',expmt);
 
 guidata(hObject,handles);
 
@@ -1060,20 +1057,20 @@ function adv_track_param_pushbutton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% import experiment data struct
-exp = getappdata(handles.figure1,'expData');
+% import expmteriment data struct
+expmt = getappdata(handles.figure1,'expmt');
 
-tmp = advancedTrackingParam_subgui(exp);
+tmp = advancedTrackingParam_subgui(expmt.parameters);
 if ~isempty(tmp)
-    exp.speed_thresh = tmp.speed_thresh;
-    exp.distance_thresh = tmp.distance_thresh;
-    exp.target_rate = tmp.target_rate;
-    exp.vignette_sigma = tmp.vignette_sigma;
-    exp.vignette_weight = tmp.vignette_weight;
+    expmt.parameters.speed_thresh = tmp.speed_thresh;
+    expmt.parameters.distance_thresh = tmp.distance_thresh;
+    expmt.parameters.target_rate = tmp.target_rate;
+    expmt.parameters.vignette_sigma = tmp.vignette_sigma;
+    expmt.parameters.vignette_weight = tmp.vignette_weight;
 end
              
-% Store experiment data struct
-setappdata(handles.figure1,'expData',exp);
+% Store expmteriment data struct
+setappdata(handles.figure1,'expmt',expmt);
 
 
 % --- Executes on button press in set_dist_scale_pushbutton.
@@ -1082,16 +1079,16 @@ function set_dist_scale_pushbutton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% import experiment data struct
-exp = getappdata(handles.figure1,'expData');
+% import expmteriment data struct
+expmt = getappdata(handles.figure1,'expmt');
 
-tmp=setDistanceScale_subgui(handles,exp);
+tmp=setDistanceScale_subgui(handles,expmt.parameters);
 if ~isempty(tmp)
-    exp.distance_scale = tmp;
+    expmt.parameters.distance_scale = tmp;
 end
 
-% Store experiment data struct
-setappdata(handles.figure1,'expData',exp);
+% Store expmteriment data struct
+setappdata(handles.figure1,'expmt',expmt);
 
 
 
@@ -1145,12 +1142,12 @@ function begin_reg_pushbutton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-exp = getappdata(handles.figure1,'expData');
+expmt = getappdata(handles.figure1,'expmt');
 
-if isfield(exp,'reg_params')
+if isfield(expmt,'reg_params')
     % Turn infrared and white background illumination off during registration
-    writeInfraredWhitePanel(exp.teensy_port,1,0);
-    writeInfraredWhitePanel(exp.teensy_port,0,0);
+    writeInfraredWhitePanel(expmt.teensy_port,1,0);
+    writeInfraredWhitePanel(expmt.teensy_port,0,0);
 
     msg_title = ['Projector Registration Tips'];
     spc = [' '];
@@ -1174,7 +1171,7 @@ if isfield(exp,'reg_params')
     waitfor(msgbox(message,msg_title));
 
     % Register projector
-    reg_projector(exp.camInfo,exp.reg_params,handles);
+    reg_projector(expmt.camInfo,expmt.reg_params,handles);
 
     % Reset infrared and white lights to prior values
     writeInfraredWhitePanel(handles.teensy_port,1,handles.IR_intensity);
@@ -1192,23 +1189,23 @@ function reg_param_pushbutton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% import experiment data struct
-exp = getappdata(handles.figure1,'expData');
+% import expmteriment data struct
+expmt = getappdata(handles.figure1,'expmt');
 
-if isfield(exp,'reg_params')
-    tmp = registration_parameter_subgui(exp);
+if isfield(expmt,'reg_params')
+    tmp = registration_parameter_subgui(expmt);
     if ~isempty(tmp)
-        exp.reg_params = tmp;
+        expmt.reg_params = tmp;
     end
 else
         tmp = registration_parameter_subgui();
     if ~isempty(tmp)
-        exp.reg_params = tmp;
+        expmt.reg_params = tmp;
     end
 end
 
-% Store experiment data struct
-setappdata(handles.figure1,'expData',exp);
+% Store expmteriment data struct
+setappdata(handles.figure1,'expmt',expmt);
 
 
 % --- Executes on button press in reg_test_pushbutton.
@@ -1227,14 +1224,14 @@ function aux_COM_popupmenu_Callback(hObject, eventdata, handles)
 % Hints: contents = cellstr(get(hObject,'String')) returns aux_COM_popupmenu contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from aux_COM_popupmenu
 
-% import experiment data struct
-exp = getappdata(handles.figure1,'expData');
+% import expmteriment data struct
+expmt = getappdata(handles.figure1,'expmt');
 
 % Update GUI menus with port names
 set(handles.aux_COM_popupmenu,'string',ports);
 
-% Store experiment data struct
-setappdata(handles.figure1,'expData',exp);
+% Store expmteriment data struct
+setappdata(handles.figure1,'expmt',expmt);
 
 guidata(hObject,handles);
 
@@ -1260,8 +1257,8 @@ function refresh_aux_COM_pushbutton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% import experiment data struct
-exp = getappdata(handles.figure1,'expData');
+% import expmteriment data struct
+expmt = getappdata(handles.figure1,'expmt');
 
 % Attempt handshake with light panel teensy
 [lightBoardPort,ports] = identifyMicrocontrollers;
@@ -1277,8 +1274,8 @@ end
 % Update GUI menus with port names
 set(handles.aux_COM_popupmenu,'string',ports);
 
-% Store experiment data struct
-setappdata(handles.figure1,'expData',exp);
+% Store expmteriment data struct
+setappdata(handles.figure1,'expmt',expmt);
 
 guidata(hObject,handles);
 
@@ -1294,11 +1291,11 @@ function param_prof_popupmenu_Callback(hObject, eventdata, handles)
 if get(handles.param_prof_popupmenu,'value') ~= 1
     profiles = get(handles.param_prof_popupmenu,'string');
     profile = profiles(get(handles.param_prof_popupmenu,'value'));
-    exp = loadSavedParameters(handles,profile{:});
+    expmt = loadSavedParameters(handles,profile{:});
 end
 
-% Store experiment data struct
-setappdata(handles.figure1,'expData',exp);
+% Store expmteriment data struct
+setappdata(handles.figure1,'expmt',expmt);
 guidata(hObject,handles);
 
 
@@ -1350,8 +1347,8 @@ function save_params_pushbutton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% import experiment data struct
-exp = getappdata(handles.figure1,'expData');
+% import expmteriment data struct
+expmt = getappdata(handles.figure1,'expmt');
 
 % set profile save path
 save_path = [handles.gui_dir 'profiles\'];
@@ -1360,7 +1357,7 @@ save_path = [handles.gui_dir 'profiles\'];
 
 if any(FileName)
     replace = exist(strcat(PathName,FileName))==2;
-    save(strcat(PathName,FileName),'exp');
+    save(strcat(PathName,FileName),'expmt');
 
     if replace
         profile_name = FileName(1:strfind(FileName,'.mat')-1);
@@ -1400,6 +1397,21 @@ function reference_pushbutton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+% import expmteriment variables
+expmt = getappdata(handles.figure1,'expmt');
+
+if isfield(expmt,'ROI')
+    initializeRef(handles);
+else
+    errordlg('Run ROI detection before initializing references')
+end
+
+% Store expmteriment data struct
+setappdata(handles.figure1,'expmt',expmt);
+guidata(hObject,handles);
+
+
+
 
 % --- Executes on button press in sample_noise_pushbutton.
 function sample_noise_pushbutton_Callback(hObject, eventdata, handles)
@@ -1414,8 +1426,22 @@ function auto_detect_ROIs_pushbutton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% import experiment variables
-exp = getappdata(handles.figure1,'expData');
+% import expmteriment variables
+expmt = getappdata(handles.figure1,'expmt');
 
 % autodetect ROIs
-[ROI_coords, centers, mazeOri, ROI_bounds] = autoROIs(handles);
+[corners, centers, orientation, bounds, im] = autoROIs(handles);
+
+expmt.ROI = [];
+expmt.ROI.corners = corners;
+expmt.ROI.centers = centers;
+expmt.ROI.orientation = orientation;
+expmt.ROI.bounds = bounds;
+expmt.ROI.im = im;
+
+% Store expmteriment data struct
+setappdata(handles.figure1,'expmt',expmt);
+guidata(hObject,handles);
+
+
+

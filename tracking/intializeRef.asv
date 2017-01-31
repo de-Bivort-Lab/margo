@@ -30,13 +30,13 @@ numbers=1:nROIs;                           % Numbers to display while tracking
 centStamp=zeros(nROIs,1);
 vignetteMat=filterVignetting(ref,exp.ROI.im,exp.ROI.corners);
 
-% Set maximum allowable distance to center of ROI as the long axis of the
-% ROI + some error
+% Set maximum allowable distance to center of ROI as the long axis of the ROI
 widths=(exp_vars.ROI.bounds(:,3));
 heights=(exp_vars.ROI.bounds(:,4));
 w=median(widths);
 h=median(heights);
 exp_vars.parameters.distanceThresh=sqrt(w^2+h^2)/2*0.95;
+min_movement = exp_vars.parameters.distanceThresh * 0.2;    % min distance 
 
 % Calculate threshold for distance to end of maze arms for turn scoring
 mazeLengths=mean([widths heights],2);
@@ -60,49 +60,35 @@ while toc<referenceTime&&get(handles.accept_track_thresh_pushbutton,'value')~=1
     tElapsed=tElapsed+current_tStamp-previous_tStamp;
     previous_tStamp=current_tStamp;
     
-        % Report time remaining to reference timeout to GUI
-        timeRemaining = round(referenceTime - toc);
-        if timeRemaining < 60; 
-            set(handles.edit_time_remaining, 'String', ['00:00:' sprintf('%0.2d',timeRemaining)]);
-            set(handles.edit_time_remaining, 'BackgroundColor', [1 0.4 0.4]);
-        elseif (3600 > timeRemaining) && (timeRemaining > 60);
-            min = floor(timeRemaining/60);
-            sec = rem(timeRemaining, 60);
-            set(handles.edit_time_remaining, 'String', ['00:' sprintf('%0.2d',min) ':' sprintf('%0.2d',sec)]);
-            set(handles.edit_time_remaining, 'BackgroundColor', [1 1 1]);
-        elseif timeRemaining > 3600;
-            hr = floor(timeRemaining/3600);
-            min = floor(rem(timeRemaining, 3600)/60);
-            sec = timeRemaining - hr*3600 - min*60;
-            set(handles.edit_time_remaining, 'String', [sprintf('%0.2d', hr) ':' sprintf('%0.2d',min) ':' sprintf('%0.2d',sec)]);
-            set(handles.edit_time_remaining, 'BackgroundColor', [1 1 1]);
-        end
-        
-        % Take difference image
-        imagedata=peekdata(vid,1);
-        
-        if size(imagedata,3)>2
-            imagedata=imagedata(:,:,2);
-        end
-        subtractedData=(ref-vignetteMat)-(imagedata-vignetteMat);
+    % Report time remaining to reference timeout to GUI
+    timeRemaining = round(referenceTime - toc);
+    updateTimeString(timeRemaining, handles.edit_time_remaining);
 
-        % Extract regionprops and record centroid for blobs with (11 > area > 30) pixels
-        props=regionprops((subtractedData>imageThresh),propFields);
-        validCentroids=([props.Area]>4&[props.Area]<120);
-        cenDat=reshape([props(validCentroids).Centroid],2,length([props(validCentroids).Centroid])/2)';
+    % Take difference image
+    imagedata=peekdata(vid,1);
 
-        % Match centroids to ROIs by finding nearest ROI center
-        [cen_permutation,update_centroid]=matchCentroids2ROIs(cenDat,lastCentroid,centers,distanceThresh);
+    if size(imagedata,3)>2
+        imagedata=imagedata(:,:,2);
+    end
+    subtractedData=(ref-vignetteMat)-(imagedata-vignetteMat);
+
+    % Extract regionprops and record centroid for blobs with (11 > area > 30) pixels
+    props=regionprops((subtractedData>imageThresh),propFields);
+    validCentroids=([props.Area]>4&[props.Area]<120);
+    cenDat=reshape([props(validCentroids).Centroid],2,length([props(validCentroids).Centroid])/2)';
+
+    % Match centroids to ROIs by finding nearest ROI center
+    [cen_permutation,update_centroid]=matchCentroids2ROIs(cenDat,lastCentroid,centers,distanceThresh);
 
         % Apply speed threshold to centroid tracking
         if any(update_centroid)
-        d = sqrt([cenDat(cen_permutation,1)-lastCentroid(update_centroid,1)].^2 + [cenDat(cen_permutation,2)-lastCentroid(update_centroid,2)].^2);
-        dt = tElapsed-centStamp(update_centroid);
-        speed = d./dt;
-        above_spd_thresh = speed > speedThresh;
-        cen_permutation(above_spd_thresh)=[];
-        update_centroid=find(update_centroid);
-        update_centroid(above_spd_thresh)=[];
+            d = sqrt([cenDat(cen_permutation,1)-lastCentroid(update_centroid,1)].^2 + [cenDat(cen_permutation,2)-lastCentroid(update_centroid,2)].^2);
+            dt = tElapsed-centStamp(update_centroid);
+            speed = d./dt;
+            above_spd_thresh = speed > speedThresh;
+            cen_permutation(above_spd_thresh)=[];
+            update_centroid=find(update_centroid);
+            update_centroid(above_spd_thresh)=[];
         end
 
         % Use permutation vector to sort raw centroid data and update
@@ -110,22 +96,24 @@ while toc<referenceTime&&get(handles.accept_track_thresh_pushbutton,'value')~=1
         lastCentroid(update_centroid,:)=cenDat(cen_permutation,:);
         
         % Step through each ROI one-by-one
-        for i=1:size(ROI_coords,1)
+        for i=1:nROIs
 
-        % Calculate distance to previous locations where references were taken
-        tCen=repmat(lastCentroid(i,:),size(referenceCentroids,3),1);
-        d=abs(sqrt(dot((tCen-squeeze(referenceCentroids(i,:,:))'),(squeeze(referenceCentroids(i,:,:))'-tCen),2)));
+            % Calculate distance to previous locations where references were taken
+            tCen=repmat(lastCentroid(i,:),size(referenceCentroids,3),1);
+            d=abs(sqrt(dot((tCen-squeeze(referenceCentroids(i,:,:))'),(squeeze(referenceCentroids(i,:,:))'-tCen),2)));
 
             % Create a new reference image for the ROI if fly is greater than distance thresh
             % from previous reference locations
-            if sum(d<10)==0&&sum(isnan(lastCentroid(i,:)))==0
+            if ~any(d<10) && ~any(isnan(lastCentroid(i,:)))
+                
                 nRefs(i)=sum(sum(referenceCentroids(i,:,:)>0));
                 referenceCentroids(i,:,mod(nRefs(i)+1,10))=lastCentroid(i,:);
-                newRef=imagedata(ROI_coords(i,2):ROI_coords(i,4),ROI_coords(i,1):ROI_coords(i,3));
-                oldRef=refImage(ROI_coords(i,2):ROI_coords(i,4),ROI_coords(i,1):ROI_coords(i,3));
+                newRef=imagedata(exp_vars.ROI.corners(i,2):exp_vars.ROI.corners(i,4),exp_vars.ROI.corners(i,1):exp_vars.ROI.corners(i,3));
+                oldRef=refImage(exp_vars.ROI.corners(i,2):exp_vars.ROI.corners(i,4),exp_vars.ROI.corners(i,1):exp_vars.ROI.corners(i,3));
                 nRefs(i)=sum(sum(referenceCentroids(i,:,:)>0));                                         % Update num Refs
                 averagedRef=newRef.*(1/nRefs(i))+oldRef.*(1-(1/nRefs(i)));               % Weight new reference by 1/nRefs
-                refImage(ROI_coords(i,2):ROI_coords(i,4),ROI_coords(i,1):ROI_coords(i,3))=averagedRef;
+                refImage(exp_vars.ROI.corners(i,2):exp_vars.ROI.corners(i,4),exp_vars.ROI.corners(i,1):exp_vars.ROI.corners(i,3))=averagedRef;
+                
             end
         end
         
@@ -137,12 +125,12 @@ while toc<referenceTime&&get(handles.accept_track_thresh_pushbutton,'value')~=1
 
            % Draw last known centroid for each ROI and update ref. number indicator
            hold on
-           for i=1:size(ROI_coords,1)
+           for i=1:nROIs
                color=[(1/nRefs(i)) 0 (1-1/nRefs(i))];
                color(color>1)=1;
                color(color<0)=0;
-               plot(ROI_coords(i,1),ROI_coords(i,2),'o','Linew',3,'Color',color);      
-               text(ROI_coords(i,1),ROI_coords(i,2)+15,int2str(numbers(i)),'Color','m')
+               plot(exp_vars.ROI.corners(i,1),exp_vars.ROI.corners(i,2),'o','Linew',3,'Color',color);      
+               text(exp_vars.ROI.corners(i,1),exp_vars.ROI.corners(i,2)+15,int2str(numbers(i)),'Color','m')
                text(lastCentroid(i,1),lastCentroid(i,2),int2str(numbers(i)),'Color','R')
            end
        hold off

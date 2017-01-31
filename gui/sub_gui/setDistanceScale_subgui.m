@@ -55,16 +55,16 @@ function setDistanceScale_subgui_OpeningFcn(hObject, eventdata, handles, varargi
 % varargin   command line arguments to setDistanceScale_subgui (see VARARGIN)
 
 handles.input = varargin{1};
-exp = varargin{2};
+param_data = varargin{2};
 handles.output=[];
 
 
-if isfield(exp,'distance_scale')
+if isfield(param_data,'distance_scale')
     
     % Set GUI strings with input parameters
-    set(handles.edit_target_size,'string',exp.distance_scale.target_size);
-    set(handles.edit_mm_per_pixel,'string',round(exp.distance_scale.mm_per_pixel*100)/100);
-    handles.line_handle = imline(handles.input.axes_handle,exp.distance_scale.pos);
+    set(handles.edit_target_size,'string',param_data.distance_scale.target_size);
+    set(handles.edit_mm_per_pixel,'string',round(param_data.distance_scale.mm_per_pixel*100)/100);
+    handles.line_handle = imline(handles.input.axes_handle,param_data.distance_scale.pos);
 
     % Assign current values as default output
     handles.output.target_size=str2num(get(handles.edit_target_size,'string'));
