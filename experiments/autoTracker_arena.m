@@ -7,78 +7,84 @@ cmd_str = 'wmic process where name="MATLAB.exe" CALL setpriority 128';
 
 %% Define parameters - adjust parameters here to fix tracking and ROI segmentation errors
 
-% Experimental parameters
-exp_duration=handles.exp_duration;
-ref_stack_size=handles.ref_stack_size;          % Number of images to keep in rolling reference
-ref_freq=handles.ref_freq;                      % Seconds between reference images
-referenceTime = 60;                             % Seconds over which intial reference images are taken
+% import data from gui
+exp = getappdata(handles.figure1,'expData');
 
+% Experimental parameters
+exp.duration=exp.duration;           % Duration of the experiment in minutes
+ref_stack_size=exp.ref_stack_size;        % Number of images to keep in rolling reference
+ref_freq=exp.ref_freq;              % Seconds between reference images                           % Minimum pixel distance to end of maze arm for turn scoring
+referenceTime = 60;                        % Seconds over which intial reference images are taken
 % Tracking parameters
-imageThresh=get(handles.threshold_slider,'value')*255;      % Difference image threshold for detecting centroids
-speedThresh=35;                                             % Maximum allow pixel speed (px/s);
+imageThresh=get(handles.track_thresh_slider,'value')*255;                             % Difference image threshold for detecting centroids
+distanceThresh=20;                          % Maximum allowed pixel distance matching centroids to ROIs
+speedThresh=45;                              % Maximum allow pixel speed (px/s);
 
 % ROI detection parameters
-ROI_thresh=get(handles.threshold_slider,'value');    % Binary image threshold from zero (black) to one (white) for segmentation  
+ROI_thresh=get(handles.ROI_thresh_slider,'value');    % Binary image threshold from zero (black) to one (white) for segmentation  
 sigma=0.47;                                 % Sigma expressed as a fraction of the image height
-kernelWeight=0.34;                          % Scalar weighting of kernel when applied to the image
+gaussWeight=0.34;                          % Scalar weighting of kernel when applied to the image
 
 %% Save labels and create placeholder files for data
 
 t = datestr(clock,'mm-dd-yyyy-HH-MM-SS_');
-labels = cell2table(labelMaker(handles.labels),'VariableNames',{'Strain' 'Sex' 'Treatment' 'ID' 'Day'});
+labels = cell2table(labelMaker(exp.labels),'VariableNames',{'Strain' 'Sex' 'Treatment' 'ID' 'Day'});
 strain=labels{1,1}{:};
 treatment=labels{1,3}{:};
-labelID = [handles.fpath '\' t strain '_' treatment '_labels.dat'];     % File ID for label data
+labelID = [exp.fpath '\' t strain '_' treatment '_labels.dat'];     % File ID for label data
 writetable(labels, labelID);
 
 % Create placeholder files
-cenID = [handles.fpath '\' t strain '_' treatment '_Centroid.dat'];            % File ID for centroid data
-turnID = [handles.fpath '\' t strain '_' treatment '_RightTurns.dat'];         % File ID for turn data
+cenID = [exp.fpath '\' t strain '_' treatment '_Centroid.dat'];            % File ID for centroid data
+turnID = [exp.fpath '\' t strain '_' treatment '_RightTurns.dat'];         % File ID for turn data
+liteID = [exp.fpath '\' t strain '_' treatment '_lightSequence.dat'];      % File ID for light choice sequence data
+ledID = [exp.fpath '\' t strain '_' treatment '_ledArm.dat'];             % File ID for light choice sequence data
  
 dlmwrite(cenID, []);                          % create placeholder ASCII file
 dlmwrite(turnID, []);                         % create placeholder ASCII file
+dlmwrite(liteID, []);                         % create placeholder ASCII file
+dlmwrite(ledID, []);                          % create placeholder ASCII file
+
 
 %% Setup the camera and video object
 imaqreset
 pause(0.2);
 % Camera mode set to 8-bit with 664x524 resolution
-vid = initializeCamera(handles.camInfo);
+vid = initializeCamera(exp.camInfo);
 start(vid);
 pause(0.2);
 
 %% Grab image for ROI detection and segment out ROIs
-stop=get(handles.accept_thresh_togglebutton,'value');
+stop=get(handles.accept_ROI_thresh_pushbutton,'value');
 
 while stop~=1;
 tic
-stop=get(handles.accept_thresh_togglebutton,'value');
+stop=get(handles.accept_ROI_thresh_pushbutton,'value');
 
 % Take single frame
 imagedata=peekdata(vid,1);
 % Extract red channel
-ROI_image=imagedata(:,:,2);
+grayscale_im=imagedata(:,:,2);
 
 % Update threshold value
-ROI_thresh=get(handles.threshold_slider,'value');
+ROI_thresh=get(handles.ROI_thresh_slider,'value');
 
 % Build a kernel to smooth vignetting
-gaussianKernel=buildGaussianKernel(size(ROI_image,2),size(ROI_image,1),sigma,kernelWeight);
-ROI_image=(uint8(double(ROI_image).*gaussianKernel));
+gaussianKernel=buildGaussianKernel(size(grayscale_im,2),size(grayscale_im,1),sigma,gaussWeight);
+grayscale_im=(uint8(double(grayscale_im).*gaussianKernel));
 
 % Extract ROIs from thresholded image
-[ROI_bounds,ROI_coords,ROI_widths,ROI_heights,binaryimage] = detect_ROIs(ROI_image,ROI_thresh);
+[ROI_bounds,ROI_coords,ROI_widths,ROI_heights,binaryimage] = detect_ROIs(grayscale_im,ROI_thresh);
 
 % Create orientation vector for mazes (upside down Y = 0, right-side up = 1)
 mazeOri=logical(zeros(size(ROI_coords,1),1));
 
 % Calculate coords of ROI centers
-[xCenters,yCenters]=ROIcenters(binaryimage,ROI_coords);
+[xCenters,yCenters]=ROIcenters(grayscale_im,binaryimage,ROI_coords);
 centers=[xCenters,yCenters];
 
 % Define a permutation vector to sort ROIs from top-right to bottom left
 [ROI_coords,mazeOri,ROI_bounds,centers]=sortROIs(ROI_coords,mazeOri,centers,ROI_bounds);
-
-set(handles.edit_num_ROIs,'String',num2str(size(ROI_bounds,1)));
 
 
     cla reset
@@ -93,7 +99,6 @@ set(handles.edit_num_ROIs,'String',num2str(size(ROI_bounds,1)));
         end
     end
     hold off
-    set(gca,'Xtick',[],'Ytick',[]);
     drawnow
 
 
@@ -102,7 +107,7 @@ set(handles.edit_frame_rate,'String',num2str(round(1/toc)));
 end
 
 % Reset the accept threshold button
-set(handles.accept_thresh_togglebutton,'value',0);
+set(handles.accept_ROI_thresh_pushbutton,'value',0);
 
 %% Automatically average out flies from reference image
 

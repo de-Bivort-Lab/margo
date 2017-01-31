@@ -1400,21 +1400,6 @@ function reference_pushbutton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% import experiment variables
-exp = getappdata(handles.figure1,'expData');
-
-if isfield(exp,'ROI')
-    initializeRef(handles);
-else
-    errordlg('Run ROI detection before initializing references')
-end
-
-% Store experiment data struct
-setappdata(handles.figure1,'expData',exp);
-guidata(hObject,handles);
-
-
-
 
 % --- Executes on button press in sample_noise_pushbutton.
 function sample_noise_pushbutton_Callback(hObject, eventdata, handles)
@@ -1433,18 +1418,4 @@ function auto_detect_ROIs_pushbutton_Callback(hObject, eventdata, handles)
 exp = getappdata(handles.figure1,'expData');
 
 % autodetect ROIs
-[corners, centers, orientation, bounds, im] = autoROIs(handles);
-
-exp.ROI = [];
-exp.ROI.corners = corners;
-exp.ROI.centers = centers;
-exp.ROI.orientation = orientation;
-exp.ROI.bounds = bounds;
-exp.ROI.im = im;
-
-% Store experiment data struct
-setappdata(handles.figure1,'expData',exp);
-guidata(hObject,handles);
-
-
-
+[ROI_coords, centers, mazeOri, ROI_bounds] = autoROIs(handles);
