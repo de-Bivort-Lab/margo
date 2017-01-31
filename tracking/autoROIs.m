@@ -10,7 +10,7 @@ function [varargout]=autoROIs(handles)
 %% Define parameters - adjust parameters here to fix tracking and ROI segmentation errors
 
 % import data from gui
-exp_vars = getappdata(handles.figure1,'expData');
+expmt = getappdata(handles.figure1,'expmt');
 
 % ROI detection parameters
 ROI_thresh=get(handles.ROI_thresh_slider,'value');    % Binary image threshold from zero (black) to one (white) for segmentation  
@@ -24,7 +24,7 @@ imaqreset
 pause(0.2);
 
 % Create camera object with input parameters
-vid = initializeCamera(exp_vars.camInfo);
+vid = initializeCamera(expmt.camInfo);
 start(vid);
 pause(0.2);
 

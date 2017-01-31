@@ -28,7 +28,7 @@ propFields={'Centroid';'Area'};                         % Define fields for regi
 nRefs=zeros(nROIs, 1);                      % Reference number placeholder
 numbers=1:nROIs;                           % Numbers to display while tracking
 centStamp=zeros(nROIs,1);
-vignetteMat=filterVignetting(ref,exp.ROI.im,exp.ROI.corners);
+vignetteMat=filterVignetting(ref,expmt.ROI.im,expmt.ROI.corners);
 
 % Set maximum allowable distance to center of ROI as the long axis of the ROI
 widths=(expmt.ROI.bounds(:,3));
@@ -49,9 +49,10 @@ tElapsed=0;
 tic
 previous_tStamp=toc;
 current_tStamp=0;
+%%
 
 % Collect reference until timeout OR "accept reference" GUI press
-while toc<referenceTime&&get(handles.accept_track_thresh_pushbutton,'value')~=1
+while toc<60 && get(handles.accept_track_thresh_pushbutton,'value')~=1
     
     % Update image threshold value from GUI
     imageThresh=get(handles.track_thresh_slider,'value');
@@ -63,7 +64,7 @@ while toc<referenceTime&&get(handles.accept_track_thresh_pushbutton,'value')~=1
     previous_tStamp=current_tStamp;
     
     % Report time remaining to reference timeout to GUI
-    timeRemaining = round(referenceTime - toc);
+    timeRemaining = round(60 - toc);
     updateTimeString(timeRemaining, handles.edit_time_remaining);
 
     % Take difference image
@@ -74,20 +75,20 @@ while toc<referenceTime&&get(handles.accept_track_thresh_pushbutton,'value')~=1
     end
     subtractedData=(ref-vignetteMat)-(imagedata-vignetteMat);
 
-    % Extract regionprops and record centroid for blobs with (11 > area > 30) pixels
+    % Extract regionprops and record centroid for blobs with (min_area > area > max_area) pixels
     props=regionprops((subtractedData>imageThresh),propFields);
     validCentroids=([props.Area]>4&[props.Area]<120);
     cenDat=reshape([props(validCentroids).Centroid],2,length([props(validCentroids).Centroid])/2)';
 
     % Match centroids to ROIs by finding nearest ROI center
-    [cen_permutation,update_centroid]=matchCentroids2ROIs(cenDat,lastCentroid,centers,distanceThresh);
+    [cen_permutation,update_centroid]=matchCentroids2ROIs(cenDat,lastCentroid,expmt.ROI.centers,expmt.parameters.distanceThresh);
 
     % Apply speed threshold to centroid tracking
     if any(update_centroid)
         d = sqrt([cenDat(cen_permutation,1)-lastCentroid(update_centroid,1)].^2 + [cenDat(cen_permutation,2)-lastCentroid(update_centroid,2)].^2);
         dt = tElapsed-centStamp(update_centroid);
         speed = d./dt;
-        above_spd_thresh = speed > speedThresh;
+        above_spd_thresh = speed > expmt.parameters.speed_thresh;
         cen_permutation(above_spd_thresh)=[];
         update_centroid=find(update_centroid);
         update_centroid(above_spd_thresh)=[];
@@ -111,10 +112,10 @@ while toc<referenceTime&&get(handles.accept_track_thresh_pushbutton,'value')~=1
             nRefs(i)=sum(sum(referenceCentroids(i,:,:)>0));
             referenceCentroids(i,:,mod(nRefs(i)+1,10))=lastCentroid(i,:);
             newRef=imagedata(expmt.ROI.corners(i,2):expmt.ROI.corners(i,4),expmt.ROI.corners(i,1):expmt.ROI.corners(i,3));
-            oldRef=refImage(expmt.ROI.corners(i,2):expmt.ROI.corners(i,4),expmt.ROI.corners(i,1):expmt.ROI.corners(i,3));
+            oldRef=ref(expmt.ROI.corners(i,2):expmt.ROI.corners(i,4),expmt.ROI.corners(i,1):expmt.ROI.corners(i,3));
             nRefs(i)=sum(sum(referenceCentroids(i,:,:)>0));                                         % Update num Refs
             averagedRef=newRef.*(1/nRefs(i))+oldRef.*(1-(1/nRefs(i)));               % Weight new reference by 1/nRefs
-            refImage(expmt.ROI.corners(i,2):expmt.ROI.corners(i,4),expmt.ROI.corners(i,1):expmt.ROI.corners(i,3))=averagedRef;
+            ref(expmt.ROI.corners(i,2):expmt.ROI.corners(i,4),expmt.ROI.corners(i,1):expmt.ROI.corners(i,3))=averagedRef;
 
         end
     end

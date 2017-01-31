@@ -141,7 +141,7 @@ expmt.parameters.vignette_weight = 0.35;
 
 if ~isempty(expmt.camInfo)
     expmt.camInfo.Gain = str2num(get(handles.edit_gain,'String'));
-    expmt.camInfo.exposure = str2num(get(handles.edit_exposure,'String'));
+    expmt.camInfo.Exposure = str2num(get(handles.edit_exposure,'String'));
     expmt.camInfo.Shutter = str2num(get(handles.edit_cam_shutter,'String'));
     expmt.parameters.target_rate = estimateFrameRate(expmt.camInfo);
 else
@@ -296,11 +296,11 @@ function edit_exposure_Callback(hObject, eventdata, handles)
 
 % import expmteriment data struct
 expmt = getappdata(handles.figure1,'expmt');
-expmt.camInfo.exposure = str2num(get(handles.edit_exposure,'String'));
+expmt.camInfo.Exposure = str2num(get(handles.edit_exposure,'String'));
 
 % If video is in preview mode, update the camera immediately
 if isfield(expmt,'vid')
-    expmt.src.exposure = expmt.camInfo.exposure;
+    expmt.src.exposure = expmt.camInfo.Exposure;
 end
 
 % Store expmteriment data struct
@@ -1396,7 +1396,7 @@ function reference_pushbutton_Callback(hObject, eventdata, handles)
 expmt = getappdata(handles.figure1,'expmt');
 
 if isfield(expmt,'ROI')
-    initializeRef(handles);
+    initializeRef(handles,expmt);
 else
     errordlg('Run ROI detection before initializing references')
 end
