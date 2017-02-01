@@ -1,4 +1,4 @@
-function [varargout] = sampleNoise(handles, expmt)
+function [expmt] = sampleNoise(handles, expmt)
 % 
 % Samples the background noise distribution prior to imaging for the
 % purpose of determining when to force reset background reference images.
@@ -18,6 +18,17 @@ propFields={'Centroid';'Area'};     % Define fields for regionprops
 
 tElapsed=0;
 
+%% Initalize camera and axes
+
+% Clear old video objects
+imaqreset
+pause(0.2);
+
+% Create camera object with input parameters
+vid = initializeCamera(expmt.camInfo);
+start(vid);
+pause(0.2);
+
 %% Sample noise
 
 % initialize display objects
@@ -27,10 +38,13 @@ blank = zeros(res(2),res(1));
 axh = imagesc(blank);
 set(gca,'Xtick',[],'Ytick',[]);
 clearvars hCirc
+hold on
 hCirc = plot(expmt.ROI.centers(:,1),expmt.ROI.centers(:,2),'o','Color',[1 0 0]);
+hold off
 
+tic
+previous_tStamp = toc;
 
-tic   
 while ct < pixDistSize;
         
         % Grab image thresh from GUI slider
@@ -39,17 +53,16 @@ while ct < pixDistSize;
         % Update time stamps
         current_tStamp=toc;
         tElapsed=tElapsed+current_tStamp-previous_tStamp;
-        set(handles.edit_frame_rate,'String',num2str(round(1/(current_tStamp-previous_tStamp))));
         previous_tStamp=current_tStamp;
-        timeRemaining = round(referenceTime - toc);
+        
         
         % Update number of frames remaining
-        set(handles.edit_time_remaining, 'String', num2str(pixDistSize-ct));
+        set(handles.edit_frame_rate, 'String', num2str(pixDistSize-ct));
 
         % Get centroids and sort to ROIs
         imagedata=peekdata(vid,1);
         imagedata=imagedata(:,:,2);
-        imagedata=(refImage-vignetteMat)-(imagedata-vignetteMat);
+        imagedata=(expmt.ref-expmt.vignetteMat)-(imagedata-expmt.vignetteMat);
         props=regionprops((imagedata>imageThresh),propFields);
 
         % Match centroids to ROIs by finding nearest ROI center
@@ -57,7 +70,7 @@ while ct < pixDistSize;
         cenDat=reshape([props(validCentroids).Centroid],2,length([props(validCentroids).Centroid])/2)';
 
         % Match centroids to last known centroid positions
-        [cen_permutation,update_centroid]=matchCentroids2ROIs(cenDat,lastCentroid,centers,distanceThresh);
+        [cen_permutation,update_centroid]=matchCentroids2ROIs(cenDat,lastCentroid,expmt.ROI.centers,expmt.parameters.distanceThresh);
 
         % Apply speed threshold to centroid tracking
         if any(update_centroid)
@@ -92,5 +105,8 @@ end
 pixStd=nanstd(pixelDist);
 pixMean=nanmean(pixelDist);    
 
-w=ROI_bounds(:,3);
-h=ROI_bounds(:,4);
+% Assign outputs
+expmt.noise.dist = pixelDist;
+expmt.noise.std = nanstd(pixelDist);
+expmt.noise.mean = nanmean(pixelDist);
+

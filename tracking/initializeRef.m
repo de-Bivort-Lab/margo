@@ -1,4 +1,4 @@
-function [varargout] = initializeRef(handles,expmt)
+function [expmt] = initializeRef(handles,expmt)
 
 %% Initalize camera and axes
 
