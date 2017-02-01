@@ -2,11 +2,26 @@ function out=initializeCamera(camInfo)
 
 vid = videoinput(camInfo.AdaptorName,camInfo.DeviceIDs{1},camInfo.ActiveMode{:});
 src = getselectedsource(vid);
-src.Exposure = camInfo.Exposure;
-src.Gain = camInfo.Gain;
-src.Shutter = camInfo.Shutter;
-src.WhiteBalanceRBMode = 'Off';
-src.Gamma = 1.4;
+
+if isfield(src,'Exposure')
+    src.Exposure = camInfo.Exposure;
+end
+
+if isfield(src,'Gain')
+    src.Gain = camInfo.Gain;
+end
+
+if isfield(src,'Shutter')
+    src.Shutter = camInfo.Shutter;
+end
+
+if isfield(src,'WhiteBalanceRBMode')
+    src.WhiteBalanceRBMode = 'Off';
+end
+
+if isfield(src,'Gamma')
+    src.Gamma = 1.4;
+end
 
 triggerconfig(vid,'manual');
 

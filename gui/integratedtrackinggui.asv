@@ -1414,19 +1414,6 @@ function sample_noise_pushbutton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% import expmteriment variables
-expmt = getappdata(handles.figure1,'expmt');
-
-if isfield(expmt,'ref')
-    expmt = sampleNoise(handles,expmt);
-else
-    errordlg('Reference image required to sample tracking noise')
-end
-
-% Store expmteriment data struct
-setappdata(handles.figure1,'expmt',expmt);
-guidata(hObject,handles);
-
 
 % --- Executes on button press in auto_detect_ROIs_pushbutton.
 function auto_detect_ROIs_pushbutton_Callback(hObject, eventdata, handles)

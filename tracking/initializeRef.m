@@ -1,6 +1,6 @@
-function [varargout] = intializeRef(handles,expmt)
+function [varargout] = initializeRef(handles,expmt)
 
-% Automatically average out flies from reference image
+%% Initalize camera and axes
 
 % Clear old video objects
 imaqreset
@@ -11,22 +11,19 @@ vid = initializeCamera(expmt.camInfo);
 start(vid);
 pause(0.2);
 
-cla reset
-res = vid.videoResolution;
-blank = zeros(res(2),res(1));
-axh = imagesc(blank);
+%% Assign parameters and placeholders
 
 ref = peekdata(vid,1);
 if size(ref,3)>2
-    ref=ref(:,:,2);                                     % Assign reference image
+    ref=ref(:,:,2);                         % Assign reference image
 end
+pause(0.1);
 
 nROIs = size(expmt.ROI.corners, 1);
-lastCentroid=expmt.ROI.centers;                     % Create placeholder for most recent non-NaN centroids
-referenceCentroids=zeros( nROIs, 2, 10);                % Create placeholder for cen. coords when references are taken
-propFields={'Centroid';'Area'};                         % Define fields for regionprops
+lastCentroid=expmt.ROI.centers;             % placeholder for most recent non-NaN centroids
+referenceCentroids=zeros(nROIs, 2, 10);     % placeholder for cen. coords where references are taken
+propFields={'Centroid';'Area'};             % Define fields for regionprops
 nRefs=zeros(nROIs, 1);                      % Reference number placeholder
-numbers=1:nROIs;                           % Numbers to display while tracking
 centStamp=zeros(nROIs,1);
 vignetteMat=filterVignetting(ref,expmt.ROI.im,expmt.ROI.corners);
 
@@ -44,14 +41,31 @@ min_dist = expmt.parameters.distanceThresh * 0.2;
 mazeLengths=mean([widths heights],2);
 expmt.parameters.armThresh=mazeLengths*0.2;
 
+%% Collect reference until timeout OR "accept reference" GUI press
+
+% initialize display objects
+cla reset
+res = vid.videoResolution;
+blank = zeros(res(2),res(1));
+axh = imagesc(blank);
+set(gca,'Xtick',[],'Ytick',[]);
+clearvars hCirc hText
+hsv_base = 360;
+hsv_targ = 240;
+color_scale = 1 - hsv_targ/hsv_base;
+hold on
+for i = 1:nROIs
+    hCirc(i) = plot(expmt.ROI.corners(i,1),expmt.ROI.corners(i,2),'o','Color',[1 0 0],'LineWidth',3);
+    hText(i) = text(expmt.ROI.centers(i,1),expmt.ROI.centers(i,2),num2str(i),'Color','m');
+end
+hold off
+
 % Time stamp placeholders
 tElapsed=0;
 tic
 previous_tStamp=toc;
-current_tStamp=0;
-%%
+current_tStamp=0; 
 
-% Collect reference until timeout OR "accept reference" GUI press
 while toc<60 && get(handles.accept_track_thresh_pushbutton,'value')~=1
     
     % Update image threshold value from GUI
@@ -67,7 +81,8 @@ while toc<60 && get(handles.accept_track_thresh_pushbutton,'value')~=1
     timeRemaining = round(60 - toc);
     updateTimeString(timeRemaining, handles.edit_time_remaining);
 
-    % Take difference image
+    % Grab image and sort tracked objects to ROIs
+    
     imagedata=peekdata(vid,1);
 
     if size(imagedata,3)>2
@@ -75,7 +90,7 @@ while toc<60 && get(handles.accept_track_thresh_pushbutton,'value')~=1
     end
     subtractedData=(ref-vignetteMat)-(imagedata-vignetteMat);
 
-    % Extract regionprops and record centroid for blobs with (min_area > area > max_area) pixels
+    % Extract regionprops and record centroid for blobs with (11 > area > 30) pixels
     props=regionprops((subtractedData>imageThresh),propFields);
     validCentroids=([props.Area]>4&[props.Area]<120);
     cenDat=reshape([props(validCentroids).Centroid],2,length([props(validCentroids).Centroid])/2)';
@@ -97,8 +112,10 @@ while toc<60 && get(handles.accept_track_thresh_pushbutton,'value')~=1
     % Use permutation vector to sort raw centroid data and update
     % vector to specify which centroids are reliable and should be updated
     lastCentroid(update_centroid,:)=cenDat(cen_permutation,:);
+    
 
-    % Step through each ROI one-by-one
+    % Average in new ref for each fly > min_dist from previous reference locations
+    
     for i=1:nROIs
 
         % Calculate distance to previous locations where references were taken
@@ -116,32 +133,31 @@ while toc<60 && get(handles.accept_track_thresh_pushbutton,'value')~=1
             nRefs(i)=sum(sum(referenceCentroids(i,:,:)>0));                                         % Update num Refs
             averagedRef=newRef.*(1/nRefs(i))+oldRef.*(1-(1/nRefs(i)));               % Weight new reference by 1/nRefs
             ref(expmt.ROI.corners(i,2):expmt.ROI.corners(i,4),expmt.ROI.corners(i,1):expmt.ROI.corners(i,3))=averagedRef;
+            
+            % Update color indicator
+            
+            hsv_color = [1-color_scale*nRefs(i)/size(referenceCentroids,3) 1 1];
+            hCirc(i).Color = hsv2rgb(hsv_color);
 
         end
     end
+    
 
-   % Check "Display ON" toggle button from GUI 
-
-       % Update the plot with new reference
-           cla reset
-        imagesc(subtractedData>imageThresh);
-
-       % Draw last known centroid for each ROI and update ref. number indicator
-       hold on
-       for i=1:nROIs
-           color=[(1/nRefs(i)) 0 (1-1/nRefs(i))];
-           color(color>1)=1;
-           color(color<0)=0;
-           plot(expmt.ROI.corners(i,1),expmt.ROI.corners(i,2),'o','Linew',3,'Color',color);      
-           text(expmt.ROI.corners(i,1),expmt.ROI.corners(i,2)+15,int2str(numbers(i)),'Color','m')
-           text(lastCentroid(i,1),lastCentroid(i,2),int2str(numbers(i)),'Color','R')
-       end
-       
-       hold off
-       set(gca,'Xtick',[],'Ytick',[]);
-       drawnow
+    % Update display
+    
+   axh.CData = subtractedData>imageThresh;
+   % Draw last known centroid for each ROI and update ref. number indicator
+   for i=1:nROIs
+       hText(i).Position = [lastCentroid(i,1) lastCentroid(i,2)];
+   end
+   
+   drawnow
 
 end
 
 % Reset accept reference button
 set(handles.accept_track_thresh_pushbutton,'value',0);
+
+% assign outputs
+expmt.ref = ref;
+expmt.vignetteMat = vignetteMat;
