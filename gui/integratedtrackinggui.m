@@ -22,7 +22,7 @@ function varargout = integratedtrackinggui(varargin)
 
 % Edit the above text to modify the response to help integratedtrackinggui
 
-% Last Modified by GUIDE v2.5 30-Jan-2017 17:30:05
+% Last Modified by GUIDE v2.5 01-Feb-2017 22:03:38
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -59,6 +59,7 @@ handles.output = hObject;
 handles.axes_handle = gca;
 handles.gui_dir = which('autotrackergui');
 handles.gui_dir = handles.gui_dir(1:strfind(handles.gui_dir,'\gui\'));
+handles.display = 1;
 set(handles.ROI_thresh_slider,'value',0.15);
 set(gca,'Xtick',[],'Ytick',[]);
 expmt = [];
@@ -67,7 +68,7 @@ expmt = [];
 imaqreset
 c = imaqhwinfo;
 
-if length(c.InstalledAdaptors)>0
+if ~isempty(c.InstalledAdaptors)
     % Select appropriate adaptor for connected camera
     for i = 1:length(c.InstalledAdaptors)
         camInfo = imaqhwinfo(c.InstalledAdaptors{i});
@@ -75,7 +76,7 @@ if length(c.InstalledAdaptors)>0
             adaptor = i;
         end
     end
-    if exist('adaptor')
+    if exist('adaptor','var')
         camInfo = imaqhwinfo(c.InstalledAdaptors{adaptor});
     end
 
@@ -222,14 +223,12 @@ if ~isempty(expmt.camInfo)
         cla reset
         imaqreset;
         pause(0.02);
-        expmt.camInfo.vid = initializeCamera(expmt.camInfo);
-        expmt.camInfo.src = getselectedsource(expmt.camInfo.vid);
+        expmt.camInfo = initializeCamera(expmt.camInfo);
         start(expmt.camInfo.vid);
         pause(0.5);
         im = peekdata(expmt.camInfo.vid,1);
         handles.hImage = image(im);
         set(gca,'Xtick',[],'Ytick',[]);
-        stop(expmt.camInfo.vid);
     else
         errordlg('Settings not confirmed, no camera detected');
     end
@@ -278,123 +277,12 @@ if ~isempty(expmt.camInfo) && isfield(expmt.camInfo,'vid');
     set(handles.Cam_preview_pushbutton,'Value',0);
     set(handles.Cam_stopPreview_pushbutton,'Value',0);
     stoppreview(expmt.camInfo.vid);
-    rmfield(expmt.camInfo,'src');
-    rmfield(expmt.camInfo,'vid');
 end
 
 % Store expmteriment data struct
 setappdata(handles.figure1,'expmt',expmt);
 
 guidata(hObject,handles);
-
-
-
-function edit_exposure_Callback(hObject, eventdata, handles)
-% hObject    handle to edit_exposure (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% import expmteriment data struct
-expmt = getappdata(handles.figure1,'expmt');
-expmt.camInfo.Exposure = str2num(get(handles.edit_exposure,'String'));
-
-% If video is in preview mode, update the camera immediately
-if isfield(expmt,'vid')
-    expmt.src.exposure = expmt.camInfo.Exposure;
-end
-
-% Store expmteriment data struct
-setappdata(handles.figure1,'expmt',expmt);
-
-guidata(hObject,handles);
-
-
-
-
-% --- Executes during object creation, after setting all properties.
-function edit_exposure_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit_exposure (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-function edit_gain_Callback(hObject, eventdata, handles)
-% hObject    handle to edit_gain (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% import expmteriment data struct
-expmt = getappdata(handles.figure1,'expmt');
-expmt.camInfo.Gain = str2num(get(handles.edit_gain,'String'));
-
-% If video is in preview mode, update the camera immediately
-if isfield(handles,'src')
-    expmt.src.Gain = expmt.camInfo.Gain;
-end
-
-% Store expmteriment data struct
-setappdata(handles.figure1,'expmt',expmt);
-
-guidata(hObject,handles);
-
-
-
-
-% --- Executes during object creation, after setting all properties.
-function edit_gain_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit_gain (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-function edit_cam_shutter_Callback(hObject, eventdata, handles)
-% hObject    handle to edit_cam_shutter (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% import expmteriment data struct
-expmt = getappdata(handles.figure1,'expmt');
-
-expmt.camInfo.Shutter = str2num(get(handles.edit_cam_shutter,'String'));
-
-% If video is in preview mode, update the camera immediately
-if isfield(handles,'src')
-    expmt.src.Shutter = expmt.camInfo.Shutter;
-end
-
-% Store expmteriment data struct
-setappdata(handles.figure1,'expmt',expmt);
-
-guidata(hObject,handles);
-
-
-
-
-
-% --- Executes during object creation, after setting all properties.
-function edit_cam_shutter_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit_cam_shutter (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
 
 
 
@@ -500,7 +388,7 @@ function save_path_button1_Callback(hObject, eventdata, handles)
 expmt = getappdata(handles.figure1,'expmt');
 mat_dir = handles.gui_dir(1:strfind(handles.gui_dir,'MATLAB\')+6);
 default_path = [mat_dir 'autotracker_data\'];
-if exist(default_path) ~= 7
+if exist(default_path,'dir') ~= 7
     mkdir(default_path);
     msg_title = 'New Data Path';
     message = ['Autotracker has automatically generated a new default directory'...
@@ -1351,7 +1239,7 @@ save_path = [handles.gui_dir 'profiles\'];
 [FileName,PathName] = uiputfile('*.mat','Enter name for new profile',save_path);
 
 if any(FileName)
-    replace = exist(strcat(PathName,FileName))==2;
+    replace = exist(strcat(PathName,FileName),'file')==2;
     save(strcat(PathName,FileName),'expmt');
 
     if replace
@@ -1453,3 +1341,174 @@ guidata(hObject,handles);
 
 
 
+
+% ***************** Menu Items ******************** %
+
+
+
+
+% --------------------------------------------------------------------
+function hardware_props_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to hardware_props_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function display_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to display_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function cam_settings_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to cam_settings_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% import expmteriment variables
+expmt = getappdata(handles.figure1,'expmt');
+
+% run camera settings gui
+expmt = cam_settings_subgui(handles,expmt);
+
+% Store expmteriment data struct
+setappdata(handles.figure1,'expmt',expmt);
+guidata(hObject,handles);
+
+
+
+
+% --------------------------------------------------------------------
+function proj_settings_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to proj_settings_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function Untitled_3_Callback(hObject, eventdata, handles)
+% hObject    handle to Untitled_3 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function display_difference_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to display_difference_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+chk = get(hObject,'checked');
+
+if strcmp(chk,'off')
+    handles.display = 2;
+    set(handles.display_difference_menu,'checked','on');
+    set(handles.display_raw_menu,'checked','off');
+    set(handles.display_threshold_menu,'checked','off');
+    set(handles.display_none_menu,'checked','off');
+end
+
+guidata(hObject,handles);
+
+
+% --------------------------------------------------------------------
+function display_raw_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to display_raw_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+chk = get(hObject,'checked');
+
+if strcmp(chk,'off')
+    handles.display = 1;
+    set(handles.display_difference_menu,'checked','off');
+    set(handles.display_raw_menu,'checked','on');
+    set(handles.display_threshold_menu,'checked','off');
+    set(handles.display_none_menu,'checked','off');
+end
+
+guidata(hObject,handles);
+
+
+% --------------------------------------------------------------------
+function display_threshold_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to display_threshold_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+chk = get(hObject,'checked');
+
+if strcmp(chk,'off')
+    handles.display = 3;
+    set(handles.display_difference_menu,'checked','off');
+    set(handles.display_raw_menu,'checked','off');
+    set(handles.display_threshold_menu,'checked','on');
+    set(handles.display_none_menu,'checked','off');
+end
+
+guidata(hObject,handles);
+
+
+% --------------------------------------------------------------------
+function display_none_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to display_none_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+chk = get(hObject,'checked');
+
+if strcmp(chk,'off')
+    handles.display = 4;
+    set(handles.display_difference_menu,'checked','off');
+    set(handles.display_raw_menu,'checked','off');
+    set(handles.display_threshold_menu,'checked','off');
+    set(handles.display_none_menu,'checked','on');
+end
+
+guidata(hObject,handles);
+
+
+% --------------------------------------------------------------------
+function reg_proj_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to reg_proj_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function reg_params_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to reg_params_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function reg_error_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to reg_error_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on selection change in popupmenu6.
+function popupmenu6_Callback(hObject, eventdata, handles)
+% hObject    handle to popupmenu6 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns popupmenu6 contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from popupmenu6
+
+
+% --- Executes during object creation, after setting all properties.
+function popupmenu6_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to popupmenu6 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end

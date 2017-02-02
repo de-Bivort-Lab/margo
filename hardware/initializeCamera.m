@@ -1,35 +1,28 @@
-function out=initializeCamera(camInfo)
+function camInfo=initializeCamera(camInfo)
 
 vid = videoinput(camInfo.AdaptorName,camInfo.DeviceIDs{1},camInfo.ActiveMode{:});
+
 src = getselectedsource(vid);
+info = propinfo(src);
+names = fieldnames(info);
 
-if isfield(src,'Exposure')
-    src.Exposure = camInfo.Exposure;
-end
-
-if isfield(src,'Gain')
-    src.Gain = camInfo.Gain;
-end
-
-if isfield(src,'Shutter')
-    src.Shutter = camInfo.Shutter;
-end
-
-if isfield(src,'WhiteBalanceRBMode')
-    src.WhiteBalanceRBMode = 'Off';
-end
-
-if isfield(src,'Gamma')
-    src.Gamma = 1.4;
+if isfield(camInfo,'settings')
+    
+    % query saved cam settings
+    [i_src,i_set]=cmpCamSettings(src,camInfo.settings);
+    set_names = fieldnames(camInfo.settings);
+    
+    for i = 1:length(i_src)
+        src.(names{i_src(i)}) = camInfo.settings.(set_names{i_set(i)});
+    end
+    
 end
 
 triggerconfig(vid,'manual');
 
-% Create the image object in which you want to display 
-% the video preview data. Make the size of the image
-% object match the dimensions of the video frames.
+camInfo.vid = vid;
+camInfo.src = src;
 
-vidRes = vid.VideoResolution;
-nBands = vid.NumberOfBands;
 
-out=vid;
+
+

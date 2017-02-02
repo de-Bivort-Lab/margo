@@ -1,0 +1,15 @@
+function camInfo=initializeCamera(camInfo)
+
+vid = videoinput(camInfo.AdaptorName,camInfo.DeviceIDs{1},camInfo.ActiveMode{:});
+
+camInfo.src = getselectedsource(vid);
+info = propinfo(camInfo.src);
+names = fieldnames(info);
+
+if isfield(camInfo,'settings')
+    settings_names = fieldNames(
+end
+
+
+triggerconfig(vid,'manual');
+
