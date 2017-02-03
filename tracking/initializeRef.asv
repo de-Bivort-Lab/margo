@@ -1,12 +1,5 @@
 function [expmt] = initializeRef(handles,expmt)
 
-
-clearvars -except handles
-colormap('gray')
-set(handles.display_raw_menu,'Enabled','on');
-set(handles.display_difference_menu,'Enabled','on');
-set(handles.display_threshold_menu,'Enabled','on');
-
 %% Initalize camera and axes
 
 if strcmp(expmt.camInfo.vid.Running,'off')
@@ -100,10 +93,10 @@ while toc<60 && get(handles.accept_track_thresh_pushbutton,'value')~=1
     if size(imagedata,3)>2
         imagedata=imagedata(:,:,2);
     end
-    diffim=(ref-vignetteMat)-(imagedata-vignetteMat);
+    subtractedData=(ref-vignetteMat)-(imagedata-vignetteMat);
 
     % Extract regionprops and record centroid for blobs with (11 > area > 30) pixels
-    props=regionprops((diffim>imageThresh),propFields);
+    props=regionprops((subtractedData>imageThresh),propFields);
     validCentroids=([props.Area]>4&[props.Area]<120);
     cenDat=reshape([props(validCentroids).Centroid],2,length([props(validCentroids).Centroid])/2)';
 
@@ -158,22 +151,14 @@ while toc<60 && get(handles.accept_track_thresh_pushbutton,'value')~=1
     
 
     % Update display
-    if handles.display ~= 4
-       switch handles.display
-            case 1
-                axh.CData = imagedata;
-            case 2
-                axh.CData = diffim;
-            case 3
-                axh.CData = diffim>imageThresh;
-       end
-       
+    switch
+       axh.CData = subtractedData>imageThresh;
        % Draw last known centroid for each ROI and update ref. number indicator
        for i=1:nROIs
            hText(i).Position = [lastCentroid(i,1) lastCentroid(i,2)];
        end
+
        drawnow
-    end
 
 end
 

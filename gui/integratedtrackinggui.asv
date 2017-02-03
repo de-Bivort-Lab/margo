@@ -22,7 +22,7 @@ function varargout = integratedtrackinggui(varargin)
 
 % Edit the above text to modify the response to help integratedtrackinggui
 
-% Last Modified by GUIDE v2.5 01-Feb-2017 22:03:38
+% Last Modified by GUIDE v2.5 02-Feb-2017 18:59:44
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -69,36 +69,53 @@ imaqreset
 c = imaqhwinfo;
 
 if ~isempty(c.InstalledAdaptors)
-    % Select appropriate adaptor for connected camera
+    
+    % Select default adaptor for connected camera(s)
+    ct=0;   
+    cam_list = struct('name','','adaptor','','index',[]);
+
     for i = 1:length(c.InstalledAdaptors)
         camInfo = imaqhwinfo(c.InstalledAdaptors{i});
-        if ~isempty(camInfo.DeviceIDs)
+        if ~isempty(camInfo.DeviceIDs) && ~exist('adaptor','var')
             adaptor = i;
+            for j = 1:length(camInfo.DeviceIDs)
+                ct = ct + 1;
+                cam_list(ct).name = camInfo.DeviceInfo(j).DeviceName;
+                cam_list(ct).adaptor = c.InstalledAdaptors{adaptor};
+                cam_list(ct).index = j;
+            end
         end
     end
+    handles.cam_list = cam_list;
+    
+    % populate camera select menu
     if exist('adaptor','var')
         camInfo = imaqhwinfo(c.InstalledAdaptors{adaptor});
-    end
+        set(handles.cam_select_popupmenu,'string',{cam_list(:).name});
+    end 
+    
 
-    % Set the device to default format and populate pop-up menu
+    % Set the device to default format and populate mode pop-up menu
     if ~isempty(camInfo.DeviceInfo);
-    set(handles.Cam_popupmenu,'String',camInfo.DeviceInfo.SupportedFormats);
+    set(handles.cam_mode_popupmenu,'String',camInfo.DeviceInfo(1).SupportedFormats);
     default_format = camInfo.DeviceInfo.DefaultFormat;
 
-        for i = 1:length(camInfo.DeviceInfo.SupportedFormats)
-            if strcmp(default_format,camInfo.DeviceInfo.SupportedFormats{i})
-                set(handles.Cam_popupmenu,'Value',i);
-                camInfo.ActiveMode = camInfo.DeviceInfo.SupportedFormats(i);
+        for i = 1:length(camInfo.DeviceInfo(1).SupportedFormats)
+            if strcmp(default_format,camInfo.DeviceInfo(1).SupportedFormats{i})
+                set(handles.cam_mode_popupmenu,'Value',i);
+                camInfo.ActiveMode = camInfo.DeviceInfo(1).SupportedFormats(i);
             end
         end
 
     else
-    set(handles.Cam_popupmenu,'String','Camera not detected');
+    set(handles.cam_select_popupmenu,'String','Camera not detected');
+    set(handles.cam_mode_popupmenu,'String','');
     end
     expmt.camInfo = camInfo;
 else
     expmt.camInfo=[];
-    set(handles.Cam_popupmenu,'String','No camera adaptors installed');
+    set(handles.cam_select_popupmenu,'String','No camera adaptors installed');
+    set(handles.cam_mode_popupmenu,'String','');
 end
     
 
@@ -141,9 +158,6 @@ expmt.parameters.vignette_sigma = 0.47;
 expmt.parameters.vignette_weight = 0.35;
 
 if ~isempty(expmt.camInfo)
-    expmt.camInfo.Gain = str2num(get(handles.edit_gain,'String'));
-    expmt.camInfo.Exposure = str2num(get(handles.edit_exposure,'String'));
-    expmt.camInfo.Shutter = str2num(get(handles.edit_cam_shutter,'String'));
     expmt.parameters.target_rate = estimateFrameRate(expmt.camInfo);
 else
     expmt.parameters.target_rate = 60;
@@ -179,16 +193,16 @@ varargout{1} = handles.output;
 
 
 
-% --- Executes on selection change in Cam_popupmenu.
-function Cam_popupmenu_Callback(hObject, eventdata, handles)
-% hObject    handle to Cam_popupmenu (see GCBO)
+% --- Executes on selection change in cam_mode_popupmenu.
+function cam_mode_popupmenu_Callback(hObject, eventdata, handles)
+% hObject    handle to cam_mode_popupmenu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 expmt = getappdata(handles.figure1,'expmt');
 
-strCell = get(handles.Cam_popupmenu,'string');
-expmt.camInfo.ActiveMode = strCell(get(handles.Cam_popupmenu,'Value'));
+strCell = get(handles.cam_mode_popupmenu,'string');
+expmt.camInfo.ActiveMode = strCell(get(handles.cam_mode_popupmenu,'Value'));
 
 % Store expmteriment data struct
 setappdata(handles.figure1,'expmt',expmt);
@@ -197,8 +211,8 @@ guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function Cam_popupmenu_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to Cam_popupmenu (see GCBO)
+function cam_mode_popupmenu_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to cam_mode_popupmenu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -245,46 +259,32 @@ guidata(hObject,handles);
 
 
 
-% --- Executes on button press in Cam_preview_pushbutton.
-function Cam_preview_pushbutton_Callback(hObject, eventdata, handles)
-% hObject    handle to Cam_preview_pushbutton (see GCBO)
+% --- Executes on button press in Cam_preview_togglebutton.
+function Cam_preview_togglebutton_Callback(hObject, eventdata, handles)
+% hObject    handle to Cam_preview_togglebutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 % import expmteriment data struct
 expmt = getappdata(handles.figure1,'expmt');
 
-if ~isempty(expmt.camInfo) && ~isfield(expmt.camInfo, 'vid')
-    errordlg('Please confirm camera settings')
-else
-    preview(expmt.camInfo.vid,handles.hImage);       
+switch get(hObject,'value')
+    case 1
+        if ~isempty(expmt.camInfo) && ~isfield(expmt.camInfo, 'vid')
+            errordlg('Please confirm camera settings')
+        else
+            preview(expmt.camInfo.vid,handles.hImage);     
+            set(hObject,'string','Stop preview','BackgroundColor',[0.8 0.45 0.45]);
+        end
+    case 0
+        if ~isempty(expmt.camInfo) && isfield(expmt.camInfo,'vid');
+            stoppreview(expmt.camInfo.vid);
+            set(hObject,'string','Start preview','BackgroundColor',[1 1 1]);
+        end
 end
 
 % Store expmteriment data struct
 setappdata(handles.figure1,'expmt',expmt);
-
-
-% --- Executes on button press in Cam_stopPreview_pushbutton.
-function Cam_stopPreview_pushbutton_Callback(hObject, eventdata, handles)
-% hObject    handle to Cam_stopPreview_pushbutton (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% import expmteriment data struct
-expmt = getappdata(handles.figure1,'expmt');
-
-if ~isempty(expmt.camInfo) && isfield(expmt.camInfo,'vid');
-    set(handles.Cam_preview_pushbutton,'Value',0);
-    set(handles.Cam_stopPreview_pushbutton,'Value',0);
-    stoppreview(expmt.camInfo.vid);
-end
-
-% Store expmteriment data struct
-setappdata(handles.figure1,'expmt',expmt);
-
-guidata(hObject,handles);
-
-
 
 
 % --- Executes on selection change in microcontroller_popupmenu.
@@ -1491,19 +1491,45 @@ function reg_error_menu_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 
-% --- Executes on selection change in popupmenu6.
-function popupmenu6_Callback(hObject, eventdata, handles)
-% hObject    handle to popupmenu6 (see GCBO)
+% --- Executes on selection change in cam_select_popupmenu.
+function cam_select_popupmenu_Callback(hObject, eventdata, handles)
+% hObject    handle to cam_select_popupmenu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: contents = cellstr(get(hObject,'String')) returns popupmenu6 contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from popupmenu6
+% import expmteriment variables
+expmt = getappdata(handles.figure1,'expmt');
+
+if ~isempty(handles.cam_list(get(hObject,'value')).adaptor)
+    
+    % get camera adaptor
+    adaptor = handles.cam_list(get(hObject,'value')).adaptor;
+    
+    camInfo = imaqhwinfo(adaptor);
+    deviceInfo = camInfo.DeviceInfo(handles.cam_list(get(hObject,'value')).index);
+    
+    set(handles.cam_mode_popupmenu,'String',device.SupportedFormats);
+    default_format = deviceInfo.DefaultFormat;
+
+    for i = 1:length(deviceInfo.SupportedFormats)
+        if strcmp(default_format,camInfo.DeviceInfo(1).SupportedFormats{i})
+            set(handles.cam_mode_popupmenu,'Value',i);
+            camInfo.ActiveMode = camInfo.DeviceInfo(1).SupportedFormats(i);
+        end
+    end
+
+end
+
+% Store expmteriment data struct
+setappdata(handles.figure1,'expmt',expmt);
+guidata(hObject,handles);
+
+
 
 
 % --- Executes during object creation, after setting all properties.
-function popupmenu6_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to popupmenu6 (see GCBO)
+function cam_select_popupmenu_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to cam_select_popupmenu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 

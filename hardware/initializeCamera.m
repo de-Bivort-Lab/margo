@@ -1,6 +1,6 @@
 function camInfo=initializeCamera(camInfo)
 
-vid = videoinput(camInfo.AdaptorName,camInfo.DeviceIDs{1},camInfo.ActiveMode{:});
+vid = videoinput(camInfo.AdaptorName,camInfo.DeviceIDs{camInfo.activeID},camInfo.ActiveMode{:});
 
 src = getselectedsource(vid);
 info = propinfo(src);

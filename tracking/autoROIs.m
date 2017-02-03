@@ -7,6 +7,9 @@ function [varargout]=autoROIs(handles)
 % gui handles as an input 
 % Inputs
 
+clearvars -except handles
+colormap('gray')
+
 %% Define parameters - adjust parameters here to fix tracking and ROI segmentation errors
 
 % import data from gui
@@ -19,14 +22,19 @@ kernelWeight=0.34;                          % Scalar weighting of kernel when ap
 
 %% Setup the camera and video object
 
-% Clear old video objects
-imaqreset
-pause(0.2);
+if strcmp(expmt.camInfo.vid.Running,'off')
+    % Clear old video objects
+    imaqreset
+    pause(0.2);
 
-% Create camera object with input parameters
-vid = initializeCamera(expmt.camInfo);
-start(vid);
-pause(0.2);
+    % Create camera object with input parameters
+    expmt.camInfo = initializeCamera(expmt.camInfo);
+    vid = expmt.camInfo.vid;
+    start(vid);
+    pause(0.1);
+else
+    vid = expmt.camInfo.vid;
+end
 
 
 

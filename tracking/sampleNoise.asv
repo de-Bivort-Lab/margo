@@ -68,8 +68,8 @@ while ct < pixDistSize;
         % Get centroids and sort to ROIs
         imagedata=peekdata(vid,1);
         imagedata=imagedata(:,:,2);
-        diffim=(expmt.ref-expmt.vignetteMat)-(imagedata-expmt.vignetteMat);
-        props=regionprops((diffim>imageThresh),propFields);
+        imagedata=(expmt.ref-expmt.vignetteMat)-(imagedata-expmt.vignetteMat);
+        props=regionprops((imagedata>imageThresh),propFields);
 
         % Match centroids to ROIs by finding nearest ROI center
         validCentroids=([props.Area]>4&[props.Area]<120);
@@ -97,19 +97,18 @@ while ct < pixDistSize;
        %Update display if display tracking is ON
        axh.CData = imagedata>imageThresh;
        
-       if handles.display ~= 4
-           switch handles.display
-                case 1
-                    axh.CData = imagedata;
-                case 2
-                    axh.CData = diffim;
-                case 3
-                    axh.CData = diffim>imageThresh;
-           end
-           hCirc.XData = lastCentroid(:,1);
-           hCirc.YData = lastCentroid(:,2);
-           drawnow
+           if handles.display ~= 4
+       switch handles.display
+            case 1
+                axh.CData = imagedata;
+            case 2
+                axh.CData = subtractedData;
+            case 3
+                axh.CData = subtractedData>imageThresh;
        end
+       hCirc.XData = lastCentroid(:,1);
+       hCirc.YData = lastCentroid(:,2);
+       drawnow
 
 
        % Create distribution for num pixels above imageThresh
