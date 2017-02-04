@@ -89,7 +89,7 @@ while stop~=1;
     [ROI_coords,mazeOri,ROI_bounds,centers]=sortROIs(ROI_coords,mazeOri,centers,ROI_bounds);
 
     % Report number of ROIs detected to GUI
-    set(handles.edit_numROIs,'String',num2str(size(ROI_bounds,1)));
+    set(handles.edit_object_num,'String',num2str(size(ROI_bounds,1)));
 
     % Display ROIs
     axh.CData = binaryimage;

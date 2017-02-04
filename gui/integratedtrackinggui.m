@@ -22,7 +22,7 @@ function varargout = integratedtrackinggui(varargin)
 
 % Edit the above text to modify the response to help integratedtrackinggui
 
-% Last Modified by GUIDE v2.5 02-Feb-2017 18:59:44
+% Last Modified by GUIDE v2.5 03-Feb-2017 13:08:17
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -159,6 +159,8 @@ expmt.parameters.speed_thresh = 45;
 expmt.parameters.distance_thresh = 20;
 expmt.parameters.vignette_sigma = 0.47;
 expmt.parameters.vignette_weight = 0.35;
+expmt.parameters.area_min = 4;
+expmt.parameters.area_max = 300;
 
 if ~isempty(expmt.camInfo)
     expmt.parameters.target_rate = estimateFrameRate(expmt.camInfo);
@@ -987,48 +989,6 @@ guidata(hObject,handles);
 
 
 
-
-% --- Executes on button press in adv_track_param_pushbutton.
-function adv_track_param_pushbutton_Callback(hObject, eventdata, handles)
-% hObject    handle to adv_track_param_pushbutton (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% import expmteriment data struct
-expmt = getappdata(handles.figure1,'expmt');
-
-tmp = advancedTrackingParam_subgui(expmt.parameters);
-if ~isempty(tmp)
-    expmt.parameters.speed_thresh = tmp.speed_thresh;
-    expmt.parameters.distance_thresh = tmp.distance_thresh;
-    expmt.parameters.target_rate = tmp.target_rate;
-    expmt.parameters.vignette_sigma = tmp.vignette_sigma;
-    expmt.parameters.vignette_weight = tmp.vignette_weight;
-end
-             
-% Store expmteriment data struct
-setappdata(handles.figure1,'expmt',expmt);
-
-
-% --- Executes on button press in set_dist_scale_pushbutton.
-function set_dist_scale_pushbutton_Callback(hObject, eventdata, handles)
-% hObject    handle to set_dist_scale_pushbutton (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% import expmteriment data struct
-expmt = getappdata(handles.figure1,'expmt');
-
-tmp=setDistanceScale_subgui(handles,expmt.parameters);
-if ~isempty(tmp)
-    expmt.parameters.distance_scale = tmp;
-end
-
-% Store expmteriment data struct
-setappdata(handles.figure1,'expmt',expmt);
-
-
-
 function edit_numObj_Callback(hObject, eventdata, handles)
 % hObject    handle to edit_numObj (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -1051,18 +1011,18 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-function edit_numROIs_Callback(hObject, eventdata, handles)
-% hObject    handle to edit_numROIs (see GCBO)
+function edit_object_num_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_object_num (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of edit_numROIs as text
-%        str2double(get(hObject,'String')) returns contents of edit_numROIs as a double
+% Hints: get(hObject,'String') returns contents of edit_object_num as text
+%        str2double(get(hObject,'String')) returns contents of edit_object_num as a double
 
 
 % --- Executes during object creation, after setting all properties.
-function edit_numROIs_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit_numROIs (see GCBO)
+function edit_object_num_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_object_num (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -1457,10 +1417,11 @@ function display_difference_menu_Callback(hObject, eventdata, handles)
 chk = get(hObject,'checked');
 
 if strcmp(chk,'off')
-    handles.display = 2;
+    handles.display_menu.UserData = 2;
     set(handles.display_difference_menu,'checked','on');
     set(handles.display_raw_menu,'checked','off');
     set(handles.display_threshold_menu,'checked','off');
+    set(handles.display_reference_menu,'checked','off');
     set(handles.display_none_menu,'checked','off');
 end
 
@@ -1476,10 +1437,11 @@ function display_raw_menu_Callback(hObject, eventdata, handles)
 chk = get(hObject,'checked');
 
 if strcmp(chk,'off')
-    handles.display = 1;
+    handles.display_menu.UserData = 1;
     set(handles.display_difference_menu,'checked','off');
     set(handles.display_raw_menu,'checked','on');
     set(handles.display_threshold_menu,'checked','off');
+    set(handles.display_reference_menu,'checked','off');
     set(handles.display_none_menu,'checked','off');
 end
 
@@ -1495,10 +1457,30 @@ function display_threshold_menu_Callback(hObject, eventdata, handles)
 chk = get(hObject,'checked');
 
 if strcmp(chk,'off')
-    handles.display = 3;
+    handles.display_menu.UserData = 3;
     set(handles.display_difference_menu,'checked','off');
     set(handles.display_raw_menu,'checked','off');
     set(handles.display_threshold_menu,'checked','on');
+    set(handles.display_reference_menu,'checked','off');
+    set(handles.display_none_menu,'checked','off');
+end
+
+guidata(hObject,handles);
+
+% --------------------------------------------------------------------
+function display_reference_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to display_reference_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+chk = get(hObject,'checked');
+
+if strcmp(chk,'off')
+    handles.display_menu.UserData = 4;
+    set(handles.display_difference_menu,'checked','off');
+    set(handles.display_raw_menu,'checked','off');
+    set(handles.display_threshold_menu,'checked','off');
+    set(handles.display_reference_menu,'checked','on');
     set(handles.display_none_menu,'checked','off');
 end
 
@@ -1514,10 +1496,11 @@ function display_none_menu_Callback(hObject, eventdata, handles)
 chk = get(hObject,'checked');
 
 if strcmp(chk,'off')
-    handles.display = 4;
+    handles.display_menu.UserData = 5;
     set(handles.display_difference_menu,'checked','off');
     set(handles.display_raw_menu,'checked','off');
     set(handles.display_threshold_menu,'checked','off');
+    set(handles.display_reference_menu,'checked','off');
     set(handles.display_none_menu,'checked','on');
 end
 
@@ -1545,4 +1528,49 @@ function reg_error_menu_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 
+% --------------------------------------------------------------------
+function tracking_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to tracking_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
 
+
+% --------------------------------------------------------------------
+function advanced_tracking_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to advanced_tracking_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% import expmteriment data struct
+expmt = getappdata(handles.figure1,'expmt');
+
+tmp = advancedTrackingParam_subgui(expmt.parameters);
+if ~isempty(tmp)
+    expmt.parameters.speed_thresh = tmp.speed_thresh;
+    expmt.parameters.distance_thresh = tmp.distance_thresh;
+    expmt.parameters.target_rate = tmp.target_rate;
+    expmt.parameters.vignette_sigma = tmp.vignette_sigma;
+    expmt.parameters.vignette_weight = tmp.vignette_weight;
+end
+             
+% Store expmteriment data struct
+setappdata(handles.figure1,'expmt',expmt);
+
+
+% --------------------------------------------------------------------
+function distance_scale_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to distance_scale_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% import expmteriment data struct
+expmt = getappdata(handles.figure1,'expmt');
+
+tmp=setDistanceScale_subgui(handles,expmt.parameters);
+delete(findobj('Tag','imline'));
+if ~isempty(tmp)
+    expmt.parameters.distance_scale = tmp;
+end
+
+% Store expmteriment data struct
+setappdata(handles.figure1,'expmt',expmt);

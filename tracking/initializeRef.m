@@ -1,11 +1,16 @@
 function [expmt] = initializeRef(handles,expmt)
 
 
-clearvars -except handles
-colormap('gray')
-set(handles.display_raw_menu,'Enabled','on');
-set(handles.display_difference_menu,'Enabled','on');
-set(handles.display_threshold_menu,'Enabled','on');
+clearvars -except handles expmt
+
+% enable display adjustment and set set the view to thresholded by default
+colormap('gray');
+set(handles.display_raw_menu,'Enable','on');
+set(handles.display_difference_menu,'Enable','on');
+set(handles.display_threshold_menu,'Enable','on');
+set(handles.display_reference_menu,'checked','on');
+set(handles.display_none_menu,'Enable','on');
+handles.display_menu.UserData = 3;
 
 %% Initalize camera and axes
 
@@ -156,29 +161,40 @@ while toc<60 && get(handles.accept_track_thresh_pushbutton,'value')~=1
         end
     end
     
-
+    %handles.display_menu.UserData
     % Update display
-    if handles.display ~= 4
-       switch handles.display
+    if handles.display_menu.UserData ~= 5
+       switch handles.display_menu.UserData
             case 1
                 axh.CData = imagedata;
             case 2
                 axh.CData = diffim;
             case 3
                 axh.CData = diffim>imageThresh;
+           case 4
+                axh.CData = ref;
        end
        
        % Draw last known centroid for each ROI and update ref. number indicator
        for i=1:nROIs
            hText(i).Position = [lastCentroid(i,1) lastCentroid(i,2)];
        end
-       drawnow
     end
-
+    drawnow
+    
 end
+
+%% Reset UI properties
 
 % Reset accept reference button
 set(handles.accept_track_thresh_pushbutton,'value',0);
+
+% disable display control
+set(handles.display_raw_menu,'Enable','off');
+set(handles.display_difference_menu,'Enable','off');
+set(handles.display_threshold_menu,'Enable','off');
+set(handles.display_reference_menu,'checked','off');
+set(handles.display_none_menu,'Enable','off');
 
 % Set time to zero
 updateTimeString(0, handles.edit_time_remaining);

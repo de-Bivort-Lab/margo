@@ -58,21 +58,20 @@ handles.input = varargin{1};
 param_data = varargin{2};
 handles.output=[];
 
-
+%{
 if isfield(param_data,'distance_scale')
     
     % Set GUI strings with input parameters
     set(handles.edit_target_size,'string',param_data.distance_scale.target_size);
     set(handles.edit_mm_per_pixel,'string',round(param_data.distance_scale.mm_per_pixel*100)/100);
-    handles.line_handle = imline(handles.input.axes_handle,param_data.distance_scale.Pos);
+    handles.line_handle = imline(handles.input.axes_handle,param_data.distance_scale.pos);
 
     % Assign current values as default output
     handles.figure1.UserData.target_size=str2num(get(handles.edit_target_size,'string'));
     handles.figure1.UserData.mm_per_pixel=str2num(get(handles.edit_mm_per_pixel,'string'));
-    handles.figure1.UserData.Pos = param_data.distance_scale.Pos;
     
 end
-
+%}
 
 % Update handles structure
 guidata(hObject, handles);
@@ -99,7 +98,6 @@ function figure1_CloseRequestFcn(hObject, eventdata, handles)
 % hObject    handle to figure1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
 delete(hObject);
 
 
@@ -122,6 +120,7 @@ function draw_button_Callback(hObject, eventdata, handles)
 
 if isfield(handles,'line_handle')
     delete(handles.line_handle);
+    handles = rmfield(handles,'line_handle');
 end
 
 % Create new image line object
@@ -129,10 +128,9 @@ handles.line_handle = imline(handles.input.axes_handle);
 
 if isfield(handles.figure1.UserData,'target_size')
     pos = handles.line_handle.getPosition();
-    handles.figure1.UserData.Pos = pos;
     d = sqrt((pos(1)+pos(3))^2+(pos(2)+pos(4))^2);
     handles.figure1.UserData.mm_per_pixel = handles.figure1.UserData.target_size/d;
-    set(handles.edit_mm_per_pixel,'string',num2str(round(handles.figure1.UserData.mm_per_pixel*1000)/1000));
+    set(handles.edit_mm_per_pixel,'string',num2str(round(handles.figure1.UserData.mm_per_pixel*100)/100));
 end
 
 figure(handles.figure1);
@@ -151,10 +149,9 @@ if isfield(handles,'line_handle')
 
     if isfield(handles.figure1.UserData,'target_size')
         pos = handles.line_handle.getPosition();
-        handles.figure1.UserData.Pos = pos;
-        d = sqrt((pos(1,1)-pos(2,1))^2+(pos(2,2)-pos(1,2))^2);
-        handles.figure1.UserData.mm_per_pixel = handles.figure1.UserData.target_size/d;
-        set(handles.edit_mm_per_pixel,'string',num2str(round(handles.figure1.UserData.mm_per_pixel*1000)/1000));
+        d = sqrt((pos(1)+pos(3))^2+(pos(2)+pos(4))^2);
+        handles.figure1.UserData.mm_per_pixel = handles.figure1.UserData.target_size/d
+        set(handles.edit_mm_per_pixel,'string',num2str(round(handles.figure1.UserData.mm_per_pixel*100)/100));
     end
     
 end

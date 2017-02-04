@@ -22,7 +22,7 @@ function varargout = advancedTrackingParam_subgui(varargin)
 
 % Edit the above text to modify the response to help advancedTrackingParam_subgui
 
-% Last Modified by GUIDE v2.5 31-Jan-2017 17:47:31
+% Last Modified by GUIDE v2.5 03-Feb-2017 15:52:34
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -59,22 +59,20 @@ param_data = varargin{1};
 % Set GUI strings with input parameters
 set(handles.edit_speed_thresh,'string',param_data.speed_thresh);
 set(handles.edit_dist_thresh,'string',param_data.distance_thresh);
-set(handles.edit_target_rate,'string',param_data.target_rate);
+set(handles.edit29,'string',param_data.target_rate);
 set(handles.edit_vignette_sigma,'string',param_data.vignette_sigma);
 set(handles.edit_vignette_weight,'string',param_data.vignette_weight);
 
 % Assign current values as default output
-handles.output.speed_thresh=str2num(get(handles.edit_speed_thresh,'string'));
-handles.output.distance_thresh=str2num(get(handles.edit_dist_thresh,'string'));
-handles.output.target_rate=str2num(get(handles.edit_target_rate,'string'));
-handles.output.vignette_sigma=str2num(get(handles.edit_vignette_sigma,'string'));
-handles.output.vignette_weight=str2num(get(handles.edit_vignette_weight,'string'));
+handles.figure1.UserData.speed_thresh=str2num(get(handles.edit_speed_thresh,'string'));
+handles.figure1.UserData.distance_thresh=str2num(get(handles.edit_dist_thresh,'string'));
+handles.figure1.UserData.target_rate=str2num(get(handles.edit29,'string'));
+handles.figure1.UserData.vignette_sigma=str2num(get(handles.edit_vignette_sigma,'string'));
+handles.figure1.UserData.vignette_weight=str2num(get(handles.edit_vignette_weight,'string'));
 
 % Update handles structure
 guidata(hObject, handles);
 
-% UIWAIT makes advancedTrackingParam_subgui wait for user response (see UIRESUME)
-uiwait(handles.figure1);
 
 
 
@@ -85,13 +83,11 @@ function varargout = advancedTrackingParam_subgui_OutputFcn(hObject, eventdata, 
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Get default command line output from handles structure
-if isfield(handles,'output')
-    varargout{1} = handles.output;
-    close(handles.figure1);
-else
-    varargout{1} = [];
-    delete(hObject);
+while ishghandle(hObject)
+    pause(0.001);
+    if isprop(handles.figure1,'UserData')
+    	varargout{1} = handles.figure1.UserData;
+    end
 end
 
 
@@ -100,7 +96,8 @@ function figure1_CloseRequestFcn(hObject, eventdata, handles)
 % hObject    handle to figure1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-delete(hObject);
+
+delete(handles.figure1);
 
 
 
@@ -122,7 +119,7 @@ function edit_vignette_weight_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of edit_vignette_weight as text
 %        str2double(get(hObject,'String')) returns contents of edit_vignette_weight as a double
 
-handles.output.vignette_weight=str2num(get(handles.edit_vignette_weight,'string'));
+handles.figure1.UserData.vignette_weight=str2num(get(handles.edit_vignette_weight,'string'));
 guidata(hObject,handles);
 
 
@@ -134,19 +131,19 @@ function edit_vignette_sigma_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of edit_vignette_sigma as text
 %        str2double(get(hObject,'String')) returns contents of edit_vignette_sigma as a double
 
-handles.output.vignette_sigma=str2num(get(handles.edit_vignette_sigma,'string'));
+handles.figure1.UserData.vignette_sigma=str2num(get(handles.edit_vignette_sigma,'string'));
 guidata(hObject,handles);
 
 
 function edit_target_rate_Callback(hObject, eventdata, handles)
-% hObject    handle to edit_target_rate (see GCBO)
+% hObject    handle to edit29 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of edit_target_rate as text
-%        str2double(get(hObject,'String')) returns contents of edit_target_rate as a double
+% Hints: get(hObject,'String') returns contents of edit29 as text
+%        str2double(get(hObject,'String')) returns contents of edit29 as a double
 
-handles.output.target_rate=str2num(get(handles.edit_target_rate,'string'));
+handles.figure1.UserData.target_rate=str2num(get(handles.edit29,'string'));
 guidata(hObject,handles);
 
 
@@ -168,7 +165,7 @@ function edit_dist_thresh_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of edit_dist_thresh as text
 %        str2double(get(hObject,'String')) returns contents of edit_dist_thresh as a double
 
-handles.output.distance_thresh=str2num(get(handles.edit_dist_thresh,'string'));
+handles.figure1.UserData.distance_thresh=str2num(get(handles.edit_dist_thresh,'string'));
 guidata(hObject,handles);
 
 
@@ -181,7 +178,7 @@ function edit_speed_thresh_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of edit_speed_thresh as text
 %        str2double(get(hObject,'String')) returns contents of edit_speed_thresh as a double
 
-handles.output.speed_thresh=str2num(get(handles.edit_speed_thresh,'string'));
+handles.figure1.UserData.speed_thresh=str2num(get(handles.edit_speed_thresh,'string'));
 guidata(hObject,handles);
 
 
@@ -283,7 +280,7 @@ end
 
 % --- Executes during object creation, after setting all properties.
 function edit_target_rate_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit_target_rate (see GCBO)
+% hObject    handle to edit29 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -313,8 +310,8 @@ function edit_area_min_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of edit_area_min as text
-%        str2double(get(hObject,'String')) returns contents of edit_area_min as a double
+handles.figure1.UserData.area_min = str2num(get(hObject,'string'));
+guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -336,8 +333,8 @@ function edit_area_max_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of edit_area_max as text
-%        str2double(get(hObject,'String')) returns contents of edit_area_max as a double
+handles.figure1.UserData.area_max = str2num(get(hObject,'string'));
+guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.

@@ -95,21 +95,23 @@ while ct < pixDistSize;
         centStamp(update_centroid) = tElapsed;
 
        %Update display if display tracking is ON
-       axh.CData = imagedata>imageThresh;
-       
-       if handles.display ~= 4
-           switch handles.display
+        if handles.display_menu.UserData ~= 5
+           switch handles.display_menu.UserData
                 case 1
                     axh.CData = imagedata;
                 case 2
                     axh.CData = diffim;
                 case 3
                     axh.CData = diffim>imageThresh;
+               case 4
+                    axh.CData = ref;
            end
+
+           % Draw last known centroid for each ROI and update ref. number indicator
            hCirc.XData = lastCentroid(:,1);
            hCirc.YData = lastCentroid(:,2);
-           drawnow
-       end
+        end
+        drawnow
 
 
        % Create distribution for num pixels above imageThresh
