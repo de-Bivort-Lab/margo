@@ -22,7 +22,7 @@ function varargout = integratedtrackinggui(varargin)
 
 % Edit the above text to modify the response to help integratedtrackinggui
 
-% Last Modified by GUIDE v2.5 03-Feb-2017 13:08:17
+% Last Modified by GUIDE v2.5 04-Feb-2017 12:50:24
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -1544,7 +1544,7 @@ function advanced_tracking_menu_Callback(hObject, eventdata, handles)
 % import expmteriment data struct
 expmt = getappdata(handles.figure1,'expmt');
 
-tmp = advancedTrackingParam_subgui(expmt.parameters);
+tmp = advancedTrackingParam_subgui(expmt,handles);
 if ~isempty(tmp)
     expmt.parameters.speed_thresh = tmp.speed_thresh;
     expmt.parameters.distance_thresh = tmp.distance_thresh;
@@ -1574,3 +1574,38 @@ end
 
 % Store expmteriment data struct
 setappdata(handles.figure1,'expmt',expmt);
+
+
+% --------------------------------------------------------------------
+function Untitled_4_Callback(hObject, eventdata, handles)
+% hObject    handle to Untitled_4 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function speed_thresh_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to speed_thresh_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function ROI_distance_thresh_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to ROI_distance_thresh_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function Untitled_7_Callback(hObject, eventdata, handles)
+% hObject    handle to Untitled_7 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function Untitled_8_Callback(hObject, eventdata, handles)
+% hObject    handle to Untitled_8 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)

@@ -22,7 +22,7 @@ function varargout = advancedTrackingParam_subgui(varargin)
 
 % Edit the above text to modify the response to help advancedTrackingParam_subgui
 
-% Last Modified by GUIDE v2.5 03-Feb-2017 15:52:34
+% Last Modified by GUIDE v2.5 04-Feb-2017 13:30:38
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -54,19 +54,25 @@ function advancedTrackingParam_subgui_OpeningFcn(hObject, eventdata, handles, va
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to advancedTrackingParam_subgui (see VARARGIN)
 
-param_data = varargin{1};
+expmt = varargin{1};
+param_data = expmt.parameters;
+
+in_handles = varargin{2};
+handles.figure1.UserData.gui_handles = in_handles;
+handles.figure1.UserData.expmt = expmt;
+
 
 % Set GUI strings with input parameters
 set(handles.edit_speed_thresh,'string',param_data.speed_thresh);
 set(handles.edit_dist_thresh,'string',param_data.distance_thresh);
-set(handles.edit29,'string',param_data.target_rate);
+set(handles.edit_target_rate,'string',param_data.target_rate);
 set(handles.edit_vignette_sigma,'string',param_data.vignette_sigma);
 set(handles.edit_vignette_weight,'string',param_data.vignette_weight);
 
 % Assign current values as default output
 handles.figure1.UserData.speed_thresh=str2num(get(handles.edit_speed_thresh,'string'));
 handles.figure1.UserData.distance_thresh=str2num(get(handles.edit_dist_thresh,'string'));
-handles.figure1.UserData.target_rate=str2num(get(handles.edit29,'string'));
+handles.figure1.UserData.target_rate=str2num(get(handles.edit_target_rate,'string'));
 handles.figure1.UserData.vignette_sigma=str2num(get(handles.edit_vignette_sigma,'string'));
 handles.figure1.UserData.vignette_weight=str2num(get(handles.edit_vignette_weight,'string'));
 
@@ -83,11 +89,147 @@ function varargout = advancedTrackingParam_subgui_OutputFcn(hObject, eventdata, 
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+track_start = boolean(1);
+expmt = handles.figure1.UserData.expmt;
+gui_handles = handles.figure1.UserData.gui_handles;
+display_menu = findobj('Tag','display_menu');
+thresh_slider = findobj('Tag','track_thresh_slider');
+
 while ishghandle(hObject)
+    
     pause(0.001);
+    
+    % check if parameter visualization aids are toggled
+    disp_speed = get(handles.speed_thresh_radiobutton,'value');
+    disp_dist = get(handles.dist_thresh_radiobutton,'value');
+    disp_area = get(handles.area_radiobutton,'value');
+    
+    if disp_speed || disp_dist || disp_area
+        
+        % start camera if camera is not running
+        if isfield(expmt.camInfo,'vid') && strcmp(expmt.camInfo.vid.Running,'off')
+            start(expmt.camInfo.vid);
+            pause(0.1);
+        end
+        
+        if isfield(expmt.camInfo,'vid') && strcmp(expmt.camInfo.vid.Running,'on')
+            imagedata = peekdata(expmt.camInfo.vid,1);
+            
+            switch display_menu.UserData
+                case 1
+                    
+                    gui_handle.CurrentAxes.CData = imagedata;
+                    
+                case 2
+                    
+                    if isfield(expmt,'ref') && isfield(expmt,'vignetteMat')
+                    gui_handle.CurrentAxes.CData = ...
+                        (expmt.ref-expmt.vignetteMat)-(imagedata-expmt.vignetteMat);
+                    else
+                        display_menu.UserData = 1;
+                        display_menu.Children(5).checked = 'on';
+                        display_menu.Children(4).checked = 'off';
+                        display_menu.Children(4).enable = 'off';
+                    end
+                    
+                case 3
+                    
+                    if isfield(expmt,'ref') && isfield(expmt,'vignetteMat')
+                        thresh = get(thresh_slider,'value');
+                        diffim = (expmt.ref-expmt.vignetteMat)-(imagedata-expmt.vignetteMat);
+                        gui_handle.CurrentAxes.CData = diffim > thresh;
+                    else
+                        display_menu.UserData = 1;
+                        display_menu.Children(5).checked = 'on';
+                        display_menu.Children(3).checked = 'off';
+                        display_menu.Children(3).enable = 'off';
+                    end 
+                    
+            end
+            
+        end
+        
+        if track_start
+            
+            tElapsed=0;
+            propFields={'Centroid';'Area'};     % Define fields for regionprops
+            
+            if isfield(expmt,'ROI') && isfield(expmt.ROI,'centers')
+                lastCentroid = expmt.ROI.centers;     % placeholder for most recent non-NaN centroids
+            else
+                midpoint(1) = sum(gui_handles.CurrentAxes.XLim)/2;
+                midpoint(2) = sum(gui_handles.CurrentAxes.YLim)/2;
+                lastCentroid = [midpoint(1) midpoint(2)];
+            end
+            
+            % initialize coords
+            s_bounds = centerRect(lastCentroid,handles.figure1.UserData.speed_thresh);
+            d_bounds = centerRect(lastCentroid,handles.figure1.UserData.distance_thresh);
+            mi_bounds = centerRect(lastCentroid,handles.figure1.UserData.area_min);
+            ma_bounds = centerRect(lastCentroid,handles.figure1.UserData.area_max);
+            
+            for i = 1:size(lastCentroid,1)
+
+                spdCirc(i) = rectangle(gui_handles.CurrentAxes,'Position',s_bounds,'EdgeColor',[0 1 0]);
+                minCirc(i) = viscircles(gui_handles.CurrentAxes,'Position',mi_bounds,'EdgeColor',[1 0 1]);
+                maxCirc(i) = viscircles(gui_handles.CurrentAxes,'Position',ma_bounds,'EdgeColor',[1 0 0]);
+                dstCirc(i) = viscircles(gui_handles.CurrentAxes,'Position',d_bounds,'EdgeColor',[0 0 1]);
+            end
+            
+        end
+        
+        if disp_speed_thresh
+                   
+            if isfield(expmt,'ref') && isfield(expmt,'vignetteMat')
+                
+                thresh = get(thresh_slider,'value');
+                diffim = (expmt.ref-expmt.vignetteMat)-(imagedata-expmt.vignetteMat);
+                        props=regionprops((diffim>imageThresh),propFields);
+
+                % Match centroids to ROIs by finding nearest ROI center
+                validCentroids=([props.Area]>4&[props.Area]<120);
+                cenDat=reshape([props(validCentroids).Centroid],2,length([props(validCentroids).Centroid])/2)';
+
+                % Match centroids to last known centroid positions
+                [cen_permutation,update_centroid]=matchCentroids2ROIs(cenDat,lastCentroid,expmt.ROI.centers,expmt.parameters.distanceThresh);
+
+                % Apply speed threshold to centroid tracking
+                if any(update_centroid)
+                    d = sqrt([cenDat(cen_permutation,1)-lastCentroid(update_centroid,1)].^2 ...
+                        + [cenDat(cen_permutation,2)-lastCentroid(update_centroid,2)].^2);
+                    dt = tElapsed-centStamp(update_centroid);
+                    speed = d./dt;
+                    above_spd_thresh = speed > expmt.parameters.speed_thresh;
+                    cen_permutation(above_spd_thresh)=[];
+                    update_centroid=find(update_centroid);
+                    update_centroid(above_spd_thresh)=[];
+                end
+
+                % Use permutation vector to sort raw centroid data and update
+                % vector to specify which centroids are reliable and should be updated
+                lastCentroid(update_centroid,:)=cenDat(cen_permutation,:);
+                centStamp(update_centroid) = tElapsed;
+                
+                %spdCirc.
+                
+            else
+                
+                
+                
+            end
+            
+        end
+            
+            
+    end
+                
+                
+    
+    % constantly reassign output from the subgui until it closes
     if isprop(handles.figure1,'UserData')
     	varargout{1} = handles.figure1.UserData;
     end
+    
 end
 
 
@@ -146,15 +288,6 @@ function edit_target_rate_Callback(hObject, eventdata, handles)
 handles.figure1.UserData.target_rate=str2num(get(handles.edit29,'string'));
 guidata(hObject,handles);
 
-
-% --- Executes on button press in accept_button.
-function accept_button_Callback(hObject, eventdata, handles)
-% hObject    handle to accept_button (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-guidata(hObject, handles);
-uiresume(handles.figure1);
 
 
 function edit_dist_thresh_Callback(hObject, eventdata, handles)
@@ -394,3 +527,30 @@ function edit30_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --- Executes on button press in speed_thresh_radiobutton.
+function speed_thresh_radiobutton_Callback(hObject, eventdata, handles)
+% hObject    handle to speed_thresh_radiobutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+
+% --- Executes on button press in distance_thresh_radiobutton.
+function distance_thresh_radiobutton_Callback(hObject, eventdata, handles)
+% hObject    handle to distance_thresh_radiobutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of distance_thresh_radiobutton
+
+
+
+% --- Executes on button press in area_radiobutton.
+function area_radiobutton_Callback(hObject, eventdata, handles)
+% hObject    handle to area_radiobutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of area_radiobutton

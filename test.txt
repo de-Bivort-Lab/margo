@@ -1,4 +1,5 @@
-function uictl1_slider(hObject, evenData, handles)
+
+nction uictl1_slider(hObject, evenData, handles)
 expmt.camInfo.(names{i}) = get(uictl(i),'value');
 set(uilbl(i),'string',num2str(get(uictl(i),'value')));
 end
