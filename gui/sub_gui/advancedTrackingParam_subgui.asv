@@ -207,10 +207,6 @@ while ishghandle(hObject)
         
         if disp_speed
             
-            if strcmp(spdCirc.Visible,'off')
-                spdCirc.Visible = 'on';
-            end
-            
             % display parameter preview on objects and ROIs if they exist
             if isfield(expmt,'ref') && isfield(expmt,'vignetteMat')
                 
@@ -264,8 +260,9 @@ while ishghandle(hObject)
         % distance thresh display ticked
         if disp_dist
             
-            if strcmp(dstCirc.Visible,'off')
-                dstCirc.Visible = 'on';
+            if strcmp(minCirc.Visible,'off') || strcmp(maxCirc.Visible,'off')
+                minCirc.Visible = 'on';
+
             end
         
             % use trackiog from disp_speed if toggled, else initiate
