@@ -105,40 +105,41 @@ update_centroid=boolean(zeros(size(vars.sort_coords_primary,1),1));
     if size(vars.cenDat,1)>0 
         
         if strcmp(vars.mode,'double sort')
-        % Calculate distance to known landmark such as the ROI center
-        secondary_distance=abs(sqrt(dot(vars.cenDat(j,:)'-vars.sort_coords_secondary',vars.sort_coords_secondary'-vars.cenDat(j,:)')))';
+            % Calculate distance to known landmark such as the ROI center
+            secondary_distance=abs(sqrt(dot(vars.cenDat(j,:)'-vars.sort_coords_secondary',vars.sort_coords_secondary'-vars.cenDat(j,:)')))';
 
-        % Exclude centroids that move too fast or are too far from the ROI center
-        % corresponding to the previous centroid each item in j, was matched with
-        mismatch=secondary_distance>vars.dist_thresh;
-        j(mismatch)=NaN;
-        primary_distance(mismatch)=NaN;
+            % Exclude centroids that move too fast or are too far from the ROI center
+            % corresponding to the previous centroid each item in j, was matched with
+            mismatch=secondary_distance>vars.dist_thresh;
+            j(mismatch)=NaN;
+            primary_distance(mismatch)=NaN;
         end
 
-    % If the same ROI is matched to more than one coordinate, find the nearest
-    % one and exclude the others
-    u=unique(j(~isnan(j)));                                         % Extract the unique values of the ROIs
-    duplicateCen=u(squeeze(histc(j,u))>1);
-    duplicateROIs=find(ismember(j,u(squeeze(histc(j,u))>1)));       % Find the indices of duplicate ROIs
-    
-    % Calculate pairwise distances between duplicate ROIs and temp centroids
-    % using the same method above
-    tD=repmat(tempCenDat(duplicateCen,:),1,1,size(vars.sort_coords_primary,1));
-    c=repmat(vars.sort_coords_primary,1,1,size(tempCenDat(duplicateCen,:),1));
-    c=permute(c,[3 2 1]);
-    g=sqrt(dot((c-tD),(tD-c),2));
-    g=abs(g);
-    [~,k]=min(g,[],3);
-    j(duplicateROIs)=NaN;
-    j(k)=duplicateCen;
+        % If the same ROI is matched to more than one coordinate, find the nearest
+        % one and exclude the others
+        u=unique(j(~isnan(j)));                                         % Extract the unique values of the ROIs
+        duplicateCen=u(squeeze(histc(j,u))>1);
+        duplicateROIs=find(ismember(j,u(squeeze(histc(j,u))>1)));       % Find the indices of duplicate ROIs
 
-    % Update last known centroid and orientations
-    sorting_permutation=j(~isnan(j));
-    update_centroid=~isnan(j);
+        % Calculate pairwise distances between duplicate ROIs and temp centroids
+        % using the same method above
+        tD=repmat(tempCenDat(duplicateCen,:),1,1,size(vars.sort_coords_primary,1));
+        c=repmat(vars.sort_coords_primary,1,1,size(tempCenDat(duplicateCen,:),1));
+        c=permute(c,[3 2 1]);
+        g=sqrt(dot((c-tD),(tD-c),2));
+        g=abs(g);
+        [~,k]=min(g,[],3);
+        j(duplicateROIs)=NaN;
+        j(k)=duplicateCen;
+
+        % Update last known centroid and orientations
+        sorting_permutation = j(~isnan(j));
+        sorting_permutation = squeeze(sorting_permutation);
+        update_centroid=~isnan(j);
     end
     
-    out{1}=squeeze(sorting_permutation);
-    out{2}=update_centroid;
+    out{1} = sorting_permutation;
+    out{2} = squeeze(update_centroid);
     
     for i=1:nargout
         varargout{i}=out{i};

@@ -60,25 +60,17 @@ param_data = expmt.parameters;
 in_handles = varargin{2};
 handles.figure1.UserData.gui_handles = in_handles;
 handles.figure1.UserData.expmt = expmt;
+gui_fig = in_handles.gui_fig;
 
 
 % Set GUI strings with input parameters
-set(handles.edit_speed_thresh,'string',param_data.speed_thresh);
-set(handles.edit_dist_thresh,'string',param_data.distance_thresh);
-set(handles.edit_target_rate,'string',param_data.target_rate);
-set(handles.edit_vignette_sigma,'string',param_data.vignette_sigma);
-set(handles.edit_vignette_weight,'string',param_data.vignette_weight);
-set(handles.edit_area_min,'string',param_data.area_min);
-set(handles.edit_area_max,'string',param_data.area_max);
-
-% Assign current values as default output
-handles.figure1.UserData.speed_thresh=str2num(get(handles.edit_speed_thresh,'string'));
-handles.figure1.UserData.distance_thresh=str2num(get(handles.edit_dist_thresh,'string'));
-handles.figure1.UserData.target_rate=str2num(get(handles.edit_target_rate,'string'));
-handles.figure1.UserData.vignette_sigma=str2num(get(handles.edit_vignette_sigma,'string'));
-handles.figure1.UserData.vignette_weight=str2num(get(handles.edit_vignette_weight,'string'));
-handles.figure1.UserData.area_min=str2num(get(handles.edit_area_min,'string'));
-handles.figure1.UserData.area_max=str2num(get(handles.edit_area_max,'string'));
+set(handles.edit_speed_thresh,'string',gui_fig.UserData.speed_thresh);
+set(handles.edit_dist_thresh,'string',gui_fig.UserData.distance_thresh);
+set(handles.edit_target_rate,'string',gui_fig.UserData.target_rate);
+set(handles.edit_vignette_sigma,'string',gui_fig.UserData.vignette_sigma);
+set(handles.edit_vignette_weight,'string',gui_fig.UserData.vignette_weight);
+set(handles.edit_area_min,'string',gui_fig.UserData.area_min);
+set(handles.edit_area_max,'string',gui_fig.UserData.area_max);
 
 % Update handles structure
 guidata(hObject, handles);
@@ -89,31 +81,56 @@ guidata(hObject, handles);
 % --- Outputs from this function are returned to the command line.
 function varargout = advancedTrackingParam_subgui_OutputFcn(hObject, eventdata, handles) 
 % varargout  cell array for returning output args (see VARARGOUT);
-% hObject    handle to figure
-% eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+% initialize tracking vars
 track_start = boolean(1);
+trackDat.ct = 0;
+
+% get handles to main gui
 expmt = handles.figure1.UserData.expmt;
 gui_handles = handles.figure1.UserData.gui_handles;
+gui_fig = gui_handles.gui_fig;
 display_menu = findobj('Tag','display_menu');
+display_menu.UserData = 1;
 thresh_slider = findobj('Tag','track_thresh_slider');
+imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');
+
+% enable display controls
+for i = 1:length(display_menu.Children)
+    display_menu.Children(i).Enable = 'on';
+    display_menu.Children(i).Checked = 'off';
+end
+raw_menu = findobj(display_menu,'-depth',2,'Label','raw image'); 
+raw_menu.Checked = 'on';
+display_menu.UserData = 1;
+
+% clear any objects drawn to gui window
+centroid_markers = findobj(gui_handles.axes_handle,'-depth',3,'Type','line');
+delete(centroid_markers);
+rect_handles = findobj(gui_handles.axes_handle,'-depth',3,'Type','rectangle');
+delete(rect_handles);
+text_handles = findobj(gui_handles.axes_handle,'-depth',3,'Type','text');
+delete(text_handles);
+
 
 while ishghandle(hObject)
-    
+    %%
     pause(0.001);
     
     % update timer
-    if exist('tElapsed','var')
-        current_tStamp = toc;
-        tElapsed = current_tStamp - prev_tStamp + tElapsed;
-        prev_tStamp = current_tStamp;
+    if isfield(trackDat,'t')
+        tCurrent = toc;
+        trackDat.t = tCurrent - tPrev + trackDat.t;
+        tPrev = tCurrent;
     end
     
     % check if parameter visualization aids are toggled
-    disp_speed = get(handles.speed_thresh_radiobutton,'value');
-    disp_dist = get(handles.distance_thresh_radiobutton,'value');
-    disp_area = get(handles.area_radiobutton,'value');
+    if ishandle(handles.speed_thresh_radiobutton)
+        disp_speed = get(handles.speed_thresh_radiobutton,'value');
+        disp_dist = get(handles.distance_thresh_radiobutton,'value');
+        disp_area = get(handles.area_radiobutton,'value');
+    end
     
     if disp_speed || disp_dist || disp_area
         
@@ -125,21 +142,21 @@ while ishghandle(hObject)
         
         if isfield(expmt.camInfo,'vid') && strcmp(expmt.camInfo.vid.Running,'on')
             
-            imagedata = peekdata(expmt.camInfo.vid,1);
-            if size(imagedata,3)>1
-                imagedata = imagedata(:,:,2);
+            trackDat.im = peekdata(expmt.camInfo.vid,1);
+            if size(trackDat.im,3)>1
+                trackDat.im = trackDat.im(:,:,2);
             end
             
             switch display_menu.UserData
                 case 1
                     
-                    gui_handle.CurrentAxes.CData = imagedata;
+                    imh.CData = trackDat.im;
                     
                 case 2
                     
                     if isfield(expmt,'ref') && isfield(expmt,'vignetteMat')
-                    gui_handle.CurrentAxes.CData = ...
-                        (expmt.ref-expmt.vignetteMat)-(imagedata-expmt.vignetteMat);
+                    imh.CData = ...
+                        (expmt.ref-expmt.vignetteMat)-(trackDat.im-expmt.vignetteMat);
                     else
                         display_menu.UserData = 1;
                         display_menu.Children(5).checked = 'on';
@@ -151,8 +168,8 @@ while ishghandle(hObject)
                     
                     if isfield(expmt,'ref') && isfield(expmt,'vignetteMat')
                         thresh = get(thresh_slider,'value');
-                        diffim = (expmt.ref-expmt.vignetteMat)-(imagedata-expmt.vignetteMat);
-                        gui_handle.CurrentAxes.CData = diffim > thresh;
+                        diffim = (expmt.ref-expmt.vignetteMat)-(trackDat.im-expmt.vignetteMat);
+                        imh.CData = diffim > thresh;
                     else
                         display_menu.UserData = 1;
                         display_menu.Children(5).checked = 'on';
@@ -164,99 +181,96 @@ while ishghandle(hObject)
             
         end
         
+        % initialize tracking variables if any parameter display is ticked
         if track_start
-            
 
-            propFields={'Centroid';'Area'};     % Define fields for regionprops
+            trackDat.fields={'Centroid';'Area';'Speed'};     % Define fields autoTrack output
             
             if isfield(expmt,'ROI') && isfield(expmt.ROI,'centers')
-                lastCentroid = expmt.ROI.centers;     % placeholder for most recent non-NaN centroids
+                trackDat.lastCen = expmt.ROI.centers;     % placeholder for most recent non-NaN centroids
             else
                 midpoint(1) = sum(gui_handles.axes_handle.XLim)/2;
                 midpoint(2) = sum(gui_handles.axes_handle.YLim)/2;
-                lastCentroid = [midpoint(1) midpoint(2)];
+                trackDat.lastCen = [midpoint(1) midpoint(2)];
             end
             
             % initialize timer
             tic
-            tElapsed=0;
-            prev_tStamp = toc;
-            centStamp = zeros(size(lastCentroid,1),1);
+            trackDat.t=0;
+            tPrev = toc;
+            trackDat.tStamp = zeros(size(trackDat.lastCen,1),1);
             
             % initialize coords
-            s_bounds = centerRect(lastCentroid,handles.figure1.UserData.speed_thresh);
-            d_bounds = centerRect(lastCentroid,handles.figure1.UserData.distance_thresh);
-            mi_bounds = centerRect(lastCentroid,sqrt(handles.figure1.UserData.area_min/pi));
-            ma_bounds = centerRect(lastCentroid,sqrt(handles.figure1.UserData.area_max/pi));
+            s_bounds = centerRect(trackDat.lastCen,gui_fig.UserData.speed_thresh);
+            d_bounds = centerRect(trackDat.lastCen,gui_fig.UserData.distance_thresh);
+            mi_bounds = centerRect(trackDat.lastCen,sqrt(gui_fig.UserData.area_min/pi));
+            ma_bounds = centerRect(trackDat.lastCen,sqrt(gui_fig.UserData.area_max/pi));
             
-            for i = 1:size(lastCentroid,1)
+            % initialize handles with position set to bounds
+            for i = 1:size(trackDat.lastCen,1)
 
-                spdCirc(i) = rectangle(gui_handles.axes_handle,'Position',s_bounds,...
-                    'EdgeColor',[0 1 0],'Curvature',[1 1]);
-                minCirc(i) = rectangle(gui_handles.axes_handle,'Position',mi_bounds,...
-                    'EdgeColor',[1 0 1],'Curvature',[1 1]);
-                maxCirc(i) = rectangle(gui_handles.axes_handle,'Position',ma_bounds,...
-                    'EdgeColor',[1 0 0],'Curvature',[1 1]);
-                dstCirc(i) = rectangle(gui_handles.axes_handle,'Position',d_bounds,...
-                    'EdgeColor',[0 0 1],'Curvature',[1 1]);
+                spdCirc(i) = rectangle(gui_handles.axes_handle,'Position',s_bounds(i,:),...
+                    'EdgeColor',[1 0 1],'Curvature',[1 1],'Visible','off');
+                spdText(i) = text(gui_handles.axes_handle,'Position',trackDat.lastCen(i,:),...
+                    'String','0','Visible','off','Color',[1 0 1]);
+                minCirc(i) = rectangle(gui_handles.axes_handle,'Position',mi_bounds(i,:),...
+                    'EdgeColor',[1 0 0],'Curvature',[1 1],'Visible','off');
+                maxCirc(i) = rectangle(gui_handles.axes_handle,'Position',ma_bounds(i,:),...
+                    'EdgeColor',[1 0 0],'Curvature',[1 1],'Visible','off');
+                areaText(i) = text(gui_handles.axes_handle,'Position',trackDat.lastCen(i,:),...
+                    'String','0','Visible','off','Color',[1 0 0]);
+                dstCirc(i) = rectangle(gui_handles.axes_handle,'Position',d_bounds(i,:),...
+                    'EdgeColor',[0 0 1],'Curvature',[1 1],'Visible','off');
             end
             
+            % disable first time tracking setup
             track_start = boolean(0);
+            
+            % initialize rolling averages of speed and area
+            roll_speed = NaN(size(trackDat.lastCen,1),30);
+            roll_area = NaN(size(trackDat.lastCen,1),30);
             
         end
         
+        % if speed display button ticked
         if disp_speed
             
-            if strcmp(spdCirc.Visible,'off')
-                spdCirc.Visible = 'on';
+            % re-enable display if necessary
+            if strcmp(spdCirc(1).Visible,'off') || strcmp(spdText(1).Visible,'off') 
+                for i = 1:length(spdCirc)
+                    spdCirc(i).Visible = 'on';
+                    spdText(i).Visible = 'on';
+                end
             end
             
             % display parameter preview on objects and ROIs if they exist
             if isfield(expmt,'ref') && isfield(expmt,'vignetteMat')
                 
-                imagedata = peekdata(expmt.camInfo.vid,1);
-                if size(imagedata,3)>1
-                    imagedata = imagedata(:,:,2);
-                end
+                % track objects and sort outputs specified in trackDat.fields
+                [trackDat,sort_fields] = autoTrack(trackDat,expmt,gui_handles);
                 
-                thresh = get(thresh_slider,'value');
-                diffim = (expmt.ref-expmt.vignetteMat)-(imagedata-expmt.vignetteMat);
-                        props=regionprops((diffim>imageThresh),propFields);
-
-                % Match centroids to ROIs by finding nearest ROI center
-                validCentroids=([props.Area]>4&[props.Area]<120);
-                cenDat=reshape([props(validCentroids).Centroid],2,length([props(validCentroids).Centroid])/2)';
-
-                % Match centroids to last known centroid positions
-                [cen_permutation,update_centroid]=matchCentroids2ROIs(cenDat,lastCentroid,expmt.ROI.centers,expmt.parameters.distanceThresh);
-
-                % Apply speed threshold to centroid tracking
-                if any(update_centroid)
-                    d = sqrt([cenDat(cen_permutation,1)-lastCentroid(update_centroid,1)].^2 ...
-                        + [cenDat(cen_permutation,2)-lastCentroid(update_centroid,2)].^2);
-                    dt = tElapsed-centStamp(update_centroid);
-                    speed = d./dt;
-                    above_spd_thresh = speed > expmt.parameters.speed_thresh;
-                    cen_permutation(above_spd_thresh)=[];
-                    update_centroid=find(update_centroid);
-                    update_centroid(above_spd_thresh)=[];
-                end
-
-                % Use permutation vector to sort raw centroid data and update
-                % vector to specify which centroids are reliable and should be updated
-                lastCentroid(update_centroid,:)=cenDat(cen_permutation,:);
-                centStamp(update_centroid) = tElapsed;
+                % update rolling speed
+                roll_speed(:,mod(trackDat.ct,size(roll_speed,2))+1) = sort_fields.Speed;
+                
             end
             
             % else display preview in center of axes
-            s_bounds = centerRect(lastCentroid,handles.figure1.UserData.speed_thresh);
+            s_bounds = centerRect(trackDat.lastCen,gui_fig.UserData.speed_thresh);
 
+            % update display
             for i = 1:length(spdCirc)
                 spdCirc(i).Position = s_bounds(i,:);
+                spdText(i).Position = [trackDat.lastCen(i,1) trackDat.lastCen(i,2)+5];
+                spdText(i).String = num2str(round(nanmean(roll_speed(i,:))*10)/10);
             end
+            
+        % disable display if necessary
         else
-            if strcmp(spdCirc.Visible,'on')
-                spdCirc.Visible = 'off';
+            if strcmp(spdCirc(1).Visible,'on')
+                for i = 1:length(spdCirc)
+                    spdCirc(i).Visible = 'off';
+                    spdText(i).Visible = 'off';
+                end
             end
         end
         
@@ -264,8 +278,11 @@ while ishghandle(hObject)
         % distance thresh display ticked
         if disp_dist
             
-            if strcmp(dstCirc.Visible,'off')
-                dstCirc.Visible = 'on';
+            % re-enable display if necessary
+            if strcmp(dstCirc(1).Visible,'off')
+                for i = 1:length(dstCirc)
+                    dstCirc(i).Visible = 'on';
+                end
             end
         
             % use trackiog from disp_speed if toggled, else initiate
@@ -274,59 +291,45 @@ while ishghandle(hObject)
                 
                 if isfield(expmt,'ref') && isfield(expmt,'vignetteMat')
                     
-                    imagedata = peekdata(expmt.camInfo.vid,1);
-                    if size(imagedata,3)>1
-                        imagedata = imagedata(:,:,2);
-                    end
-
-                    thresh = get(thresh_slider,'value');
-                    diffim = (expmt.ref-expmt.vignetteMat)-(imagedata-expmt.vignetteMat);
-                            props=regionprops((diffim>imageThresh),propFields);
-
-                    % Match centroids to ROIs by finding nearest ROI center
-                    validCentroids=([props.Area]>4&[props.Area]<120);
-                    cenDat=reshape([props(validCentroids).Centroid],2,length([props(validCentroids).Centroid])/2)';
-
-                    % Match centroids to last known centroid positions
-                    [cen_permutation,update_centroid]=matchCentroids2ROIs(cenDat,lastCentroid,expmt.ROI.centers,expmt.parameters.distanceThresh);
-
-                    % Apply speed threshold to centroid tracking
-                    if any(update_centroid)
-                        d = sqrt([cenDat(cen_permutation,1)-lastCentroid(update_centroid,1)].^2 ...
-                            + [cenDat(cen_permutation,2)-lastCentroid(update_centroid,2)].^2);
-                        dt = tElapsed-centStamp(update_centroid);
-                        speed = d./dt;
-                        above_spd_thresh = speed > expmt.parameters.speed_thresh;
-                        cen_permutation(above_spd_thresh)=[];
-                        update_centroid=find(update_centroid);
-                        update_centroid(above_spd_thresh)=[];
-                    end
-
-                    % Use permutation vector to sort raw centroid data and update
-                    % vector to specify which centroids are reliable and should be updated
-                    lastCentroid(update_centroid,:)=cenDat(cen_permutation,:);
-                    centStamp(update_centroid) = tElapsed;
+                % track objects and sort outputs specified in trackDat.fields
+                [trackDat,sort_fields] = autoTrack(trackDat,expmt,gui_handles);
+                
                 end
             
             end
             
-            % else display preview in center of axes
-            d_bounds = centerRect(lastCentroid,handles.figure1.UserData.distance_thresh);
-            for i = 1:length(dstCirc)
-                dstCirc(i).Position = s_bounds(i,:);
+            if isfield(expmt,'ROI') && isfield(expmt.ROI,'centers')
+                d_bounds = centerRect(expmt.ROI.centers,gui_fig.UserData.distance_thresh);
+            else
+                mid(1) = sum(gui_handles.axes_handle.XLim)/2;
+                mid(2) = sum(gui_handles.axes_handle.YLim)/2;
+                d_bounds = centerRect([mid(1) mid(2)],gui_fig.UserData.distance_thresh);
             end
+            
+            % update marker position
+            for i = 1:length(dstCirc)
+                dstCirc(i).Position = d_bounds(i,:);
+            end
+            
+        % disable display if necessary
         else
-            if strcmp(dstCirc.Visible,'on')
-                dstCirc.Visible = 'off';
+            if strcmp(dstCirc(1).Visible,'on')
+                for i = 1:length(dstCirc)
+                    dstCirc(i).Visible = 'off';
+                end
             end
         end
         
         % Area display ticked
         if disp_area
             
-            if strcmp(minCirc.Visible,'off') || strcmp(maxCirc.Visible,'off')
-                minCirc.Visible = 'on';
-                maxCirc.Visible = 'on';
+            % re-enable display if necessary
+            if strcmp(minCirc(1).Visible,'off') || strcmp(maxCirc(1).Visible,'off')
+                for i = 1:length(minCirc)
+                    minCirc(i).Visible = 'on';
+                    maxCirc(i).Visible = 'on';
+                    areaText(i).Visible = 'on';
+                end
             end
         
             % use trackiog from disp_speed if toggled, else initiate
@@ -334,66 +337,86 @@ while ishghandle(hObject)
             if ~disp_speed && ~disp_dist
                 
                 if isfield(expmt,'ref') && isfield(expmt,'vignetteMat')
-
-                    imagedata = peekdata(expmt.camInfo.vid,1);
-                    if size(imagedata,3)>1
-                        imagedata = imagedata(:,:,2);
-                    end
                     
-                    thresh = get(thresh_slider,'value');
-                    diffim = (expmt.ref-expmt.vignetteMat)-(imagedata-expmt.vignetteMat);
-                            props=regionprops((diffim>imageThresh),propFields);
-
-                    % Match centroids to ROIs by finding nearest ROI center
-                    validCentroids=([props.Area]>4&[props.Area]<120);
-                    cenDat=reshape([props(validCentroids).Centroid],2,length([props(validCentroids).Centroid])/2)';
-
-                    % Match centroids to last known centroid positions
-                    [cen_permutation,update_centroid]=matchCentroids2ROIs(cenDat,lastCentroid,expmt.ROI.centers,expmt.parameters.distanceThresh);
-
-                    % Apply speed threshold to centroid tracking
-                    if any(update_centroid)
-                        d = sqrt([cenDat(cen_permutation,1)-lastCentroid(update_centroid,1)].^2 ...
-                            + [cenDat(cen_permutation,2)-lastCentroid(update_centroid,2)].^2);
-                        dt = tElapsed-centStamp(update_centroid);
-                        speed = d./dt;
-                        above_spd_thresh = speed > expmt.parameters.speed_thresh;
-                        cen_permutation(above_spd_thresh)=[];
-                        update_centroid=find(update_centroid);
-                        update_centroid(above_spd_thresh)=[];
-                    end
-
-                    % Use permutation vector to sort raw centroid data and update
-                    % vector to specify which centroids are reliable and should be updated
-                    lastCentroid(update_centroid,:)=cenDat(cen_permutation,:);
-                    centStamp(update_centroid) = tElapsed;
+                    % track objects and sort outputs specified in trackDat.fields
+                    [trackDat,sort_fields] = autoTrack(trackDat,expmt,gui_handles);
+                
                 end
             
             end
             
+            % calculate rolling average of centroid area
+            if exist('sort_fields','var')
+                roll_area(:,mod(trackDat.ct,size(roll_area,2))+1) = sort_fields.Area;
+            end
+            
             % else display preview in center of axes
-            mi_bounds = centerRect(lastCentroid,sqrt(handles.figure1.UserData.area_min/pi));
-            ma_bounds = centerRect(lastCentroid,sqrt(handles.figure1.UserData.area_max/pi));
-
+            mi_bounds = centerRect(trackDat.lastCen,sqrt(gui_fig.UserData.area_min/pi));
+            ma_bounds = centerRect(trackDat.lastCen,sqrt(gui_fig.UserData.area_max/pi));
+            
+            % update position
             for i = 1:length(dstCirc)
                 minCirc(i).Position = mi_bounds(i,:);
                 maxCirc(i).Position = ma_bounds(i,:);
+                areaText(i).Position = [trackDat.lastCen(i,1) trackDat.lastCen(i,2)+20];
+                areaText(i).String = num2str(round(nanmean(roll_area(i,:))*10)/10);
             end
+        
+        % else make objects invisible
         else
-            if strcmp(minCirc.Visible,'on') || strcmp(maxCirc.Visible,'on')
-                minCirc.Visible = 'off';
-                maxCirc.Visible = 'off';
+            if strcmp(minCirc(1).Visible,'on') || strcmp(maxCirc(1).Visible,'on')
+                for i = 1:length(minCirc)
+                    minCirc(i).Visible = 'off';
+                    maxCirc(i).Visible = 'off';
+                    areaText(i).Visible = 'off';
+                end
             end
         end
-                       
-    end
     
-    % constantly reassign output from the subgui until it closes
-    if isprop(handles.figure1,'UserData')
-    	varargout{1} = handles.figure1.UserData;
+    % make all display objects invisible if no parameter display is ticked
+    elseif ~track_start
+        
+           if strcmp(spdCirc(1).Visible,'on')
+                for i = 1:length(spdCirc)
+                    spdCirc(i).Visible = 'off';
+                    spdText(i).Visible = 'off';
+                end
+           end
+           
+           if strcmp(dstCirc(1).Visible,'on')
+                for i = 1:length(dstCirc)
+                    dstCirc(i).Visible = 'off';
+                end
+            end
+           
+           if strcmp(minCirc(1).Visible,'on') || strcmp(maxCirc(1).Visible,'on')
+                for i = 1:length(minCirc)
+                    minCirc(i).Visible = 'off';
+                    maxCirc(i).Visible = 'off';
+                    areaText(i).Visible = 'off';
+                end
+            end
     end
+
+    drawnow
             
 end
+
+% clear objects from display
+rect_handles = findobj(gui_handles.axes_handle,'-depth',3,'Type','rectangle');
+delete(rect_handles);
+text_handles = findobj(gui_handles.axes_handle,'-depth',3,'Type','text');
+delete(text_handles);
+
+% disable and reset display controls
+for i = 1:length(display_menu.Children)
+    display_menu.Children(i).Enable = 'off';
+    display_menu.Children(i).Checked = 'off';
+end
+
+raw_menu = findobj(display_menu,'-depth',2,'Label','raw image'); 
+raw_menu.Checked = 'on';
+display_menu.UserData = 1;
 
 
 
@@ -425,7 +448,9 @@ function edit_vignette_weight_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of edit_vignette_weight as text
 %        str2double(get(hObject,'String')) returns contents of edit_vignette_weight as a double
 
-handles.figure1.UserData.vignette_weight=str2num(get(handles.edit_vignette_weight,'string'));
+gui_fig = handles.figure1.UserData.gui_handles.gui_fig;
+
+gui_fig.UserData.vignette_weight=str2num(get(handles.edit_vignette_weight,'string'));
 guidata(hObject,handles);
 
 
@@ -437,7 +462,9 @@ function edit_vignette_sigma_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of edit_vignette_sigma as text
 %        str2double(get(hObject,'String')) returns contents of edit_vignette_sigma as a double
 
-handles.figure1.UserData.vignette_sigma=str2num(get(handles.edit_vignette_sigma,'string'));
+gui_fig = handles.figure1.UserData.gui_handles.gui_fig;
+
+gui_fig.UserData.vignette_sigma=str2num(get(handles.edit_vignette_sigma,'string'));
 guidata(hObject,handles);
 
 
@@ -449,7 +476,9 @@ function edit_target_rate_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of edit29 as text
 %        str2double(get(hObject,'String')) returns contents of edit29 as a double
 
-handles.figure1.UserData.target_rate=str2num(get(handles.edit29,'string'));
+gui_fig = handles.figure1.UserData.gui_handles.gui_fig;
+
+gui_fig.UserData.target_rate=str2num(handles.edit_target_rate.String);
 guidata(hObject,handles);
 
 
@@ -462,7 +491,9 @@ function edit_dist_thresh_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of edit_dist_thresh as text
 %        str2double(get(hObject,'String')) returns contents of edit_dist_thresh as a double
 
-handles.figure1.UserData.distance_thresh=str2num(get(handles.edit_dist_thresh,'string'));
+gui_fig = handles.figure1.UserData.gui_handles.gui_fig;
+
+gui_fig.UserData.distance_thresh=str2num(get(handles.edit_dist_thresh,'string'));
 guidata(hObject,handles);
 
 
@@ -475,7 +506,33 @@ function edit_speed_thresh_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of edit_speed_thresh as text
 %        str2double(get(hObject,'String')) returns contents of edit_speed_thresh as a double
 
-handles.figure1.UserData.speed_thresh=str2num(get(handles.edit_speed_thresh,'string'));
+gui_fig = handles.figure1.UserData.gui_handles.gui_fig;
+
+gui_fig.UserData.speed_thresh=str2num(get(handles.edit_speed_thresh,'string'));
+guidata(hObject,handles);
+
+
+
+function edit_area_max_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_area_max (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+gui_fig = handles.figure1.UserData.gui_handles.gui_fig;
+
+gui_fig.UserData.area_max = str2num(get(hObject,'string'));
+guidata(hObject,handles);
+
+
+
+function edit_area_min_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_area_min (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+gui_fig = handles.figure1.UserData.gui_handles.gui_fig;
+
+gui_fig.UserData.area_min = str2num(get(hObject,'string'));
 guidata(hObject,handles);
 
 
@@ -602,15 +659,6 @@ end
 
 
 
-function edit_area_min_Callback(hObject, eventdata, handles)
-% hObject    handle to edit_area_min (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-handles.figure1.UserData.area_min = str2num(get(hObject,'string'));
-guidata(hObject,handles);
-
-
 % --- Executes during object creation, after setting all properties.
 function edit_area_min_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to edit_area_min (see GCBO)
@@ -622,16 +670,6 @@ function edit_area_min_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
-
-function edit_area_max_Callback(hObject, eventdata, handles)
-% hObject    handle to edit_area_max (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-handles.figure1.UserData.area_max = str2num(get(hObject,'string'));
-guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.

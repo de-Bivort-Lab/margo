@@ -12,8 +12,10 @@ colormap('gray')
 
 %% Define parameters - adjust parameters here to fix tracking and ROI segmentation errors
 
+gui_fig = handles.gui_fig;
+
 % import data from gui
-expmt = getappdata(handles.figure1,'expmt');
+expmt = getappdata(gui_fig,'expmt');
 
 % ROI detection parameters
 ROI_thresh=get(handles.ROI_thresh_slider,'value');    % Binary image threshold from zero (black) to one (white) for segmentation  
@@ -52,7 +54,7 @@ stop=get(handles.accept_ROI_thresh_pushbutton,'value');
 
 clearvars hRect hText
 hRect(1) = rectangle('Position',[0 0 0 0],'EdgeColor','r');
-hText(1) = text(0,0,'','Color','m');
+hText(1) = text(0,0,'1','Color','b');
 
 while stop~=1;
     
@@ -104,6 +106,7 @@ while stop~=1;
     idel = [];
     
     for i = 1:nDraw
+        
         
         if i <= nROIs && i <= length(hRect)
             hRect(i).Position = ROI_bounds(i,:);

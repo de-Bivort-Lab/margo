@@ -22,7 +22,7 @@ function varargout = integratedtrackinggui(varargin)
 
 % Edit the above text to modify the response to help integratedtrackinggui
 
-% Last Modified by GUIDE v2.5 04-Feb-2017 12:50:24
+% Last Modified by GUIDE v2.5 09-Feb-2017 20:32:25
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -53,6 +53,16 @@ function integratedtrackinggui_OpeningFcn(hObject, eventdata, handles, varargin)
 % varargin   command line arguments to integratedtrackinggui (see VARARGIN)
 
 warning('off','MATLAB:JavaEDTAutoDelegation');
+
+% store panel starting location for reference when resizing
+handles.fig_size = handles.gui_fig.Position;
+panels = findobj(handles.gui_fig.Children,'Type','uipanel');
+for i = 1:length(panels)
+    panels(i).UserData = panels(i).Position;
+end
+lighting_uipanel = findobj(handles.gui_fig.Children,'Title','Lighting');
+handles.left_edge = lighting_uipanel.Position(1) + lighting_uipanel.Position(3);
+
 
 % Choose default command line output for integratedtrackinggui
 handles.output = hObject;
@@ -150,31 +160,33 @@ writeInfraredWhitePanel(expmt.teensy_port,1,expmt.IR_intensity);
 writeInfraredWhitePanel(expmt.teensy_port,0,expmt.White_intensity);
 
 % Initialize expmteriment parameters from text boxes in the GUI
-expmt.parameters.ref_stack_size  =  str2num(get(handles.edit_ref_stack_size,'String'));
-expmt.parameters.ref_freq = str2num(get(handles.edit_ref_freq,'String'));
-expmt.parameters.duration = str2num(get(handles.edit_exp_duration,'String'));
+handles.edit_ref_depth.Value  =  str2num(get(handles.edit_ref_depth,'String'));
+handles.edit_ref_freq.Value = str2num(get(handles.edit_ref_freq,'String'));
+handles.edit_exp_duration.Value = str2num(get(handles.edit_exp_duration,'String'));
 expmt.parameters.ROI_thresh = get(handles.ROI_thresh_slider,'Value');
 expmt.parameters.tracking_thresh = get(handles.track_thresh_slider,'Value');
-expmt.parameters.speed_thresh = 45;
-expmt.parameters.distance_thresh = 20;
-expmt.parameters.vignette_sigma = 0.47;
-expmt.parameters.vignette_weight = 0.35;
-expmt.parameters.area_min = 4;
-expmt.parameters.area_max = 300;
+
+% initialize tracking parameters to default values
+handles.gui_fig.UserData.speed_thresh = 45;
+handles.gui_fig.UserData.distance_thresh = 20;
+handles.gui_fig.UserData.vignette_sigma = 0.47;
+handles.gui_fig.UserData.vignette_weight = 0.35;
+handles.gui_fig.UserData.area_min = 4;
+handles.gui_fig.UserData.area_max = 300;
 
 if ~isempty(expmt.camInfo)
-    expmt.parameters.target_rate = estimateFrameRate(expmt.camInfo);
+    handles.gui_fig.UserData.target_rate = round(estimateFrameRate(expmt.camInfo)*10)/10;
 else
-    expmt.parameters.target_rate = 60;
+    handles.gui_fig.UserData.target_rate = 60;
 end
 
-setappdata(handles.figure1,'expmt',expmt);
+setappdata(handles.gui_fig,'expmt',expmt);
 
 % Update handles structure
 guidata(hObject,handles);
 
 % UIWAIT makes integratedtrackinggui wait for user response (see UIRESUME)
-% uiwait(handles.figure1);
+% uiwait(handles.gui_fig);
 
 % --- Outputs from this function are returned to the command line.
 function varargout = integratedtrackinggui_OutputFcn(hObject, eventdata, handles) 
@@ -204,7 +216,7 @@ function cam_select_popupmenu_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import expmteriment variables
-expmt = getappdata(handles.figure1,'expmt');
+expmt = getappdata(handles.gui_fig,'expmt');
 
 if ~isempty(handles.cam_list(get(hObject,'value')).adaptor)
     
@@ -230,7 +242,7 @@ if ~isempty(handles.cam_list(get(hObject,'value')).adaptor)
 end
 
 % Store expmteriment data struct
-setappdata(handles.figure1,'expmt',expmt);
+setappdata(handles.gui_fig,'expmt',expmt);
 guidata(hObject,handles);
 
 
@@ -255,13 +267,13 @@ function cam_mode_popupmenu_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-expmt = getappdata(handles.figure1,'expmt');
+expmt = getappdata(handles.gui_fig,'expmt');
 
 strCell = get(handles.cam_mode_popupmenu,'string');
 expmt.camInfo.ActiveMode = strCell(get(handles.cam_mode_popupmenu,'Value'));
 
 % Store expmteriment data struct
-setappdata(handles.figure1,'expmt',expmt);
+setappdata(handles.gui_fig,'expmt',expmt);
 
 guidata(hObject,handles);
 
@@ -286,7 +298,7 @@ function Cam_confirm_pushbutton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import expmteriment data struct
-expmt = getappdata(handles.figure1,'expmt');
+expmt = getappdata(handles.gui_fig,'expmt');
 
 if ~isempty(expmt.camInfo)
     if ~isempty(expmt.camInfo.DeviceInfo)
@@ -295,22 +307,60 @@ if ~isempty(expmt.camInfo)
         pause(0.02);
         expmt.camInfo = initializeCamera(expmt.camInfo);
         start(expmt.camInfo.vid);
+        
+        % Store expmteriment data struct
+        setappdata(handles.gui_fig,'expmt',expmt);
         pause(0.5);
         
         % adjust aspect ratio of plot to match camera
         colormap('gray');
         im = peekdata(expmt.camInfo.vid,1);
         handles.hImage = imagesc(im);
+        handles.axes_handle.Position(3) = ...
+            handles.gui_fig.Position(3) - 5 - handles.axes_handle.Position(1);
         res = expmt.camInfo.vid.VideoResolution;
         aspectR = res(2)/res(1);
         plot_aspect = pbaspect;
         fscale = aspectR/plot_aspect(2);
-        axes_height_old = handles.axes_handle.Position(4);
-        axes_height_new = axes_height_old*fscale;
-        handles.axes_handle.Position(4) = axes_height_new;
-        handles.axes_handle.Position(2) = handles.axes_handle.Position(2) + axes_height_old - axes_height_new;
+
+        if fscale < 1
+            axes_height_old = handles.axes_handle.Position(4);
+            axes_height_new = axes_height_old*fscale;
+            handles.axes_handle.Position(4) = axes_height_new;
+            handles.axes_handle.Position(2) = handles.axes_handle.Position(2) + axes_height_old - axes_height_new;
+        else
+            aspectR = res(1)/res(2);
+            plot_aspect = pbaspect;
+            plot_aspect = plot_aspect./plot_aspect(2);
+            fscale = aspectR/plot_aspect(1);
+            axes_width_old = handles.axes_handle.Position(3);
+            axes_width_new = axes_width_old*fscale;
+            handles.axes_handle.Position(3) = axes_width_new;
+            handles.gui_fig.Position(3) = ...
+                sum(handles.axes_handle.Position([1 3])) + 10;
+
+        end
+        
         colormap('gray');
         set(gca,'Xtick',[],'Ytick',[]);
+        
+        if isfield(expmt,'ROI') && isfield(expmt,'ref') &&  isfield(expmt,'noise')
+            rmfield(expmt,'ROI');
+            rmfield(expmt,'ref');
+            rmfield(expmt,'noise');
+            msgbox(['Cam settings changed: saved ROIs, references and ' ...
+                'noise statistics have been discarded.']);
+        elseif isfield(expmt,'ROI') && isfield(expmt,'ref')
+            rmfield(expmt,'ROI');
+            rmfield(expmt,'ref');
+            msgbox(['Cam settings changed: saved ROIs, references ' ...
+                'have been discarded.']);
+        elseif isfield(expmt,'ROI')
+           rmfield(expmt,'ROI');
+           msgbox(['Cam settings changed: saved ROIs ' ...
+                'have been discarded.']);
+        end
+        
     else
         errordlg('Settings not confirmed, no camera detected');
     end
@@ -319,7 +369,7 @@ else
 end
 
 % Store expmteriment data struct
-setappdata(handles.figure1,'expmt',expmt);
+setappdata(handles.gui_fig,'expmt',expmt);
 
 guidata(hObject,handles);
 
@@ -334,7 +384,7 @@ function Cam_preview_togglebutton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import expmteriment data struct
-expmt = getappdata(handles.figure1,'expmt');
+expmt = getappdata(handles.gui_fig,'expmt');
 
 switch get(hObject,'value')
     case 1
@@ -352,7 +402,7 @@ switch get(hObject,'value')
 end
 
 % Store expmteriment data struct
-setappdata(handles.figure1,'expmt',expmt);
+setappdata(handles.gui_fig,'expmt',expmt);
 
 
 % --- Executes on selection change in microcontroller_popupmenu.
@@ -386,7 +436,7 @@ function edit_IR_intensity_Callback(hObject, eventdata, handles)
 % Initialize light panel at default values
 
 % import expmteriment data struct
-expmt = getappdata(handles.figure1,'expmt');
+expmt = getappdata(handles.gui_fig,'expmt');
 
 expmt.IR_intensity = str2num(get(handles.edit_IR_intensity,'string'));
 
@@ -396,7 +446,7 @@ expmt.IR_intensity = uint8((expmt.IR_intensity/100)*255);
 writeInfraredWhitePanel(expmt.teensy_port,1,expmt.IR_intensity);
 
 % Store expmteriment data struct
-setappdata(handles.figure1,'expmt',expmt);
+setappdata(handles.gui_fig,'expmt',expmt);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -417,7 +467,7 @@ function edit_White_intensity_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import expmteriment data struct
-expmt = getappdata(handles.figure1,'expmt');
+expmt = getappdata(handles.gui_fig,'expmt');
 
 White_intensity = str2num(get(handles.edit_White_intensity,'string'));
 
@@ -426,7 +476,7 @@ expmt.White_intensity = uint8((White_intensity/100)*255);
 writeInfraredWhitePanel(expmt.teensy_port,0,expmt.White_intensity);
 
 % Store expmteriment data struct
-setappdata(handles.figure1,'expmt',expmt);
+setappdata(handles.gui_fig,'expmt',expmt);
 
 guidata(hObject,handles);
 
@@ -453,7 +503,7 @@ function save_path_button1_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import expmteriment data struct
-expmt = getappdata(handles.figure1,'expmt');
+expmt = getappdata(handles.gui_fig,'expmt');
 mat_dir = handles.gui_dir(1:strfind(handles.gui_dir,'MATLAB\')+6);
 default_path = [mat_dir 'autotracker_data\'];
 if exist(default_path,'dir') ~= 7
@@ -472,7 +522,7 @@ set(handles.save_path,'string',fpath);
 
 
 % Store expmteriment data struct
-setappdata(handles.figure1,'expmt',expmt);
+setappdata(handles.gui_fig,'expmt',expmt);
 
 guidata(hObject,handles);
 
@@ -511,7 +561,7 @@ function labels_uitable_CreateFcn(hObject, eventdata, handles)
 % handles    empty - handles not created until after all CreateFcns called
 
 % import expmteriment data struct
-expmt = getappdata(handles.figure1,'expmt');
+expmt = getappdata(handles.gui_fig,'expmt');
 
 data = cell(5,8);
 data(:) = {''};
@@ -519,7 +569,7 @@ set(hObject, 'Data', data);
 expmt.labels = data;
 
 % Store expmteriment data struct
-setappdata(handles.figure1,'expmt',expmt);
+setappdata(handles.gui_fig,'expmt',expmt);
 
 guidata(hObject,handles);
 
@@ -538,38 +588,38 @@ function labels_uitable_CellEditCallback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import expmteriment data struct
-expmt = getappdata(handles.figure1,'expmt');
+expmt = getappdata(handles.gui_fig,'expmt');
 
 expmt.labels{eventdata.Indices(1), eventdata.Indices(2)} = {''};
 expmt.labels{eventdata.Indices(1), eventdata.Indices(2)} = eventdata.NewData;
 
 % Store expmteriment data struct
-setappdata(handles.figure1,'expmt',expmt);
+setappdata(handles.gui_fig,'expmt',expmt);
 
 guidata(hObject,handles);
 
 
 
 
-function edit_ref_stack_size_Callback(hObject, eventdata, handles)
-% hObject    handle to edit_ref_stack_size (see GCBO)
+function edit_ref_depth_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_ref_depth (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 % import expmteriment data struct
-expmt = getappdata(handles.figure1,'expmt');
+expmt = getappdata(handles.gui_fig,'expmt');
 
-expmt.parameters.ref_stack_size = str2num(get(handles.edit_ref_stack_size,'String'));
+handles.edit_ref_depth.Value = str2num(get(handles.edit_ref_depth,'String'));
 
 % Store expmteriment data struct
-setappdata(handles.figure1,'expmt',expmt);
+setappdata(handles.gui_fig,'expmt',expmt);
 
 guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function edit_ref_stack_size_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit_ref_stack_size (see GCBO)
+function edit_ref_depth_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_ref_depth (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -587,12 +637,12 @@ function edit_ref_freq_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import expmteriment data struct
-expmt = getappdata(handles.figure1,'expmt');
+expmt = getappdata(handles.gui_fig,'expmt');
 
-expmt.parameters.ref_freq = str2num(get(handles.edit_ref_freq,'String'));
+handles.edit_ref_freq.Value = str2num(get(handles.edit_ref_freq,'String'));
 
 % Store expmteriment data struct
-setappdata(handles.figure1,'expmt',expmt);
+setappdata(handles.gui_fig,'expmt',expmt);
 
 guidata(hObject,handles);
 
@@ -619,13 +669,13 @@ function edit_exp_duration_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import expmteriment data struct
-expmt = getappdata(handles.figure1,'expmt');
+expmt = getappdata(handles.gui_fig,'expmt');
 
-expmt.parameters.duration = str2num(get(handles.edit_exp_duration,'String'));
+handles.edit_exp_duration.Value = str2num(get(handles.edit_exp_duration,'String'));
 
 
 % Store expmteriment data struct
-setappdata(handles.figure1,'expmt',expmt);
+setappdata(handles.gui_fig,'expmt',expmt);
 
 guidata(hObject,handles);
 
@@ -652,7 +702,7 @@ function pushbutton6_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import expmteriment data struct
-expmt = getappdata(handles.figure1,'expmt');
+expmt = getappdata(handles.gui_fig,'expmt');
 
 if isfield(expmt, 'fpath') == 0 
     errordlg('Please specify Save Location')
@@ -670,11 +720,15 @@ else
             autoTracker_led;
         case 6
             autoTracker_arena;
+        case 7
+            expmt = experiment_template(expmt,handles);     % Run expmt
+            analysis_template(expmt,'plot');
+            
     end
 end
 
 % Store expmteriment data struct
-setappdata(handles.figure1,'expmt',expmt);
+setappdata(handles.gui_fig,'expmt',expmt);
 
 
 % --- Executes on slider movement.
@@ -684,14 +738,14 @@ function ROI_thresh_slider_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import expmteriment data struct
-expmt = getappdata(handles.figure1,'expmt');
+expmt = getappdata(handles.gui_fig,'expmt');
 
 expmt.parameters.ROI_thresh = get(handles.ROI_thresh_slider,'Value');
 set(handles.disp_ROI_thresh,'string',num2str(round(100*expmt.parameters.ROI_thresh)/100));
 guidata(hObject,handles);
 
 % Store expmteriment data struct
-setappdata(handles.figure1,'expmt',expmt);
+setappdata(handles.gui_fig,'expmt',expmt);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -713,13 +767,13 @@ function accept_ROI_thresh_pushbutton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import expmteriment data struct
-expmt = getappdata(handles.figure1,'expmt');
+expmt = getappdata(handles.gui_fig,'expmt');
 
 set(handles.accept_ROI_thresh_pushbutton,'value',1);
 guidata(hObject,handles);
 
 % Store expmteriment data struct
-setappdata(handles.figure1,'expmt',expmt);
+setappdata(handles.gui_fig,'expmt',expmt);
 
 
 
@@ -752,15 +806,15 @@ function exp_select_popupmenu_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import expmteriment data struct
-expmt = getappdata(handles.figure1,'expmt');
+expmt = getappdata(handles.gui_fig,'expmt');
 
 expmt.expID = get(handles.exp_select_popupmenu,'Value');
 names = get(handles.exp_select_popupmenu,'string');
 expmt.Name = names{expmt.expID};
-expmt.parameters = trimParameters(expmt.parameters);
+expmt.parameters = trimParameters(handles);
 
 % Store expmteriment data struct
-setappdata(handles.figure1,'expmt',expmt);
+setappdata(handles.gui_fig,'expmt',expmt);
 guidata(hObject,handles);
 
 % Hints: contents = cellstr(get(hObject,'String')) returns exp_select_popupmenu contents as cell array
@@ -787,7 +841,7 @@ function begin_reg_button_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import expmteriment data struct
-expmt = getappdata(handles.figure1,'expmt');
+expmt = getappdata(handles.gui_fig,'expmt');
 
 
 % Turn infrared and white background illumination off during registration
@@ -822,7 +876,7 @@ writeInfraredWhitePanel(expmt.teensy_port,0,expmt.White_intensity);
 guidata(hObject,handles);
 
 % Store expmteriment data struct
-setappdata(handles.figure1,'expmt',expmt);
+setappdata(handles.gui_fig,'expmt',expmt);
 
 
 function edit_time_remaining_Callback(hObject, eventdata, handles)
@@ -854,7 +908,7 @@ function exp_parameter_pushbutton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import expmteriment data struct
-expmt = getappdata(handles.figure1,'expmt');
+expmt = getappdata(handles.gui_fig,'expmt');
 
 if expmt.expID<2
 errordlg('Please select an expmteriment first')
@@ -884,7 +938,7 @@ end
 
 
 % Store expmteriment data struct
-setappdata(handles.figure1,'expmt',expmt);
+setappdata(handles.gui_fig,'expmt',expmt);
 
 guidata(hObject,handles);
 
@@ -898,7 +952,7 @@ function refresh_COM_pushbutton_Callback(hObject, eventdata, handles)
 % Refresh items on the COM ports
 
 % import expmteriment data struct
-expmt = getappdata(handles.figure1,'expmt');
+expmt = getappdata(handles.gui_fig,'expmt');
 
    
 % Attempt handshake with light panel teensy
@@ -914,7 +968,7 @@ end
 guidata(hObject,handles);
 
 % Store expmteriment data struct
-setappdata(handles.figure1,'expmt',expmt);
+setappdata(handles.gui_fig,'expmt',expmt);
 
 
 % --- Executes on button press in enter_labels_pushbutton.
@@ -924,7 +978,7 @@ function enter_labels_pushbutton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import expmteriment data struct
-expmt = getappdata(handles.figure1,'expmt');
+expmt = getappdata(handles.gui_fig,'expmt');
 
 if isfield(expmt,'labels')
     tmp_lbl = label_subgui(expmt.labels);
@@ -941,7 +995,7 @@ end
 
 
 % Store expmteriment data struct
-setappdata(handles.figure1,'expmt',expmt);
+setappdata(handles.gui_fig,'expmt',expmt);
 
 guidata(hObject,handles);
 
@@ -957,13 +1011,13 @@ function track_thresh_slider_Callback(hObject, eventdata, handles)
 %        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
 
 % import expmteriment data struct
-expmt = getappdata(handles.figure1,'expmt');
+expmt = getappdata(handles.gui_fig,'expmt');
 
 expmt.parameters.tracking_thresh = get(handles.track_thresh_slider,'Value');
 set(handles.disp_track_thresh,'string',num2str(round(expmt.parameters.tracking_thresh*100)/100));
 
 % Store expmteriment data struct
-setappdata(handles.figure1,'expmt',expmt);
+setappdata(handles.gui_fig,'expmt',expmt);
 
 
 guidata(hObject,handles);
@@ -990,12 +1044,12 @@ function accept_track_thresh_pushbutton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import expmteriment data struct
-expmt = getappdata(handles.figure1,'expmt');
+expmt = getappdata(handles.gui_fig,'expmt');
 
 set(handles.accept_track_thresh_pushbutton,'value',1);
 
 % Store expmteriment data struct
-setappdata(handles.figure1,'expmt',expmt);
+setappdata(handles.gui_fig,'expmt',expmt);
 
 guidata(hObject,handles);
 
@@ -1051,7 +1105,7 @@ function begin_reg_pushbutton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-expmt = getappdata(handles.figure1,'expmt');
+expmt = getappdata(handles.gui_fig,'expmt');
 
 if isfield(expmt,'reg_params')
     % Turn infrared and white background illumination off during registration
@@ -1099,7 +1153,7 @@ function reg_param_pushbutton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import expmteriment data struct
-expmt = getappdata(handles.figure1,'expmt');
+expmt = getappdata(handles.gui_fig,'expmt');
 
 if isfield(expmt,'reg_params')
     tmp = registration_parameter_subgui(expmt);
@@ -1114,7 +1168,7 @@ else
 end
 
 % Store expmteriment data struct
-setappdata(handles.figure1,'expmt',expmt);
+setappdata(handles.gui_fig,'expmt',expmt);
 
 
 % --- Executes on button press in reg_test_pushbutton.
@@ -1134,13 +1188,13 @@ function aux_COM_popupmenu_Callback(hObject, eventdata, handles)
 %        contents{get(hObject,'Value')} returns selected item from aux_COM_popupmenu
 
 % import expmteriment data struct
-expmt = getappdata(handles.figure1,'expmt');
+expmt = getappdata(handles.gui_fig,'expmt');
 
 % Update GUI menus with port names
 set(handles.aux_COM_popupmenu,'string',ports);
 
 % Store expmteriment data struct
-setappdata(handles.figure1,'expmt',expmt);
+setappdata(handles.gui_fig,'expmt',expmt);
 
 guidata(hObject,handles);
 
@@ -1167,7 +1221,7 @@ function refresh_aux_COM_pushbutton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import expmteriment data struct
-expmt = getappdata(handles.figure1,'expmt');
+expmt = getappdata(handles.gui_fig,'expmt');
 
 % Attempt handshake with light panel teensy
 [lightBoardPort,ports] = identifyMicrocontrollers;
@@ -1184,7 +1238,7 @@ end
 set(handles.aux_COM_popupmenu,'string',ports);
 
 % Store expmteriment data struct
-setappdata(handles.figure1,'expmt',expmt);
+setappdata(handles.gui_fig,'expmt',expmt);
 
 guidata(hObject,handles);
 
@@ -1204,7 +1258,7 @@ if get(handles.param_prof_popupmenu,'value') ~= 1
 end
 
 % Store expmteriment data struct
-setappdata(handles.figure1,'expmt',expmt);
+setappdata(handles.gui_fig,'expmt',expmt);
 guidata(hObject,handles);
 
 
@@ -1257,7 +1311,7 @@ function save_params_pushbutton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import expmteriment data struct
-expmt = getappdata(handles.figure1,'expmt');
+expmt = getappdata(handles.gui_fig,'expmt');
 
 % set profile save path
 save_path = [handles.gui_dir 'profiles\'];
@@ -1307,7 +1361,7 @@ function reference_pushbutton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import expmteriment variables
-expmt = getappdata(handles.figure1,'expmt');
+expmt = getappdata(handles.gui_fig,'expmt');
 
 if isfield(expmt,'ROI')
     expmt = initializeRef(handles,expmt);
@@ -1316,7 +1370,7 @@ else
 end
 
 % Store expmteriment data struct
-setappdata(handles.figure1,'expmt',expmt);
+setappdata(handles.gui_fig,'expmt',expmt);
 guidata(hObject,handles);
 
 
@@ -1329,7 +1383,7 @@ function sample_noise_pushbutton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import expmteriment variables
-expmt = getappdata(handles.figure1,'expmt');
+expmt = getappdata(handles.gui_fig,'expmt');
 
 if isfield(expmt,'ref')
     expmt = sampleNoise(handles,expmt);
@@ -1338,7 +1392,7 @@ else
 end
 
 % Store expmteriment data struct
-setappdata(handles.figure1,'expmt',expmt);
+setappdata(handles.gui_fig,'expmt',expmt);
 guidata(hObject,handles);
 
 
@@ -1349,7 +1403,7 @@ function auto_detect_ROIs_pushbutton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import expmteriment variables
-expmt = getappdata(handles.figure1,'expmt');
+expmt = getappdata(handles.gui_fig,'expmt');
 
 % autodetect ROIs
 [corners, centers, orientation, bounds, im] = autoROIs(handles);
@@ -1362,7 +1416,7 @@ expmt.ROI.bounds = bounds;
 expmt.ROI.im = im;
 
 % Store expmteriment data struct
-setappdata(handles.figure1,'expmt',expmt);
+setappdata(handles.gui_fig,'expmt',expmt);
 guidata(hObject,handles);
 
 
@@ -1394,13 +1448,13 @@ function cam_settings_menu_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import expmteriment variables
-expmt = getappdata(handles.figure1,'expmt');
+expmt = getappdata(handles.gui_fig,'expmt');
 
 % run camera settings gui
 expmt = cam_settings_subgui(handles,expmt);
 
 % Store expmteriment data struct
-setappdata(handles.figure1,'expmt',expmt);
+setappdata(handles.gui_fig,'expmt',expmt);
 guidata(hObject,handles);
 
 
@@ -1554,19 +1608,12 @@ function advanced_tracking_menu_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import expmteriment data struct
-expmt = getappdata(handles.figure1,'expmt');
+expmt = getappdata(handles.gui_fig,'expmt');
 
-tmp = advancedTrackingParam_subgui(expmt,handles);
-if ~isempty(tmp)
-    expmt.parameters.speed_thresh = tmp.speed_thresh;
-    expmt.parameters.distance_thresh = tmp.distance_thresh;
-    expmt.parameters.target_rate = tmp.target_rate;
-    expmt.parameters.vignette_sigma = tmp.vignette_sigma;
-    expmt.parameters.vignette_weight = tmp.vignette_weight;
-end
+advancedTrackingParam_subgui(expmt,handles);
              
 % Store expmteriment data struct
-setappdata(handles.figure1,'expmt',expmt);
+setappdata(handles.gui_fig,'expmt',expmt);
 
 
 % --------------------------------------------------------------------
@@ -1576,7 +1623,7 @@ function distance_scale_menu_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import expmteriment data struct
-expmt = getappdata(handles.figure1,'expmt');
+expmt = getappdata(handles.gui_fig,'expmt');
 
 tmp=setDistanceScale_subgui(handles,expmt.parameters);
 delete(findobj('Tag','imline'));
@@ -1585,7 +1632,7 @@ if ~isempty(tmp)
 end
 
 % Store expmteriment data struct
-setappdata(handles.figure1,'expmt',expmt);
+setappdata(handles.gui_fig,'expmt',expmt);
 
 
 % --------------------------------------------------------------------
@@ -1621,3 +1668,65 @@ function Untitled_8_Callback(hObject, eventdata, handles)
 % hObject    handle to Untitled_8 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes when gui_fig is resized.
+function gui_fig_SizeChangedFcn(hObject, eventdata, handles)
+% hObject    handle to gui_fig (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% get expmt data struct
+expmt = getappdata(handles.gui_fig,'expmt');
+axpos = handles.axes_handle.Position;
+
+% calculate delta width and height
+if isfield(handles,'fig_size')
+    
+    dw = handles.fig_size(3) - hObject.Position(3);
+    dh = handles.fig_size(4) - hObject.Position(4);
+
+
+    % adjust panel position to be constant
+    panels = findobj(handles.gui_fig.Children,'Type','uipanel');
+    for i = 1:length(panels)
+        panels(i).Position(2) = panels(i).UserData(2) - dh;
+    end
+
+
+    
+    if isfield(expmt.camInfo,'vid')
+
+        handles.axes_handle.Position(3) = handles.gui_fig.Position(3) - handles.axes_handle.Position(1) - 10;
+        handles.axes_handle.Position(4) = handles.gui_fig.Position(4) - handles.axes_handle.Position(2) - 5;
+
+        res = expmt.camInfo.vid.VideoResolution;
+        aspectR = res(2)/res(1);
+        plot_aspect = pbaspect;
+        fscale = aspectR/plot_aspect(2);
+
+        axes_height_old = handles.axes_handle.Position(4);
+        axes_height_new = axes_height_old*fscale;
+
+        if axes_height_new + 10 > handles.gui_fig.Position(4)
+     
+            aspectR = res(1)/res(2);
+            plot_aspect = pbaspect;
+            plot_aspect = plot_aspect./plot_aspect(2);
+            fscale = aspectR/plot_aspect(1);
+            axes_width_old = handles.axes_handle.Position(3);
+            axes_width_new = axes_width_old*fscale;
+            handles.axes_handle.Position(3) = axes_width_new;
+            
+        else
+            
+            handles.axes_handle.Position(4) = axes_height_new;
+            handles.axes_handle.Position(2) = handles.axes_handle.Position(2) + axes_height_old - axes_height_new;   
+            
+        end
+        
+    end
+
+end
+
+guidata(hObject,handles);

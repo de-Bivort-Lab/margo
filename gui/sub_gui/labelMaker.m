@@ -6,7 +6,9 @@ function out = labelMaker(labels, varargin)
 r = sum(~cellfun('isempty',labels(:,4)));
 newLabel = cell(120,5);
 mazeStarts=str2double(labels(:,4));
+mazeStarts(isnan(mazeStarts)) = [];
 mazeEnds=str2double(labels(:,5));
+mazeEnds(isnan(mazeEnds)) = [];
 
 for i = 1:r;
     d = mazeEnds(i) - mazeStarts(i);
@@ -23,6 +25,10 @@ for i = 1:r;
     if size(labels,2)==8
     newLabel(mazeStarts(i):mazeEnds(i),5)=repmat({str2double(labels(i,8))},d+1,1);
     end
+    newLabel(mazeStarts(i):mazeEnds(i),6) = repmat({labels{i,9}},d+1,1);
+    newLabel(mazeStarts(i):mazeEnds(i),7) = repmat({labels{i,10}},d+1,1);
+    newLabel(mazeStarts(i):mazeEnds(i),8) = repmat(labels(i,11),d+1,1);
+    
 end
 
 out = newLabel;
