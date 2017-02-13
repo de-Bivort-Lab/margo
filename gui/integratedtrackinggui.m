@@ -22,7 +22,7 @@ function varargout = integratedtrackinggui(varargin)
 
 % Edit the above text to modify the response to help integratedtrackinggui
 
-% Last Modified by GUIDE v2.5 09-Feb-2017 20:32:25
+% Last Modified by GUIDE v2.5 13-Feb-2017 14:16:23
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -62,6 +62,7 @@ for i = 1:length(panels)
 end
 lighting_uipanel = findobj(handles.gui_fig.Children,'Title','Lighting');
 handles.left_edge = lighting_uipanel.Position(1) + lighting_uipanel.Position(3);
+handles.vid_uipanel.Position = handles.cam_uipanel.Position;
 
 
 % Choose default command line output for integratedtrackinggui
@@ -1468,8 +1469,8 @@ function proj_settings_menu_Callback(hObject, eventdata, handles)
 
 
 % --------------------------------------------------------------------
-function Untitled_3_Callback(hObject, eventdata, handles)
-% hObject    handle to Untitled_3 (see GCBO)
+function file_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to file_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
@@ -1730,3 +1731,125 @@ if isfield(handles,'fig_size')
 end
 
 guidata(hObject,handles);
+
+
+% --------------------------------------------------------------------
+function load_video_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to load_video_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function saved_presets_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to saved_presets_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in vid_preview_togglebutton.
+function vid_preview_togglebutton_Callback(hObject, eventdata, handles)
+% hObject    handle to vid_preview_togglebutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of vid_preview_togglebutton
+
+
+% --- Executes on button press in pushbutton23.
+function pushbutton23_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton23 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on selection change in vid_select_popupmenu.
+function vid_select_popupmenu_Callback(hObject, eventdata, handles)
+% hObject    handle to vid_select_popupmenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns vid_select_popupmenu contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from vid_select_popupmenu
+
+
+% --- Executes during object creation, after setting all properties.
+function vid_select_popupmenu_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to vid_select_popupmenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit38_Callback(hObject, eventdata, handles)
+% hObject    handle to edit38 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit38 as text
+%        str2double(get(hObject,'String')) returns contents of edit38 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit38_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit38 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in video_files_pushbutton.
+function video_files_pushbutton_Callback(hObject, eventdata, handles)
+% hObject    handle to video_files_pushbutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function select_source_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to select_source_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function source_camera_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to source_camera_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+if strcmp(handles.cam_uipanel.Visible,'off')
+    handles.cam_uipanel.Visible = 'on';
+end
+
+if strcmp(handles.vid_uipanel.Visible,'on')
+    handles.vid_uipanel.Visible = 'off';
+end
+
+
+% --------------------------------------------------------------------
+function source_video_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to source_video_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+if strcmp(handles.vid_uipanel.Visible,'off')
+    handles.vid_uipanel.Visible = 'on';
+    handles.vid_uipanel.Position = handles.cam_uipanel.Position;
+end
+
+if strcmp(handles.cam_uipanel.Visible,'on')
+    handles.cam_uipanel.Visible = 'off';
+end
+
