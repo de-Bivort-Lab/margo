@@ -8,12 +8,18 @@ active_disp = gui_handles.display_menu.UserData;
         % raw image
         case 1         
             im_handle.CData = trackDat.im;
+            if strcmp(im_handle.CDataMapping,'scaled')
+                im_handle.CDataMapping = 'direct';
+            end
 
         % difference image
         case 2
             if isfield(expmt,'ref') && isfield(expmt,'vignetteMat')
             im_handle.CData = ...
                 (expmt.ref-expmt.vignetteMat)-(trackDat.im-expmt.vignetteMat);
+                if strcmp(im_handle.CDataMapping,'scaled')
+                    im_handle.CDataMapping = 'direct';
+                end
             else
                 gui_handles.display_menu.UserData = 1;
                 gui_handles.display_menu.Children(5).checked = 'on';
@@ -27,6 +33,9 @@ active_disp = gui_handles.display_menu.UserData;
                 thresh = gui_handles.track_thresh_slider.Value;
                 diffim = (expmt.ref-expmt.vignetteMat)-(trackDat.im-expmt.vignetteMat);
                 im_handle.CData = diffim > thresh;
+                if strcmp(im_handle.CDataMapping,'direct')
+                    im_handle.CDataMapping = 'scaled';
+                end
             else
                 gui_handles.display_menu.UserData = 1;
                 gui_handles.display_menu.Children(5).checked = 'on';
@@ -38,6 +47,9 @@ active_disp = gui_handles.display_menu.UserData;
         case 4
             if isfield(expmt,'ref')
                 im_handle.CData = expmt.ref;
+                if strcmp(im_handle.CDataMapping,'scaled')
+                    im_handle.CDataMapping = 'direct';
+                end
             else
                 gui_handles.display_menu.UserData = 1;
                 gui_handles.display_menu.Children(5).checked = 'on';

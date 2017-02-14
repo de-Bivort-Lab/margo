@@ -84,7 +84,6 @@ function varargout = advancedTrackingParam_subgui_OutputFcn(hObject, eventdata, 
 % handles    structure with handles and user data (see GUIDATA)
 
 % initialize tracking vars
-track_start = boolean(1);
 trackDat.ct = 0;
 
 % get handles to main gui
@@ -113,9 +112,82 @@ delete(rect_handles);
 text_handles = findobj(gui_handles.axes_handle,'-depth',3,'Type','text');
 delete(text_handles);
 
+%% Initialize camera and video object
+
+if strcmp(expmt.source,'camera') && strcmp(expmt.camInfo.vid.Running,'off')
+    
+    % Clear old video objects
+    imaqreset
+    pause(0.2);
+
+    % Create camera object with input parameters
+    expmt.camInfo = initializeCamera(expmt.camInfo);
+    start(expmt.camInfo.vid);
+    pause(0.1);
+    
+elseif strcmp(expmt.source,'video') 
+    
+    % open video object from file
+    expmt.video.vid = ...
+        VideoReader([expmt.video.fdir expmt.video.fnames{gui_handles.vid_select_popupmenu.Value}]);
+    
+    % get file number in list
+    expmt.video.ct = gui_handles.vid_select_popupmenu.Value;
+    
+end
+%% Tracking setup
+
+% initialize tracking variables if any parameter display is ticked
+trackDat.fields={'Centroid';'Area';'Speed'};     % Define fields autoTrack output
+
+if isfield(expmt,'ROI') && isfield(expmt.ROI,'centers')
+    trackDat.lastCen = expmt.ROI.centers;     % placeholder for most recent non-NaN centroids
+else
+    midpoint(1) = sum(gui_handles.axes_handle.XLim)/2;
+    midpoint(2) = sum(gui_handles.axes_handle.YLim)/2;
+    trackDat.lastCen = [midpoint(1) midpoint(2)];
+end
+
+% initialize coords
+s_bounds = centerRect(trackDat.lastCen,gui_fig.UserData.speed_thresh);
+d_bounds = centerRect(trackDat.lastCen,gui_fig.UserData.distance_thresh);
+mi_bounds = centerRect(trackDat.lastCen,sqrt(gui_fig.UserData.area_min/pi));
+ma_bounds = centerRect(trackDat.lastCen,sqrt(gui_fig.UserData.area_max/pi));
+
+% initialize handles with position set to bounds
+for i = 1:size(trackDat.lastCen,1)
+
+    spdCirc(i) = rectangle(gui_handles.axes_handle,'Position',s_bounds(i,:),...
+        'EdgeColor',[1 0 1],'Curvature',[1 1],'Visible','off');
+    spdText(i) = text(gui_handles.axes_handle,'Position',trackDat.lastCen(i,:),...
+        'String','0','Visible','off','Color',[1 0 1]);
+    minCirc(i) = rectangle(gui_handles.axes_handle,'Position',mi_bounds(i,:),...
+        'EdgeColor',[1 0 0],'Curvature',[1 1],'Visible','off');
+    maxCirc(i) = rectangle(gui_handles.axes_handle,'Position',ma_bounds(i,:),...
+        'EdgeColor',[1 0 0],'Curvature',[1 1],'Visible','off');
+    areaText(i) = text(gui_handles.axes_handle,'Position',trackDat.lastCen(i,:),...
+        'String','0','Visible','off','Color',[1 0 0]);
+    dstCirc(i) = rectangle(gui_handles.axes_handle,'Position',d_bounds(i,:),...
+        'EdgeColor',[0 0 1],'Curvature',[1 1],'Visible','off');
+end
+
+% initialize rolling averages of speed and area
+roll_speed = NaN(size(trackDat.lastCen,1),30);
+roll_area = NaN(size(trackDat.lastCen,1),30);
+
+% initialize timer
+tic
+trackDat.t=0;
+tPrev = toc;
+trackDat.tStamp = zeros(size(trackDat.lastCen,1),1);
+
+
+
+%% Tracking loop
+
 
 while ishghandle(hObject)
-    %%
+
     pause(0.001);
     
     % update timer
@@ -125,6 +197,23 @@ while ishghandle(hObject)
         tPrev = tCurrent;
     end
     
+    % grab a frame if a camera or video object exists
+    if (isfield(expmt.camInfo,'vid') && strcmp(expmt.camInfo.vid.Running,'on')) ||...
+            isfield(expmt,'video')
+
+        % Take single frame
+        if strcmp(expmt.source,'camera')
+            trackDat.im = peekdata(expmt.camInfo.vid,1);
+        else
+            [trackDat.im, expmt.video] = nextFrame(expmt.video,gui_handles);
+        end
+
+        % extract green channel if format is RGB
+        if size(trackDat.im,3)>1
+            trackDat.im = trackDat.im(:,:,2);
+        end            
+    end
+    
     % check if parameter visualization aids are toggled
     if ishandle(handles.speed_thresh_radiobutton)
         disp_speed = get(handles.speed_thresh_radiobutton,'value');
@@ -132,272 +221,154 @@ while ishghandle(hObject)
         disp_area = get(handles.area_radiobutton,'value');
     end
     
-    if disp_speed || disp_dist || disp_area
         
-        % start camera if camera is not running
-        if isfield(expmt.camInfo,'vid') && strcmp(expmt.camInfo.vid.Running,'off')
-            start(expmt.camInfo.vid);
-            pause(0.1);
-        end
-        
-        if isfield(expmt.camInfo,'vid') && strcmp(expmt.camInfo.vid.Running,'on')
-            
-            trackDat.im = peekdata(expmt.camInfo.vid,1);
-            if size(trackDat.im,3)>1
-                trackDat.im = trackDat.im(:,:,2);
-            end
-            
-            switch display_menu.UserData
-                case 1
-                    
-                    imh.CData = trackDat.im;
-                    
-                case 2
-                    
-                    if isfield(expmt,'ref') && isfield(expmt,'vignetteMat')
-                    imh.CData = ...
-                        (expmt.ref-expmt.vignetteMat)-(trackDat.im-expmt.vignetteMat);
-                    else
-                        display_menu.UserData = 1;
-                        display_menu.Children(5).checked = 'on';
-                        display_menu.Children(4).checked = 'off';
-                        display_menu.Children(4).enable = 'off';
-                    end
-                    
-                case 3
-                    
-                    if isfield(expmt,'ref') && isfield(expmt,'vignetteMat')
-                        thresh = get(thresh_slider,'value');
-                        diffim = (expmt.ref-expmt.vignetteMat)-(trackDat.im-expmt.vignetteMat);
-                        imh.CData = diffim > thresh;
-                    else
-                        display_menu.UserData = 1;
-                        display_menu.Children(5).checked = 'on';
-                        display_menu.Children(3).checked = 'off';
-                        display_menu.Children(3).enable = 'off';
-                    end 
-                    
-            end
-            
-        end
-        
-        % initialize tracking variables if any parameter display is ticked
-        if track_start
+    % if speed display button ticked
+    if disp_speed
 
-            trackDat.fields={'Centroid';'Area';'Speed'};     % Define fields autoTrack output
-            
-            if isfield(expmt,'ROI') && isfield(expmt.ROI,'centers')
-                trackDat.lastCen = expmt.ROI.centers;     % placeholder for most recent non-NaN centroids
-            else
-                midpoint(1) = sum(gui_handles.axes_handle.XLim)/2;
-                midpoint(2) = sum(gui_handles.axes_handle.YLim)/2;
-                trackDat.lastCen = [midpoint(1) midpoint(2)];
-            end
-            
-            % initialize timer
-            tic
-            trackDat.t=0;
-            tPrev = toc;
-            trackDat.tStamp = zeros(size(trackDat.lastCen,1),1);
-            
-            % initialize coords
-            s_bounds = centerRect(trackDat.lastCen,gui_fig.UserData.speed_thresh);
-            d_bounds = centerRect(trackDat.lastCen,gui_fig.UserData.distance_thresh);
-            mi_bounds = centerRect(trackDat.lastCen,sqrt(gui_fig.UserData.area_min/pi));
-            ma_bounds = centerRect(trackDat.lastCen,sqrt(gui_fig.UserData.area_max/pi));
-            
-            % initialize handles with position set to bounds
-            for i = 1:size(trackDat.lastCen,1)
-
-                spdCirc(i) = rectangle(gui_handles.axes_handle,'Position',s_bounds(i,:),...
-                    'EdgeColor',[1 0 1],'Curvature',[1 1],'Visible','off');
-                spdText(i) = text(gui_handles.axes_handle,'Position',trackDat.lastCen(i,:),...
-                    'String','0','Visible','off','Color',[1 0 1]);
-                minCirc(i) = rectangle(gui_handles.axes_handle,'Position',mi_bounds(i,:),...
-                    'EdgeColor',[1 0 0],'Curvature',[1 1],'Visible','off');
-                maxCirc(i) = rectangle(gui_handles.axes_handle,'Position',ma_bounds(i,:),...
-                    'EdgeColor',[1 0 0],'Curvature',[1 1],'Visible','off');
-                areaText(i) = text(gui_handles.axes_handle,'Position',trackDat.lastCen(i,:),...
-                    'String','0','Visible','off','Color',[1 0 0]);
-                dstCirc(i) = rectangle(gui_handles.axes_handle,'Position',d_bounds(i,:),...
-                    'EdgeColor',[0 0 1],'Curvature',[1 1],'Visible','off');
-            end
-            
-            % disable first time tracking setup
-            track_start = boolean(0);
-            
-            % initialize rolling averages of speed and area
-            roll_speed = NaN(size(trackDat.lastCen,1),30);
-            roll_area = NaN(size(trackDat.lastCen,1),30);
-            
-        end
-        
-        % if speed display button ticked
-        if disp_speed
-            
-            % re-enable display if necessary
-            if strcmp(spdCirc(1).Visible,'off') || strcmp(spdText(1).Visible,'off') 
-                for i = 1:length(spdCirc)
-                    spdCirc(i).Visible = 'on';
-                    spdText(i).Visible = 'on';
-                end
-            end
-            
-            % display parameter preview on objects and ROIs if they exist
-            if isfield(expmt,'ref') && isfield(expmt,'vignetteMat')
-                
-                % track objects and sort outputs specified in trackDat.fields
-                [trackDat,sort_fields] = autoTrack(trackDat,expmt,gui_handles);
-                
-                % update rolling speed
-                roll_speed(:,mod(trackDat.ct,size(roll_speed,2))+1) = sort_fields.Speed;
-                
-            end
-            
-            % else display preview in center of axes
-            s_bounds = centerRect(trackDat.lastCen,gui_fig.UserData.speed_thresh);
-
-            % update display
+        % re-enable display if necessary
+        if strcmp(spdCirc(1).Visible,'off') || strcmp(spdText(1).Visible,'off') 
             for i = 1:length(spdCirc)
-                spdCirc(i).Position = s_bounds(i,:);
-                spdText(i).Position = [trackDat.lastCen(i,1) trackDat.lastCen(i,2)+5];
-                spdText(i).String = num2str(round(nanmean(roll_speed(i,:))*10)/10);
-            end
-            
-        % disable display if necessary
-        else
-            if strcmp(spdCirc(1).Visible,'on')
-                for i = 1:length(spdCirc)
-                    spdCirc(i).Visible = 'off';
-                    spdText(i).Visible = 'off';
-                end
+                spdCirc(i).Visible = 'on';
+                spdText(i).Visible = 'on';
             end
         end
+
+        % display parameter preview on objects and ROIs if they exist
+        if isfield(expmt,'ref') && isfield(expmt,'vignetteMat')
+
+            % track objects and sort outputs specified in trackDat.fields
+            [trackDat,sort_fields] = autoTrack(trackDat,expmt,gui_handles);
+
+            % update rolling speed
+            roll_speed(:,mod(trackDat.ct,size(roll_speed,2))+1) = sort_fields.Speed;
+
+        end
+
+        % else display preview in center of axes
+        s_bounds = centerRect(trackDat.lastCen,gui_fig.UserData.speed_thresh);
+
+        % update display
+        for i = 1:length(spdCirc)
+            spdCirc(i).Position = s_bounds(i,:);
+            spdText(i).Position = [trackDat.lastCen(i,1) trackDat.lastCen(i,2)+5];
+            spdText(i).String = num2str(round(nanmean(roll_speed(i,:))*10)/10);
+        end
+
         
         
-        % distance thresh display ticked
-        if disp_dist
-            
-            % re-enable display if necessary
-            if strcmp(dstCirc(1).Visible,'off')
-                for i = 1:length(dstCirc)
-                    dstCirc(i).Visible = 'on';
-                end
+        
+    % disable display if necessary
+    else
+        if strcmp(spdCirc(1).Visible,'on')
+            for i = 1:length(spdCirc)
+                spdCirc(i).Visible = 'off';
+                spdText(i).Visible = 'off';
             end
+        end
+    end
         
-            % use trackiog from disp_speed if toggled, else initiate
-            % tracking
-            if ~disp_speed
-                
-                if isfield(expmt,'ref') && isfield(expmt,'vignetteMat')
-                    
+        
+    % distance thresh display ticked
+    if disp_dist
+
+        % re-enable display if necessary
+        if strcmp(dstCirc(1).Visible,'off')
+            for i = 1:length(dstCirc)
+                dstCirc(i).Visible = 'on';
+            end
+        end
+
+        % use trackiog from disp_speed if toggled, else initiate
+        % tracking
+        if ~disp_speed
+
+            if isfield(expmt,'ref') && isfield(expmt,'vignetteMat')
+
+            % track objects and sort outputs specified in trackDat.fields
+            [trackDat,sort_fields] = autoTrack(trackDat,expmt,gui_handles);
+
+            end
+
+        end
+
+        if isfield(expmt,'ROI') && isfield(expmt.ROI,'centers')
+            d_bounds = centerRect(expmt.ROI.centers,gui_fig.UserData.distance_thresh);
+        else
+            mid(1) = sum(gui_handles.axes_handle.XLim)/2;
+            mid(2) = sum(gui_handles.axes_handle.YLim)/2;
+            d_bounds = centerRect([mid(1) mid(2)],gui_fig.UserData.distance_thresh);
+        end
+
+        % update marker position
+        for i = 1:length(dstCirc)
+            dstCirc(i).Position = d_bounds(i,:);
+        end
+
+    % disable display if necessary
+    else
+        if strcmp(dstCirc(1).Visible,'on')
+            for i = 1:length(dstCirc)
+                dstCirc(i).Visible = 'off';
+            end
+        end
+    end
+        
+    % Area display ticked
+    if disp_area
+
+        % re-enable display if necessary
+        if strcmp(minCirc(1).Visible,'off') || strcmp(maxCirc(1).Visible,'off')
+            for i = 1:length(minCirc)
+                minCirc(i).Visible = 'on';
+                maxCirc(i).Visible = 'on';
+                areaText(i).Visible = 'on';
+            end
+        end
+
+        % use trackiog from disp_speed if toggled, else initiate
+        % tracking
+        if ~disp_speed && ~disp_dist
+
+            if isfield(expmt,'ref') && isfield(expmt,'vignetteMat')
+
                 % track objects and sort outputs specified in trackDat.fields
                 [trackDat,sort_fields] = autoTrack(trackDat,expmt,gui_handles);
-                
-                end
-            
+
             end
-            
-            if isfield(expmt,'ROI') && isfield(expmt.ROI,'centers')
-                d_bounds = centerRect(expmt.ROI.centers,gui_fig.UserData.distance_thresh);
-            else
-                mid(1) = sum(gui_handles.axes_handle.XLim)/2;
-                mid(2) = sum(gui_handles.axes_handle.YLim)/2;
-                d_bounds = centerRect([mid(1) mid(2)],gui_fig.UserData.distance_thresh);
-            end
-            
-            % update marker position
-            for i = 1:length(dstCirc)
-                dstCirc(i).Position = d_bounds(i,:);
-            end
-            
-        % disable display if necessary
-        else
-            if strcmp(dstCirc(1).Visible,'on')
-                for i = 1:length(dstCirc)
-                    dstCirc(i).Visible = 'off';
-                end
+
+        end
+
+        % calculate rolling average of centroid area
+        if exist('sort_fields','var')
+            roll_area(:,mod(trackDat.ct,size(roll_area,2))+1) = sort_fields.Area;
+        end
+
+        % else display preview in center of axes
+        mi_bounds = centerRect(trackDat.lastCen,sqrt(gui_fig.UserData.area_min/pi));
+        ma_bounds = centerRect(trackDat.lastCen,sqrt(gui_fig.UserData.area_max/pi));
+
+        % update position
+        for i = 1:length(dstCirc)
+            minCirc(i).Position = mi_bounds(i,:);
+            maxCirc(i).Position = ma_bounds(i,:);
+            areaText(i).Position = [trackDat.lastCen(i,1) trackDat.lastCen(i,2)+20];
+            areaText(i).String = num2str(round(nanmean(roll_area(i,:))*10)/10);
+        end
+
+    % else make objects invisible
+    else
+        if strcmp(minCirc(1).Visible,'on') || strcmp(maxCirc(1).Visible,'on')
+            for i = 1:length(minCirc)
+                minCirc(i).Visible = 'off';
+                maxCirc(i).Visible = 'off';
+                areaText(i).Visible = 'off';
             end
         end
-        
-        % Area display ticked
-        if disp_area
-            
-            % re-enable display if necessary
-            if strcmp(minCirc(1).Visible,'off') || strcmp(maxCirc(1).Visible,'off')
-                for i = 1:length(minCirc)
-                    minCirc(i).Visible = 'on';
-                    maxCirc(i).Visible = 'on';
-                    areaText(i).Visible = 'on';
-                end
-            end
-        
-            % use trackiog from disp_speed if toggled, else initiate
-            % tracking
-            if ~disp_speed && ~disp_dist
-                
-                if isfield(expmt,'ref') && isfield(expmt,'vignetteMat')
-                    
-                    % track objects and sort outputs specified in trackDat.fields
-                    [trackDat,sort_fields] = autoTrack(trackDat,expmt,gui_handles);
-                
-                end
-            
-            end
-            
-            % calculate rolling average of centroid area
-            if exist('sort_fields','var')
-                roll_area(:,mod(trackDat.ct,size(roll_area,2))+1) = sort_fields.Area;
-            end
-            
-            % else display preview in center of axes
-            mi_bounds = centerRect(trackDat.lastCen,sqrt(gui_fig.UserData.area_min/pi));
-            ma_bounds = centerRect(trackDat.lastCen,sqrt(gui_fig.UserData.area_max/pi));
-            
-            % update position
-            for i = 1:length(dstCirc)
-                minCirc(i).Position = mi_bounds(i,:);
-                maxCirc(i).Position = ma_bounds(i,:);
-                areaText(i).Position = [trackDat.lastCen(i,1) trackDat.lastCen(i,2)+20];
-                areaText(i).String = num2str(round(nanmean(roll_area(i,:))*10)/10);
-            end
-        
-        % else make objects invisible
-        else
-            if strcmp(minCirc(1).Visible,'on') || strcmp(maxCirc(1).Visible,'on')
-                for i = 1:length(minCirc)
-                    minCirc(i).Visible = 'off';
-                    maxCirc(i).Visible = 'off';
-                    areaText(i).Visible = 'off';
-                end
-            end
-        end
-    
-    % make all display objects invisible if no parameter display is ticked
-    elseif ~track_start
-        
-           if strcmp(spdCirc(1).Visible,'on')
-                for i = 1:length(spdCirc)
-                    spdCirc(i).Visible = 'off';
-                    spdText(i).Visible = 'off';
-                end
-           end
-           
-           if strcmp(dstCirc(1).Visible,'on')
-                for i = 1:length(dstCirc)
-                    dstCirc(i).Visible = 'off';
-                end
-            end
-           
-           if strcmp(minCirc(1).Visible,'on') || strcmp(maxCirc(1).Visible,'on')
-                for i = 1:length(minCirc)
-                    minCirc(i).Visible = 'off';
-                    maxCirc(i).Visible = 'off';
-                    areaText(i).Visible = 'off';
-                end
-            end
     end
 
+
+    % update the display
+    updateDisplay(trackDat, expmt, imh, gui_handles);
     drawnow
             
 end

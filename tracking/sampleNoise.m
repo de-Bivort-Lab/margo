@@ -17,33 +17,48 @@ pixDistSize=100;                    % Num values to record in p
 pixelDist=NaN(pixDistSize,1);       % Distribution of total number of pixels above image threshold
 
 % tracking vars
-trackDat.lastCen=expmt.ROI.centers;     % placeholder for most recent non-NaN centroids
-trackDat.fields={'Centroid';'Area'};     % Define fields for regionprops
+trackDat.lastCen = expmt.ROI.centers;     % placeholder for most recent non-NaN centroids
+trackDat.fields = {'Centroid';'Area'};     % Define fields for regionprops
 trackDat.tStamp = zeros(size(expmt.ROI.centers(:,1),1),1);
-trackDat.t=0;
+trackDat.t = 0;
 trackDat.ct = 0;
 
 %% Initalize camera and axes
 
-if strcmp(expmt.camInfo.vid.Running,'off')
+
+if strcmp(expmt.source,'camera') && strcmp(expmt.camInfo.vid.Running,'off')
+    
     % Clear old video objects
     imaqreset
     pause(0.2);
 
     % Create camera object with input parameters
     expmt.camInfo = initializeCamera(expmt.camInfo);
-    vid = expmt.camInfo.vid;
-    start(vid);
+    start(expmt.camInfo.vid);
     pause(0.1);
-else
-    vid = expmt.camInfo.vid;
+    
+elseif strcmp(expmt.source,'video') 
+    
+    % open video object from file
+    expmt.video.vid = ...
+        VideoReader([expmt.video.fdir expmt.video.fnames{gui_handles.vid_select_popupmenu.Value}]);
+    
+    % get file number in list
+    expmt.video.ct = gui_handles.vid_select_popupmenu.Value;
+    
 end
 
 %% Sample noise
 
 % initialize display objects
 cla reset
-res = vid.videoResolution;
+% get resolution
+if strcmp(expmt.source,'camera')
+    res = expmt.camInfo.vid.videoResolution;
+else
+    res(1) = expmt.video.vid.Width;
+    res(2) = expmt.video.vid.Height;
+end
 blank = zeros(res(2),res(1));
 imh = imagesc(blank);
 set(gca,'Xtick',[],'Ytick',[]);
@@ -60,8 +75,13 @@ while trackDat.ct < pixDistSize;
         % update time stamps and frame rate
         [trackDat, tPrev] = updateTime(trackDat, tPrev, gui_handles);
 
-        % Get centroids and sort to ROIs
-        trackDat.im=peekdata(vid,1);
+        % Take single frame
+        if strcmp(expmt.source,'camera')
+            trackDat.im = peekdata(expmt.camInfo.vid,1);
+        else
+            [trackDat.im, expmt.video] = nextFrame(expmt.video,gui_handles);
+        end
+        
         if size(trackDat.im,3)>1
             trackDat.im=trackDat.im(:,:,2);
         end

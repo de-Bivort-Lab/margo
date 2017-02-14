@@ -15,26 +15,39 @@ set(gui_handles.display_reference_menu,'checked','on');
 set(gui_handles.display_none_menu,'Enable','on');
 gui_handles.display_menu.UserData = 3;
 
-%% Initalize camera and axes
+%% Setup the camera and/or video object
 
-if strcmp(expmt.camInfo.vid.Running,'off')
+if strcmp(expmt.source,'camera') && strcmp(expmt.camInfo.vid.Running,'off')
+    
     % Clear old video objects
     imaqreset
     pause(0.2);
 
     % Create camera object with input parameters
     expmt.camInfo = initializeCamera(expmt.camInfo);
-    vid = expmt.camInfo.vid;
-    start(vid);
+    start(expmt.camInfo.vid);
     pause(0.1);
-else
-    vid = expmt.camInfo.vid;
+    
+elseif strcmp(expmt.source,'video') 
+    
+    % open video object from file
+    expmt.video.vid = ...
+        VideoReader([expmt.video.fdir expmt.video.fnames{gui_handles.vid_select_popupmenu.Value}]);
+    
+    % get file number in list
+    expmt.video.ct = gui_handles.vid_select_popupmenu.Value;
+    
 end
 
 %% Assign parameters and placeholders
 
 % Initialize reference with single image
-expmt.ref = peekdata(vid,1);
+if strcmp(expmt.source,'camera')
+    exmpt.ref = peekdata(expmt.camInfo.vid,1);
+else
+    [expmt.ref, expmt.video] = nextFrame(expmt.video,gui_handles);
+end
+
 if size(expmt.ref,3)>2
     expmt.ref=expmt.ref(:,:,2);                         
 end
@@ -70,7 +83,15 @@ expmt.parameters.armThresh=mazeLengths*0.2;
 %% initialize display objects
 
 cla reset                           % clear axes
-res = vid.videoResolution;          % video resolution
+
+% get resolution
+if strcmp(expmt.source,'camera')
+    res = expmt.camInfo.vid.videoResolution;
+else
+    res(1) = expmt.video.vid.Width;
+    res(2) = expmt.video.vid.Height;
+end
+
 blank = zeros(res(2),res(1));       % initialize to blank
 imh = imagesc(blank);               % image handle
 set(gca,'Xtick',[],'Ytick',[]);     % turn off tick marks
@@ -102,9 +123,15 @@ while toc<60 && get(gui_handles.accept_track_thresh_pushbutton,'value')~=1
     % update time stamps and frame rate
     [trackDat, tPrev] = updateTime(trackDat, tPrev, gui_handles);
 
-    % Grab image
-    trackDat.im = peekdata(vid,1);
-    if size(trackDat.im,3)>2
+    % Take single frame
+    if strcmp(expmt.source,'camera')
+        trackDat.im = peekdata(expmt.camInfo.vid,1);
+    else
+        [trackDat.im, expmt.video] = nextFrame(expmt.video,gui_handles);
+    end
+    
+    % extract green channel if format is RGB
+    if size(trackDat.im,3)>1
         trackDat.im = trackDat.im(:,:,2);
     end
 

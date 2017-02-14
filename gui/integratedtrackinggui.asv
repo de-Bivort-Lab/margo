@@ -80,9 +80,6 @@ expmt = [];
 imaqreset
 c = imaqhwinfo;
 
-% set the source mode to camera by default
-expmt.source = 'camera';
-
 if ~isempty(c.InstalledAdaptors)
     
     % Select default adaptor for connected camera(s)
@@ -1411,36 +1408,14 @@ function auto_detect_ROIs_pushbutton_Callback(hObject, eventdata, handles)
 expmt = getappdata(handles.gui_fig,'expmt');
 
 % autodetect ROIs
-if strcmp(expmt.source,'camera') && isfield(expmt.camInfo,'vid')
-    
-    [corners, centers, orientation, bounds, im] = autoROIs(handles);
-    expmt.ROI = [];
-    expmt.ROI.corners = corners;
-    expmt.ROI.centers = centers;
-    expmt.ROI.orientation = orientation;
-    expmt.ROI.bounds = bounds;
-    expmt.ROI.im = im;
-    
-elseif strcmp(expmt.source,'camera')
-    errordlg('Confirm camera and camera settings before running ROI detection');
-end
+[corners, centers, orientation, bounds, im] = autoROIs(handles);
 
-if strcmp(expmt.source,'video') && isfield(expmt,'video')
-    
-    
-    [corners, centers, orientation, bounds, im] = autoROIs(handles);
-    expmt.ROI = [];
-    expmt.ROI.corners = corners;
-    expmt.ROI.centers = centers;
-    expmt.ROI.orientation = orientation;
-    expmt.ROI.bounds = bounds;
-    expmt.ROI.im = im;
-    
-elseif strcmp(expmt.source,'video')
-    errordlg('Select valid video path before running ROI detection');
-end
-
-
+expmt.ROI = [];
+expmt.ROI.corners = corners;
+expmt.ROI.centers = centers;
+expmt.ROI.orientation = orientation;
+expmt.ROI.bounds = bounds;
+expmt.ROI.im = im;
 
 % Store expmteriment data struct
 setappdata(handles.gui_fig,'expmt',expmt);
@@ -1793,6 +1768,10 @@ expmt = getappdata(handles.gui_fig,'expmt');
 
 if isfield(expmt,'video')
     
+    % get vid number in the list
+    nVids = length(handles.vid_select_popupmenu.String);
+    vid_ct = handles.vid_select_popupmenu.Value;
+    
     % initialize axes and image settings
     if hObject.Value
         
@@ -1831,10 +1810,25 @@ if isfield(expmt,'video')
     while hObject.Value
         
         tic
-        
-        % get next frame and update image
-        [im, expmt.video] = nextFrame(expmt.video,handles);       
-        handles.hImage.CData = im; 
+
+        if hasFrame(expmt.video.vid)
+            
+            im = readFrame(expmt.video.vid);
+            if size(im,3)>1
+                im = im(:,:,2);
+            end
+            handles.hImage.CData = im;            
+        else
+            
+           % increment to next video
+           vid_ct = vid_ct + 1;
+           
+           % create new video object
+           expmt.video.vid = ...
+               VideoReader([expmt.video.fdir expmt.video.fnames{mod(vid_ct,nVids)+1}]);
+           handles.vid_select_popupmenu.Value = mod(vid_ct,nVids)+1;
+           
+        end
         
         % update frame rate
         handles.edit_frame_rate.String = num2str(round(1/toc*10)/10);
@@ -1949,10 +1943,6 @@ function source_camera_menu_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% get expmt data struct
-expmt = getappdata(handles.gui_fig,'expmt');
-expmt.source = 'camera';
-
 if strcmp(handles.cam_uipanel.Visible,'off')
     handles.cam_uipanel.Visible = 'on';
 end
@@ -1960,11 +1950,6 @@ end
 if strcmp(handles.vid_uipanel.Visible,'on')
     handles.vid_uipanel.Visible = 'off';
 end
-
-% set expmt data struct
-setappdata(handles.gui_fig,'expmt',expmt);
-
-
 
 
 % --------------------------------------------------------------------
@@ -1975,17 +1960,15 @@ function source_video_menu_Callback(hObject, eventdata, handles)
 
 % get expmt data struct
 expmt = getappdata(handles.gui_fig,'expmt');
-expmt.source = 'video';
 
 if strcmp(handles.vid_uipanel.Visible,'off')
     handles.vid_uipanel.Visible = 'on';
     handles.vid_uipanel.Position = handles.cam_uipanel.Position;
+    expmt.source = 'video';
 end
 
 if strcmp(handles.cam_uipanel.Visible,'on')
     handles.cam_uipanel.Visible = 'off';
+    expmt.source = 'camera';
 end
-
-% set expmt data struct
-setappdata(handles.gui_fig,'expmt',expmt);
 
