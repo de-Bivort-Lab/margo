@@ -18,7 +18,7 @@ for i = 1:expmt.nTracks
    % update subplot number
     subP = mod(i-1,5) + 1 + k * ppf;
     hold on
-    subplot(4,5,subP);
+    subplot(5,5,subP);
 
     
     %Plot fly trace
@@ -38,7 +38,7 @@ for i = 1:expmt.nTracks
             
     % Plot angle histogram
     hold on
-    subplot(4,5,subP+5);
+    subplot(5,5,subP+5);
     h1=plot(expmt.handedness.bins, expmt.handedness.angle_histogram(:,i),'color',[1 0 1]);
     xLabels={'0';'pi/2';'pi';'3pi/2'};
     set(gca,'Xtick',[0:pi/2:3*pi/2],'XtickLabel',xLabels)

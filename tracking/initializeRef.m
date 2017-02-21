@@ -43,7 +43,7 @@ end
 
 % Initialize reference with single image
 if strcmp(expmt.source,'camera')
-    exmpt.ref = peekdata(expmt.camInfo.vid,1);
+    expmt.ref = peekdata(expmt.camInfo.vid,1);
 else
     [expmt.ref, expmt.video] = nextFrame(expmt.video,gui_handles);
 end
@@ -63,7 +63,7 @@ trackDat.fields={'Centroid';'Area'};            % Define fields for regionprops
 trackDat.lastCen=expmt.ROI.centers;             % placeholder for most recent non-NaN centroids
 trackDat.tStamp=zeros(nROIs,1);
 trackDat.ct = 0;
-expmt.vignetteMat=filterVignetting(expmt.ref,expmt.ROI.im,expmt.ROI.corners);
+
 
 % Set maximum allowable distance to center of ROI as the long axis of the ROI
 widths=(expmt.ROI.bounds(:,3));
@@ -121,7 +121,7 @@ tPrev=toc;
 while toc<60 && get(gui_handles.accept_track_thresh_pushbutton,'value')~=1
     
     % update time stamps and frame rate
-    [trackDat, tPrev] = updateTime(trackDat, tPrev, gui_handles);
+    [trackDat, tPrev] = updateTime(trackDat, tPrev, expmt, gui_handles);
 
     % Take single frame
     if strcmp(expmt.source,'camera')
@@ -196,4 +196,6 @@ set(gui_handles.display_reference_menu,'checked','off');
 set(gui_handles.display_none_menu,'Enable','off');
 
 % Set time to zero
-updateTimeString(0, gui_handles.edit_time_remaining);
+if strcmp(expmt.source,'camera')
+    updateTimeString(0, gui_handles.edit_time_remaining);
+end

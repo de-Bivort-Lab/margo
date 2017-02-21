@@ -73,7 +73,7 @@ tPrev = toc;
 while trackDat.ct < pixDistSize;
 
         % update time stamps and frame rate
-        [trackDat, tPrev] = updateTime(trackDat, tPrev, gui_handles);
+        [trackDat, tPrev] = updateTime(trackDat, tPrev, expmt, gui_handles);
 
         % Take single frame
         if strcmp(expmt.source,'camera')

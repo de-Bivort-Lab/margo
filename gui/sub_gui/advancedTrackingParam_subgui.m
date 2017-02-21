@@ -134,6 +134,14 @@ elseif strcmp(expmt.source,'video')
     % get file number in list
     expmt.video.ct = gui_handles.vid_select_popupmenu.Value;
     
+    [trackDat.im, expmt.video] = nextFrame(expmt.video,gui_handles);
+
+    % extract green channel if format is RGB
+    if size(trackDat.im,3)>1
+        trackDat.im = trackDat.im(:,:,2);
+    end
+    imh.CData = trackDat.im;
+    
 end
 %% Tracking setup
 

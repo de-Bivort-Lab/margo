@@ -13,12 +13,15 @@ video.ct = 1;
 
 % get cummulative video length
 dur = 0;
+nFrames = 0;
 for i = 1:length(fName)
     v = VideoReader([fDir fName{i}]);
     dur = dur + v.Duration;
+    nFrames = nFrames + v.Duration * v.FrameRate;
     delete(v);
 end
 
 video.total_duration = dur;
+video.nFrames = nFrames;
 
 

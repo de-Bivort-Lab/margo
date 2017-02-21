@@ -80,7 +80,7 @@ params = fieldnames(gui_fig.UserData);
 for i = 1:length(params)
     expmt.parameters.(params{i}) = gui_fig.UserData.(params{i});
 end
-save([expmt.fdir expmt.date expmt.strain '_' expmt.treatment '_' 'expmt.mat'],'expmt');
+save([expmt.fdir expmt.date expmt.Name '_' expmt.strain '_' expmt.treatment '.mat'],'expmt');
 
 
 %% Setup the camera and/or video object
@@ -136,7 +136,7 @@ hold off
 while trackDat.t < gui_handles.edit_exp_duration.Value * 3600 && ~lastFrame
     
         % update time stamps and frame rate
-        [trackDat, tPrev] = updateTime(trackDat, tPrev, gui_handles);
+        [trackDat, tPrev] = updateTime(trackDat, tPrev, expmt, gui_handles);
 
         % Take single frame
         if strcmp(expmt.source,'camera')
@@ -166,7 +166,7 @@ while trackDat.t < gui_handles.edit_exp_duration.Value * 3600 && ~lastFrame
                 case 2
                     dlmwrite(expmt.fpath{i},sorted_fields.Area,'-append');
                 case 3
-                    dlmwrite(expmt.fpath{i},trackDat.t,'-append');
+                    dlmwrite(expmt.fpath{i},trackDat.ifi,'-append');
             end
         end
         
@@ -189,4 +189,7 @@ end
 
 % store number of dropped frames for each object in master data struct
 expmt.drop_ct = trackDat.drop_ct;
+
+% re-save updated expmt data struct to file
+save([expmt.fdir expmt.date expmt.Name '_' expmt.strain '_' expmt.treatment '.mat'],'expmt');
 

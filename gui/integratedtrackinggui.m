@@ -22,7 +22,7 @@ function varargout = integratedtrackinggui(varargin)
 
 % Edit the above text to modify the response to help integratedtrackinggui
 
-% Last Modified by GUIDE v2.5 13-Feb-2017 16:27:14
+% Last Modified by GUIDE v2.5 20-Feb-2017 13:04:09
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -72,9 +72,39 @@ handles.axes_handle = gca;
 handles.gui_dir = which('autotrackergui');
 handles.gui_dir = handles.gui_dir(1:strfind(handles.gui_dir,'\gui\'));
 handles.display_menu.UserData = 1;
-set(handles.ROI_thresh_slider,'value',0.15);
 set(gca,'Xtick',[],'Ytick',[]);
 expmt = [];
+
+% popuplate saved profile list and create menu items
+% Get existing profile list
+load_path =[handles.gui_dir 'profiles\'];
+tmp_profiles = ls(load_path);
+profiles = cell(size(tmp_profiles,1),1);
+remove = [];
+
+for i = 1:size(profiles,1);
+    k = strfind(tmp_profiles(i,:),'.mat');          % identify .mat files in dir
+    if isempty(k)
+        remove = [remove i];                        
+    else
+        profiles(i) = {tmp_profiles(i,1:k-1)};      % save mat file names
+    end
+end
+profiles(remove)=[];                                % remove non-mat files from list
+
+if size(profiles,1) > 0
+    handle.profiles = profiles;
+else
+    handle.profiles = {'No profiles detected'};
+end
+
+% generate menu items for saved profiles and config their callbacks
+hParent = findobj('Tag','saved_presets_menu');
+for i = 1:length(profiles)
+    menu_items(i) = uimenu(hParent,'Label',profiles{i},...
+        'Callback',@saved_preset_Callback,'UserData',i);
+end
+handles.saved_presets_menus = menu_items;                   % store handles
 
 % Query available camera and modes
 imaqreset
@@ -168,8 +198,9 @@ writeInfraredWhitePanel(expmt.teensy_port,0,expmt.White_intensity);
 handles.edit_ref_depth.Value  =  str2num(get(handles.edit_ref_depth,'String'));
 handles.edit_ref_freq.Value = str2num(get(handles.edit_ref_freq,'String'));
 handles.edit_exp_duration.Value = str2num(get(handles.edit_exp_duration,'String'));
-expmt.parameters.ROI_thresh = get(handles.ROI_thresh_slider,'Value');
-expmt.parameters.tracking_thresh = get(handles.track_thresh_slider,'Value');
+handles.disp_ROI_thresh.String = num2str(round(handles.ROI_thresh_slider.Value));
+handles.disp_track_thresh.String = num2str(round(handles.track_thresh_slider.Value));
+expmt.vignette.mode = 'auto';
 
 % initialize tracking parameters to default values
 handles.gui_fig.UserData.speed_thresh = 45;
@@ -390,6 +421,7 @@ function Cam_preview_togglebutton_Callback(hObject, eventdata, handles)
 
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
+clean_gui(handles.axes_handle);
 
 switch get(hObject,'value')
     case 1
@@ -713,6 +745,12 @@ if isfield(expmt, 'fpath') == 0
     errordlg('Please specify Save Location')
 elseif ~isfield(expmt, 'camInfo')
     errordlg('Please confirm camera settings')
+elseif ~isfield(expmt,'ROI')
+    errordlg('Please run ROI detection before starting tracking');
+elseif ~isfield(expmt,'ref')
+    errordlg('Please acquire a reference image before beginning tracking');
+elseif ~isfield(expmt,'noise')
+    errordlg('Please run noise sampling before starting tracking');
 else
     switch expmt.expID
     	case 2
@@ -746,7 +784,7 @@ function ROI_thresh_slider_Callback(hObject, eventdata, handles)
 expmt = getappdata(handles.gui_fig,'expmt');
 
 expmt.parameters.ROI_thresh = get(handles.ROI_thresh_slider,'Value');
-set(handles.disp_ROI_thresh,'string',num2str(round(100*expmt.parameters.ROI_thresh)/100));
+set(handles.disp_ROI_thresh,'string',num2str(round(expmt.parameters.ROI_thresh)));
 guidata(hObject,handles);
 
 % Store expmteriment data struct
@@ -1019,7 +1057,7 @@ function track_thresh_slider_Callback(hObject, eventdata, handles)
 expmt = getappdata(handles.gui_fig,'expmt');
 
 expmt.parameters.tracking_thresh = get(handles.track_thresh_slider,'Value');
-set(handles.disp_track_thresh,'string',num2str(round(expmt.parameters.tracking_thresh*100)/100));
+set(handles.disp_track_thresh,'string',num2str(round(expmt.parameters.tracking_thresh)));
 
 % Store expmteriment data struct
 setappdata(handles.gui_fig,'expmt',expmt);
@@ -1102,78 +1140,6 @@ function edit_object_num_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
-% --- Executes on button press in begin_reg_pushbutton.
-function begin_reg_pushbutton_Callback(hObject, eventdata, handles)
-% hObject    handle to begin_reg_pushbutton (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-expmt = getappdata(handles.gui_fig,'expmt');
-
-if isfield(expmt,'reg_params')
-    % Turn infrared and white background illumination off during registration
-    writeInfraredWhitePanel(expmt.teensy_port,1,0);
-    writeInfraredWhitePanel(expmt.teensy_port,0,0);
-
-    msg_title = ['Projector Registration Tips'];
-    spc = [' '];
-    intro = ['Please check the following before continuing to ensure successful registration:'];
-    item1 = ['1.) Both the infrared and white lights for imaging illumination are set to OFF. '...
-        'Make sure the projector is the only light source visible to the camera'];
-    item2 = ['2.) Camera is not imaging through infrared filter. '...
-        'Projector display should be visible through the camera.'];
-    item3 = ['3.) Projector is connected to the computer, turned on and set to desired resolution.'];
-    item4 = ['4.) Camera shutter speed is adjusted to match the refresh rate of the projector.'...
-        ' This will appear as moving streaks in the camera if not properly adjusted.'];
-    item5 = ['5.) Both camera and projector are in fixed positions and will not need to be adjusted'...
-        ' after registration.'];
-    item6 = ['6.) The projector is set as the most external display (ie. the highest number display). Hint: '...
-        'this is the most likely problem if the projector is connected but psych Toolbox is drawing to '...
-        'the primary display. MATLAB must be restarted before this change will take effect.'];
-    closing = ['Click OK to continue with the registration'];
-    message = {intro spc item1 spc item2 spc item3 spc item4 spc item5 spc item6 spc closing};
-
-    % Display registration tips
-    waitfor(msgbox(message,msg_title));
-
-    % Register projector
-    reg_projector(expmt.camInfo,expmt.reg_params,handles);
-
-    % Reset infrared and white lights to prior values
-    writeInfraredWhitePanel(handles.teensy_port,1,handles.IR_intensity);
-    writeInfraredWhitePanel(handles.teensy_port,0,handles.White_intensity);
-else
-    errordlg('Set registration parameters before running projector registration.');
-end
-
-guidata(hObject, handles);
-
-
-% --- Executes on button press in reg_param_pushbutton.
-function reg_param_pushbutton_Callback(hObject, eventdata, handles)
-% hObject    handle to reg_param_pushbutton (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% import expmteriment data struct
-expmt = getappdata(handles.gui_fig,'expmt');
-
-if isfield(expmt,'reg_params')
-    tmp = registration_parameter_subgui(expmt);
-    if ~isempty(tmp)
-        expmt.reg_params = tmp;
-    end
-else
-        tmp = registration_parameter_subgui();
-    if ~isempty(tmp)
-        expmt.reg_params = tmp;
-    end
-end
-
-% Store expmteriment data struct
-setappdata(handles.gui_fig,'expmt',expmt);
 
 
 % --- Executes on button press in reg_test_pushbutton.
@@ -1413,13 +1379,7 @@ expmt = getappdata(handles.gui_fig,'expmt');
 % autodetect ROIs
 if strcmp(expmt.source,'camera') && isfield(expmt.camInfo,'vid')
     
-    [corners, centers, orientation, bounds, im] = autoROIs(handles);
-    expmt.ROI = [];
-    expmt.ROI.corners = corners;
-    expmt.ROI.centers = centers;
-    expmt.ROI.orientation = orientation;
-    expmt.ROI.bounds = bounds;
-    expmt.ROI.im = im;
+    expmt = autoROIs(handles, expmt);
     
 elseif strcmp(expmt.source,'camera')
     errordlg('Confirm camera and camera settings before running ROI detection');
@@ -1499,6 +1459,8 @@ function file_menu_Callback(hObject, eventdata, handles)
 % hObject    handle to file_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+
 
 
 % --------------------------------------------------------------------
@@ -1606,12 +1568,68 @@ function reg_proj_menu_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+expmt = getappdata(handles.gui_fig,'expmt');
+
+if isfield(expmt,'reg_params')
+    % Turn infrared and white background illumination off during registration
+    writeInfraredWhitePanel(expmt.teensy_port,1,0);
+    writeInfraredWhitePanel(expmt.teensy_port,0,0);
+
+    msg_title = ['Projector Registration Tips'];
+    spc = [' '];
+    intro = ['Please check the following before continuing to ensure successful registration:'];
+    item1 = ['1.) Both the infrared and white lights for imaging illumination are set to OFF. '...
+        'Make sure the projector is the only light source visible to the camera'];
+    item2 = ['2.) Camera is not imaging through infrared filter. '...
+        'Projector display should be visible through the camera.'];
+    item3 = ['3.) Projector is connected to the computer, turned on and set to desired resolution.'];
+    item4 = ['4.) Camera shutter speed is adjusted to match the refresh rate of the projector.'...
+        ' This will appear as moving streaks in the camera if not properly adjusted.'];
+    item5 = ['5.) Both camera and projector are in fixed positions and will not need to be adjusted'...
+        ' after registration.'];
+    item6 = ['6.) The projector is set as the most external display (ie. the highest number display). Hint: '...
+        'this is the most likely problem if the projector is connected but psych Toolbox is drawing to '...
+        'the primary display. MATLAB must be restarted before this change will take effect.'];
+    closing = ['Click OK to continue with the registration'];
+    message = {intro spc item1 spc item2 spc item3 spc item4 spc item5 spc item6 spc closing};
+
+    % Display registration tips
+    waitfor(msgbox(message,msg_title));
+
+    % Register projector
+    reg_projector(expmt.camInfo,expmt.reg_params,handles);
+
+    % Reset infrared and white lights to prior values
+    writeInfraredWhitePanel(handles.teensy_port,1,handles.IR_intensity);
+    writeInfraredWhitePanel(handles.teensy_port,0,handles.White_intensity);
+else
+    errordlg('Set registration parameters before running projector registration.');
+end
+
+guidata(hObject, handles);
+
 
 % --------------------------------------------------------------------
 function reg_params_menu_Callback(hObject, eventdata, handles)
-% hObject    handle to reg_params_menu (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+
+
+% import expmteriment data struct
+expmt = getappdata(handles.gui_fig,'expmt');
+
+if isfield(expmt,'reg_params')
+    tmp = registration_parameter_subgui(expmt);
+    if ~isempty(tmp)
+        expmt.reg_params = tmp;
+    end
+else
+        tmp = registration_parameter_subgui();
+    if ~isempty(tmp)
+        expmt.reg_params = tmp;
+    end
+end
+
+% Store expmteriment data struct
+setappdata(handles.gui_fig,'expmt',expmt);
 
 
 % --------------------------------------------------------------------
@@ -1931,6 +1949,7 @@ expmt.video = uigetvids(expmt);
 % update directory gui object
 handles.edit_video_dir.String = expmt.video.fdir;
 handles.vid_select_popupmenu.String = expmt.video.fnames;
+handles.edit_time_remaining.String = num2str(expmt.video.nFrames);
 
 % set expmt data struct
 setappdata(handles.gui_fig,'expmt',expmt);
@@ -1952,6 +1971,8 @@ function source_camera_menu_Callback(hObject, eventdata, handles)
 % get expmt data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 expmt.source = 'camera';
+handles.time_remaining_text.String = 'time remaining';
+handles.edit_time_remaining.String = '00:00:00';
 
 if strcmp(handles.cam_uipanel.Visible,'off')
     handles.cam_uipanel.Visible = 'on';
@@ -1976,6 +1997,8 @@ function source_video_menu_Callback(hObject, eventdata, handles)
 % get expmt data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 expmt.source = 'video';
+handles.time_remaining_text.String = 'frames remaining';
+handles.edit_time_remaining.String = '-';
 
 if strcmp(handles.vid_uipanel.Visible,'off')
     handles.vid_uipanel.Visible = 'on';
@@ -1988,4 +2011,92 @@ end
 
 % set expmt data struct
 setappdata(handles.gui_fig,'expmt',expmt);
+
+
+
+% --------------------------------------------------------------------
+function vignette_correction_menu_Callback(hObject, eventdata, handles)
+
+expmt = getappdata(handles.gui_fig,'expmt');        % get expmt data struct
+clean_gui(handles.axes_handle);                     % clear drawn objects
+vid = true;
+
+% Setup the camera and/or video object
+if strcmp(expmt.source,'camera') && strcmp(expmt.camInfo.vid.Running,'off')
+    
+    % Clear old video objects
+    imaqreset
+    pause(0.2);
+
+    % Create camera object with input parameters
+    expmt.camInfo = initializeCamera(expmt.camInfo);
+    start(expmt.camInfo.vid);
+    pause(0.1);
+    
+elseif strcmp(expmt.source,'video') 
+    
+    % open video object from file
+    expmt.video.vid = ...
+        VideoReader([expmt.video.fdir expmt.video.fnames{gui_handles.vid_select_popupmenu.Value}]);
+    
+    expmt.video.ct = gui_handles.vid_select_popupmenu.Value;    % get file number in list
+
+elseif ~strcmp(expmt.camInfo.vid.Running,'on')
+    errordlg('Must confirm a camera or video source before correcting vignetting');
+    vid = false;
+end
+
+
+if vid
+    
+    % Take single frame
+    if strcmp(expmt.source,'camera')
+        im = peekdata(expmt.camInfo.vid,1);
+    else
+        [im, expmt.video] = nextFrame(expmt.video,gui_handles);
+    end
+    
+    % extract green channel if format is RGB
+    if size(im,3)>1
+        im = im(:,:,2);
+    end
+    
+    % if an image already exists, display a preview of the vignette correction
+    imh = findobj(handles.axes_handle,'-depth',3,'Type','image');
+    imh.CData = im;
+    
+    % display instructions
+    msg = ['Click and drag to draw a rectangle to select a dimly lit ROI or '...
+        'region within an ROI. For best results, make sure the selection is '...
+        'representative of the dimmest regions of the dimmest ROIs and '...
+        'do not include additional ROIs in the selection.'];
+    waitfor(msgbox(msg));
+
+    % get ROI from the image
+    roi = getrect(handles.axes_handle);
+    roi(3) = roi(1) + roi(3);
+    roi(4) = roi(2) + roi(4);
+    expmt.vignette.im =filterVignetting(im,roi);
+    expmt.vignette.mode = 'manual';
+    
+    imh.CData = im - expmt.vignette.im;
+    text(handles.axes_handle.XLim(2)*0.01,handles.axes_handle.YLim(2)*0.01,...
+        'Vignette Correction Preview','Color',[1 0 0]);
+    
+end
+
+% set expmt data struct
+setappdata(handles.gui_fig,'expmt',expmt);
+
+guidata(hObject,handles);
+
+function saved_preset_Callback(hObject, eventData, handles)
+
+% get gui handles and expmt master struct
+gui_fig = hObject.Parent.Parent.Parent;
+handles = guihandles(gui_fig);
+expmt = getappdata(handles.gui_fig,'expmt');        % get expmt data struct
+
+
+
 

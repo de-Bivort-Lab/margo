@@ -17,7 +17,7 @@ expmt.nTracks = size(expmt.ROI.centers,1);
 for i = 1:length(expmt.fields)
     
     % read .dat file
-    expmt.(expmt.fields{i}) = single(dlmread(expmt.fpath{i}));
+    expmt.(expmt.fields{i}) = dlmread(expmt.fpath{i});
     
     % if field is centroid, reshape to (frames x dim x nTracks)
     if strcmp(expmt.fields{i},'Centroid')
@@ -29,6 +29,8 @@ for i = 1:length(expmt.fields)
         expmt.Centroid = single(NaN(size(x,1),2,size(x,2)));
         expmt.Centroid(:,1,:) = x;
         expmt.Centroid(:,2,:) = y;
+        clearvars x y
+        expmt.drop_ct = expmt.drop_ct ./ size(expmt.Centroid,1);
     end
     
     % if area, orientation, or speed, reshape to (frames x nTracks)
@@ -42,7 +44,7 @@ end
 % In the example, the centroid is being processed to extract circling
 % handedness for each track. Resulting handedness scores are stored in
 % the master data struct.
-expmt = processCentroid(expmt);
+[expmt,trackProps] = processCentroid(expmt);
 disp('Processing Complete');
 
 %% Generate plots
@@ -53,8 +55,18 @@ if strcmp(plot_mode,'plot')
 end
 
 %% Clean up the workspace
+disp('Saving processed data...')
 expmt.strain(ismember(expmt.strain,' ')) = [];
-save(strcat(expmt.fdir,expmt.date,expmt.Name,'_',expmt.strain,'.mat'),'expmt');
+save([expmt.fdir expmt.date expmt.Name '_' expmt.strain '_' expmt.treatment '.mat'],'expmt');
+
+%% Zip raw data files to reduce file size and clean up directory
+
+disp('Zipping raw data files...')
+zip([expmt.fdir expmt.date expmt.Name '_' expmt.strain '_' expmt.treatment '_RawData.zip'],expmt.fpath);
+
+for i = 1:length(expmt.fpath)
+    delete(expmt.fpath{i});
+end
 
 %% Display command to load data struct into workspace
 

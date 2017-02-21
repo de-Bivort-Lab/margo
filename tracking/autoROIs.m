@@ -1,4 +1,4 @@
-function [varargout]=autoROIs(gui_handles)
+function [expmt]=autoROIs(gui_handles, expmt)
 %
 % Automatically detects light ROIs on a dark background and extracts
 % their centroid coordinates and bounds. This function also detects
@@ -7,15 +7,13 @@ function [varargout]=autoROIs(gui_handles)
 % gui gui_handles as an input 
 % Inputs
 
-clearvars -except gui_handles
+clearvars -except gui_handles expmt
 colormap('gray')
 
 %% Define parameters - adjust parameters here to fix tracking and ROI segmentation errors
 
 gui_fig = gui_handles.gui_fig;
 
-% import data from gui
-expmt = getappdata(gui_fig,'expmt');
 
 % ROI detection parameters
 ROI_thresh=get(gui_handles.ROI_thresh_slider,'value');    % Binary image threshold from zero (black) to one (white) for segmentation  
@@ -58,7 +56,7 @@ else
     res(2) = expmt.video.vid.Height;
 end
 blank = zeros(res(2),res(1));
-axh = imagesc(blank);
+imh = imagesc(blank);
 
 stop=get(gui_handles.accept_ROI_thresh_pushbutton,'value');
 
@@ -75,10 +73,11 @@ while stop~=1;
     stop=get(gui_handles.accept_ROI_thresh_pushbutton,'value');
 
     % Take single frame
-    if strcmp(expmt.source,'camera')
-        trackDat.im = peekdata(expmt.camInfo.vid,1);
-    else
-        [trackDat.im, expmt.video] = nextFrame(expmt.video,gui_handles);
+    switch expmt.source
+        case 'camera'
+            trackDat.im = peekdata(expmt.camInfo.vid,1);
+        case 'video'
+            [trackDat.im, expmt.video] = nextFrame(expmt.video,gui_handles);
     end
     
     % Extract green channel if image is RGB
@@ -89,9 +88,17 @@ while stop~=1;
     % Update threshold value
     ROI_thresh=get(gui_handles.ROI_thresh_slider,'value');
 
-    % Build a kernel to smooth vignetting for more even ROI segmentation
-    gaussianKernel=buildGaussianKernel(size(trackDat.im,2),size(trackDat.im,1),sigma,kernelWeight);
-    trackDat.im=(uint8(double(trackDat.im).*gaussianKernel));
+    switch expmt.vignette.mode
+        case 'manual'
+            % subtract the vignette correction off of the raw image
+            trackDat.im = trackDat.im - expmt.vignette.im;
+        case 'auto'
+            % approximate light source as guassian to smooth vignetting
+            % for more even illumination and better ROI detection
+            gauss = buildGaussianKernel(size(trackDat.im,2),...
+                size(trackDat.im,1),sigma,kernelWeight);
+            trackDat.im=(uint8(double(trackDat.im).*gauss));
+    end
 
     % Extract ROIs from thresholded image
     [ROI_bounds,ROI_coords,~,~,binaryimage] = detect_ROIs(trackDat.im,ROI_thresh);
@@ -111,7 +118,7 @@ while stop~=1;
     set(gui_handles.edit_object_num,'String',num2str(size(ROI_bounds,1)));
 
     % Display ROIs
-    axh.CData = binaryimage;
+    imh.CData = binaryimage;
     hold on
 
     if length(hRect) > nROIs
@@ -124,7 +131,6 @@ while stop~=1;
     
     for i = 1:nDraw
         
-        
         if i <= nROIs && i <= length(hRect)
             hRect(i).Position = ROI_bounds(i,:);
             hText(i).Position = [centers(i,1)-5 centers(i,2) 0];
@@ -134,7 +140,6 @@ while stop~=1;
             delete(hText(i));
             idel = [idel i];
             
-            
         elseif i > length(hRect)
             hRect(i) = rectangle('Position',ROI_bounds(i,:),'EdgeColor','r');
             if i > length(mazeOri) || mazeOri(i)
@@ -143,8 +148,8 @@ while stop~=1;
                 hText(i) = text(centers(i,1)-5,centers(i,2),int2str(i),'Color','b');
             end
         end
-        
     end
+    
     hRect(idel) = [];
     hText(idel) = [];
     hold off
@@ -159,18 +164,14 @@ end
 % Reset the accept threshold button
 set(gui_handles.accept_ROI_thresh_pushbutton,'value',0);
 
-% assign outputs
-for i = 1:nargout  
-    switch i
-        case 1
-            varargout{i} = ROI_coords;
-        case 2
-            varargout{i} = centers;
-        case 3
-            varargout{i} = mazeOri;
-        case 4
-            varargout{i} = ROI_bounds;
-        case 5
-            varargout{i} = binaryimage;
-    end
+% create a vignette correction image if mode is set to auto
+if strcmp(expmt.vignette.mode,'auto');
+    expmt.vignette.im = filterVignetting(trackDat.im,ROI_coords(end,:));
 end
+
+% assign outputs
+expmt.ROI.corners = ROI_coords;
+expmt.ROI.centers = centers;
+expmt.ROI.orientation = mazeOri;
+expmt.ROI.bounds = ROI_bounds;
+expmt.ROI.im = binaryimage;

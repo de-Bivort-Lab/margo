@@ -3,7 +3,7 @@ function [varargout] = autoTrack(trackDat,expmt,gui_handles)
     trackDat.ct = trackDat.ct + 1;
 
     % calculate difference image and current for vignetting
-    diffim = (expmt.ref - expmt.vignetteMat) - (trackDat.im - expmt.vignetteMat);
+    diffim = (expmt.ref - expmt.vignette.im) - (trackDat.im - expmt.vignette.im);
     
     % get current image threshold and use it to extract region properties     
     im_thresh = get(gui_handles.track_thresh_slider,'value');
