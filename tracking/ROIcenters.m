@@ -6,6 +6,7 @@ xCenters=zeros(size(ROI_coords,1),1);
 yCenters=zeros(size(ROI_coords,1),1);
 masked_im = grayscale_im;
 masked_im(~binaryimage)=0;
+ROI_coords = round(ROI_coords);
 
 % For each ROI
     for i=1:size(ROI_coords,1)

@@ -6,7 +6,7 @@ function vignetteMat=filterVignetting(refImage,dimROI)
 % dramatically improves the ability to apply a single threshold value to
 % the image when detecting ROIs or tracking objects
 
-
+dimROI = round(dimROI);
 tmpIm=refImage(dimROI(2):dimROI(4),dimROI(1):dimROI(3));    % Reference image for the dimROI
 lumOffset=median(median(tmpIm));                            % Find max intensity inside the ROI
 

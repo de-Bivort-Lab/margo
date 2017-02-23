@@ -130,7 +130,7 @@ handles.line_handle = imline(handles.input.axes_handle);
 if isfield(handles.figure1.UserData,'target_size')
     pos = handles.line_handle.getPosition();
     handles.figure1.UserData.Pos = pos;
-    d = sqrt((pos(1)+pos(3))^2+(pos(2)+pos(4))^2);
+    d = sqrt((pos(1,1)-pos(2,1))^2+(pos(2,2)-pos(1,2))^2);
     handles.figure1.UserData.mm_per_pixel = handles.figure1.UserData.target_size/d;
     set(handles.edit_mm_per_pixel,'string',num2str(round(handles.figure1.UserData.mm_per_pixel*1000)/1000));
 end

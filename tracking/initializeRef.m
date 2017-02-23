@@ -57,6 +57,7 @@ pause(0.1);
 nROIs = size(expmt.ROI.corners, 1);  % total number of ROIs
 ref_cen=zeros(nROIs, 2, 10);         % placeholder for cen. coords where references are taken
 nRefs=zeros(nROIs, 1);               % Reference number placeholder
+rois = round(expmt.ROI.corners);     % temporarily round ROI coords for indexing
 
 % tracking vars
 trackDat.fields={'Centroid';'Area'};            % Define fields for regionprops
@@ -74,10 +75,6 @@ gui_fig.UserData.distance_thresh=round(sqrt(w^2+h^2)/2*0.95*10)/10;
 
 % set min distance from previous ref locations before acquiring new ref for any given object
 min_dist = gui_fig.UserData.distance_thresh * 0.2;    
-
-% Calculate threshold for distance to end of maze arms for turn scoring
-mazeLengths=mean([widths heights],2);
-expmt.parameters.armThresh=mazeLengths*0.2;
 
 
 %% initialize display objects
@@ -149,13 +146,13 @@ while toc<60 && get(gui_handles.accept_track_thresh_pushbutton,'value')~=1
         % from previous reference locations
         if ~any(d < min_dist) && ~any(isnan(trackDat.lastCen(i,:)))
 
-            nRefs(i)=sum(sum(ref_cen(i,:,:)>0));
+            nRefs(i)=sum(sum(ref_cen(i,:,:)>0));                                % update nrefs
             ref_cen(i,:,mod(nRefs(i)+1,10))=trackDat.lastCen(i,:);
-            newRef=trackDat.im(expmt.ROI.corners(i,2):expmt.ROI.corners(i,4),expmt.ROI.corners(i,1):expmt.ROI.corners(i,3));
-            oldRef=expmt.ref(expmt.ROI.corners(i,2):expmt.ROI.corners(i,4),expmt.ROI.corners(i,1):expmt.ROI.corners(i,3));
-            nRefs(i)=sum(sum(ref_cen(i,:,:)>0));                                         % Update num Refs
-            averagedRef=newRef.*(1/nRefs(i))+oldRef.*(1-(1/nRefs(i)));               % Weight new reference by 1/nRefs
-            expmt.ref(expmt.ROI.corners(i,2):expmt.ROI.corners(i,4),expmt.ROI.corners(i,1):expmt.ROI.corners(i,3))=averagedRef;
+            newRef=trackDat.im(rois(i,2):rois(i,4),rois(i,1):rois(i,3));        % grab new ref from im
+            oldRef=expmt.ref(rois(i,2):rois(i,4),rois(i,1):rois(i,3));          % save prev ref
+            nRefs(i)=sum(sum(ref_cen(i,:,:)>0));                                % Update num Refs
+            averagedRef=newRef.*(1/nRefs(i))+oldRef.*(1-(1/nRefs(i)));          % Weight new reference by 1/nRefs
+            expmt.ref(rois(i,2):rois(i,4),rois(i,1):rois(i,3)) = averagedRef;
             
             % Update color indicator
             

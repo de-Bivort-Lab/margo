@@ -112,7 +112,7 @@ while stop~=1;
     centers=[xCenters,yCenters];
 
     % Define a permutation vector to sort ROIs from top-right to bottom left
-    [ROI_coords,mazeOri,ROI_bounds,centers]=sortROIs(ROI_coords,mazeOri,centers,ROI_bounds);
+    [centers,ROI_coords,ROI_bounds,mazeOri] = sortROIs(centers,ROI_coords,ROI_bounds,mazeOri);
 
     % Report number of ROIs detected to GUI
     set(gui_handles.edit_object_num,'String',num2str(size(ROI_bounds,1)));

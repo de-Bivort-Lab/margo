@@ -5,23 +5,28 @@ function [video] = uigetvids(expmt)
     'C:\Users\werkh\Documents\Prototyping Data\autotracker update testing','Multiselect','on');
 
 % set default current video object to first file
-video.vid = VideoReader([fDir fName{1}]);
-video.fdir = fDir;
-video.fnames = fName;
-video.nVids = length(fName);
-video.ct = 1;
+if fDir
+    video.vid = VideoReader([fDir fName{1}]);
+    video.fdir = fDir;
+    video.fnames = fName;
+    video.nVids = length(fName);
+    video.ct = 1;
 
-% get cummulative video length
-dur = 0;
-nFrames = 0;
-for i = 1:length(fName)
-    v = VideoReader([fDir fName{i}]);
-    dur = dur + v.Duration;
-    nFrames = nFrames + v.Duration * v.FrameRate;
-    delete(v);
+    % get cummulative video length
+    dur = 0;
+    nFrames = 0;
+    for i = 1:length(fName)
+        v = VideoReader([fDir fName{i}]);
+        dur = dur + v.Duration;
+        nFrames = nFrames + v.Duration * v.FrameRate;
+        delete(v);
+    end
+
+    video.total_duration = dur;
+    video.nFrames = nFrames;
+else
+    video = [];
 end
 
-video.total_duration = dur;
-video.nFrames = nFrames;
 
 

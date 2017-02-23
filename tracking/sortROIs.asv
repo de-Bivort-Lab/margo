@@ -10,6 +10,8 @@ for i = 1:nargin
             ROI_bounds = varargin{i};
         case 4
             mazeOri = varargin{i};
+        case 5
+            im = varargin{i};
     end
 end
 
@@ -20,22 +22,33 @@ y = centers(:,2);
 row_breaks = find([0;diff(val)>std(diff(val))]);    % Find breaks between rows
 
 
+hold on
+for i = 1:length(centers)
+    th = text(centers(perm_y(i),1),centers(perm_y(i),2),num2str(i),'Color',[1 0 1]);
+end
+hold off
+
 % find a final permutation by sorting each clustered set of y 
 % coords by their respective x coordinates
-for i = 1:length(row_breaks)+1
+for i = 1:length(row_breaks)
     switch i
         case 1
             
             py_subset = perm_y(1:row_breaks(i)-1);          % get subset of perm vector for current row
             [val,perm_x] = sort(centers(py_subset,1));      % sort x coords for current row
             perm_y(1:row_breaks(i)-1) = py_subset(perm_x);    % reassign the permuted permutation to full perm vector
-
             
-        case length(row_breaks)+1
+            hold on
+            for i = 1:length(centers)
+                th = text(centers(perm_y(i),1),centers(perm_y(i),2),num2str(i),'Color',[1 0 1]);
+            end
+            hold off
             
-            py_subset = perm_y(row_breaks(i-1):end);
+        case length(row_breaks)
+            
+            py_subset = perm_y(row_breaks(i):end);
             [val,perm_x] = sort(centers(py_subset,1));
-            perm_y(row_breaks(i-1):end) = py_subset(perm_x);
+            perm_y(row_breaks(i):end) = py_subset(perm_x);
             
         otherwise
             

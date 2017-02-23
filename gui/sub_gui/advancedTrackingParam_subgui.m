@@ -64,13 +64,13 @@ gui_fig = in_handles.gui_fig;
 
 
 % Set GUI strings with input parameters
-set(handles.edit_speed_thresh,'string',gui_fig.UserData.speed_thresh);
-set(handles.edit_dist_thresh,'string',gui_fig.UserData.distance_thresh);
-set(handles.edit_target_rate,'string',gui_fig.UserData.target_rate);
-set(handles.edit_vignette_sigma,'string',gui_fig.UserData.vignette_sigma);
-set(handles.edit_vignette_weight,'string',gui_fig.UserData.vignette_weight);
-set(handles.edit_area_min,'string',gui_fig.UserData.area_min);
-set(handles.edit_area_max,'string',gui_fig.UserData.area_max);
+set(handles.edit_speed_thresh,'string',round(10*gui_fig.UserData.speed_thresh)/10);
+set(handles.edit_dist_thresh,'string',round(10*gui_fig.UserData.distance_thresh)/10);
+set(handles.edit_target_rate,'string',round(10*gui_fig.UserData.target_rate)/10);
+set(handles.edit_vignette_sigma,'string',round(10*gui_fig.UserData.vignette_sigma)/10);
+set(handles.edit_vignette_weight,'string',round(10*gui_fig.UserData.vignette_weight)/10);
+set(handles.edit_area_min,'string',round(10*gui_fig.UserData.area_min)/10);
+set(handles.edit_area_max,'string',round(10*gui_fig.UserData.area_max)/10);
 
 % Update handles structure
 guidata(hObject, handles);
@@ -103,6 +103,7 @@ end
 raw_menu = findobj(display_menu,'-depth',2,'Label','raw image'); 
 raw_menu.Checked = 'on';
 display_menu.UserData = 1;
+display = false;
 
 % clear any objects drawn to gui window
 centroid_markers = findobj(gui_handles.axes_handle,'-depth',3,'Type','line');
@@ -114,17 +115,19 @@ delete(text_handles);
 
 %% Initialize camera and video object
 
-if strcmp(expmt.source,'camera') && strcmp(expmt.camInfo.vid.Running,'off')
-    
-    % Clear old video objects
-    imaqreset
-    pause(0.2);
+if strcmp(expmt.source,'camera')
+    if isfield(expmt.camInfo,'vid') && strcmp(expmt.camInfo.vid.Running,'off')
+        % Clear old video objects
+        imaqreset
+        pause(0.2);
 
-    % Create camera object with input parameters
-    expmt.camInfo = initializeCamera(expmt.camInfo);
-    start(expmt.camInfo.vid);
-    pause(0.1);
-    
+        % Create camera object with input parameters
+        expmt.camInfo = initializeCamera(expmt.camInfo);
+        start(expmt.camInfo.vid);
+        pause(0.1);
+        
+        display = true;
+    end
 elseif strcmp(expmt.source,'video') 
     
     % open video object from file
@@ -141,7 +144,7 @@ elseif strcmp(expmt.source,'video')
         trackDat.im = trackDat.im(:,:,2);
     end
     imh.CData = trackDat.im;
-    
+    display = true;
 end
 %% Tracking setup
 
@@ -194,7 +197,7 @@ trackDat.tStamp = zeros(size(trackDat.lastCen,1),1);
 %% Tracking loop
 
 
-while ishghandle(hObject)
+while ishghandle(hObject) && display
 
     pause(0.001);
     
@@ -242,7 +245,7 @@ while ishghandle(hObject)
         end
 
         % display parameter preview on objects and ROIs if they exist
-        if isfield(expmt,'ref') && isfield(expmt,'vignetteMat')
+        if isfield(expmt,'ref') && isfield(expmt.vignette,'im')
 
             % track objects and sort outputs specified in trackDat.fields
             [trackDat,sort_fields] = autoTrack(trackDat,expmt,gui_handles);
@@ -252,8 +255,9 @@ while ishghandle(hObject)
 
         end
 
-        % else display preview in center of axes
-        s_bounds = centerRect(trackDat.lastCen,gui_fig.UserData.speed_thresh);
+        % convert real distance to pixel for proper display
+        px_r = gui_fig.UserData.speed_thresh/expmt.parameters.mm_per_pix;
+        s_bounds = centerRect(trackDat.lastCen,px_r);
 
         % update display
         for i = 1:length(spdCirc)
@@ -290,7 +294,7 @@ while ishghandle(hObject)
         % tracking
         if ~disp_speed
 
-            if isfield(expmt,'ref') && isfield(expmt,'vignetteMat')
+            if isfield(expmt,'ref') && isfield(expmt.vignette,'im')
 
             % track objects and sort outputs specified in trackDat.fields
             [trackDat,sort_fields] = autoTrack(trackDat,expmt,gui_handles);
@@ -299,12 +303,14 @@ while ishghandle(hObject)
 
         end
 
+        % convert real distance to pixel for proper display
+        px_r = gui_fig.UserData.distance_thresh/expmt.parameters.mm_per_pix;
         if isfield(expmt,'ROI') && isfield(expmt.ROI,'centers')
-            d_bounds = centerRect(expmt.ROI.centers,gui_fig.UserData.distance_thresh);
+            d_bounds = centerRect(expmt.ROI.centers,px_r);
         else
             mid(1) = sum(gui_handles.axes_handle.XLim)/2;
             mid(2) = sum(gui_handles.axes_handle.YLim)/2;
-            d_bounds = centerRect([mid(1) mid(2)],gui_fig.UserData.distance_thresh);
+            d_bounds = centerRect([mid(1) mid(2)],px_r);
         end
 
         % update marker position
@@ -337,7 +343,7 @@ while ishghandle(hObject)
         % tracking
         if ~disp_speed && ~disp_dist
 
-            if isfield(expmt,'ref') && isfield(expmt,'vignetteMat')
+            if isfield(expmt,'ref') && isfield(expmt.vignette,'im')
 
                 % track objects and sort outputs specified in trackDat.fields
                 [trackDat,sort_fields] = autoTrack(trackDat,expmt,gui_handles);
@@ -352,8 +358,10 @@ while ishghandle(hObject)
         end
 
         % else display preview in center of axes
-        mi_bounds = centerRect(trackDat.lastCen,sqrt(gui_fig.UserData.area_min/pi));
-        ma_bounds = centerRect(trackDat.lastCen,sqrt(gui_fig.UserData.area_max/pi));
+        px_r = gui_fig.UserData.area_min/expmt.parameters.mm_per_pix;
+        mi_bounds = centerRect(trackDat.lastCen,sqrt(px_r/pi));
+        px_r = gui_fig.UserData.area_max/expmt.parameters.mm_per_pix;
+        ma_bounds = centerRect(trackDat.lastCen,sqrt(px_r/pi));
 
         % update position
         for i = 1:length(dstCirc)

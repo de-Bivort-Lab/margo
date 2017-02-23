@@ -22,7 +22,7 @@ function varargout = integratedtrackinggui(varargin)
 
 % Edit the above text to modify the response to help integratedtrackinggui
 
-% Last Modified by GUIDE v2.5 20-Feb-2017 13:04:09
+% Last Modified by GUIDE v2.5 21-Feb-2017 13:48:03
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -60,10 +60,18 @@ panels = findobj(handles.gui_fig.Children,'Type','uipanel');
 for i = 1:length(panels)
     panels(i).UserData = panels(i).Position;
 end
-lighting_uipanel = findobj(handles.gui_fig.Children,'Title','Lighting');
-handles.left_edge = lighting_uipanel.Position(1) + lighting_uipanel.Position(3);
+handles.left_edge = handles.exp_uipanel.Position(1) + handles.exp_uipanel.Position(3);
 handles.vid_uipanel.Position = handles.cam_uipanel.Position;
 handles.vid_uipanel.UserData = handles.vid_uipanel.Position;
+
+% disable all panels except cam/video and lighting
+handles.exp_uipanel.ForegroundColor = [.5   .5  .5];
+set(findall(handles.exp_uipanel, '-property', 'enable'), 'enable', 'off');
+handles.tracking_uipanel.ForegroundColor = [.5   .5  .5];
+set(findall(handles.tracking_uipanel, '-property', 'enable'), 'enable', 'off');
+handles.run_uipanel.ForegroundColor = [.5   .5  .5];
+set(findall(handles.run_uipanel, '-property', 'enable'), 'enable', 'off');
+
 
 
 % Choose default command line output for integratedtrackinggui
@@ -71,9 +79,14 @@ handles.output = hObject;
 handles.axes_handle = gca;
 handles.gui_dir = which('autotrackergui');
 handles.gui_dir = handles.gui_dir(1:strfind(handles.gui_dir,'\gui\'));
-handles.display_menu.UserData = 1;
+handles.display_menu.UserData = 1;                                           
 set(gca,'Xtick',[],'Ytick',[]);
 expmt = [];
+
+% initialize array indicating expIDs for experiments with an associated
+% parameter subgui. NOTE: any custom experiments with an experiment
+% parameters subgui must be added to this list.
+handles.parameter_subgui = [3 4];
 
 % popuplate saved profile list and create menu items
 % Get existing profile list
@@ -93,18 +106,11 @@ end
 profiles(remove)=[];                                % remove non-mat files from list
 
 if size(profiles,1) > 0
-    handle.profiles = profiles;
+    handles.profiles = profiles;
 else
-    handle.profiles = {'No profiles detected'};
+    handles.profiles = {'No profiles detected'};
 end
 
-% generate menu items for saved profiles and config their callbacks
-hParent = findobj('Tag','saved_presets_menu');
-for i = 1:length(profiles)
-    menu_items(i) = uimenu(hParent,'Label',profiles{i},...
-        'Callback',@saved_preset_Callback,'UserData',i);
-end
-handles.saved_presets_menus = menu_items;                   % store handles
 
 % Query available camera and modes
 imaqreset
@@ -142,8 +148,8 @@ if ~isempty(c.InstalledAdaptors)
 
     % Set the device to default format and populate mode pop-up menu
     if ~isempty(camInfo.DeviceInfo);
-    set(handles.cam_mode_popupmenu,'String',camInfo.DeviceInfo(1).SupportedFormats);
-    default_format = camInfo.DeviceInfo.DefaultFormat;
+        set(handles.cam_mode_popupmenu,'String',camInfo.DeviceInfo(1).SupportedFormats);
+        default_format = camInfo.DeviceInfo.DefaultFormat;
 
         for i = 1:length(camInfo.DeviceInfo(1).SupportedFormats)
             if strcmp(default_format,camInfo.DeviceInfo(1).SupportedFormats{i})
@@ -151,13 +157,14 @@ if ~isempty(c.InstalledAdaptors)
                 camInfo.ActiveMode = camInfo.DeviceInfo(1).SupportedFormats(i);
             end
         end
-
+        camInfo.activeID = 1;
     else
-    set(handles.cam_select_popupmenu,'String','Camera not detected');
-    set(handles.cam_mode_popupmenu,'String','');
+        camInfo.activeID = [];
+        set(handles.cam_select_popupmenu,'String','Camera not detected');
+        set(handles.cam_mode_popupmenu,'String','No camera modes available');
     end
     
-    camInfo.activeID = 1;
+    
     expmt.camInfo = camInfo;
     
 else
@@ -177,22 +184,22 @@ delete(instrfindall);           % Delete any serial objects in memory
 end
 
 % Attempt handshake with light panel teensy
-[expmt.teensy_port,ports] = identifyMicrocontrollers;
+[expmt.COM,ports] = identifyMicrocontrollers;
 
 % Update GUI menus with port names
-set(handles.microcontroller_popupmenu,'string',expmt.teensy_port);
+set(handles.microcontroller_popupmenu,'string',expmt.COM);
 
 % Initialize light panel at default values
 IR_intensity = str2num(get(handles.edit_IR_intensity,'string'));
 White_intensity = str2num(get(handles.edit_White_intensity,'string'));
 
 % Convert intensity percentage to uint8 PWM value 0-255
-expmt.IR_intensity = uint8((IR_intensity/100)*255);
-expmt.White_intensity = uint8((White_intensity/100)*255);
+expmt.light.infrared = uint8((IR_intensity/100)*255);
+expmt.light.white = uint8((White_intensity/100)*255);
 
 % Write values to microcontroller
-writeInfraredWhitePanel(expmt.teensy_port,1,expmt.IR_intensity);
-writeInfraredWhitePanel(expmt.teensy_port,0,expmt.White_intensity);
+writeInfraredWhitePanel(expmt.COM,1,expmt.light.infrared);
+writeInfraredWhitePanel(expmt.COM,0,expmt.light.white);
 
 % Initialize expmteriment parameters from text boxes in the GUI
 handles.edit_ref_depth.Value  =  str2num(get(handles.edit_ref_depth,'String'));
@@ -200,7 +207,6 @@ handles.edit_ref_freq.Value = str2num(get(handles.edit_ref_freq,'String'));
 handles.edit_exp_duration.Value = str2num(get(handles.edit_exp_duration,'String'));
 handles.disp_ROI_thresh.String = num2str(round(handles.ROI_thresh_slider.Value));
 handles.disp_track_thresh.String = num2str(round(handles.track_thresh_slider.Value));
-expmt.vignette.mode = 'auto';
 
 % initialize tracking parameters to default values
 handles.gui_fig.UserData.speed_thresh = 45;
@@ -210,13 +216,43 @@ handles.gui_fig.UserData.vignette_weight = 0.35;
 handles.gui_fig.UserData.area_min = 4;
 handles.gui_fig.UserData.area_max = 300;
 
-if ~isempty(expmt.camInfo)
+% save values to expmt master struct
+expmt.parameters.speed_thresh = handles.gui_fig.UserData.speed_thresh;
+expmt.parameters.distance_thresh = handles.gui_fig.UserData.distance_thresh;
+expmt.parameters.vignette_sigma = handles.gui_fig.UserData.vignette_sigma;
+expmt.parameters.vignette_weight = handles.gui_fig.UserData.vignette_weight;
+expmt.parameters.area_min = handles.gui_fig.UserData.area_min;
+expmt.parameters.area_max = handles.gui_fig.UserData.area_max;
+expmt.parameters.ref_depth = str2num(get(handles.edit_ref_depth,'String'));
+expmt.parameters.ref_freq = str2num(get(handles.edit_ref_freq,'String'));
+expmt.parameters.duration = str2num(get(handles.edit_exp_duration,'String'));
+expmt.parameters.ROI_thresh = num2str(round(handles.ROI_thresh_slider.Value));
+expmt.parameters.track_thresh = num2str(round(handles.track_thresh_slider.Value));
+
+expmt.parameters.mm_per_pix = 1;            % set default distance scale 1 mm per pixel
+expmt.parameters.units = 'pixels';          % set default units to pixels
+expmt.vignette.mode = 'auto';
+expmt.expID = 1;
+
+if ~isempty(expmt.camInfo) && ~isempty(expmt.camInfo.activeID)
     handles.gui_fig.UserData.target_rate = round(estimateFrameRate(expmt.camInfo)*10)/10;
 else
     handles.gui_fig.UserData.target_rate = 60;
 end
+expmt.parameters.target_rate = handles.gui_fig.UserData.target_rate;
 
 setappdata(handles.gui_fig,'expmt',expmt);
+
+% generate menu items for saved profiles and config their callbacks
+hParent = findobj('Tag','saved_presets_menu');
+save_path = [handles.gui_dir 'profiles\'];
+for i = 1:length(profiles)
+    menu_items(i) = uimenu(hParent,'Label',profiles{i},...
+        'Callback',@saved_preset_Callback);
+    menu_items(i).UserData.path = [save_path profiles{i} '.mat'];
+    menu_items(i).UserData.index = i;
+    menu_items(i).UserData.gui_handles = handles;
+end
 
 % Update handles structure
 guidata(hObject,handles);
@@ -377,8 +413,28 @@ if ~isempty(expmt.camInfo)
 
         end
         
+        % set the colormap and axes ticks
         colormap('gray');
         set(gca,'Xtick',[],'Ytick',[]);
+        
+        % set downstream UI panel enable status
+        handles.tracking_uipanel.ForegroundColor = [0 0 0];
+        set(findall(handles.tracking_uipanel, '-property', 'enable'), 'enable', 'on');
+        handles.distance_scale_menu.Enable = 'on';
+        handles.vignette_correction_menu.Enable = 'on';
+        
+        if ~isfield(expmt,'ROI')
+            handles.track_thresh_slider.Enable = 'off';
+            handles.accept_track_thresh_pushbutton.Enable = 'off';
+            handles.reference_pushbutton.Enable = 'off';
+            handles.track_thresh_label.Enable = 'off';
+            handles.disp_track_thresh.Enable = 'off';
+        end
+        
+        if ~isfield(expmt,'ref')
+            handles.sample_noise_pushbutton.Enable = 'off';
+        end
+            
         
         if isfield(expmt,'ROI') && isfield(expmt,'ref') &&  isfield(expmt,'noise')
             rmfield(expmt,'ROI');
@@ -475,12 +531,12 @@ function edit_IR_intensity_Callback(hObject, eventdata, handles)
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 
-expmt.IR_intensity = str2num(get(handles.edit_IR_intensity,'string'));
+expmt.light.infrared = str2num(get(handles.edit_IR_intensity,'string'));
 
 % Convert intensity percentage to uint8 PWM value 0-255
-expmt.IR_intensity = uint8((expmt.IR_intensity/100)*255);
+expmt.light.infrared = uint8((expmt.light.infrared/100)*255);
 
-writeInfraredWhitePanel(expmt.teensy_port,1,expmt.IR_intensity);
+writeInfraredWhitePanel(expmt.COM,1,expmt.light.infrared);
 
 % Store expmteriment data struct
 setappdata(handles.gui_fig,'expmt',expmt);
@@ -509,8 +565,8 @@ expmt = getappdata(handles.gui_fig,'expmt');
 White_intensity = str2num(get(handles.edit_White_intensity,'string'));
 
 % Convert intensity percentage to uint8 PWM value 0-255
-expmt.White_intensity = uint8((White_intensity/100)*255);
-writeInfraredWhitePanel(expmt.teensy_port,0,expmt.White_intensity);
+expmt.light.white = uint8((White_intensity/100)*255);
+writeInfraredWhitePanel(expmt.COM,0,expmt.light.white);
 
 % Store expmteriment data struct
 setappdata(handles.gui_fig,'expmt',expmt);
@@ -647,6 +703,7 @@ function edit_ref_depth_Callback(hObject, eventdata, handles)
 expmt = getappdata(handles.gui_fig,'expmt');
 
 handles.edit_ref_depth.Value = str2num(get(handles.edit_ref_depth,'String'));
+expmt.parameters.ref_depth = handles.edit_ref_depth.Value;
 
 % Store expmteriment data struct
 setappdata(handles.gui_fig,'expmt',expmt);
@@ -677,6 +734,7 @@ function edit_ref_freq_Callback(hObject, eventdata, handles)
 expmt = getappdata(handles.gui_fig,'expmt');
 
 handles.edit_ref_freq.Value = str2num(get(handles.edit_ref_freq,'String'));
+expmt.parameters.ref_freq = handles.edit_ref_freq.Value;
 
 % Store expmteriment data struct
 setappdata(handles.gui_fig,'expmt',expmt);
@@ -709,6 +767,7 @@ function edit_exp_duration_Callback(hObject, eventdata, handles)
 expmt = getappdata(handles.gui_fig,'expmt');
 
 handles.edit_exp_duration.Value = str2num(get(handles.edit_exp_duration,'String'));
+expmt.parameters.duration = handles.edit_exp_duration.Value;
 
 
 % Store expmteriment data struct
@@ -851,10 +910,17 @@ function exp_select_popupmenu_Callback(hObject, eventdata, handles)
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 
-expmt.expID = get(handles.exp_select_popupmenu,'Value');
-names = get(handles.exp_select_popupmenu,'string');
-expmt.Name = names{expmt.expID};
-expmt.parameters = trimParameters(handles);
+expmt.expID = get(handles.exp_select_popupmenu,'Value');    % index of the experiment in exp list
+names = get(handles.exp_select_popupmenu,'string');         % name of the experiment
+expmt.Name = names{expmt.expID};                            % store name in master struct
+expmt.parameters = trimParameters(expmt.parameters, handles);                 % remove all experiment specific parameters
+
+% enable Experiment Parameters pushbutton if expID has an associated subgui
+if ismember(expmt.expID,handles.parameter_subgui)
+    handles.exp_parameter_pushbutton.Enable = 'on';
+else
+    handles.exp_parameter_pushbutton.Enable = 'off';
+end
 
 % Store expmteriment data struct
 setappdata(handles.gui_fig,'expmt',expmt);
@@ -888,8 +954,8 @@ expmt = getappdata(handles.gui_fig,'expmt');
 
 
 % Turn infrared and white background illumination off during registration
-writeInfraredWhitePanel(expmt.teensy_port,1,0);
-writeInfraredWhitePanel(expmt.teensy_port,0,0);
+writeInfraredWhitePanel(expmt.COM,1,0);
+writeInfraredWhitePanel(expmt.COM,0,0);
 
 msg_title = ['Projector Registration Tips'];
 spc = [' '];
@@ -913,8 +979,8 @@ waitfor(msgbox(message,msg_title));
 reg_projector(expmt.camInfo,expmt.pixel_step_size,expmt.step_interval,expmt.reg_spot_r,handles.edit_time_remaining);
 
 % Reset infrared and white lights to prior values
-writeInfraredWhitePanel(expmt.teensy_port,1,expmt.IR_intensity);
-writeInfraredWhitePanel(expmt.teensy_port,0,expmt.White_intensity);
+writeInfraredWhitePanel(expmt.COM,1,expmt.light.infrared);
+writeInfraredWhitePanel(expmt.COM,0,expmt.light.white);
 
 guidata(hObject,handles);
 
@@ -954,10 +1020,9 @@ function exp_parameter_pushbutton_Callback(hObject, eventdata, handles)
 expmt = getappdata(handles.gui_fig,'expmt');
 
 if expmt.expID<2
-errordlg('Please select an expmteriment first')
+    errordlg('Please select an experiment first')
 else
     switch expmt.expID
-        case 2
 
         case 3
             
@@ -967,13 +1032,12 @@ else
                 end
 
              
-             
         case 4                       
 
                 tmp_param = slowphototaxis_parameter_gui(expmt.parameters);
                 if ~isempty(tmp_param)
                     expmt.parameters = tmp_param;
-                end
+                end               
                 
     end
 end
@@ -999,11 +1063,11 @@ expmt = getappdata(handles.gui_fig,'expmt');
 
    
 % Attempt handshake with light panel teensy
-[expmt.teensy_port,ports] = identifyMicrocontrollers;
+[expmt.COM,ports] = identifyMicrocontrollers;
 
 if ~isempty(ports)
 % Update GUI menus with port names
-set(handles.microcontroller_popupmenu,'string',expmt.teensy_port);
+set(handles.microcontroller_popupmenu,'string',expmt.COM);
 else
 set(handles.microcontroller_popupmenu,'string','COM not detected');
 end
@@ -1056,8 +1120,8 @@ function track_thresh_slider_Callback(hObject, eventdata, handles)
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 
-expmt.parameters.tracking_thresh = get(handles.track_thresh_slider,'Value');
-set(handles.disp_track_thresh,'string',num2str(round(expmt.parameters.tracking_thresh)));
+expmt.parameters.track_thresh = get(handles.track_thresh_slider,'Value');
+set(handles.disp_track_thresh,'string',num2str(round(expmt.parameters.track_thresh)));
 
 % Store expmteriment data struct
 setappdata(handles.gui_fig,'expmt',expmt);
@@ -1336,6 +1400,7 @@ expmt = getappdata(handles.gui_fig,'expmt');
 
 if isfield(expmt,'ROI')
     expmt = initializeRef(handles,expmt);
+    handles.sample_noise_pushbutton.Enable = 'on';          % enable downstream control
 else
     errordlg('ROI detection must be run before initializing references')
 end
@@ -1357,7 +1422,38 @@ function sample_noise_pushbutton_Callback(hObject, eventdata, handles)
 expmt = getappdata(handles.gui_fig,'expmt');
 
 if isfield(expmt,'ref')
+    
     expmt = sampleNoise(handles,expmt);
+    
+    % enable downstream controls
+    handles.exp_uipanel.ForegroundColor = [0 0 0];
+    ctls = findall(handles.exp_uipanel, '-property', 'enable'); % get control handles
+    
+    
+    for i = 1:length(ctls)
+        if strcmp(ctls(i).Tag,'exp_parameter_pushbutton')
+            switch ctls(i).Enable                               % query state of exp_param_push
+                case 'off'
+                    del = i;                                    % remove from list if set to off
+                case 'on'
+                    del = [];
+            end
+        end
+    end
+    ctls(del) = [];
+    
+    % set controls in list to on
+    set(ctls, 'enable', 'on');
+    
+    if ismember(expmt.expID,handles.parameter_subgui)
+        handles.exp_parameter_pushbutton.Enable = 'on';
+    end
+    
+    % if experiment parameters are set, enable experiment run panel
+    if expmt.expID > 1 && ~isempty(handles.save_path.String)
+        set(findall(handles.run_uipanel, '-property', 'enable'),'enable','on');
+    end
+    
 else
     errordlg('Reference image required to sample tracking noise')
 end
@@ -1381,20 +1477,27 @@ if strcmp(expmt.source,'camera') && isfield(expmt.camInfo,'vid')
     
     expmt = autoROIs(handles, expmt);
     
+    % enable downstream ui controls
+    handles.track_thresh_slider.Enable = 'on';
+    handles.accept_track_thresh_pushbutton.Enable = 'on';
+    handles.reference_pushbutton.Enable = 'on';
+    handles.track_thresh_label.Enable = 'on';
+    handles.disp_track_thresh.Enable = 'on';
+    
 elseif strcmp(expmt.source,'camera')
     errordlg('Confirm camera and camera settings before running ROI detection');
 end
 
 if strcmp(expmt.source,'video') && isfield(expmt,'video')
+     
+    expmt = autoROIs(handles,expmt);
     
-    
-    [corners, centers, orientation, bounds, im] = autoROIs(handles);
-    expmt.ROI = [];
-    expmt.ROI.corners = corners;
-    expmt.ROI.centers = centers;
-    expmt.ROI.orientation = orientation;
-    expmt.ROI.bounds = bounds;
-    expmt.ROI.im = im;
+    % enable downstream UI controls
+    handles.track_thresh_slider.Enable = 'on';
+    handles.accept_track_thresh_pushbutton.Enable = 'on';
+    handles.reference_pushbutton.Enable = 'on';
+    handles.track_thresh_label.Enable = 'on';
+    handles.disp_track_thresh.Enable = 'on';
     
 elseif strcmp(expmt.source,'video')
     errordlg('Select valid video path before running ROI detection');
@@ -1572,8 +1675,8 @@ expmt = getappdata(handles.gui_fig,'expmt');
 
 if isfield(expmt,'reg_params')
     % Turn infrared and white background illumination off during registration
-    writeInfraredWhitePanel(expmt.teensy_port,1,0);
-    writeInfraredWhitePanel(expmt.teensy_port,0,0);
+    writeInfraredWhitePanel(expmt.COM,1,0);
+    writeInfraredWhitePanel(expmt.COM,0,0);
 
     msg_title = ['Projector Registration Tips'];
     spc = [' '];
@@ -1600,8 +1703,8 @@ if isfield(expmt,'reg_params')
     reg_projector(expmt.camInfo,expmt.reg_params,handles);
 
     % Reset infrared and white lights to prior values
-    writeInfraredWhitePanel(handles.teensy_port,1,handles.IR_intensity);
-    writeInfraredWhitePanel(handles.teensy_port,0,handles.White_intensity);
+    writeInfraredWhitePanel(handles.COM,1,handles.IR_intensity);
+    writeInfraredWhitePanel(handles.COM,0,handles.White_intensity);
 else
     errordlg('Set registration parameters before running projector registration.');
 end
@@ -1656,6 +1759,12 @@ function advanced_tracking_menu_Callback(hObject, eventdata, handles)
 expmt = getappdata(handles.gui_fig,'expmt');
 
 advancedTrackingParam_subgui(expmt,handles);
+expmt.parameters.speed_thresh = handles.gui_fig.UserData.speed_thresh;
+expmt.parameters.distance_thresh = handles.gui_fig.UserData.distance_thresh;
+expmt.parameters.vignette_sigma = handles.gui_fig.UserData.vignette_sigma;
+expmt.parameters.vignette_weight = handles.gui_fig.UserData.vignette_weight;
+expmt.parameters.area_min = handles.gui_fig.UserData.area_min;
+expmt.parameters.area_max = handles.gui_fig.UserData.area_max;
              
 % Store expmteriment data struct
 setappdata(handles.gui_fig,'expmt',expmt);
@@ -1674,6 +1783,23 @@ tmp=setDistanceScale_subgui(handles,expmt.parameters);
 delete(findobj('Tag','imline'));
 if ~isempty(tmp)
     expmt.parameters.distance_scale = tmp;
+    
+    % update speed, distance, and area thresholds
+    handles.gui_fig.UserData.speed_thresh =...
+        handles.gui_fig.UserData.speed_thresh .* tmp.mm_per_pixel ./ expmt.parameters.mm_per_pix;
+    handles.gui_fig.UserData.distance_thresh =...
+        handles.gui_fig.UserData.distance_thresh .* tmp.mm_per_pixel ./ expmt.parameters.mm_per_pix;
+    handles.gui_fig.UserData.area_min =...
+        handles.gui_fig.UserData.area_min .* ((tmp.mm_per_pixel./expmt.parameters.mm_per_pix)^2);
+    handles.gui_fig.UserData.area_max =...
+        handles.gui_fig.UserData.area_max .* ((tmp.mm_per_pixel./expmt.parameters.mm_per_pix)^2);
+    
+    % set new parameter
+    expmt.parameters.mm_per_pix = tmp.mm_per_pixel;
+    
+    if expmt.parameters.mm_per_pix ~= 1
+        expmt.parameters.units = 'millimeters';
+    end
 end
 
 % Store expmteriment data struct
@@ -1867,6 +1993,9 @@ if isfield(expmt,'video')
     
 else
     errordlg('No video file path specified')
+    hObject.String = 'Start Preview';
+    hObject.BackgroundColor = [0.94 0.94 0.94];
+    hObject.Value = 0;
 end
 
 
@@ -1944,12 +2073,36 @@ function video_files_pushbutton_Callback(hObject, eventdata, handles)
 expmt = getappdata(handles.gui_fig,'expmt');
 
 % get video files from file browser
-expmt.video = uigetvids(expmt);
+tmp_video = uigetvids(expmt);
 
-% update directory gui object
-handles.edit_video_dir.String = expmt.video.fdir;
-handles.vid_select_popupmenu.String = expmt.video.fnames;
-handles.edit_time_remaining.String = num2str(expmt.video.nFrames);
+% update gui with video info
+if ~isempty(tmp_video)
+    expmt.video = tmp_video;
+    handles.edit_video_dir.String = expmt.video.fdir;
+    handles.vid_select_popupmenu.String = expmt.video.fnames;
+    handles.edit_time_remaining.String = num2str(expmt.video.nFrames);
+    
+    % set downstream UI panel enable status
+    handles.tracking_uipanel.ForegroundColor = [0 0 0];
+    set(findall(handles.tracking_uipanel, '-property', 'enable'), 'enable', 'on');
+    handles.distance_scale_menu.Enable = 'on';
+    handles.vignette_correction_menu.Enable = 'on';
+    handles.vid_select_popupmenu.Enable = 'on';
+    handles.vid_preview_togglebutton.Enable = 'on';
+    handles.select_video_label.Enable = 'on';
+
+    if ~isfield(expmt,'ROI')
+        handles.track_thresh_slider.Enable = 'off';
+        handles.accept_track_thresh_pushbutton.Enable = 'off';
+        handles.reference_pushbutton.Enable = 'off';
+        handles.track_thresh_label.Enable = 'off';
+        handles.disp_track_thresh.Enable = 'off';
+    end
+
+    if ~isfield(expmt,'ref')
+        handles.sample_noise_pushbutton.Enable = 'off';
+    end
+end
 
 % set expmt data struct
 setappdata(handles.gui_fig,'expmt',expmt);
@@ -1970,9 +2123,21 @@ function source_camera_menu_Callback(hObject, eventdata, handles)
 
 % get expmt data struct
 expmt = getappdata(handles.gui_fig,'expmt');
-expmt.source = 'camera';
-handles.time_remaining_text.String = 'time remaining';
-handles.edit_time_remaining.String = '00:00:00';
+
+% update gui controls
+if strcmp(expmt.source,'video')
+    % disable all panels except cam/video and lighting
+    handles.exp_uipanel.ForegroundColor = [.5   .5  .5];
+    set(findall(handles.exp_uipanel, '-property', 'enable'), 'enable', 'off');
+    handles.tracking_uipanel.ForegroundColor = [.5   .5  .5];
+    set(findall(handles.tracking_uipanel, '-property', 'enable'), 'enable', 'off');
+    handles.run_uipanel.ForegroundColor = [.5   .5  .5];
+    set(findall(handles.run_uipanel, '-property', 'enable'), 'enable', 'off');
+    handles.time_remaining_text.String = 'time remaining';
+    handles.edit_time_remaining.String = '00:00:00';
+    handles.vignette_correction_menu.Enable = 'off';
+    handles.distance_scale_menu.Enable = 'off';
+end
 
 if strcmp(handles.cam_uipanel.Visible,'off')
     handles.cam_uipanel.Visible = 'on';
@@ -1981,6 +2146,9 @@ end
 if strcmp(handles.vid_uipanel.Visible,'on')
     handles.vid_uipanel.Visible = 'off';
 end
+
+% set source
+expmt.source = 'camera';
 
 % set expmt data struct
 setappdata(handles.gui_fig,'expmt',expmt);
@@ -1996,9 +2164,32 @@ function source_video_menu_Callback(hObject, eventdata, handles)
 
 % get expmt data struct
 expmt = getappdata(handles.gui_fig,'expmt');
-expmt.source = 'video';
-handles.time_remaining_text.String = 'frames remaining';
-handles.edit_time_remaining.String = '-';
+
+if strcmp(expmt.source,'camera')
+    % disable all panels except cam/video and lighting
+    handles.exp_uipanel.ForegroundColor = [.5   .5  .5];
+    set(findall(handles.exp_uipanel, '-property', 'enable'), 'enable', 'off');
+    handles.tracking_uipanel.ForegroundColor = [.5   .5  .5];
+    set(findall(handles.tracking_uipanel, '-property', 'enable'), 'enable', 'off');
+    handles.run_uipanel.ForegroundColor = [.5   .5  .5];
+    set(findall(handles.run_uipanel, '-property', 'enable'), 'enable', 'off');
+    handles.time_remaining_text.String = 'frames remaining';
+    handles.edit_time_remaining.String = '-';
+    handles.vignette_correction_menu.Enable = 'off';
+    handles.distance_scale_menu.Enable = 'off';
+    handles.vid_select_popupmenu.Enable = 'off';
+    handles.vid_preview_togglebutton.Enable = 'off';
+    handles.select_video_label.Enable = 'off';
+    
+    if isfield(expmt,'video')
+        handles.ROI_thresh_slider.Enable = 'on';
+        handles.accept_ROI_thresh_pushbutton.Enable = 'on';
+        handles.disp_ROI_thresh.Enable = 'on';
+        handles.auto_detect_ROIs_pushbutton.Enable = 'on';
+        handles.text_object_num.Enable = 'on';
+        handles.edit_object_num.Enable = 'on';
+    end      
+end
 
 if strcmp(handles.vid_uipanel.Visible,'off')
     handles.vid_uipanel.Visible = 'on';
@@ -2008,6 +2199,9 @@ end
 if strcmp(handles.cam_uipanel.Visible,'on')
     handles.cam_uipanel.Visible = 'off';
 end
+
+% set source
+expmt.source = 'video';
 
 % set expmt data struct
 setappdata(handles.gui_fig,'expmt',expmt);
@@ -2090,13 +2284,58 @@ setappdata(handles.gui_fig,'expmt',expmt);
 
 guidata(hObject,handles);
 
-function saved_preset_Callback(hObject, eventData, handles)
-
-% get gui handles and expmt master struct
-gui_fig = hObject.Parent.Parent.Parent;
-handles = guihandles(gui_fig);
-expmt = getappdata(handles.gui_fig,'expmt');        % get expmt data struct
+function saved_preset_Callback(hObject, eventData)
 
 
+gui_fig = hObject.Parent.Parent.Parent;     % get gui handles
+expmt_new = getappdata(gui_fig,'expmt');        % get expmt data struct
+load(hObject.UserData.path);
+
+% load new settings in from file
+expmt = load_settings(expmt,expmt_new,hObject.UserData.gui_handles);
+
+% save loaded settings to master struct
+setappdata(gui_fig,'expmt',expmt);  
+
+guidata(gui_fig,hObject.UserData.gui_handles);
 
 
+% --------------------------------------------------------------------
+function save_new_preset_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to save_new_preset_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% import expmteriment data struct
+expmt = getappdata(handles.gui_fig,'expmt');
+
+if isfield(expmt.camInfo,'vid')
+    expmt.camInfo = rmfield(expmt.camInfo,'vid');
+end
+
+if isfield(expmt.camInfo,'src')
+    expmt.camInfo = rmfield(expmt.camInfo,'src');
+end
+
+% set profile save path
+save_path = [handles.gui_dir 'profiles\'];
+
+[FileName,PathName] = uiputfile('*.mat','Enter name for new profile',save_path);
+
+if any(FileName)
+    
+    replace = exist(strcat(PathName,FileName),'file')==2;
+    save(strcat(PathName,FileName),'expmt');
+
+    if ~replace
+        
+        profile_name = FileName(1:strfind(FileName,'.mat')-1);
+        hMenu = findobj('Tag','saved_presets_menu');
+        new_menu_item = uimenu(hMenu,'Label',profile_name,...
+        'Callback',@saved_preset_Callback);
+        new_menu_item.UserData.index = length(hMenu.Children)+1;
+        new_menu_item.UserData.path = strcat(PathName,FileName);
+        new_menu_item.UserData.gui_handles = handles;
+        
+    end
+end

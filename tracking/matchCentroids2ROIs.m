@@ -110,7 +110,7 @@ update_centroid=boolean(zeros(size(vars.sort_coords_primary,1),1));
 
             % Exclude centroids that move too fast or are too far from the ROI center
             % corresponding to the previous centroid each item in j, was matched with
-            mismatch=secondary_distance>vars.dist_thresh;
+            mismatch = secondary_distance .* vars.mmpx >vars.dist_thresh;
             j(mismatch)=NaN;
             primary_distance(mismatch)=NaN;
         end
@@ -154,17 +154,19 @@ function vars=parseinputvars(invars)
         
         case 2
             % Single sorting mode with no distance thresholding
-            vars.cenDat=invars{1};                    % Raw centroid invars
-            vars.sort_coords_primary=invars{2};        % Coordinate basis to sort invars to
-            vars.mode='single sort';                    % Specifies only one round of sorting
-            vars.thresh_mode_dist=0;                    % No centroids excluded by distance
+            vars.cenDat=invars{1};                          % Raw centroid invars
+            vars.sort_coords_primary=invars{2};             % Coordinate basis to sort invars to
+            vars.mode='single sort';                        % Specifies only one round of sorting
+            vars.thresh_mode_dist=0;                        % No centroids excluded by distance
         case 4
             % Double sorting mode with no distance thresholding
-            vars.cenDat=invars{1};                    % Raw centroid invars
-            vars.sort_coords_primary=invars{2};       % Primary coordinate basis to sort invars to
-            vars.sort_coords_secondary=invars{3};       % Secondary coordinate basis to sort invars to
-            vars.dist_thresh=invars{4};               % Distance threshold for excluding centroids too far from a known landmark
-            vars.mode='double sort';                    % Specifies two rounds of sorting
+            vars.cenDat=invars{1};                          % Raw centroid invars
+            vars.sort_coords_primary=invars{2};             % Primary coordinate basis to sort invars to
+            expmt = invars{3};
+            vars.sort_coords_secondary=expmt.ROI.centers;   % Secondary coordinate basis to sort invars to
+            vars.mmpx = expmt.parameters.mm_per_pix;      % mm/pix conversion factor
+            vars.dist_thresh=invars{4};                     % threshold for max dist from roi center
+            vars.mode='double sort';                        % Specifies two rounds of sorting
     end
 end
         

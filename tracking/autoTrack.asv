@@ -44,12 +44,13 @@ function [varargout] = autoTrack(trackDat,expmt,gui_handles)
         % get region properties
         props=regionprops(thresh_im, in_fields);
 
+
         % threshold blobs by area
         above_min = [props.Area]  .* (expmt.parameters.mm_per_pix^2) > ...
             gui_handles.gui_fig.UserData.area_min;
-        below_max = [props.Area] .* (expmt.parameters.mm_per_pix^2) <...
-            gui_handles.gui_fig.UserData.area_max;
-        props(~(above_min & below_max)) = [];
+        below_max =  & [props.Area]
+        target_area =( < gui_handles.gui_fig.UserData.area_max);
+        props(~target_area) = [];
 
         cenDat = reshape([props.Centroid],2,length([props.Centroid])/2)';
 
