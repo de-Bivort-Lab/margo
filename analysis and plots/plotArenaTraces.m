@@ -22,8 +22,8 @@ for i = 1:expmt.nTracks
 
     
     %Plot fly trace
-    xTrace = expmt.Centroid(expmt.handedness.include(:,i),1,i) - expmt.ROI.corners(i,1);
-    yTrace = expmt.Centroid(expmt.handedness.include(:,i),2,i) - expmt.ROI.corners(i,2);
+    xTrace = expmt.Centroid.data(expmt.handedness.include(:,i),1,i) - expmt.ROI.corners(i,1);
+    yTrace = expmt.Centroid.data(expmt.handedness.include(:,i),2,i) - expmt.ROI.corners(i,2);
     mu = -sin(expmt.handedness.circum_vel(expmt.handedness.include(:,i),i));
     z=zeros(sum(expmt.handedness.include(:,i)),1);
     surface([xTrace';xTrace'],[yTrace';yTrace'],[z';z'],[mu';mu'],...

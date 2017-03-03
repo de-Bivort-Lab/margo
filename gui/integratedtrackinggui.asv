@@ -813,7 +813,8 @@ else
         case 6
             autoTracker_arena;
         case 7
-            run_ymaze(expmt,handles);
+            expmt = run_ymaze(expmt,handles);
+            analyze_ymaze(expmt,handles,'plot');
         case 8
             expmt = run_basictracking(expmt,handles);     % Run expmt
             analyze_basictracking(expmt,handles,'plot');

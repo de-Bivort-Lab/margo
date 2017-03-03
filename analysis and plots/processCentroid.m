@@ -1,7 +1,7 @@
 function [expmt,trackProps] = processCentroid(expmt)
 
     % initialize tracking properties struct
-    nFrames = size(expmt.Centroid,1);
+    nFrames = size(expmt.Centroid.data,1);
     empty = single(NaN(nFrames, expmt.nTracks));
     trackProps = struct('r',empty,'theta',empty,'direction',empty,...
         'turning',empty,'speed',empty,'turn_d',empty,...
@@ -19,8 +19,8 @@ function [expmt,trackProps] = processCentroid(expmt)
 for j = 1:expmt.nTracks
     
     % get x and y coordinates of the centroid and normalize to upper left ROI corner
-    inx = expmt.Centroid(:,1,j)-expmt.ROI.centers(j,1);
-    iny = expmt.Centroid(:,2,j)-expmt.ROI.centers(j,2);
+    inx = expmt.Centroid.data(:,1,j)-expmt.ROI.centers(j,1);
+    iny = expmt.Centroid.data(:,2,j)-expmt.ROI.centers(j,2);
     center=0;
     
     % calculate the radial distance from the ROI center

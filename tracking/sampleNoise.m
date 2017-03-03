@@ -7,6 +7,8 @@ function [expmt] = sampleNoise(gui_handles, expmt)
 % above the imaging threshold with few above-threshold pixels due to
 % noise).
 
+gui_notify('sampling imaging noise',gui_handles.disp_note);
+
 gui_fig = gui_handles.gui_fig;
 imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');   % image handle
 
@@ -17,7 +19,7 @@ pixDistSize=100;                    % Num values to record in p
 pixelDist=NaN(pixDistSize,1);       % Distribution of total number of pixels above image threshold
 
 % tracking vars
-trackDat.lastCen = expmt.ROI.centers;     % placeholder for most recent non-NaN centroids
+trackDat.Centroid = expmt.ROI.centers;     % placeholder for most recent non-NaN centroids
 trackDat.fields = {'Centroid';'Area'};     % Define fields for regionprops
 trackDat.tStamp = zeros(size(expmt.ROI.centers(:,1),1),1);
 trackDat.t = 0;
@@ -39,28 +41,38 @@ if strcmp(expmt.source,'camera') && strcmp(expmt.camInfo.vid.Running,'off')
     
 elseif strcmp(expmt.source,'video') 
     
-    % open video object from file
-    expmt.video.vid = ...
-        VideoReader([expmt.video.fdir expmt.video.fnames{gui_handles.vid_select_popupmenu.Value}]);
+    % set current file to first file in list
+    gui_handles.vid_select_popupmenu.Value = 1;
     
-    % get file number in list
-    expmt.video.ct = gui_handles.vid_select_popupmenu.Value;
+    if isfield(expmt.video,'fID')
+        
+        % ensure that the current position of the file is set to 
+        % the beginning of the file (bof) + an offset of 32 bytes
+        % (the first 32 bytes store info on resolution and precision)
+        fseek(expmt.video.fID, 32, 'bof');
+        
+    else
+        
+        % open video object from file
+        expmt.video.vid = ...
+            VideoReader([expmt.video.fdir ...
+            expmt.video.fnames{gui_handles.vid_select_popupmenu.Value}]);
+
+        % get file number in list
+        expmt.video.ct = gui_handles.vid_select_popupmenu.Value;
+
+        % estimate duration based on video duration
+        gui_handles.edit_exp_duration.Value = expmt.video.total_duration * 1.15 / 3600;
+        
+    end
     
 end
 
 %% Sample noise
 
 % initialize display objects
-cla reset
-% get resolution
-if strcmp(expmt.source,'camera')
-    res = expmt.camInfo.vid.videoResolution;
-else
-    res(1) = expmt.video.vid.Width;
-    res(2) = expmt.video.vid.Height;
-end
-blank = zeros(res(2),res(1));
-imh = imagesc(blank);
+clean_gui(gui_handles.axes_handle);
+imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','Image');
 set(gca,'Xtick',[],'Ytick',[]);
 clearvars hCirc
 hold on
@@ -96,8 +108,8 @@ while trackDat.ct < pixDistSize;
             updateDisplay(trackDat, expmt, imh, gui_handles);
 
            % Draw last known centroid for each ROI and update ref. number indicator
-           hCirc.XData = trackDat.lastCen(:,1);
-           hCirc.YData = trackDat.lastCen(:,2);
+           hCirc.XData = trackDat.Centroid(:,1);
+           hCirc.YData = trackDat.Centroid(:,2);
            
         end
         drawnow
@@ -108,6 +120,8 @@ while trackDat.ct < pixDistSize;
        pixelDist(mod(trackDat.ct,pixDistSize)+1) = nansum(nansum(trackDat.im > gui_handles.track_thresh_slider.Value));
    
 end
+
+gui_notify('noise sampling complete',gui_handles.disp_note);
 
 % Record stdDev and mean without noise
 pixStd=nanstd(pixelDist);

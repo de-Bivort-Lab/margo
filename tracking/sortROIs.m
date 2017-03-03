@@ -17,7 +17,7 @@ end
 
 y = centers(:,2);
 [val,perm_y] = sort(y);                                % Sort ROI yCoords from left to right
-row_breaks = find([0;diff(val)>std(diff(val))]);    % Find breaks between rows
+row_breaks = find([0;diff(val)>std(diff(val)*3)]);    % Find breaks between rows
 
 
 % find a final permutation by sorting each clustered set of y 

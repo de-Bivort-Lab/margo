@@ -1,12 +1,14 @@
-function [frameRate]=estimateFrameRate(camInfo)
+function [frameRate,camInfo]=estimateFrameRate(camInfo)
 
 % Estimates the current acquisition rate of an active video object when
 % "frameRate" is not an accesible field of the device
 
-imaqreset;
-camInfo = initializeCamera(camInfo);
-start(camInfo.vid);
-pause(0.1);
+if ~isfield(camInfo,'vid') || strcmp(camInfo.vid.Running,'off')
+    imaqreset;
+    camInfo = initializeCamera(camInfo);
+    start(camInfo.vid);
+    pause(0.1);
+end
 
 nFrames = 20;
 tStamps = NaN(nFrames,1);

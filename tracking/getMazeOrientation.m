@@ -6,12 +6,13 @@ function [mazeOri]=getMazeOrientation(binaryimage,ROI_coords)
 
 nROIs=size(ROI_coords,1);
 mazeOri=zeros(nROIs,1);
+roi = round(ROI_coords);
 
 % For each ROI
 for i=1:nROIs
     
     % Extract image subset for the current ROI
-    tempImage=binaryimage(ROI_coords(i,2):ROI_coords(i,4),ROI_coords(i,1):ROI_coords(i,3));
+    tempImage=binaryimage(roi(i,2):roi(i,4),roi(i,1):roi(i,3));
     
     % Calculate vertical midpoint
     yCenter=round(size(tempImage,1)/2);
@@ -22,11 +23,13 @@ for i=1:nROIs
     bot=sum(sum(tempImage(yCenter:x,:)));
     
     if top>bot
-        mazeOri(i)=1; % More pixels in top-half = rightside-up Y
+        mazeOri(i) = true; % More pixels in top-half = rightside-up Y
     elseif bot>top
-        mazeOri(i)=0; % More pixels in bottom-half = upside-down Y
+        mazeOri(i) = false; % More pixels in bottom-half = upside-down Y
     end
 end
+
+mazeOri = boolean(mazeOri);
         
 
 

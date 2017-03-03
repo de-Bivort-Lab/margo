@@ -1,4 +1,4 @@
-function reg_projector(camInfo,reg_params,handles)
+function reg_projector(expmt,handles)
 
 % This function registers the projector to the camera by rastering the
 % projector's space with a circle of radius (r), taking steps of size (stp_sz) in
@@ -10,23 +10,25 @@ function reg_projector(camInfo,reg_params,handles)
 
 %% Parameters
 
-stp_sz = reg_params.pixel_step_size;
-stp_t = reg_params.step_interval;
-r = reg_params.spot_r;
+stp_sz = expmt.reg_params.pixel_step_size;
+stp_t = expmt.reg_params.step_interval;
+r = expmt.reg_params.spot_r;
 
 %% Estimate camera frame rate
 
-frameRate=estimateFrameRate(camInfo);
+[frameRate, expmt.camInfo] = estimateFrameRate(expmt.camInfo);
 stp_t = stp_t*60/frameRate;
 
 
 %% Initialize the camera with settings tailored to imaging the projector
 
-imaqreset
-pause(0.1);
-vid=initializeCamera(camInfo);
-start(vid);
-pause(0.1);
+if ~isfield(expmt.camInfo,'vid') || strcmp(expmt.camInfo.vid.Running,'off')
+    imaqreset
+    pause(0.1);
+    expmt.camInfo = initializeCamera(expmt.camInfo);
+    start(expmt.camInfo.vid);
+    pause(0.1);
+end
 
 % Initialize the psychtoolbox window and query projector properties
 bg_color=[0 0 0];
@@ -35,10 +37,8 @@ pause(2);
 
 %% Query cam resolution and collect reference image
 
-ref=peekdata(vid,1);
+ref=peekdata(expmt.camInfo.vid,1);
 ref=ref(:,:,2);
-imshow(ref-ref);
-text(size(ref,2)*0.75,size(ref,1)*0.05,'Registration in progress','fontsize',18,'Color',[1 0 0]);
 
 % Save the camera resolution that the registration was performed at
 [reg_yPixels,reg_xPixels] = size(ref);
@@ -64,23 +64,89 @@ proj_y=NaN(y_stp,x_stp);
 
 iTime=NaN(15,1);
 
+%% Calculate display delay
+
+% cam midpoint                             
+mid = expmt.camInfo.vid.VideoResolution./2;
+
+% get white reference
+Screen('FillRect',scrProp.window,[1 1 1], scrProp.windowRect);
+Screen('Flip',scrProp.window);
+pause(0.5);
+im = peekdata(expmt.camInfo.vid,1);
+white = double(median(median(im(mid(1)-50:mid(1)+50,mid(2)-50:mid(2)+50,1))));
+
+% black reference
+Screen('FillRect',scrProp.window,[0 0 0], scrProp.windowRect);
+Screen('Flip',scrProp.window);
+pause(0.5);
+im = peekdata(expmt.camInfo.vid,1);
+black = double(median(median(im(mid(1)-50:mid(1)+50,mid(2)-50:mid(2)+50,1))));
+not_white = true;  
+blank = false;
+
+% fill screen with white
+Screen('FillRect',scrProp.window,[1 1 1], scrProp.windowRect);
+Screen('Flip',scrProp.window);
+
+% initialize time stamps
+t = 0;
+tic;
+tPrev = toc;
+
+while not_white
+    
+    tCurr = toc;
+    t = t + tCurr - tPrev;
+    tPrev = tCurr;
+    im = peekdata(expmt.camInfo.vid,1);
+    lum = double(median(median(im(mid(1)-50:mid(1)+50,mid(2)-50:mid(2)+50,1))));
+    not_white = abs(lum - black) < abs(lum - white);
+    
+end
+
+% black reference
+Screen('FillRect',scrProp.window,[0 0 0], scrProp.windowRect);
+Screen('Flip',scrProp.window);
+
+delay = t*1.35;
+
+%% clear axes objects and initialize marker and text objects
+
+clean_gui(handles.axes_handle);
+hold on
+hTitle = text(handles.axes_handle.XLim(2)*0.05,handles.axes_handle.YLim(2)*0.05,...
+    'Registration in progress','fontsize',12,'Color',[1 0 0]);
+hMark = plot(0,0,'ro');
+hText = text(0,0,'','Color',[1 0 0],'fontsize',14);
+hold off
+
 
 %% Registration loop
 
 % Initialize both x and y to zero and raster the projector
 x=0;
 shg
+tic
+tPrev = toc;
 for i=1:x_stp
     y=0;
     for j=1:y_stp
-        tic
+        
+        tCurr = toc;
+        ifi = tCurr-tPrev;
+        while ifi < 1/frameRate
+            tCurr = toc;
+            ifi = tCurr-tPrev;
+        end
+        tPrev = tCurr;
         
         % Draw circle with projector at pixel coords x,y
         scrProp=drawCircles(x,y,r,white,scrProp);     
         pause(stp_t);
         
         % Image spot with cam
-        im=peekdata(vid,1);
+        im=peekdata(expmt.camInfo.vid,1);
         im=im(:,:,2);
         im=im-ref;
         
@@ -96,31 +162,36 @@ for i=1:x_stp
             yi=cenDat(2)-subim_sz:cenDat(2)+subim_sz;
             xi=cenDat(1)-subim_sz:cenDat(1)+subim_sz;
             if max(yi)<reg_yPixels+1 && min(yi)>0 && max(xi)<reg_xPixels+1 && min(xi)>1
-            subim=im(yi,xi);
-            subim=double(subim);
-            subim=subim./sum(sum(subim));
-            
-            % Save camera coordinates of the spot
-            cam_x(j,i)=sum(sum(subim).*xi);
-            cam_y(j,i)=sum(sum(subim,2).*yi');
-            
-            % Reset axes and display tracking
-            cla reset
-            imagesc(im>im_thresh);
-            hold on
-            plot(cam_x(j,i),cam_y(j,i),'ro');
-            text(cam_x(j,i),cam_y(j,i)+20,[num2str(x) ', ' num2str(y)],'fontsize',18,'Color',[1 0 0]);
-            text(size(ref,2)*0.75,size(ref,1)*0.05,'Registration in progress','fontsize',18,'Color',[1 0 0]);
-            hold off
-            set(gca,'Xtick',[],'Ytick',[]);
-            drawnow
+                
+                subim=im(yi,xi);
+                subim=double(subim);
+                subim=subim./sum(sum(subim));
+
+                % Save camera coordinates of the spot
+                cam_x(j,i)=sum(sum(subim).*xi);
+                cam_y(j,i)=sum(sum(subim,2).*yi');
+
+                % Reset axes and display tracking
+                handles.hImage.CData = im>im_thresh;
+                hMark.XData = cam_x(j,i);
+                hMark.YData = cam_y(j,i);
+                hText.Position = [cam_x(j,i),cam_y(j,i)+20];
+                hText.String = ['(' num2str(round(cam_x(j,i)*10)/10) ...
+                    ',' num2str(round(cam_y(j,i)*10)/10) ')'];
+                
+                if strcmp(hMark.Visible,'off')
+                    hMark.Visible = 'on';
+                    hText.Visible = 'on';
+                end
+                
+                drawnow
             end
         else
-            imagesc(im>im_thresh);
-            hold on
-            text(size(ref,2)*0.75,size(ref,1)*0.05,'Registration in progress','fontsize',18,'Color',[1 0 0]);
-            hold off
-            set(gca,'Xtick',[],'Ytick',[]);
+            handles.hImage.CData = im>im_thresh;
+            if strcmp(hMark.Visible,'on')
+                hMark.Visible = 'off';
+                hText.Visible = 'off';
+            end
             drawnow
         end
         
@@ -132,7 +203,7 @@ for i=1:x_stp
         y = y + stp_sz;
         iCount=(i-1)*y_stp+j;
         
-        iTime(mod(iCount,length(iTime))+1)=toc;
+        iTime(mod(iCount,length(iTime))+1)=ifi;
         if iCount >= length(iTime)
             timeRemaining = round(mean(iTime)*(x_stp*y_stp-iCount));
                 if timeRemaining < 60; 
@@ -160,13 +231,7 @@ for i=1:x_stp
 end
 
 % Image spot with cam
-im=peekdata(vid,1);
-im=im(:,:,2);
-im=im-ref;
-imagesc(im>im_thresh);
-hold on
-text(size(ref,2)*0.75,size(ref,1)*0.05,'Registration finished','fontsize',18,'Color',[1 0 0]);
-hold off
+hTitle.String = 'Registration complete';
 
 % Exclude projector/camera coord pairs where spot was not detected by cam
 include=~isnan(cam_x);

@@ -19,9 +19,6 @@ function [trackDat, ref_stack, expmt] = updateRef(trackDat,ref_stack,expmt,gui_h
            ref_stack(:,:,mod(trackDat.ref_ct, gui_handles.edit_ref_depth.Value)+1) = trackDat.im;
            expmt.ref=uint8(mean(ref_stack,3));
            
-           % Update vignette offset matrix with better reference
-           expmt.vignetteMat = filterVignetting(expmt.ref,expmt.ROI.im,expmt.ROI.corners);
-           
            % reset timer
            trackDat.t_ref = 0;
    

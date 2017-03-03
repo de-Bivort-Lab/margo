@@ -1,16 +1,20 @@
-function [varargout] = autoTrack(trackDat,expmt,gui_handles)
+function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
 
-    trackDat.ct = trackDat.ct + 1;
+%% Parse fields
 
-    % calculate difference image and current for vignetting
-    diffim = (expmt.ref - expmt.vignette.im) - (trackDat.im - expmt.vignette.im);
-    
-    % get current image threshold and use it to extract region properties     
-    im_thresh = get(gui_handles.track_thresh_slider,'value');
-    
-    % add centroid and area to the input regionprops fields if not provided
     out_fields = trackDat.fields;
     in_fields = trackDat.fields;
+    
+    % temporarily remove fields not recognized by regionprops
+    prop_fields = [{'Area'};{'BoundingBox'};{'Centroid'};{'ConvexArea'};{'ConvexHull'};...
+        {'ConvexImage'};{'Eccentricity'};{'EquivDiameter'};{'EulerNumber'};{'Extent'};...
+        {'Extrema'};{'FilledArea'};{'FilledImage'};{'Image'};{'MajorAxisLength'};...
+        {'MinorAxisLength'};{'Orientation'};{'Perimeter'};{'PixelIdxList'};{'PixelList'};...
+        {'Solidity'};{'SubarrayIdx'}];
+    remove = ~ismember(in_fields,prop_fields);
+    in_fields(remove) = [];
+    
+    % add centroid and area to the input regionprops fields if not provided
     if ~any(strmatch('Centroid',in_fields))
         in_fields = [in_fields; {'Centroid'}];
     end
@@ -19,9 +23,15 @@ function [varargout] = autoTrack(trackDat,expmt,gui_handles)
         in_fields = [in_fields; {'Area'}];
     end
     
-    if any(strmatch('Speed',in_fields))
-        in_fields(strmatch('Speed',in_fields)) = [];
-    end
+%% Track objects
+
+    trackDat.ct = trackDat.ct + 1;
+
+    % calculate difference image and current for vignetting
+    diffim = (expmt.ref - expmt.vignette.im) - (trackDat.im - expmt.vignette.im);
+    
+    % get current image threshold and use it to extract region properties     
+    im_thresh = get(gui_handles.track_thresh_slider,'value');
     
     % threshold image
     thresh_im = diffim > im_thresh;
@@ -51,11 +61,11 @@ function [varargout] = autoTrack(trackDat,expmt,gui_handles)
             gui_handles.gui_fig.UserData.area_max;
         props(~(above_min & below_max)) = [];
 
-        cenDat = reshape([props.Centroid],2,length([props.Centroid])/2)';
+        raw_cen = reshape([props.Centroid],2,length([props.Centroid])/2)';
 
         % Match centroids to last known centroid positions
         [permutation,update] = ...
-            matchCentroids2ROIs(cenDat,trackDat.lastCen,expmt,gui_handles.gui_fig.UserData.distance_thresh);
+            matchCentroids2ROIs(raw_cen,trackDat.Centroid,expmt,gui_handles.gui_fig.UserData.distance_thresh);
 
 
         % Apply speed threshold to centroid tracking
@@ -64,8 +74,8 @@ function [varargout] = autoTrack(trackDat,expmt,gui_handles)
         if any(update)
             
             % calculate distance and convert from pix to mm
-            d = sqrt((cenDat(permutation,1)-trackDat.lastCen(update,1)).^2 ...
-                     + (cenDat(permutation,2)-trackDat.lastCen(update,2)).^2);
+            d = sqrt((raw_cen(permutation,1)-trackDat.Centroid(update,1)).^2 ...
+                     + (raw_cen(permutation,2)-trackDat.Centroid(update,2)).^2);
             d = d .* expmt.parameters.mm_per_pix;
             
             % time elapsed since each centroid was last updated
@@ -82,7 +92,7 @@ function [varargout] = autoTrack(trackDat,expmt,gui_handles)
 
         % Use permutation vector to sort raw centroid data and update
         % vector to specify which centroids are reliable and should be updated
-        trackDat.lastCen(update,:) = cenDat(permutation,:);
+        trackDat.Centroid(update,:) = raw_cen(permutation,:);
         trackDat.tStamp(update) = trackDat.t;
         
         % update centroid drop count for objects not updated this frame
@@ -98,43 +108,48 @@ function [varargout] = autoTrack(trackDat,expmt,gui_handles)
         end
         
     end
+    
+%% Assign outputs
 
-    % assign any optional sorted output fields, return NaNs if record = false
-    if ~isempty(out_fields)
+% assign any optional sorted output fields to the trackDat
+% structure if listed in expmt.fields. 
+% return NaNs if record = false
 
-        if any(strmatch('Speed',out_fields));
-            if record
-                sorted.Speed = speed;
-            else
-                sorted.Speed = NaN(size(trackDat.lastCen,1),1); 
-            end
-        end
-
-        if any(strmatch('Area',out_fields));
-            area = NaN(size(trackDat.lastCen,1),1);
-            if record
-                area(update) = [props(permutation).Area];
-            end
-            sorted.Area = area;
-        end
-        if any(strmatch('Orientation',out_fields));
-            orientation = NaN(size(trackDat.lastCen,1),1);
-            if record
-                orientation(update) = [props(permutation).Orientation];
-            end
-            sorted.Orientation = orientation;
-        end
-
-    end
-
-        
-    % assign outputs
-    for i = 1:nargout
-        switch i
-            case 1
-                varargout{i} = trackDat;
-            case 2
-                varargout{i} = sorted;
+    if any(strmatch('Speed',out_fields));
+        if record
+            trackDat.Speed = speed;
+        else
+            trackDat.Speed = NaN(size(trackDat.Centroid,1),1); 
         end
     end
+
+    if any(strmatch('Area',out_fields));
+        area = NaN(size(trackDat.Centroid,1),1);
+        if record
+            area(update) = [props(permutation).Area];
+        end
+        trackDat.Area = area;
+    end
+
+    if any(strmatch('Orientation',out_fields));
+        orientation = NaN(size(trackDat.Centroid,1),1);
+        if record
+            orientation(update) = [props(permutation).Orientation];
+        end
+        trackDat.Orientation = orientation;
+    end
+
+    if any(strmatch('Time',out_fields));
+        trackDat.Time = trackDat.ifi;
+    end
+
+    if any(strmatch('VideoData',out_fields));
+        trackDat.VideoData = trackDat.im;
+    end
+
+    if any(strmatch('VideoIndex',out_fields));
+        trackDat.VideoIndex = trackDat.ct;
+    end
+    
+    
             

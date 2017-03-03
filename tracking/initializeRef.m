@@ -3,16 +3,16 @@ function [expmt] = initializeRef(gui_handles,expmt)
 
 clearvars -except gui_handles expmt
 
+gui_notify('initializing reference',gui_handles.disp_note);
+
 gui_fig = gui_handles.gui_fig;
 imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');   % image handle
 
 % enable display adjustment and set set the view to thresholded by default
 colormap('gray');
-set(gui_handles.display_raw_menu,'Enable','on');
-set(gui_handles.display_difference_menu,'Enable','on');
-set(gui_handles.display_threshold_menu,'Enable','on');
-set(gui_handles.display_reference_menu,'checked','on');
-set(gui_handles.display_none_menu,'Enable','on');
+set(gui_handles.display_menu.Children,'Enable','on');
+set(gui_handles.display_menu.Children,'Checked','off');
+set(gui_handles.display_threshold_menu,'Checked','on');
 gui_handles.display_menu.UserData = 3;
 
 %% Setup the camera and/or video object
@@ -30,12 +30,30 @@ if strcmp(expmt.source,'camera') && strcmp(expmt.camInfo.vid.Running,'off')
     
 elseif strcmp(expmt.source,'video') 
     
-    % open video object from file
-    expmt.video.vid = ...
-        VideoReader([expmt.video.fdir expmt.video.fnames{gui_handles.vid_select_popupmenu.Value}]);
+    % set current file to first file in list
+    gui_handles.vid_select_popupmenu.Value = 1;
     
-    % get file number in list
-    expmt.video.ct = gui_handles.vid_select_popupmenu.Value;
+    if isfield(expmt.video,'fID')
+        
+        % ensure that the current position of the file is set to 
+        % the beginning of the file (bof) + an offset of 32 bytes
+        % (the first 32 bytes store info on resolution and precision)
+        fseek(expmt.video.fID, 32, 'bof');
+        
+    else
+        
+        % open video object from file
+        expmt.video.vid = ...
+            VideoReader([expmt.video.fdir ...
+            expmt.video.fnames{gui_handles.vid_select_popupmenu.Value}]);
+
+        % get file number in list
+        expmt.video.ct = gui_handles.vid_select_popupmenu.Value;
+
+        % estimate duration based on video duration
+        gui_handles.edit_exp_duration.Value = expmt.video.total_duration * 1.15 / 3600;
+        
+    end
     
 end
 
@@ -61,7 +79,7 @@ rois = round(expmt.ROI.corners);     % temporarily round ROI coords for indexing
 
 % tracking vars
 trackDat.fields={'Centroid';'Area'};            % Define fields for regionprops
-trackDat.lastCen=expmt.ROI.centers;             % placeholder for most recent non-NaN centroids
+trackDat.Centroid=expmt.ROI.centers;             % placeholder for most recent non-NaN centroids
 trackDat.tStamp=zeros(nROIs,1);
 trackDat.ct = 0;
 
@@ -79,18 +97,8 @@ min_dist = gui_fig.UserData.distance_thresh * 0.2;
 
 %% initialize display objects
 
-cla reset                           % clear axes
-
-% get resolution
-if strcmp(expmt.source,'camera')
-    res = expmt.camInfo.vid.videoResolution;
-else
-    res(1) = expmt.video.vid.Width;
-    res(2) = expmt.video.vid.Height;
-end
-
-blank = zeros(res(2),res(1));       % initialize to blank
-imh = imagesc(blank);               % image handle
+clean_gui(gui_handles.axes_handle);
+imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','Image');
 set(gca,'Xtick',[],'Ytick',[]);     % turn off tick marks
 clearvars hCirc hText
 
@@ -139,15 +147,15 @@ while toc<60 && get(gui_handles.accept_track_thresh_pushbutton,'value')~=1
     for i=1:nROIs
 
         % Calculate distance to previous locations where references were taken
-        tCen = repmat(trackDat.lastCen(i,:),size(ref_cen,3),1);
+        tCen = repmat(trackDat.Centroid(i,:),size(ref_cen,3),1);
         d = abs(sqrt(dot((tCen-squeeze(ref_cen(i,:,:))'),(squeeze(ref_cen(i,:,:))'-tCen),2)));
 
         % Create a new reference image for the ROI if fly is greater than distance thresh
         % from previous reference locations
-        if ~any(d < min_dist) && ~any(isnan(trackDat.lastCen(i,:)))
+        if ~any(d < min_dist) && ~any(isnan(trackDat.Centroid(i,:)))
 
             nRefs(i)=sum(sum(ref_cen(i,:,:)>0));                                % update nrefs
-            ref_cen(i,:,mod(nRefs(i)+1,10))=trackDat.lastCen(i,:);
+            ref_cen(i,:,mod(nRefs(i)+1,10))=trackDat.Centroid(i,:);
             newRef=trackDat.im(rois(i,2):rois(i,4),rois(i,1):rois(i,3));        % grab new ref from im
             oldRef=expmt.ref(rois(i,2):rois(i,4),rois(i,1):rois(i,3));          % save prev ref
             nRefs(i)=sum(sum(ref_cen(i,:,:)>0));                                % Update num Refs
@@ -171,7 +179,7 @@ while toc<60 && get(gui_handles.accept_track_thresh_pushbutton,'value')~=1
        
        % Draw last known centroid for each ROI and update ref. number indicator
        for i=1:nROIs
-           hText(i).Position = trackDat.lastCen(i,:);
+           hText(i).Position = trackDat.Centroid(i,:);
        end
        
     end

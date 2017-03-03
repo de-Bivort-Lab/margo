@@ -42,8 +42,8 @@ set(gui_handles.display_none_menu,'Enable','on');
 ref_stack = repmat(expmt.ref, 1, 1, gui_handles.edit_ref_depth.Value);  % initialize the reference stack
 
 % Initialize tracking variables
-trackDat.lastCen=expmt.ROI.centers;                         % last known centroid of the object in each ROI 
-trackDat.fields={'Centroid';'Area'};                        % properties of the tracked objects to be recorded
+trackDat.Centroid=expmt.ROI.centers;                        % last known centroid of the object in each ROI 
+trackDat.fields={'Centroid';'Area';'Time'};                 % properties of the tracked objects to be recorded
 trackDat.tStamp = zeros(size(expmt.ROI.centers(:,1),1),1);  % time stamps of centroid updates
 trackDat.t = 0;                                             % time elapsed, initialize to zero
 trackDat.ct = 0;                                            % frame count
@@ -54,26 +54,23 @@ trackDat.px_dist = zeros(10,1);                             % distribution of pi
 trackDat.pix_dev = zeros(10,1);                             % stdev of pixels over threshold
 
 % Initialize labels, file paths, and files for tracked fields
-expmt.date = datestr(clock,'mm-dd-yyyy-HH-MM-SS_');
-expmt.labels = cell2table(labelMaker(expmt.labels),'VariableNames',{'Strain' 'Sex' 'Treatment' 'ID' 'Day' 'Box' 'Tray' 'Comments'});
-expmt.strain=expmt.labels{1,1}{:};
-expmt.treatment=expmt.labels{1,3}{:};
+expmt.date = datestr(clock,'mm-dd-yyyy-HH-MM-SS_');         % get date string
+expmt.labels = labelMaker(expmt);                           % convert labels cell into table format
+expmt.strain=expmt.labels{1,1}{:};                          % get strain string
+expmt.treatment=expmt.labels{1,3}{:};                       % get treatment string
 
 % make a new directory for the files
 expmt.fdir = [expmt.fpath '\' expmt.date expmt.strain '_' expmt.treatment '\'];
 mkdir(expmt.fdir);
 
-for i = 1:length(trackDat.fields)
-    fpath(i) = {[expmt.fdir expmt.date expmt.strain '_' expmt.treatment '_' trackDat.fields{i} '.dat']};
-    dlmwrite(fpath{i},[]);      % create empty placeholder
+% generate file ID for files to write
+for i = 1:length(trackDat.fields)                           
+    expmt.(trackDat.fields{i}).path = ...                   % initialize path for new file    
+        [expmt.fdir expmt.date expmt.strain '_' ...
+        expmt.treatment '_' trackDat.fields{i} '.bin'];
+    expmt.(trackDat.fields{i}).fID = ...
+        fopen(expmt.(trackDat.fields{i}).path,'w');         % open fileID with write permission
 end
-
-% Note: manually add if you want to save additional fields (eg. time stamps)
-fpath = [fpath {[expmt.fdir expmt.date expmt.strain '_' expmt.treatment '_' 'tStamps.dat']}];
-
-% assign individual file paths and field names to the expmt data struct
-expmt.fpath = fpath;
-expmt.fields = [trackDat.fields;{'tStamps'}];
 
 % save current parameters to .mat file prior to experiment
 params = fieldnames(gui_fig.UserData);
@@ -96,9 +93,6 @@ if strcmp(expmt.source,'camera') && strcmp(expmt.camInfo.vid.Running,'off')
     start(expmt.camInfo.vid);
     pause(0.1);
     
-    % set last frame flag to false since source is camera
-    lastFrame = false;
-    
 elseif strcmp(expmt.source,'video') 
     
     % set current file to first file in list
@@ -111,12 +105,23 @@ elseif strcmp(expmt.source,'video')
     % get file number in list
     expmt.video.ct = gui_handles.vid_select_popupmenu.Value;
     
-    % lastFrame = false until last frame of the last video file is reached
-    lastFrame = false;
-    
     % estimate duration based on video duration
     gui_handles.edit_exp_duration.Value = expmt.video.total_duration * 1.15 / 3600;
     
+end
+
+% lastFrame = false until last frame of the last video file is reached
+lastFrame = false;
+
+% initialize video recording file if record video menu item is checked
+if strcmp(gui_handles.record_video_menu.Checked,'on')
+    trackDat.fields = [trackDat.fields;{'VideoData'};{'VideoIndex'}];
+    expmt.VideoData.path = ...
+        fopen([expmt.fdir expmt.date expmt.Name '_' ...
+        expmt.strain '_' expmt.treatment '_VideoData.bin'],'w');
+    expmt.VideoIndex.path = ...
+        fopen([expmt.fdir expmt.date expmt.Name '_' ...
+        expmt.strain '_' expmt.treatment '_VideoIndex.bin'],'w');
 end
 
 
@@ -127,68 +132,94 @@ tic
 tPrev = toc;
 
 % initialize centroid markers
+clean_gui(gui_handles.axes_handle);
 hold on
-hMark = plot(trackDat.lastCen(:,1),trackDat.lastCen(:,2),'ro');
+hMark = plot(trackDat.Centroid(:,1),trackDat.Centroid(:,2),'ro');
 hold off
 
 % run experimental loop until duration is exceeded or last frame
 % of the last video file is reached
 while trackDat.t < gui_handles.edit_exp_duration.Value * 3600 && ~lastFrame
     
-        % update time stamps and frame rate
-        [trackDat, tPrev] = updateTime(trackDat, tPrev, expmt, gui_handles);
+    % update time stamps and frame rate
+    [trackDat, tPrev] = updateTime(trackDat, tPrev, expmt, gui_handles);
 
-        % Take single frame
-        if strcmp(expmt.source,'camera')
-            trackDat.im = peekdata(expmt.camInfo.vid,1);
-        else
-            [trackDat.im, expmt.video] = nextFrame(expmt.video,gui_handles);
-            % stop expmt when last frame of last video is reached
-            if ~hasFrame(expmt.video.vid) && expmt.video.ct == expmt.video.nVids
-                lastFrame = true;
-            end
+    % Take single frame
+    if strcmp(expmt.source,'camera')
+        trackDat.im = peekdata(expmt.camInfo.vid,1);
+    else
+        [trackDat.im, expmt.video] = nextFrame(expmt.video,gui_handles);
+        % stop expmt when last frame of last video is reached
+        if ~hasFrame(expmt.video.vid) && expmt.video.ct == expmt.video.nVids
+            lastFrame = true;
         end
-        
-        if size(trackDat.im,3)>1
-            trackDat.im=trackDat.im(:,:,2);
-        end
-        
-        % track, sort to ROIs, and output optional fields to sorted fields,
-        % and sample the number of pixels above the image threshold
-        [trackDat, sorted_fields] = autoTrack(trackDat,expmt,gui_handles);
+    end
+
+    % ensure that image is mono
+    if size(trackDat.im,3)>1
+        trackDat.im=trackDat.im(:,:,2);
+    end
+
+    % track, sort to ROIs, and output optional fields to sorted fields,
+    % and sample the number of pixels above the image threshold
+    trackDat = autoTrack(trackDat,expmt,gui_handles);
 
 
-        % output data to .dat files
-        for i = 1:length(expmt.fpath)
-            switch i
-                case 1
-                    dlmwrite(expmt.fpath{i},trackDat.lastCen,'-append');
-                case 2
-                    dlmwrite(expmt.fpath{i},sorted_fields.Area,'-append');
-                case 3
-                    dlmwrite(expmt.fpath{i},trackDat.ifi,'-append');
-            end
-        end
-        
-        % update ref at the reference frequency or reset if noise thresh is exceeded
-        [trackDat, ref_stack, expmt] = updateRef(trackDat, ref_stack, expmt, gui_handles);
-        
-        if gui_handles.display_menu.UserData ~= 5
-            % update the display
-            updateDisplay(trackDat, expmt, imh, gui_handles);
+    % output data to binary files
+    for i = 1:length(trackDat.fields)
+        precision = class(trackDat.(trackDat.fields{i}));
+        fwrite(expmt.(trackDat.fields{i}).fID,trackDat.(trackDat.fields{i}),precision);
+    end
 
-            % update centroid mark position
-            hMark.XData = trackDat.lastCen(:,1);
-            hMark.YData = trackDat.lastCen(:,2);
-        end
+    % update ref at the reference frequency or reset if noise thresh is exceeded
+    [trackDat, ref_stack, expmt] = updateRef(trackDat, ref_stack, expmt, gui_handles);
+
+    if gui_handles.display_menu.UserData ~= 5
+        % update the display
+        updateDisplay(trackDat, expmt, imh, gui_handles);
+
+        % update centroid mark position
+        hMark.XData = trackDat.Centroid(:,1);
+        hMark.YData = trackDat.Centroid(:,2);
+    end
+
+    % update the gui
+    drawnow
+    
+    % listen for gui pause/unpause
+    while gui_handles.pause_togglebutton.Value
+        tPrev = toc;
+    end
         
-        % update the gui
-        drawnow
+    % optional: save vid data to file if record video menu item is checked
+    if ~isfield(expmt,'VideoData') && strcmp(gui_handles.record_video_menu.Checked,'on')
+        trackDat.fields = [trackDat.fields;{'VideoData'};{'VideoIndex'}];
+        expmt.VideoData.path = [expmt.fdir expmt.date expmt.Name '_' ...
+            expmt.strain '_' expmt.treatment '_VideoData.bin'];
+        expmt.VideoIndex.path = ...
+            fopen([expmt.fdir expmt.date expmt.Name '_' ...
+            expmt.strain '_' expmt.treatment '_VideoIndex.bin'],'w');
+        expmt.VideoData.fID = fopen(expmt.VideoData.path,'w');
+        expmt.VideoIndex.fID = fopen(expmt.VideoIndex.path,'w');
+    end
         
+end
+
+% record the dimensions of data in each recorded field
+for i = 1:length(trackDat.fields)
+    expmt.(trackDat.fields{i}).dim = size(trackDat.(trackDat.fields{i}));
 end
 
 % store number of dropped frames for each object in master data struct
 expmt.drop_ct = trackDat.drop_ct;
+
+if isfield(expmt.camInfo,'vid')
+    delete(expmt.camInfo.vid);
+    expmt.camInfo = rmfield(expmt.camInfo,'src');
+    expmt.camInfo = rmfield(expmt.camInfo,'vid');
+end
+
+% close fileIDs 
 
 % re-save updated expmt data struct to file
 save([expmt.fdir expmt.date expmt.Name '_' expmt.strain '_' expmt.treatment '.mat'],'expmt');

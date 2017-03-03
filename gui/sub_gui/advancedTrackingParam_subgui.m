@@ -126,19 +126,35 @@ if strcmp(expmt.source,'camera')
         start(expmt.camInfo.vid);
         pause(0.1);
         
-        display = true;
     end
+    display = true;
 elseif strcmp(expmt.source,'video') 
     
-    % open video object from file
-    expmt.video.vid = ...
-        VideoReader([expmt.video.fdir expmt.video.fnames{gui_handles.vid_select_popupmenu.Value}]);
-    
-    % get file number in list
-    expmt.video.ct = gui_handles.vid_select_popupmenu.Value;
-    
-    [trackDat.im, expmt.video] = nextFrame(expmt.video,gui_handles);
+    if isfield(expmt.video,'fID')
+        
+        % ensure that the current position of the file is set to 
+        % the beginning of the file (bof) + an offset of 32 bytes
+        % (the first 32 bytes store info on resolution and precision)
+        fseek(expmt.video.fID, 32, 'bof');
+        
+    else
+        
+        % open video object from file
+        expmt.video.vid = ...
+            VideoReader([expmt.video.fdir ...
+            expmt.video.fnames{gui_handles.vid_select_popupmenu.Value}]);
 
+        % get file number in list
+        expmt.video.ct = gui_handles.vid_select_popupmenu.Value;
+
+        % estimate duration based on video duration
+        gui_handles.edit_exp_duration.Value = expmt.video.total_duration * 1.15 / 3600;
+        
+    end
+
+    % get next frame and update image
+    [trackDat.im, expmt.video] = nextFrame(expmt.video,handles);      
+    
     % extract green channel if format is RGB
     if size(trackDat.im,3)>1
         trackDat.im = trackDat.im(:,:,2);
@@ -152,46 +168,46 @@ end
 trackDat.fields={'Centroid';'Area';'Speed'};     % Define fields autoTrack output
 
 if isfield(expmt,'ROI') && isfield(expmt.ROI,'centers')
-    trackDat.lastCen = expmt.ROI.centers;     % placeholder for most recent non-NaN centroids
+    trackDat.Centroid = expmt.ROI.centers;     % placeholder for most recent non-NaN centroids
 else
     midpoint(1) = sum(gui_handles.axes_handle.XLim)/2;
     midpoint(2) = sum(gui_handles.axes_handle.YLim)/2;
-    trackDat.lastCen = [midpoint(1) midpoint(2)];
+    trackDat.Centroid = [midpoint(1) midpoint(2)];
 end
 
 % initialize coords
-s_bounds = centerRect(trackDat.lastCen,gui_fig.UserData.speed_thresh);
-d_bounds = centerRect(trackDat.lastCen,gui_fig.UserData.distance_thresh);
-mi_bounds = centerRect(trackDat.lastCen,sqrt(gui_fig.UserData.area_min/pi));
-ma_bounds = centerRect(trackDat.lastCen,sqrt(gui_fig.UserData.area_max/pi));
+s_bounds = centerRect(trackDat.Centroid,gui_fig.UserData.speed_thresh);
+d_bounds = centerRect(trackDat.Centroid,gui_fig.UserData.distance_thresh);
+mi_bounds = centerRect(trackDat.Centroid,sqrt(gui_fig.UserData.area_min/pi));
+ma_bounds = centerRect(trackDat.Centroid,sqrt(gui_fig.UserData.area_max/pi));
 
 % initialize handles with position set to bounds
-for i = 1:size(trackDat.lastCen,1)
+for i = 1:size(trackDat.Centroid,1)
 
     spdCirc(i) = rectangle(gui_handles.axes_handle,'Position',s_bounds(i,:),...
         'EdgeColor',[1 0 1],'Curvature',[1 1],'Visible','off');
-    spdText(i) = text(gui_handles.axes_handle,'Position',trackDat.lastCen(i,:),...
+    spdText(i) = text(gui_handles.axes_handle,'Position',trackDat.Centroid(i,:),...
         'String','0','Visible','off','Color',[1 0 1]);
     minCirc(i) = rectangle(gui_handles.axes_handle,'Position',mi_bounds(i,:),...
         'EdgeColor',[1 0 0],'Curvature',[1 1],'Visible','off');
     maxCirc(i) = rectangle(gui_handles.axes_handle,'Position',ma_bounds(i,:),...
         'EdgeColor',[1 0 0],'Curvature',[1 1],'Visible','off');
-    areaText(i) = text(gui_handles.axes_handle,'Position',trackDat.lastCen(i,:),...
+    areaText(i) = text(gui_handles.axes_handle,'Position',trackDat.Centroid(i,:),...
         'String','0','Visible','off','Color',[1 0 0]);
     dstCirc(i) = rectangle(gui_handles.axes_handle,'Position',d_bounds(i,:),...
         'EdgeColor',[0 0 1],'Curvature',[1 1],'Visible','off');
+    
 end
 
 % initialize rolling averages of speed and area
-roll_speed = NaN(size(trackDat.lastCen,1),30);
-roll_area = NaN(size(trackDat.lastCen,1),30);
+roll_speed = NaN(size(trackDat.Centroid,1),30);
+roll_area = NaN(size(trackDat.Centroid,1),30);
 
 % initialize timer
 tic
 trackDat.t=0;
 tPrev = toc;
-trackDat.tStamp = zeros(size(trackDat.lastCen,1),1);
-
+trackDat.tStamp = zeros(size(trackDat.Centroid,1),1);
 
 
 %% Tracking loop
@@ -248,22 +264,26 @@ while ishghandle(hObject) && display
         if isfield(expmt,'ref') && isfield(expmt.vignette,'im')
 
             % track objects and sort outputs specified in trackDat.fields
-            [trackDat,sort_fields] = autoTrack(trackDat,expmt,gui_handles);
+            trackDat = autoTrack(trackDat,expmt,gui_handles);
 
             % update rolling speed
-            roll_speed(:,mod(trackDat.ct,size(roll_speed,2))+1) = sort_fields.Speed;
+            roll_speed(:,mod(trackDat.ct,size(roll_speed,2))+1) = trackDat.Speed;
 
         end
 
         % convert real distance to pixel for proper display
         px_r = gui_fig.UserData.speed_thresh/expmt.parameters.mm_per_pix;
-        s_bounds = centerRect(trackDat.lastCen,px_r);
+        s_bounds = centerRect(trackDat.Centroid,px_r);
 
         % update display
         for i = 1:length(spdCirc)
             spdCirc(i).Position = s_bounds(i,:);
-            spdText(i).Position = [trackDat.lastCen(i,1) trackDat.lastCen(i,2)+5];
-            spdText(i).String = num2str(round(nanmean(roll_speed(i,:))*10)/10);
+            spdText(i).Position = [trackDat.Centroid(i,1) trackDat.Centroid(i,2)+5];
+            if isnan(round(nanmean(roll_speed(i,:))*10)/10)
+                spdText(i).String = '';
+            else
+                spdText(i).String = num2str(round(nanmean(roll_speed(i,:))*10)/10);
+            end
         end
 
         
@@ -297,7 +317,7 @@ while ishghandle(hObject) && display
             if isfield(expmt,'ref') && isfield(expmt.vignette,'im')
 
             % track objects and sort outputs specified in trackDat.fields
-            [trackDat,sort_fields] = autoTrack(trackDat,expmt,gui_handles);
+            trackDat = autoTrack(trackDat,expmt,gui_handles);
 
             end
 
@@ -346,29 +366,33 @@ while ishghandle(hObject) && display
             if isfield(expmt,'ref') && isfield(expmt.vignette,'im')
 
                 % track objects and sort outputs specified in trackDat.fields
-                [trackDat,sort_fields] = autoTrack(trackDat,expmt,gui_handles);
+                trackDat = autoTrack(trackDat,expmt,gui_handles);
 
             end
 
         end
 
         % calculate rolling average of centroid area
-        if exist('sort_fields','var')
-            roll_area(:,mod(trackDat.ct,size(roll_area,2))+1) = sort_fields.Area;
+        if isfield(trackDat,'Area')
+            roll_area(:,mod(trackDat.ct,size(roll_area,2))+1) = trackDat.Area;
         end
 
         % else display preview in center of axes
         px_r = gui_fig.UserData.area_min/expmt.parameters.mm_per_pix;
-        mi_bounds = centerRect(trackDat.lastCen,sqrt(px_r/pi));
+        mi_bounds = centerRect(trackDat.Centroid,sqrt(px_r/pi));
         px_r = gui_fig.UserData.area_max/expmt.parameters.mm_per_pix;
-        ma_bounds = centerRect(trackDat.lastCen,sqrt(px_r/pi));
+        ma_bounds = centerRect(trackDat.Centroid,sqrt(px_r/pi));
 
         % update position
         for i = 1:length(dstCirc)
             minCirc(i).Position = mi_bounds(i,:);
             maxCirc(i).Position = ma_bounds(i,:);
-            areaText(i).Position = [trackDat.lastCen(i,1) trackDat.lastCen(i,2)+20];
-            areaText(i).String = num2str(round(nanmean(roll_area(i,:))*10)/10);
+            areaText(i).Position = [trackDat.Centroid(i,1) trackDat.Centroid(i,2)+20];
+            if isnan(round(nanmean(roll_area(i,:))*10)/10)
+                areaText(i).String = '';
+            else
+                areaText(i).String = num2str(round(nanmean(roll_area(i,:))*10)/10);
+            end
         end
 
     % else make objects invisible
