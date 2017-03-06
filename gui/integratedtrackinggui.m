@@ -406,22 +406,22 @@ if ~isempty(expmt.camInfo)
         gui_notify('cam settings confirmed',handles.disp_note);
         
         if isfield(expmt,'ROI') && isfield(expmt,'ref') &&  isfield(expmt,'noise')
-            rmfield(expmt,'ROI');
-            rmfield(expmt,'ref');
-            rmfield(expmt,'noise');
+            expmt = rmfield(expmt,'ROI');
+            expmt = rmfield(expmt,'ref');
+            expmt = rmfield(expmt,'noise');
             msgbox(['Cam settings changed: saved ROIs, references and ' ...
                 'noise statistics have been discarded.']);
             note = 'ROIs, references, and noise statistics reset';
             gui_notify(note,handles.disp_note);
         elseif isfield(expmt,'ROI') && isfield(expmt,'ref')
-            rmfield(expmt,'ROI');
-            rmfield(expmt,'ref');
+            expmt = rmfield(expmt,'ROI');
+            expmt = rmfield(expmt,'ref');
             msgbox(['Cam settings changed: saved ROIs, references ' ...
                 'have been discarded.']);
             note = 'ROIs and references reset';
             gui_notify(note,handles.disp_note);
         elseif isfield(expmt,'ROI')
-           rmfield(expmt,'ROI');
+           expmt = rmfield(expmt,'ROI');
            msgbox(['Cam settings changed: saved ROIs ' ...
                 'have been discarded.']);
             note = 'saved ROI positions reset';
@@ -813,12 +813,36 @@ else
         case 6
             autoTracker_arena;
         case 7
-            run_ymaze(expmt,handles);
+            expmt = run_ymaze(expmt,handles);
+            analyze_ymaze(expmt,handles,'plot');
         case 8
             expmt = run_basictracking(expmt,handles);     % Run expmt
             analyze_basictracking(expmt,handles,'plot');
             
     end
+    
+    % remove saved rois, images, and noise statistics from prev experiment
+    if isfield(expmt,'ROI')
+        expmt = rmfield(expmt,'ROI');
+        expmt = rmfield(expmt,'ref');
+        expmt = rmfield(expmt,'noise');
+        expmt = rmfield(expmt,'labels');
+        msgbox(['Experiment complete: saved ROIs, references, ' ...
+            'noise statistics, and labels have been reset.']);
+        note = 'ROIs, references, and noise statistics reset';
+        gui_notify(note,handles.disp_note);
+    end
+
+    % set downstream UI panel enable status
+    handles.tracking_uipanel.ForegroundColor = [0 0 0];
+    set(findall(handles.tracking_uipanel, '-property', 'enable'), 'enable', 'off');
+    set(findall(handles.exp_uipanel, '-property', 'enable'), 'enable', 'off');
+    set(findall(handles.run_uipanel, '-property', 'enable'), 'enable', 'off');
+    handles.ROI_thresh_slider.Enable = 'on';
+    handles.ROI_thresh_slider.Enable = 'on';
+    handles.auto_detect_ROIs_pushbutton.Enable = 'on';
+    handles.accept_ROI_thresh_pushbutton.Enable = 'on';
+        
 end
 
 % Store expmteriment data struct

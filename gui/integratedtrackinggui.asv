@@ -406,7 +406,7 @@ if ~isempty(expmt.camInfo)
         gui_notify('cam settings confirmed',handles.disp_note);
         
         if isfield(expmt,'ROI') && isfield(expmt,'ref') &&  isfield(expmt,'noise')
-            rmfield(expmt,'ROI');
+            expmt = rmfield(expmt,'ROI');
             rmfield(expmt,'ref');
             rmfield(expmt,'noise');
             msgbox(['Cam settings changed: saved ROIs, references and ' ...
@@ -820,6 +820,18 @@ else
             analyze_basictracking(expmt,handles,'plot');
             
     end
+    
+    if isfield(expmt,'ROI')
+        expmt = rmfield(expmt,'ROI');
+        expmt = rmfield(expmt,'ref');
+        expmt = rmfield(expmt,'noise');
+        msgbox(['Experiment complete: saved ROIs, references and ' ...
+            'noise statistics have been reset.']);
+        note = 'ROIs, references, and noise statistics reset';
+        gui_notify(note,handles.disp_note);
+    end
+
+        
 end
 
 % Store expmteriment data struct
