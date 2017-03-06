@@ -69,12 +69,17 @@ end
 clean_gui(gui_handles.axes_handle);
 imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','Image');
 
+if strcmp(imh.CDataMapping,'direct')
+   imh.CDataMapping = 'scaled';
+end
+
 stop=get(gui_handles.accept_ROI_thresh_pushbutton,'value');
 
 % Waits for "Accept Threshold" button press from user before accepting
 % automatic ROI segmentation
 
 clearvars hRect hText
+
 hRect(1) = rectangle('Position',[0 0 0 0],'EdgeColor','r');
 hText(1) = text(0,0,'1','Color','b');
 
@@ -118,12 +123,12 @@ while stop~=1;
     % Calculate coords of ROI centers
     [xCenters,yCenters]=ROIcenters(trackDat.im,binaryimage,ROI_coords);
     centers=[xCenters,yCenters];
-    
-    % detect assymetry about vertical axis
-    mazeOri = getMazeOrientation(binaryimage,ROI_coords);
 
     % Define a permutation vector to sort ROIs from top-right to bottom left
-    [centers,ROI_coords,ROI_bounds,mazeOri] = sortROIs(centers,ROI_coords,ROI_bounds,mazeOri);
+    [centers,ROI_coords,ROI_bounds] = sortROIs(centers,ROI_coords,ROI_bounds);
+    
+   % detect assymetry about vertical axis
+    mazeOri = getMazeOrientation(binaryimage,ROI_coords);
 
     % Report number of ROIs detected to GUI
     set(gui_handles.edit_object_num,'String',num2str(size(ROI_bounds,1)));
@@ -145,6 +150,11 @@ while stop~=1;
         if i <= nROIs && i <= length(hRect)
             hRect(i).Position = ROI_bounds(i,:);
             hText(i).Position = [centers(i,1)-10 centers(i,2) 0];
+            if mazeOri(i)
+                hText(i).Color = [1 0 1];
+            else
+                hText(i).Color = [0 0 1];
+            end
             
         elseif i > nROIs
             delete(hRect(i));
@@ -153,7 +163,7 @@ while stop~=1;
             
         elseif i > length(hRect)
             hRect(i) = rectangle('Position',ROI_bounds(i,:),'EdgeColor','r');
-            if i > length(mazeOri) || mazeOri(i)
+            if mazeOri(i)
                 hText(i) = text(centers(i,1)-5,centers(i,2),int2str(i),'Color','m');
             else
                 hText(i) = text(centers(i,1)-5,centers(i,2),int2str(i),'Color','b');
@@ -164,7 +174,6 @@ while stop~=1;
     hRect(idel) = [];
     hText(idel) = [];
     hold off
-    set(gca,'Xtick',[],'Ytick',[]);
     drawnow
 
 

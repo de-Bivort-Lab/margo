@@ -20,11 +20,11 @@ clean_gui(gui_handles.axes_handle);
 
 % set colormap and enable display control
 colormap('gray');
-set(gui_handles.display_raw_menu,'Enable','on');
-set(gui_handles.display_difference_menu,'Enable','on');
-set(gui_handles.display_threshold_menu,'Enable','on');
-set(gui_handles.display_reference_menu,'checked','on');
-set(gui_handles.display_none_menu,'Enable','on');
+set(gui_handles.display_menu.Children,'Enable','on');
+set(gui_handles.display_menu.Children,'Checked','off');
+set(gui_handles.display_raw_menu,'Checked','on');
+gui_handles.display_menu.UserData = 1;
+
 
 
 %% Experimental Setup

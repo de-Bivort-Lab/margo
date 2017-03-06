@@ -8,8 +8,6 @@ for i = 1:nargin
             ROI_coords = varargin{i};
         case 3
             ROI_bounds = varargin{i};
-        case 4
-            mazeOri = varargin{i};
     end
 end
 
@@ -22,6 +20,7 @@ row_breaks = find([0;diff(val)>std(diff(val)*3)]);    % Find breaks between rows
 
 % find a final permutation by sorting each clustered set of y 
 % coords by their respective x coordinates
+if ~isempty(row_breaks)
 for i = 1:length(row_breaks)+1
     switch i
         case 1
@@ -44,6 +43,7 @@ for i = 1:length(row_breaks)+1
             perm_y(row_breaks(i-1):row_breaks(i)-1) = py_subset(perm_x);
     end
 end
+end
 
 % Sort ROI and center coords by the permutation vector defined
 for i = 1:nargout
@@ -54,8 +54,6 @@ for i = 1:nargout
             varargout{i} = ROI_coords(perm_y,:);
         case 3
             varargout{i} = ROI_bounds(perm_y,:);
-        case 4
-            varargout{i} = mazeOri(perm_y,:);
     end
 
 end

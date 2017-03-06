@@ -8,8 +8,8 @@ active_disp = gui_handles.display_menu.UserData;
         % raw image
         case 1         
             im_handle.CData = trackDat.im;
-            if strcmp(im_handle.CDataMapping,'scaled')
-                im_handle.CDataMapping = 'direct';
+            if strcmp(im_handle.CDataMapping,'direct')
+                im_handle.CDataMapping = 'scaled';
             end
 
         % difference image
@@ -47,8 +47,8 @@ active_disp = gui_handles.display_menu.UserData;
         case 4
             if isfield(expmt,'ref')
                 im_handle.CData = expmt.ref;
-                if strcmp(im_handle.CDataMapping,'scaled')
-                    im_handle.CDataMapping = 'direct';
+                if strcmp(im_handle.CDataMapping,'direct')
+                    im_handle.CDataMapping = 'scaled';
                 end
             else
                 gui_handles.display_menu.UserData = 1;
