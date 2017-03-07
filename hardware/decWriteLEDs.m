@@ -1,17 +1,17 @@
-function [numActive]=decWriteLEDs(LEDs,targetPWM,serialObject,permuteLEDs)
+function [numActive]=decWriteLEDs(serialObject,trackDat)
 
-LEDs=reshape(LEDs',size(LEDs,1)*3,1);
-LEDs(permuteLEDs)=LEDs;
+trackDat.LEDs=reshape(trackDat.LEDs',size(trackDat.LEDs,1)*3,1);
+trackDat.LEDs(trackDat.pLED)=trackDat.LEDs;
 
-targetPWM=ones(size(LEDs,1),1)*targetPWM;
-targetPWM(~LEDs)=0;
-targetPWM=repmat(targetPWM,1,12);
+trackDat.targetPWM=ones(size(trackDat.LEDs,1),1)*trackDat.targetPWM;
+trackDat.targetPWM(~trackDat.LEDs)=0;
+trackDat.targetPWM=repmat(trackDat.targetPWM,1,12);
 
 % Convert 12 bit PWM value to binary
-for i=2:size(targetPWM,2)
-    targetPWM(:,i)=floor(targetPWM(:,i-1)./2);
+for i=2:size(trackDat.targetPWM,2)
+    trackDat.targetPWM(:,i)=floor(trackDat.targetPWM(:,i-1)./2);
 end
-binaryConv=fliplr(mod(targetPWM,2));
+binaryConv=fliplr(mod(trackDat.targetPWM,2));
 
 % Split binary values into bytes to be sent over serial
 byte1=[zeros(size(binaryConv,1),4) binaryConv(:,1:4)];
@@ -42,7 +42,7 @@ dataString=char(dataString);                            % Convert to ASCII chara
 fwrite(serialObject,dataString(1:size(dataString,1)/2),'uchar');
 fwrite(serialObject,dataString(size(dataString,1)/2+1:end),'uchar');
 
-numActive=sum(LEDs);
+numActive=sum(trackDat.LEDs);
 
 
 

@@ -815,7 +815,7 @@ else
         case 4
             projector_slow_phototaxis;
         case 5
-            autoTracker_led;
+            expmt = run_ledymaze(expmt,handles);
         case 6
             autoTracker_arena;
         case 7

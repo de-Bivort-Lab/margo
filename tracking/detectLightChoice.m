@@ -1,15 +1,15 @@
-function lightChoice=detectLightChoice(changedArm,current_arm,LEDs)
+function lightChoice = detectLightChoice(trackDat)
 
-lightChoice=NaN(size(changedArm));
-if sum(changedArm)>0
-iShift=0:3:(sum(changedArm)-1)*3;
-turnArm=current_arm(changedArm);
-turnArm=turnArm+iShift';
-armVec=zeros(sum(changedArm)*3,1);
-armVec(turnArm)=1;
-tmpLED=LEDs(changedArm,:);
-tmpLED=reshape(tmpLED',sum(changedArm)*3,1);
-photoPos=tmpLED&armVec;
-photoPos=sum(reshape(photoPos,3,sum(changedArm))',2);
-lightChoice(changedArm)=photoPos;
+lightChoice=NaN(size(trackDat.changed_arm));
+if sum(trackDat.changed_arm)>0
+    iShift=0:3:(sum(trackDat.changed_arm)-1)*3;
+    turnArm=trackDat.prev_arm(trackDat.changed_arm);
+    turnArm=turnArm+iShift';
+    armVec=zeros(sum(trackDat.changed_arm)*3,1);
+    armVec(turnArm)=1;
+    tmpLED=trackDat.LEDs(trackDat.changed_arm,:);
+    tmpLED=reshape(tmpLED',sum(trackDat.changed_arm)*3,1);
+    photoPos=tmpLED&armVec;
+    photoPos=sum(reshape(photoPos,3,sum(trackDat.changed_arm))',2);
+    lightChoice(trackDat.changed_arm)=photoPos;
 end
