@@ -24,15 +24,11 @@ active_fields = any(hasData);                  % logical vector showing which fi
 
 if ischar(labels{1:nRows,4})
     mazeStarts=str2num(labels{1:nRows,4});
-else
-    mazeStarts=labels{1:nRows,4};
 end
 mazeStarts(isnan(mazeStarts)) = [];
 
 if ischar(labels{1:nRows,5})
     mazeEnds=str2num(labels{1:nRows,5});
-else
-    mazeEnds=labels{1:nRows,5};
 end
 
 mazeEnds(isnan(mazeEnds)) = [];
@@ -54,45 +50,20 @@ for i = 1:nRows;
     
     
     if ~isempty(labels{i,6}) && ~isempty(labels{i,7})
-        if ischar(labels{i,6})
-            f = str2num(labels{i,6});
-        else
-            f = labels{i,6};
-        end
-        if ischar(labels{i,7})
-            t = str2num(labels{i,7});
-        else
-            t = labels{i,7};
-        end
-        newLabel(mazeStarts(i):mazeEnds(i),4)=num2cell(f:t);
+        newLabel(mazeStarts(i):mazeEnds(i),4)=num2cell(str2num(labels{i,6}):str2num(labels{i,7}));
     end
     
     
     if ~isempty(labels{i,8})
-        if ischar(labels{i,8})
-            f = str2num(labels{i,8});
-        else
-            f = labels{i,8};
-        end
-        newLabel(mazeStarts(i):mazeEnds(i),5)=num2cell(repmat(f,d+1,1));
+        newLabel(mazeStarts(i):mazeEnds(i),5)=num2cell(repmat(str2num(labels{i,8}),d+1,1));
     end
     
     if ~isempty(labels{i,9})
-        if ischar(labels{i,9})
-            f = str2num(labels{i,9});
-        else
-            f = labels{i,9};
-        end
-        newLabel(mazeStarts(i):mazeEnds(i),6) = repmat({f},d+1,1);
+        newLabel(mazeStarts(i):mazeEnds(i),6) = repmat({labels{i,9}},d+1,1);
     end
     
     if ~isempty(labels{i,10})
-        if ischar(labels{i,10})
-            f = str2num(labels{i,10});
-        else
-            f = labels{i,10};
-        end
-        newLabel(mazeStarts(i):mazeEnds(i),7) = repmat({f},d+1,1);
+        newLabel(mazeStarts(i):mazeEnds(i),7) = repmat({labels{i,10}},d+1,1);
     end
     
     if ~isempty(labels{i,11})
