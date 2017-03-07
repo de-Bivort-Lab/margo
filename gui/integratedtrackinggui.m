@@ -652,7 +652,7 @@ function labels_uitable_CreateFcn(hObject, eventdata, handles)
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 
-data = cell(5,8);
+data=cell(10,11);
 data(:) = {''};
 set(hObject, 'Data', data);
 expmt.labels = data;
