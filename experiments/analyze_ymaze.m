@@ -84,7 +84,7 @@ expmt.Turns.rBias = nansum(expmt.Turns.seqence)./nansum(~isnan(expmt.Turns.seqen
 
 gui_notify('processing complete',handles.disp_note)
 
-clearvars -except handles expmt
+clearvars -except handles expmt plot_mode
 
 %% Clean up the workspace
 expmt.strain(ismember(expmt.strain,' ')) = [];
