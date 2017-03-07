@@ -350,7 +350,11 @@ if ~isempty(expmt.camInfo)
         
         % Store expmteriment data struct
         setappdata(handles.gui_fig,'expmt',expmt);
-        pause(0.5);
+        pause(0.2);
+        
+        % measure frame rate
+        [handles.gui_fig.UserData.target_rate, expmt.camInfo] = estimateFrameRate(expmt.camInfo);
+        expmt.camInfo.frame_rate = handles.gui_fig.UserData.target_rate;
         
         % adjust aspect ratio of plot to match camera
         colormap('gray');
@@ -475,12 +479,14 @@ switch get(hObject,'value')
     case 0
         if ~isempty(expmt.camInfo) && isfield(expmt.camInfo,'vid');
             stoppreview(expmt.camInfo.vid);
+            handles.hImage = imagesc(handles.axes_handle,handles.hImage.CData(:,:,2));
             set(hObject,'string','Start preview','BackgroundColor',[1 1 1]);
         end
 end
 
 % Store expmteriment data struct
 setappdata(handles.gui_fig,'expmt',expmt);
+guidata(hObject,handles);
 
 
 % --- Executes on selection change in microcontroller_popupmenu.
@@ -814,10 +820,10 @@ else
             autoTracker_arena;
         case 7
             expmt = run_ymaze(expmt,handles);
-            analyze_ymaze(expmt,handles,'plot');
+            analyze_ymaze(expmt,handles,0);
         case 8
             expmt = run_basictracking(expmt,handles);     % Run expmt
-            analyze_basictracking(expmt,handles,'plot');
+            analyze_basictracking(expmt,handles,0);
             
     end
     
@@ -838,10 +844,6 @@ else
     set(findall(handles.tracking_uipanel, '-property', 'enable'), 'enable', 'off');
     set(findall(handles.exp_uipanel, '-property', 'enable'), 'enable', 'off');
     set(findall(handles.run_uipanel, '-property', 'enable'), 'enable', 'off');
-    handles.ROI_thresh_slider.Enable = 'on';
-    handles.ROI_thresh_slider.Enable = 'on';
-    handles.auto_detect_ROIs_pushbutton.Enable = 'on';
-    handles.accept_ROI_thresh_pushbutton.Enable = 'on';
         
 end
 
@@ -1882,9 +1884,13 @@ if isfield(handles,'fig_size')
     end
 
     handles.bottom_uipanel.Position(2) = handles.bottom_uipanel.UserData(2);
-    handles.bottom_uipanel.Position(4) = handles.bottom_uipanel.UserData(4) - dh;
     handles.disp_note.Position(2) = handles.disp_note.UserData(2);
-    handles.disp_note.Position(4) = handles.disp_note.UserData(4) - dh;
+    if handles.bottom_uipanel.UserData(4) - dh > 0
+        handles.bottom_uipanel.Position(4) = handles.bottom_uipanel.UserData(4) - dh;
+    end
+    if handles.disp_note.UserData(4) - dh > 0
+            handles.disp_note.Position(4) = handles.disp_note.UserData(4) - dh;
+    end
     
     if isfield(expmt.camInfo,'vid')
 

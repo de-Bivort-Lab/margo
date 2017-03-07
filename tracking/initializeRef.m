@@ -89,7 +89,7 @@ widths=(expmt.ROI.bounds(:,3));
 heights=(expmt.ROI.bounds(:,4));
 w=median(widths);
 h=median(heights);
-gui_fig.UserData.distance_thresh=round(sqrt(w^2+h^2)/2*0.95*10)/10;
+gui_fig.UserData.distance_thresh=round(sqrt(w^2+h^2)/2*0.9*10)/10;
 
 % set min distance from previous ref locations before acquiring new ref for any given object
 min_dist = gui_fig.UserData.distance_thresh * 0.2;    

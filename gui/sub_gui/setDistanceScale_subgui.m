@@ -55,6 +55,8 @@ function setDistanceScale_subgui_OpeningFcn(hObject, eventdata, handles, varargi
 % varargin   command line arguments to setDistanceScale_subgui (see VARARGIN)
 
 handles.input = varargin{1};
+gui_fig = handles.input.gui_fig;
+gui_handles = handles.input;
 param_data = varargin{2};
 handles.output=[];
 
@@ -73,6 +75,10 @@ if isfield(param_data,'distance_scale')
     
 end
 
+handles.figure1.Position(1) = gui_fig.Position(1) + ...
+    sum(gui_handles.light_uipanel.Position([1 3])) - handles.figure1.Position(3);
+handles.figure1.Position(2) = gui_fig.Position(2) + ...
+    sum(gui_handles.light_uipanel.Position([2 4])) - handles.figure1.Position(4) - 25;
 
 % Update handles structure
 guidata(hObject, handles);
@@ -85,6 +91,8 @@ function varargout = setDistanceScale_subgui_OutputFcn(hObject, eventdata, handl
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+
 
 while ishghandle(hObject)
     pause(0.001);

@@ -63,6 +63,7 @@ handles.figure1.UserData.expmt = expmt;
 gui_fig = in_handles.gui_fig;
 
 
+
 % Set GUI strings with input parameters
 set(handles.edit_speed_thresh,'string',round(10*gui_fig.UserData.speed_thresh)/10);
 set(handles.edit_dist_thresh,'string',round(10*gui_fig.UserData.distance_thresh)/10);
@@ -71,6 +72,12 @@ set(handles.edit_vignette_sigma,'string',round(10*gui_fig.UserData.vignette_sigm
 set(handles.edit_vignette_weight,'string',round(10*gui_fig.UserData.vignette_weight)/10);
 set(handles.edit_area_min,'string',round(10*gui_fig.UserData.area_min)/10);
 set(handles.edit_area_max,'string',round(10*gui_fig.UserData.area_max)/10);
+
+
+handles.figure1.Position(1) = gui_fig.Position(1) + ...
+    sum(in_handles.light_uipanel.Position([1 3])) - handles.figure1.Position(3);
+handles.figure1.Position(2) = gui_fig.Position(2) + ...
+    sum(in_handles.light_uipanel.Position([2 4])) - handles.figure1.Position(4) - 25;
 
 % Update handles structure
 guidata(hObject, handles);
@@ -85,6 +92,8 @@ function varargout = advancedTrackingParam_subgui_OutputFcn(hObject, eventdata, 
 
 % initialize tracking vars
 trackDat.ct = 0;
+
+
 
 % get handles to main gui
 expmt = handles.figure1.UserData.expmt;
@@ -200,8 +209,8 @@ for i = 1:size(trackDat.Centroid,1)
 end
 
 % initialize rolling averages of speed and area
-roll_speed = NaN(size(trackDat.Centroid,1),30);
-roll_area = NaN(size(trackDat.Centroid,1),30);
+roll_speed = NaN(size(trackDat.Centroid,1),500);
+roll_area = NaN(size(trackDat.Centroid,1),500);
 
 % initialize timer
 tic
@@ -282,7 +291,9 @@ while ishghandle(hObject) && display
             if isnan(round(nanmean(roll_speed(i,:))*10)/10)
                 spdText(i).String = '';
             else
-                spdText(i).String = num2str(round(nanmean(roll_speed(i,:))*10)/10);
+                u = num2str(round(nanmean(roll_speed(i,:))*10)/10);
+                st_dev = num2str(round(nanstd(roll_speed(i,:))*10)/10);
+                spdText(i).String = [u ' ' char(177) ' ' st_dev];
             end
         end
 
@@ -391,7 +402,9 @@ while ishghandle(hObject) && display
             if isnan(round(nanmean(roll_area(i,:))*10)/10)
                 areaText(i).String = '';
             else
-                areaText(i).String = num2str(round(nanmean(roll_area(i,:))*10)/10);
+                u = num2str(round(nanmean(roll_area(i,:))*10)/10);
+                st_dev = num2str(round(nanstd(roll_area(i,:))*10)/10);
+                areaText(i).String = [u ' ' char(177) ' ' st_dev];
             end
         end
 
