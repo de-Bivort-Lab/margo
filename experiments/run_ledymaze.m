@@ -25,7 +25,8 @@ set(gui_handles.display_menu.Children,'Checked','off');
 set(gui_handles.display_raw_menu,'Checked','on');
 gui_handles.display_menu.UserData = 1;
 
-
+% update notifcations log
+gui_notify(['executing ' mfilename '.m'],gui_handles.disp_note);
 
 %% Experimental Setup
 
