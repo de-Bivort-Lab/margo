@@ -65,8 +65,7 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
 
         % Match centroids to last known centroid positions
         [permutation,update] = ...
-            matchCentroids2ROIs(raw_cen,trackDat.Centroid,expmt,gui_handles.gui_fig.UserData.distance_thresh);
-
+            matchCentroids2ROIs(raw_cen,trackDat.Centroid,expmt,gui_handles);
 
         % Apply speed threshold to centroid tracking
         speed = NaN(size(update));

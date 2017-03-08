@@ -22,7 +22,7 @@ function varargout = advancedTrackingParam_subgui(varargin)
 
 % Edit the above text to modify the response to help advancedTrackingParam_subgui
 
-% Last Modified by GUIDE v2.5 04-Feb-2017 13:30:38
+% Last Modified by GUIDE v2.5 08-Mar-2017 12:09:42
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -72,6 +72,9 @@ set(handles.edit_vignette_sigma,'string',round(10*gui_fig.UserData.vignette_sigm
 set(handles.edit_vignette_weight,'string',round(10*gui_fig.UserData.vignette_weight)/10);
 set(handles.edit_area_min,'string',round(10*gui_fig.UserData.area_min)/10);
 set(handles.edit_area_max,'string',round(10*gui_fig.UserData.area_max)/10);
+
+activemode = find(strcmp(gui_fig.UserData.sort_mode,handles.sort_mode_popupmenu.String));
+handles.sort_mode_popupmenu.Value = activemode;
 
 
 handles.figure1.Position(1) = gui_fig.Position(1) + ...
@@ -139,7 +142,7 @@ if strcmp(expmt.source,'camera')
     display = true;
 elseif strcmp(expmt.source,'video') 
     
-    if isfield(expmt.video,'fID')
+    if isfield(expmt,'video') && isfield(expmt.video,'fID')
         
         % ensure that the current position of the file is set to 
         % the beginning of the file (bof) + an offset of 32 bytes
@@ -734,3 +737,28 @@ function area_radiobutton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of area_radiobutton
+
+
+% --- Executes on selection change in sort_mode_popupmenu.
+function sort_mode_popupmenu_Callback(hObject, eventdata, handles)
+% hObject    handle to sort_mode_popupmenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+gui_fig = handles.figure1.UserData.gui_handles.gui_fig;
+
+gui_fig.UserData.sort_mode = hObject.String{hObject.Value};
+guidata(hObject,handles);
+
+
+% --- Executes during object creation, after setting all properties.
+function sort_mode_popupmenu_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to sort_mode_popupmenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end

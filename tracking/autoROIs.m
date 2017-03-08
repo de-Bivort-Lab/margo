@@ -130,9 +130,6 @@ while stop~=1;
    % detect assymetry about vertical axis
     mazeOri = getMazeOrientation(binaryimage,ROI_coords);
 
-    % Report number of ROIs detected to GUI
-    set(gui_handles.edit_object_num,'String',num2str(size(ROI_bounds,1)));
-
     % Display ROIs
     imh.CData = binaryimage;
     hold on

@@ -183,7 +183,7 @@ handles.gui_fig.UserData.vignette_sigma = 0.47;
 handles.gui_fig.UserData.vignette_weight = 0.35;
 handles.gui_fig.UserData.area_min = 4;
 handles.gui_fig.UserData.area_max = 300;
-handles.gui_fig.UserData.sort_mode = 'distance';
+handles.gui_fig.UserData
 
 % save values to expmt master struct
 expmt.parameters.speed_thresh = handles.gui_fig.UserData.speed_thresh;
@@ -197,7 +197,6 @@ expmt.parameters.ref_freq = str2num(get(handles.edit_ref_freq,'String'));
 expmt.parameters.duration = str2num(get(handles.edit_exp_duration,'String'));
 expmt.parameters.ROI_thresh = num2str(round(handles.ROI_thresh_slider.Value));
 expmt.parameters.track_thresh = num2str(round(handles.track_thresh_slider.Value));
-expmt.parameters.sort_mode = 'distance';
 
 expmt.parameters.mm_per_pix = 1;            % set default distance scale 1 mm per pixel
 expmt.parameters.units = 'pixels';          % set default units to pixels

@@ -74,9 +74,6 @@ function [varargout]=matchCentroids2ROIs(raw_cen,trackDat,expmt,gui_handles)
 %               its matched coordinate in C2.
 %
 
-% get user data from gui
-udat = gui_handles.gui_fig.UserData;
-
 % Define placeholder data variables equal to number ROIs
 tempCenDat=NaN(size(trackDat.Centroid,1),2);
 
@@ -105,16 +102,16 @@ update_centroid = logical(zeros(size(trackDat.Centroid,1),1));
     % For the centroids j, calculate speed and distance to ROI center for thresholding
     if size(raw_cen,1)>0 
         
-        if strcmp(udat.sort_mode,'distance')
+        if strcmp(gui_handles.gui_fig.UserData.sort_mode,'distance')
             % Calculate distance to known landmark such as the ROI center
             secondary_distance=abs(sqrt(dot(raw_cen(j,:)'-expmt.ROI.centers',expmt.ROI.centers'-raw_cen(j,:)')))';
 
             % Exclude centroids that move too fast or are too far from the ROI center
             % corresponding to the previous centroid each item in j, was matched with
-            mismatch = secondary_distance .* expmt.parameters.mm_per_pix > udat.distance_thresh;
+            mismatch = secondary_distance .* vars.mmpx >vars.dist_thresh;
             j(mismatch)=NaN;
             primary_distance(mismatch)=NaN;
-        elseif strcmp(udat.sort_mode,'bounds')
+        elseif strcmp(gui_handles.gui_fig.UserData.sort_mode,'bounds')
             
         end
 
