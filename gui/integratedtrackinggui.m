@@ -129,6 +129,7 @@ end
 % Attempt handshake with light panel teensy
 [expmt.COM,handles.aux_COM_list] = identifyMicrocontrollers;
 
+
 % Update GUI menus with port names
 set(handles.microcontroller_popupmenu,'string',expmt.COM);
 
@@ -156,8 +157,8 @@ for i = 1:length(hParent.Children)
 end
 delete(hParent.Children(del));
 
-if isfield(expmt,'AUX_COM')
-    expmt = rmfield(expmt,'AUX_COM');
+if ~isempty(handles.aux_COM_list)
+    expmt.AUX_COM = handles.aux_COM_list(1);
 end
         
 % generate controls for new list
@@ -166,6 +167,7 @@ for i = 1:length(handles.aux_COM_list)
         'Callback',@aux_com_list_Callback);
     if i ==1
         menu_items(i).Separator = 'on';
+        menu_items(i).Checked = 'on';
     end
 end
 
@@ -798,6 +800,8 @@ function pushbutton6_Callback(hObject, eventdata, handles)
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 
+keep_gui_state = false;
+
 if isfield(expmt, 'fpath') == 0 
     errordlg('Please specify Save Location')
 elseif ~isfield(expmt, 'camInfo')
@@ -839,13 +843,13 @@ else
             'noise statistics, and labels have been reset.']);
         note = 'ROIs, references, and noise statistics reset';
         gui_notify(note,handles.disp_note);
-    end
 
-    % set downstream UI panel enable status
-    handles.tracking_uipanel.ForegroundColor = [0 0 0];
-    set(findall(handles.tracking_uipanel, '-property', 'enable'), 'enable', 'off');
-    set(findall(handles.exp_uipanel, '-property', 'enable'), 'enable', 'off');
-    set(findall(handles.run_uipanel, '-property', 'enable'), 'enable', 'off');
+        % set downstream UI panel enable status
+        handles.tracking_uipanel.ForegroundColor = [0 0 0];
+        set(findall(handles.tracking_uipanel, '-property', 'enable'), 'enable', 'off');
+        set(findall(handles.exp_uipanel, '-property', 'enable'), 'enable', 'off');
+        set(findall(handles.run_uipanel, '-property', 'enable'), 'enable', 'off');
+    end
         
 end
 

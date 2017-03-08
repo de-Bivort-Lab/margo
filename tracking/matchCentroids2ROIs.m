@@ -81,7 +81,7 @@ udat = gui_handles.gui_fig.UserData;
 tempCenDat=NaN(size(trackDat.Centroid,1),2);
 
 % Initialize temporary centroid variables
-tempCenDat(1:size(vars.cenDat,1),:)=raw_cen;
+tempCenDat(1:size(raw_cen,1),:)=raw_cen;
 
 % Find nearest Last Known Centroid for each current centroid
 % Replicate temp centroid data into dimensions compatible with dot product
