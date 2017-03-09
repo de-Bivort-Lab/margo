@@ -2,7 +2,7 @@ function LEDs = updateLEDs(trackDat)
 
 % Randomly select a new LED to turn on
 LEDs = trackDat.LEDs;
-if sum(trackDat.changed_arm)>0
+if any(trackDat.changed_arm)
     iShift=0:3:(sum(trackDat.changed_arm)-1)*3;
     trackDat.Turns=trackDat.Turns(trackDat.changed_arm)';
     trackDat.Turns=trackDat.Turns+iShift;                     % Convert arm to index #

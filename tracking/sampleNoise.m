@@ -117,7 +117,8 @@ while trackDat.ct < pixDistSize;
 
        % Create distribution for num pixels above imageThresh
        % Image statistics used later during acquisition to detect noise
-       pixelDist(mod(trackDat.ct,pixDistSize)+1) = nansum(nansum(trackDat.im > gui_handles.track_thresh_slider.Value));
+       diffim = (expmt.ref - expmt.vignette.im) - (trackDat.im - expmt.vignette.im);
+       pixelDist(mod(trackDat.ct,pixDistSize)+1) = nansum(nansum(diffim > gui_handles.track_thresh_slider.Value));
    
 end
 

@@ -145,7 +145,7 @@ update_centroid = logical(zeros(size(trackDat.Centroid,1),1));
         g=sqrt(dot((c-tD),(tD-c),2));
         g=abs(g);
         [~,k]=min(g);
-        exclude = dCen(~ismember(dCen,dCen(k(dROI))));
+        exclude = dCen(~ismember(dCen,k(dROI)));
         j(exclude) = NaN;
         
                 
@@ -153,7 +153,7 @@ update_centroid = logical(zeros(size(trackDat.Centroid,1),1));
         % Get sorting vectors
         [v,sorting_permutation]=sort(j);
         sorting_permutation(isnan(v))=[];
-        update_centroid(j(~isnan(j))) = true;
+        update_centroid(j(~isnan(j))) = 1;
 
     end
     

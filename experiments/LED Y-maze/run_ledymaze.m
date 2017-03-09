@@ -192,16 +192,14 @@ while trackDat.t < gui_handles.edit_exp_duration.Value * 3600 && ~lastFrame
     % Detect choice with respect to the light
     trackDat.LightChoice = detectLightChoice(trackDat);
 
-    % Choose a new LED for flies that just made a turn
+    
     if any(trackDat.changed_arm)
-        trackDat.LEDs = updateLEDs(trackDat);
+        trackDat.LEDs = updateLEDs(trackDat);               % Choose a new LED for flies that just made a turn
+        numActive = decWriteLEDs(serial_obj,trackDat);      % Write new LED values to teensy
     end
 
-    % Write new LED values to teensy
-    if any(trackDat.LEDs ~= prev_LEDs)
-        numActive = decWriteLEDs(serial_obj,trackDat);
-        prev_LEDs = trackDat.LEDs;
-    end
+    
+
 
     % output data to binary files
     for i = 1:length(trackDat.fields)
