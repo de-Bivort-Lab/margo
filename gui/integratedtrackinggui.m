@@ -821,12 +821,18 @@ else
         case 4
             projector_slow_phototaxis;
         case 5
-            expmt = run_ledymaze(expmt,handles);
+            if ~isfield(expmt,'AUX_COM') || isempty(expmt.AUX_COM)
+                errordlg('No aux COM assigned for LED Y-maze');
+                keep_gui_state = true;
+            else
+                expmt = run_ledymaze(expmt,handles);
+            end
         case 6
-            autoTracker_arena;
+            expmt = run_arenacircling(expmt,gui_handles);
+            analyze_arenacircling(expmt,gui_handles);
         case 7
             expmt = run_ymaze(expmt,handles);
-            analyze_ymaze(expmt,handles,0);
+            analyze_ymaze(expmt,handles);
         case 8
             expmt = run_basictracking(expmt,handles);     % Run expmt
             analyze_basictracking(expmt,handles,0);
@@ -834,7 +840,7 @@ else
     end
     
     % remove saved rois, images, and noise statistics from prev experiment
-    if isfield(expmt,'ROI')
+    if isfield(expmt,'ROI') && ~keep_gui_state
         expmt = rmfield(expmt,'ROI');
         expmt = rmfield(expmt,'ref');
         expmt = rmfield(expmt,'noise');
@@ -2007,13 +2013,15 @@ if isfield(expmt,'video')
             handles.gui_fig.Position(3) = ...
                 sum(handles.axes_handle.Position([1 3])) + 10;
         end       
+        
+        if isfield(expmt.video,'fID')
+            handles.hImage.CDataMapping = 'scaled';
+        else
+            handles.hImage.CDataMapping = 'direct'; 
+        end
     end
     
-    if isfield(expmt.video,'fID')
-        handles.hImage.CDataMapping = 'scaled';
-    else
-        handles.hImage.CDataMapping = 'direct'; 
-    end
+
     
     % stream frames to the axes until the preview button is unticked
     ct=0;
@@ -2423,6 +2431,8 @@ if ~isempty(instrfindall)
     fclose(instrfindall);           % Make sure that the COM port is closed
     delete(instrfindall);           % Delete any serial objects in memory
 end
+
+expmt = getappdata(handles.gui_fig,'expmt');                    % load master data struct
 
 % Attempt handshake with light panel teensy
 [expmt.COM,handles.aux_COM_list] = identifyMicrocontrollers;

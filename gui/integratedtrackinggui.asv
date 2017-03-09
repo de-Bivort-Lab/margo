@@ -129,6 +129,7 @@ end
 % Attempt handshake with light panel teensy
 [expmt.COM,handles.aux_COM_list] = identifyMicrocontrollers;
 
+
 % Update GUI menus with port names
 set(handles.microcontroller_popupmenu,'string',expmt.COM);
 
@@ -156,8 +157,8 @@ for i = 1:length(hParent.Children)
 end
 delete(hParent.Children(del));
 
-if isfield(expmt,'AUX_COM')
-    expmt = rmfield(expmt,'AUX_COM');
+if ~isempty(handles.aux_COM_list)
+    expmt.AUX_COM = handles.aux_COM_list(1);
 end
         
 % generate controls for new list
@@ -166,6 +167,7 @@ for i = 1:length(handles.aux_COM_list)
         'Callback',@aux_com_list_Callback);
     if i ==1
         menu_items(i).Separator = 'on';
+        menu_items(i).Checked = 'on';
     end
 end
 
@@ -183,7 +185,7 @@ handles.gui_fig.UserData.vignette_sigma = 0.47;
 handles.gui_fig.UserData.vignette_weight = 0.35;
 handles.gui_fig.UserData.area_min = 4;
 handles.gui_fig.UserData.area_max = 300;
-handles.gui_fig.UserData
+handles.gui_fig.UserData.sort_mode = 'distance';
 
 % save values to expmt master struct
 expmt.parameters.speed_thresh = handles.gui_fig.UserData.speed_thresh;
@@ -197,6 +199,7 @@ expmt.parameters.ref_freq = str2num(get(handles.edit_ref_freq,'String'));
 expmt.parameters.duration = str2num(get(handles.edit_exp_duration,'String'));
 expmt.parameters.ROI_thresh = num2str(round(handles.ROI_thresh_slider.Value));
 expmt.parameters.track_thresh = num2str(round(handles.track_thresh_slider.Value));
+expmt.parameters.sort_mode = 'distance';
 
 expmt.parameters.mm_per_pix = 1;            % set default distance scale 1 mm per pixel
 expmt.parameters.units = 'pixels';          % set default units to pixels
@@ -797,6 +800,8 @@ function pushbutton6_Callback(hObject, eventdata, handles)
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 
+keep_gui_state = false;
+
 if isfield(expmt, 'fpath') == 0 
     errordlg('Please specify Save Location')
 elseif ~isfield(expmt, 'camInfo')
@@ -816,7 +821,12 @@ else
         case 4
             projector_slow_phototaxis;
         case 5
-            expmt = run_ledymaze(expmt,handles);
+            if ~isfield(expmt,'AUX_COM') || isempty(expmt.AUX_COM)
+                errordlg('No aux COM assigned for LED Y-maze');
+                keep_gui_state = true;
+            else
+                expmt = run_ledymaze(expmt,handles);
+            end
         case 6
             autoTracker_arena;
         case 7
@@ -829,7 +839,7 @@ else
     end
     
     % remove saved rois, images, and noise statistics from prev experiment
-    if isfield(expmt,'ROI')
+    if isfield(expmt,'ROI') || ~keep_gui_state
         expmt = rmfield(expmt,'ROI');
         expmt = rmfield(expmt,'ref');
         expmt = rmfield(expmt,'noise');
@@ -838,13 +848,13 @@ else
             'noise statistics, and labels have been reset.']);
         note = 'ROIs, references, and noise statistics reset';
         gui_notify(note,handles.disp_note);
-    end
 
-    % set downstream UI panel enable status
-    handles.tracking_uipanel.ForegroundColor = [0 0 0];
-    set(findall(handles.tracking_uipanel, '-property', 'enable'), 'enable', 'off');
-    set(findall(handles.exp_uipanel, '-property', 'enable'), 'enable', 'off');
-    set(findall(handles.run_uipanel, '-property', 'enable'), 'enable', 'off');
+        % set downstream UI panel enable status
+        handles.tracking_uipanel.ForegroundColor = [0 0 0];
+        set(findall(handles.tracking_uipanel, '-property', 'enable'), 'enable', 'off');
+        set(findall(handles.exp_uipanel, '-property', 'enable'), 'enable', 'off');
+        set(findall(handles.run_uipanel, '-property', 'enable'), 'enable', 'off');
+    end
         
 end
 
@@ -2418,6 +2428,8 @@ if ~isempty(instrfindall)
     fclose(instrfindall);           % Make sure that the COM port is closed
     delete(instrfindall);           % Delete any serial objects in memory
 end
+
+expmt = getappdata(handles.gui_fig,'expmt');                    % load master data struct
 
 % Attempt handshake with light panel teensy
 [expmt.COM,handles.aux_COM_list] = identifyMicrocontrollers;

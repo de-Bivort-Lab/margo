@@ -1,6 +1,19 @@
 function [trackDat,expmt] = autoInitialize(trackDat,expmt,gui_handles)
 
+%% Initialize tracking variables
+
+trackDat.Centroid=expmt.ROI.centers;                        % last known centroid of the object in each ROI 
+trackDat.tStamp = zeros(size(expmt.ROI.centers(:,1),1),1);  % time stamps of centroid updates
+trackDat.t = 0;                                             % time elapsed, initialize to zero
+trackDat.ct = 0;                                            % frame count
+trackDat.drop_ct = zeros(size(expmt.ROI.centers(:,1),1),1); % number of frames dropped for each obj
+trackDat.t_ref = 0;                                         % time elapsed since last reference image
+trackDat.ref_ct = 0;                                        % num references taken
+trackDat.px_dist = zeros(10,1);                             % distribution of pixels over threshold  
+trackDat.pix_dev = zeros(10,1);                             % stdev of pixels over threshold
+
 %% Initialize labels, file paths, and files for tracked fields
+
 expmt.date = datestr(clock,'mm-dd-yyyy-HH-MM-SS_');         % get date string
 expmt.labels = labelMaker(expmt);                           % convert labels cell into table format
 expmt.strain=expmt.labels{1,1}{:};                          % get strain string

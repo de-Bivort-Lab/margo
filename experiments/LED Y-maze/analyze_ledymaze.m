@@ -1,4 +1,4 @@
-function analyze_ledymaze(expmt,handles,plot_mode)
+function expmt = analyze_ledymaze(expmt, varargin)
 %
 % This function provides a sample analysis function to run after the
 % sample bare-bones template 'experimental_template.m'. It takes the
@@ -6,9 +6,21 @@ function analyze_ledymaze(expmt,handles,plot_mode)
 % to extract features and store them to file. This sample also shows how to
 % automatically zip the raw data files after analysis to reduce file size.
 
+%% parse inputs
+
+for i = 1:length(varargin)
+    if ischar(varargin{i})
+        plot_mode = varargin{i};
+    else
+        handles = varargin{i};
+    end
+end
+
 %% Pull in ASCII data, format into vectors/matrices
 
-gui_notify('importing and processing data...',handles.disp_note)
+if exist('handles','var')
+    gui_notify('importing and processing data...',handles.disp_note);
+end
 
 expmt.nTracks = size(expmt.ROI.centers,1);
 
@@ -82,7 +94,9 @@ end
 % Calculate right turn probability from tSeq
 expmt.Turns.rBias = nansum(expmt.Turns.seqence)./nansum(~isnan(expmt.Turns.seqence));
 
-gui_notify('processing complete',handles.disp_note)
+if exist('handles','var')
+    gui_notify('processing complete',handles.disp_note);
+end
 
 clearvars -except handles expmt plot_mode
 
@@ -94,11 +108,14 @@ expmt.LightChoice.pBias = sum(expmt.LightChoice.data==1,2)./expmt.LightChoice.n;
 %% Clean up the workspace
 expmt.strain(ismember(expmt.strain,' ')) = [];
 save([expmt.fdir expmt.date expmt.Name '_' expmt.strain '_' expmt.treatment '.mat'],'expmt');
-gui_notify('processed data saved to file',handles.disp_note)
+
+if exist('handles','var')
+    gui_notify('processed data saved to file',handles.disp_note);
+end
 
 %% Create histogram plots of turn bias and light choice probability
 
-if strcmp(plot_mode,'plot')
+if exist('plot_mode','var') && strcmp(plot_mode,'plot')
     
     inc=0.05;
     bins=-inc/2:inc:1+inc/2;   % Bins centered from 0 to 1 
@@ -143,7 +160,10 @@ for i = 1:length(open_IDs)
     fclose(open_IDs(i));
 end
 
-gui_notify('zipping raw data',handles.disp_note)
+if exist('handles','var')
+    gui_notify('zipping raw data',handles.disp_note);
+end
+
 flist = [];
 for i = 1:length(expmt.fields)
     f = expmt.fields{i};

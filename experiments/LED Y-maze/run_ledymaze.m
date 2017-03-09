@@ -36,16 +36,7 @@ ref_stack = repmat(expmt.ref, 1, 1, ...
 nROIs = size(expmt.ROI.centers,1);                          % number of ROIs
 
 % Initialize tracking variables
-trackDat.Centroid=expmt.ROI.centers;                        % last known centroid of the object in each ROI 
 trackDat.fields={'Centroid';'Time';'Turns';'LightChoice'};  % properties of the tracked objects to be recorded
-trackDat.tStamp = zeros(size(expmt.ROI.centers(:,1),1),1);  % time stamps of centroid updates
-trackDat.t = 0;                                             % time elapsed, initialize to zero
-trackDat.ct = 0;                                            % frame count
-trackDat.drop_ct = zeros(size(expmt.ROI.centers(:,1),1),1); % number of frames dropped for each obj
-trackDat.t_ref = 0;                                         % time elapsed since last reference image
-trackDat.ref_ct = 0;                                        % num references taken
-trackDat.px_dist = zeros(10,1);                             % distribution of pixels over threshold  
-trackDat.pix_dev = zeros(10,1);                             % stdev of pixels over threshold
 
 % initialize labels, files, and cam/video
 [trackDat,expmt] = autoInitialize(trackDat,expmt,gui_handles);
@@ -138,10 +129,11 @@ trackDat.targetPWM = 4095;      % Sets the max PWM for LEDs
 for i=1:6
     trackDat.LEDs = ones(nROIs,3).*mod(i,2);              
     decWriteLEDs(serial_obj,trackDat);
-    pause(0.5);
+    pause(0.2);
 end
 
 trackDat.LEDs = logical(ones(nROIs,3));     % Initialize LEDs to ON
+prev_LEDs = trackDat.LEDs;
 
 %% Main Experimental Loop
 
@@ -201,10 +193,15 @@ while trackDat.t < gui_handles.edit_exp_duration.Value * 3600 && ~lastFrame
     trackDat.LightChoice = detectLightChoice(trackDat);
 
     % Choose a new LED for flies that just made a turn
-    trackDat.LEDs = updateLEDs(trackDat);
+    if any(trackDat.changed_arm)
+        trackDat.LEDs = updateLEDs(trackDat);
+    end
 
     % Write new LED values to teensy
-    numActive = decWriteLEDs(serial_obj,trackDat);
+    if any(trackDat.LEDs ~= prev_LEDs)
+        numActive = decWriteLEDs(serial_obj,trackDat);
+        prev_LEDs = trackDat.LEDs;
+    end
 
     % output data to binary files
     for i = 1:length(trackDat.fields)

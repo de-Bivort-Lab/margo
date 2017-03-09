@@ -1,4 +1,4 @@
-function analyze_basictracking(expmt,handles,plot_mode)
+function expmt = analyze_basictracking(expmt,varargin)
 %
 % This function provides a sample analysis function to run after the
 % sample bare-bones template 'experimental_template.m'. It takes the
@@ -6,9 +6,21 @@ function analyze_basictracking(expmt,handles,plot_mode)
 % to extract features and store them to file. This sample also shows how to
 % automatically zip the raw data files after analysis to reduce file size.
 
+%% parse inputs
+
+for i = 1:length(varargin)
+    if ischar(varargin{i})
+        plot_mode = varargin{i};
+    else
+        handles = varargin{i};
+    end
+end
+
 %% Pull in ASCII data, format into vectors/matrices
 
-gui_notify('importing and processing data...',handles.disp_note)
+if exist('handles','var')
+    gui_notify('importing and processing data...',handles.disp_note)
+end
 
 expmt.nTracks = size(expmt.ROI.centers,1);
 
@@ -50,18 +62,27 @@ end
 % handedness for each track. Resulting handedness scores are stored in
 % the master data struct.
 [expmt,trackProps] = processCentroid(expmt);
-gui_notify('processing complete',handles.disp_note)
+
+if exist('handles','var')
+    gui_notify('processing complete',handles.disp_note)
+end
 
 clearvars -except handles expmt
 
 %% Clean up the workspace
 expmt.strain(ismember(expmt.strain,' ')) = [];
 save([expmt.fdir expmt.date expmt.Name '_' expmt.strain '_' expmt.treatment '.mat'],'expmt');
-gui_notify('processed data saved to file',handles.disp_note)
+
+if exist('handles','var')
+    gui_notify('processed data saved to file',handles.disp_note)
+end
+
 %% Generate plots
 
-if strcmp(plot_mode,'plot')
-    gui_notify('generating plots',handles.disp_note)
+if exist('plot_mode','var') && strcmp(plot_mode,'plot')
+    if exist('handles','var')
+        gui_notify('generating plots',handles.disp_note)
+    end
     plotArenaTraces(expmt);
 end
 
@@ -72,7 +93,10 @@ for i = 1:length(open_IDs)
     fclose(open_IDs(i));
 end
 
-gui_notify('zipping raw data',handles.disp_note)
+if exist('handles','var')
+    gui_notify('zipping raw data',handles.disp_note)
+end
+
 flist = [];
 for i = 1:length(expmt.fields)
     f = expmt.fields{i};

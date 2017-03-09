@@ -1,4 +1,4 @@
-function [varargout]=matchCentroids2ROIs(raw_cen,trackDat,expmt,gui_handles)
+function [varargout] = sortCentroids(raw_cen,trackDat,expmt,gui_handles)
 
 %   SORT CENTROID COORDINATES BASED ON DISTANCE TO KNOWN REFERENCE COORDINATES
 %   This function sorts centroid coordinates based on the pairwise distance to one or two 
@@ -74,11 +74,14 @@ function [varargout]=matchCentroids2ROIs(raw_cen,trackDat,expmt,gui_handles)
 %               its matched coordinate in C2.
 %
 
+% get user data from gui
+udat = gui_handles.gui_fig.UserData;
+
 % Define placeholder data variables equal to number ROIs
 tempCenDat=NaN(size(trackDat.Centroid,1),2);
 
 % Initialize temporary centroid variables
-tempCenDat(1:size(vars.cenDat,1),:)=raw_cen;
+tempCenDat(1:size(raw_cen,1),:)=raw_cen;
 
 % Find nearest Last Known Centroid for each current centroid
 % Replicate temp centroid data into dimensions compatible with dot product
@@ -93,7 +96,10 @@ g=abs(g);
 
 % Returns minimum distance to each previous centroid and the indces (j)
 % Of the temp centroid with that distance
-[primary_distance,j]=min(g);
+%[primary_distance,j] = min(g);
+[primary_distance,j] = min(g,[],3);
+j(isnan(primary_distance)) = NaN;
+include = find(~isnan(j));
 
 % Initialize empty placeholders for permutation and inclusion vectors
 sorting_permutation=[];
@@ -102,40 +108,53 @@ update_centroid = logical(zeros(size(trackDat.Centroid,1),1));
     % For the centroids j, calculate speed and distance to ROI center for thresholding
     if size(raw_cen,1)>0 
         
-        if strcmp(gui_handles.gui_fig.UserData.sort_mode,'distance')
+        if strcmp(udat.sort_mode,'distance')
+            
             % Calculate distance to known landmark such as the ROI center
-            secondary_distance=abs(sqrt(dot(raw_cen(j,:)'-expmt.ROI.centers',expmt.ROI.centers'-raw_cen(j,:)')))';
+            secondary_distance = abs(sqrt(dot(raw_cen(include,:)'-expmt.ROI.centers(j(include),:)',...
+                expmt.ROI.centers(j(include),:)'-raw_cen(include,:)')))';
 
             % Exclude centroids that move too fast or are too far from the ROI center
             % corresponding to the previous centroid each item in j, was matched with
-            mismatch = secondary_distance .* vars.mmpx >vars.dist_thresh;
+            mismatch = secondary_distance .* expmt.parameters.mm_per_pix > udat.distance_thresh;
             j(mismatch)=NaN;
             primary_distance(mismatch)=NaN;
-        elseif strcmp(gui_handles.gui_fig.UserData.sort_mode,'bounds')
+            
+        elseif strcmp(udat.sort_mode,'bounds')
+            
+            x_bounded = raw_cen(include,1) > expmt.ROI.bounds(j(include),1) &...
+                raw_cen(include,1) < sum(expmt.ROI.bounds(j(include),[1 3]),2);
+            y_bounded = raw_cen(include,2) > expmt.ROI.bounds(j(include),2) &...
+                raw_cen(include,2) < sum(expmt.ROI.bounds(j(include),[2 4]),2);
+            in_bounds = x_bounded & y_bounded;
+            j(include(~in_bounds)) = NaN;
             
         end
 
         % If the same ROI is matched to more than one coordinate, find the nearest
         % one and exclude the others
         u=unique(j(~isnan(j)));                                         % Extract the unique values of the ROIs
-        duplicateCen=u(squeeze(histc(j,u))>1);
-        duplicateROIs=find(ismember(j,u(squeeze(histc(j,u))>1)));       % Find the indices of duplicate ROIs
+        dROI=u(squeeze(histc(j,u))>1);
+        dCen=find(ismember(j,u(squeeze(histc(j,u))>1)));       % Find the indices of duplicate ROIs
 
         % Calculate pairwise distances between duplicate ROIs and temp centroids
         % using the same method above
-        tD=repmat(tempCenDat(duplicateCen,:),1,1,size(trackDat.Centroid,1));
-        c=repmat(trackDat.Centroid,1,1,size(tempCenDat(duplicateCen,:),1));
+        tD=repmat(tempCenDat(dCen,:),1,1,size(trackDat.Centroid,1));
+        c=repmat(trackDat.Centroid,1,1,size(tempCenDat(dCen,:),1));
         c=permute(c,[3 2 1]);
         g=sqrt(dot((c-tD),(tD-c),2));
         g=abs(g);
-        [~,k]=min(g,[],3);
-        j(duplicateROIs)=NaN;
-        j(k)=duplicateCen;
+        [~,k]=min(g);
+        exclude = dCen(~ismember(dCen,dCen(k(dROI))));
+        j(exclude) = NaN;
+        
+                
 
-        % Update last known centroid and orientations
-        sorting_permutation = j(~isnan(j));
-        sorting_permutation = squeeze(sorting_permutation);
-        update_centroid=~isnan(j);
+        % Get sorting vectors
+        [v,sorting_permutation]=sort(j);
+        sorting_permutation(isnan(v))=[];
+        update_centroid(j(~isnan(j))) = true;
+
     end
     
     out{1} = sorting_permutation;

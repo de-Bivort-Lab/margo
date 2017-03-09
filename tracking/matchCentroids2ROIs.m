@@ -115,7 +115,10 @@ update_centroid = logical(zeros(size(trackDat.Centroid,1),1));
             j(mismatch)=NaN;
             primary_distance(mismatch)=NaN;
         elseif strcmp(udat.sort_mode,'bounds')
-            
+            x_bounded = raw_cen(j,1) > expmt.ROI.bounds(:,1) & raw_cen(j,1) < sum(expmt.ROI.bounds(:,[1 3]),2);
+            y_bounded = raw_cen(j,2) > expmt.ROI.bounds(:,2) & raw_cen(j,2) < sum(expmt.ROI.bounds(:,[2 4]),2);
+            in_bounds = x_bounded & y_bounded;
+            j(~in_bounds) = NaN;
         end
 
         % If the same ROI is matched to more than one coordinate, find the nearest
