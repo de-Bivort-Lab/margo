@@ -11,7 +11,6 @@ cmd_str = 'wmic process where name="MATLAB.exe" CALL setpriority 128';
 exp = getappdata(handles.figure1,'expData');
 
 % Experimental parameters
-
 exp.duration=exp.duration*60;
 referenceStackSize=exp.ref_stack_size;                  % Number of images to keep in rolling reference
 referenceFreq=exp.ref_freq;                             % Seconds between reference images
