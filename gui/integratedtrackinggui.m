@@ -2588,8 +2588,8 @@ function edit_dist_thresh_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-handles.gui_fig.UserData.distance_thresh = num2str(hObject.String);
-guidata(hObject.handles);
+handles.gui_fig.UserData.distance_thresh = str2num(hObject.String);
+guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -2611,8 +2611,8 @@ function edit_speed_thresh_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-handles.gui_fig.UserData.speed_thresh = num2str(hObject.String);
-guidata(hObject.handles);
+handles.gui_fig.UserData.speed_thresh = str2num(hObject.String);
+guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.
