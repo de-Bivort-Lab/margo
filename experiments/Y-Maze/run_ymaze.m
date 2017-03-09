@@ -35,16 +35,7 @@ ref_stack = repmat(expmt.ref, 1, 1, ...
 nROIs = size(expmt.ROI.centers,1);                          % number of ROIs
 
 % Initialize tracking variables
-trackDat.Centroid=expmt.ROI.centers;                        % last known centroid of the object in each ROI 
 trackDat.fields={'Centroid';'Time';'Turns'};                % properties of the tracked objects to be recorded
-trackDat.tStamp = zeros(size(expmt.ROI.centers(:,1),1),1);  % time stamps of centroid updates
-trackDat.t = 0;                                             % time elapsed, initialize to zero
-trackDat.ct = 0;                                            % frame count
-trackDat.drop_ct = zeros(size(expmt.ROI.centers(:,1),1),1); % number of frames dropped for each obj
-trackDat.t_ref = 0;                                         % time elapsed since last reference image
-trackDat.ref_ct = 0;                                        % num references taken
-trackDat.px_dist = zeros(10,1);                             % distribution of pixels over threshold  
-trackDat.pix_dev = zeros(10,1);                             % stdev of pixels over threshold
 
 % initialize labels, files, and cam/video
 [trackDat,expmt] = autoInitialize(trackDat,expmt,gui_handles);
@@ -171,7 +162,7 @@ while trackDat.t < gui_handles.edit_exp_duration.Value * 3600 && ~lastFrame
     % listen for gui pause/unpause
     while gui_handles.pause_togglebutton.Value
         tPrev = toc;
-        pause(0.005);
+        pause(0.01);
     end
         
     % optional: save vid data to file if record video menu item is checked

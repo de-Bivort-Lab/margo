@@ -828,8 +828,8 @@ else
                 expmt = run_ledymaze(expmt,handles);
             end
         case 6
-            expmt = run_arenacircling(expmt,gui_handles);
-            analyze_arenacircling(expmt,gui_handles);
+            expmt = run_arenacircling(expmt,handles);
+            analyze_arenacircling(expmt,handles);
         case 7
             expmt = run_ymaze(expmt,handles);
             analyze_ymaze(expmt,handles);

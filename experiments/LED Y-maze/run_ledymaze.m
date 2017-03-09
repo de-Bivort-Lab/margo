@@ -198,8 +198,6 @@ while trackDat.t < gui_handles.edit_exp_duration.Value * 3600 && ~lastFrame
         numActive = decWriteLEDs(serial_obj,trackDat);      % Write new LED values to teensy
     end
 
-    
-
 
     % output data to binary files
     for i = 1:length(trackDat.fields)
@@ -233,6 +231,7 @@ while trackDat.t < gui_handles.edit_exp_duration.Value * 3600 && ~lastFrame
     % listen for gui pause/unpause
     while gui_handles.pause_togglebutton.Value
         tPrev = toc;
+        pause(0.01);
     end
         
     % optional: save vid data to file if record video menu item is checked
