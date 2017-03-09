@@ -121,4 +121,4 @@ disp(['load(',char(39),strcat(expmt.fdir,expmt.date,expmt.Name,'_',expmt.strain,
 cmd_str = 'wmic process where name="MATLAB.exe" CALL setpriority 32768';
 [~,~] = system(cmd_str);
 
-clearvars -except handles
+clearvars -except handles expmt
