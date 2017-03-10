@@ -1,6 +1,6 @@
 function label_table = labelMaker(expmt)
 
-%
+%%
 varnames = {'Strain' 'Sex' 'Treatment' 'ID' 'Day' 'Box' 'Tray' 'Comments'};
 labels = expmt.labels;
 
@@ -38,18 +38,23 @@ end
 mazeEnds(isnan(mazeEnds)) = [];
 newLabel = cell(sum(mazeEnds-mazeStarts+1),sum(active_fields)-3);
 active_fields(4:6)=[];
+iCol = 1;
+
 
 for i = 1:nRows;
     
     d = mazeEnds(i) - mazeStarts(i);
-    newLabel(mazeStarts(i):mazeEnds(i),1) = repmat(labels(i,1), d+1, 1);
+    newLabel(mazeStarts(i):mazeEnds(i),iCol) = repmat(labels(i,1), d+1, 1);
+    iCol = iCol+1;
     if ~isempty(labels{i,2})
-        newLabel(mazeStarts(i):mazeEnds(i),2) = repmat(labels(i,2), d+1, 1);
+        newLabel(mazeStarts(i):mazeEnds(i),iCol) = repmat(labels(i,2), d+1, 1);
+        iCol = iCol+1;
     end
     
     
     if ~isempty(labels{i,3})
-        newLabel(mazeStarts(i):mazeEnds(i),3) = repmat(labels(i,3), d+1, 1);
+        newLabel(mazeStarts(i):mazeEnds(i),iCol) = repmat(labels(i,3), d+1, 1);
+        iCol = iCol+1;
     end
     
     
@@ -64,7 +69,8 @@ for i = 1:nRows;
         else
             t = labels{i,7};
         end
-        newLabel(mazeStarts(i):mazeEnds(i),4)=num2cell(f:t);
+        newLabel(mazeStarts(i):mazeEnds(i),iCol)=num2cell(f:t);
+        iCol = iCol+1;
     end
     
     
@@ -74,7 +80,8 @@ for i = 1:nRows;
         else
             f = labels{i,8};
         end
-        newLabel(mazeStarts(i):mazeEnds(i),5)=num2cell(repmat(f,d+1,1));
+        newLabel(mazeStarts(i):mazeEnds(i),iCol)=num2cell(repmat(f,d+1,1));
+        iCol = iCol+1;
     end
     
     if ~isempty(labels{i,9})
@@ -83,7 +90,8 @@ for i = 1:nRows;
         else
             f = labels{i,9};
         end
-        newLabel(mazeStarts(i):mazeEnds(i),6) = repmat({f},d+1,1);
+        newLabel(mazeStarts(i):mazeEnds(i),iCol) = repmat({f},d+1,1);
+        iCol = iCol+1;
     end
     
     if ~isempty(labels{i,10})
@@ -92,11 +100,13 @@ for i = 1:nRows;
         else
             f = labels{i,10};
         end
-        newLabel(mazeStarts(i):mazeEnds(i),7) = repmat({f},d+1,1);
+        newLabel(mazeStarts(i):mazeEnds(i),iCol) = repmat({f},d+1,1);
+        iCol = iCol+1;
     end
     
     if ~isempty(labels{i,11})
-        newLabel(mazeStarts(i):mazeEnds(i),8) = repmat(labels(i,11),d+1,1);
+        newLabel(mazeStarts(i):mazeEnds(i),iCol) = repmat(labels(i,11),d+1,1);
+        iCol = iCol+1;
     end
 end
 

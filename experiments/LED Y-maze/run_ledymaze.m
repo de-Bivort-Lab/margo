@@ -265,7 +265,7 @@ for i = 1:length(trackDat.fields)
 end
 
 % re-save updated expmt data struct to file
-save([expmt.fdir expmt.date expmt.Name '_' expmt.strain '_' expmt.treatment '.mat'],'expmt');
+save([expmt.fdir expmt.fLabel '.mat'],'expmt');
 gui_notify(['experiment complete'],gui_handles.disp_note);
 
 

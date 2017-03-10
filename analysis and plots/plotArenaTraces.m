@@ -26,8 +26,10 @@ for i = 1:expmt.nTracks
     yTrace = expmt.Centroid.data(expmt.handedness.include(:,i),2,i) - expmt.ROI.corners(i,2);
     mu = -sin(expmt.handedness.circum_vel(expmt.handedness.include(:,i),i));
     z=zeros(sum(expmt.handedness.include(:,i)),1);
-    surface([xTrace';xTrace'],[yTrace';yTrace'],[z';z'],[mu';mu'],...
-        'facecol','no','edgecol','interp','linew',0.5);
+    if ~isempty(xTrace)
+        surface([xTrace';xTrace'],[yTrace';yTrace'],[z';z'],[mu';mu'],...
+            'facecol','no','edgecol','interp','linew',0.5);
+    end
     
     % scale the axes
     if ~isempty(xTrace)

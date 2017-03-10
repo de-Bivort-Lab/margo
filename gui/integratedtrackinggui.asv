@@ -828,10 +828,11 @@ else
                 expmt = run_ledymaze(expmt,handles);
             end
         case 6
-            autoTracker_arena;
+            expmt = run_arenacircling(expmt,handles);
+            analyze_arenacircling(expmt,handles);
         case 7
             expmt = run_ymaze(expmt,handles);
-            analyze_ymaze(expmt,handles,0);
+            analyze_ymaze(expmt,handles);
         case 8
             expmt = run_basictracking(expmt,handles);     % Run expmt
             analyze_basictracking(expmt,handles,0);
@@ -839,7 +840,7 @@ else
     end
     
     % remove saved rois, images, and noise statistics from prev experiment
-    if isfield(expmt,'ROI') || ~keep_gui_state
+    if isfield(expmt,'ROI') && ~keep_gui_state
         expmt = rmfield(expmt,'ROI');
         expmt = rmfield(expmt,'ref');
         expmt = rmfield(expmt,'noise');
@@ -1081,7 +1082,7 @@ if isfield(expmt,'labels')
     if ~isempty(tmp_lbl)
         expmt.labels = tmp_lbl;
     end
-else
+
     tmp_lbl = label_subgui;
     if ~isempty(tmp_lbl)
         expmt.labels = tmp_lbl;
@@ -2012,13 +2013,15 @@ if isfield(expmt,'video')
             handles.gui_fig.Position(3) = ...
                 sum(handles.axes_handle.Position([1 3])) + 10;
         end       
+        
+        if isfield(expmt.video,'fID')
+            handles.hImage.CDataMapping = 'scaled';
+        else
+            handles.hImage.CDataMapping = 'direct'; 
+        end
     end
     
-    if isfield(expmt.video,'fID')
-        handles.hImage.CDataMapping = 'scaled';
-    else
-        handles.hImage.CDataMapping = 'direct'; 
-    end
+
     
     % stream frames to the axes until the preview button is unticked
     ct=0;
@@ -2585,8 +2588,8 @@ function edit_dist_thresh_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-handles.gui_fig.UserData.distance_thresh = num2str(hObject.String);
-guidata(hObject.handles);
+handles.gui_fig.UserData.distance_thresh = str2num(hObject.String);
+guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -2608,8 +2611,8 @@ function edit_speed_thresh_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-handles.gui_fig.UserData.speed_thresh = num2str(hObject.String);
-guidata(hObject.handles);
+handles.gui_fig.UserData.speed_thresh = str2num(hObject.String);
+guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.

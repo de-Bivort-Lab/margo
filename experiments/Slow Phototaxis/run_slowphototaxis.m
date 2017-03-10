@@ -39,7 +39,7 @@ ref_stack = repmat(expmt.ref, 1, 1, gui_handles.edit_ref_depth.Value);  % initia
 nROIs = size(expmt.ROI.centers,1);                                      % number of ROIs
 
 % Initialize tracking variables
-trackDat.fields={'Centroid';'Orientation';'Time';'StimStatus';'Texture'};  % properties of the tracked objects to be recorded
+trackDat.fields={'Centroid';'Orientation';'Time';'StimAngle';'Texture'};  % properties of the tracked objects to be recorded
 
 % initialize labels, files, and cam/video
 [trackDat,expmt] = autoInitialize(trackDat,expmt,gui_handles);
@@ -69,7 +69,7 @@ else
     
 end
 
-[cam_yPixels,cam_xPixels]=size(refImage);
+[cam_yPixels,cam_xPixels]=size(expmt.ref);
 
 if cam_xPixels ~= reg_data.cam_xPixels || cam_yPixels ~= reg_data.cam_yPixels
     
@@ -118,29 +118,34 @@ src_edge_length = stmsz;
 stmsz=sqrt(stmsz^2+stmsz^2);
 
 % Initialize the stimulus image
-light = initialize_photo_stim(ceil(stmsz),ceil(stmsz),stim_divider_size,expmt.parameters.stim_contrast);
+light = initialize_photo_stim(ceil(stmsz),ceil(stmsz),expmt.parameters.divider_size,expmt.parameters.stim_contrast);
 dark = zeros(size(light));
 imcenter = [size(light,1)/2+0.5 size(light,2)/2+0.5];
 
 % Initialize source rect and scaling factors
-base_srcRect = [0 0 src_edge_length src_edge_length];
-srcRect = CenterRectOnPointd(base_srcRect,stmsz/2,stmsz/2);
+expmt.stim.base = [0 0 src_edge_length src_edge_length];
+expmt.stim.source = CenterRectOnPointd(expmt.stim.base,stmsz/2,stmsz/2);
 
 %% Slow phototaxis specific parameters
+
+stim_ct=0;
 
 expmt.parameters.stim_duration = ...
     expmt.parameters.stim_duration * 60;                            % duration of the stimulus per trial (min)
 
-lightTex = Screen('MakeTexture', expmt.scrProp.window, light);      % texture for half-light half-dark
-darkTex = Screen('MakeTexture', expmt.scrProp.window, dark);        % texture for all dark
+expmt.stim.lightTex = Screen('MakeTexture', expmt.scrProp.window, light);      % texture for half-light half-dark
+expmt.stim.darkTex = Screen('MakeTexture', expmt.scrProp.window, dark);        % texture for all dark
 
-expmt.stim.t=0;
-expmt.stim.ct=0;                                                    % Counter for number of looming stim displayed each stimulation period
-expmt.stim.angle=zeros(nROIs,1);                                    % Initialize stimulus starting angle to 0
+expmt.stim.t = 0;
+expmt.stim.ct = 0;                                                    % Counter for number of looming stim displayed each stimulation period
+trackDat.StimAngle = zeros(nROIs,1);                                    % Initialize stimulus starting angle to 0
 expmt.stim.prev_ori=NaN(nROIs,1);
-stim_ct=0;
 expmt.stim.dir = boolean(ones(nROIs,1));                            % Direction of rotation for the light
-expmt.stim.Texture = boolean(1);                                    % active texture (dark or light)
+trackDat.Texture = boolean(1);                                    % active texture (dark or light)
+expmt.stim.corners = scor;
+expmt.stim.centers = scen;
+expmt.projector.Fx = Fx;
+expmt.projector.Fy = Fy;
 
 %% Main Experimental Loop
 
@@ -185,6 +190,7 @@ while trackDat.t < gui_handles.edit_exp_duration.Value * 3600 && ~lastFrame
     trackDat = autoTrack(trackDat,expmt,gui_handles);
 
     % update the stimuli
+    [trackDat, expmt] = updatePhotoStim(trackDat, expmt);
     
     % output data to binary files
     for i = 1:length(trackDat.fields)
@@ -244,6 +250,6 @@ for i = 1:length(trackDat.fields)
 end
 
 % re-save updated expmt data struct to file
-save([expmt.fdir expmt.date expmt.Name '_' expmt.strain '_' expmt.treatment '.mat'],'expmt');
+save([expmt.fdir expmt.fLabel '.mat'],'expmt');
 gui_notify(['experiment complete'],gui_handles.disp_note);
 

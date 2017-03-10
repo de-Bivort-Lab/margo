@@ -71,7 +71,7 @@ clearvars -except handles expmt
 
 %% Clean up the workspace
 expmt.strain(ismember(expmt.strain,' ')) = [];
-save([expmt.fdir expmt.date expmt.Name '_' expmt.strain '_' expmt.treatment '.mat'],'expmt');
+save([expmt.fdir expmt.fLabel '.mat'],'expmt');
 
 if exist('handles','var')
     gui_notify('processed data saved to file',handles.disp_note)

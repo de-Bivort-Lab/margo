@@ -102,7 +102,7 @@ clearvars -except handles expmt plot_mode
 
 %% Clean up the workspace
 expmt.strain(ismember(expmt.strain,' ')) = [];
-save([expmt.fdir expmt.date expmt.Name '_' expmt.strain '_' expmt.treatment '.mat'],'expmt');
+save([expmt.fdir expmt.fLabel '.mat'],'expmt');
 
 if exist('handles','var')
     gui_notify('processed data saved to file',handles.disp_note)
@@ -137,7 +137,7 @@ for i = 1:length(expmt.fields)
     end
 end
 
-zip([expmt.fdir expmt.date expmt.Name '_' expmt.strain '_' expmt.treatment '_RawData.zip'],flist);
+zip([expmt.fdir expmt.fLabel '_RawData.zip'],flist);
 
 for i = 1:length(flist)
     delete(flist{i});
@@ -146,7 +146,7 @@ end
 %% Display command to load data struct into workspace
 
 disp('Execute the following command to load your data into the workspace:')
-disp(['load(',char(39),strcat(expmt.fdir,expmt.date,expmt.Name,'_',expmt.strain,'.mat'),char(39),');'])
+disp(['load(',char(39),strcat(expmt.fdir,expmt.fLabel,'.mat'),char(39),');'])
 
 %% Set MATLAB priority to Above Normal via Windows Command Line
 cmd_str = 'wmic process where name="MATLAB.exe" CALL setpriority 32768';

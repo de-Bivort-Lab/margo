@@ -819,13 +819,14 @@ else
         case 3
             projector_optomotor;
         case 4
-            projector_slow_phototaxis;
+            expmt = run_slowphototaxis(expmt,handles);
         case 5
             if ~isfield(expmt,'AUX_COM') || isempty(expmt.AUX_COM)
                 errordlg('No aux COM assigned for LED Y-maze');
                 keep_gui_state = true;
             else
                 expmt = run_ledymaze(expmt,handles);
+                expmt = analyze_ledymaze(expmt, handles);
             end
         case 6
             expmt = run_arenacircling(expmt,handles);
@@ -1077,16 +1078,10 @@ function enter_labels_pushbutton_Callback(hObject, eventdata, handles)
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 
-if isfield(expmt,'labels')
-    tmp_lbl = label_subgui(expmt);
-    if ~isempty(tmp_lbl)
-        expmt.labels = tmp_lbl;
-    end
-else
-    tmp_lbl = label_subgui;
-    if ~isempty(tmp_lbl)
-        expmt.labels = tmp_lbl;
-    end
+
+tmp_lbl = label_subgui(expmt);
+if ~isempty(tmp_lbl)
+    expmt.labels = tmp_lbl;
 end
 
 

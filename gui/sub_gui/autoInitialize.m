@@ -16,18 +16,35 @@ trackDat.pix_dev = zeros(10,1);                             % stdev of pixels ov
 
 expmt.date = datestr(clock,'mm-dd-yyyy-HH-MM-SS_');         % get date string
 expmt.labels = labelMaker(expmt);                           % convert labels cell into table format
-expmt.strain=expmt.labels{1,1}{:};                          % get strain string
-expmt.treatment=expmt.labels{1,3}{:};                       % get treatment string
+
+% Query label fields and set label for file
+lab_fields = expmt.labels.Properties.VariableNames;
+expmt.fLabel = [expmt.date '_' expmt.Name];
+for i = 1:length(lab_fields)
+    switch lab_fields{i}
+        case 'Strain'
+            expmt.(lab_fields{i}) = lab_fields{i};
+            expmt.fLabel = [expmt.fLabel '_' lab_fields{i}];
+        case 'Sex'
+            expmt.(lab_fields{i}) = lab_fields{i};
+            expmt.fLabel = [expmt.fLabel '_' lab_fields{i}];
+        case 'Treatment'
+            expmt.(lab_fields{i}) = lab_fields{i};
+            expmt.fLabel = [expmt.fLabel '_' lab_fields{i}];
+        case 'Day'
+            expmt.(lab_fields{i}) = lab_fields{i};
+            expmt.fLabel = [expmt.fLabel '_Day' lab_fields{i}];
+    end
+end
 
 % make a new directory for the files
-expmt.fdir = [expmt.fpath '\' expmt.date expmt.strain '_' expmt.treatment '\'];
+expmt.fdir = [expmt.fpath '\' expmt.fLabel '\'];
 mkdir(expmt.fdir);
 
 % generate file ID for files to write
 for i = 1:length(trackDat.fields)                           
     expmt.(trackDat.fields{i}).path = ...                   % initialize path for new file    
-        [expmt.fdir expmt.date expmt.strain '_' ...
-        expmt.treatment '_' trackDat.fields{i} '.bin'];
+        [expmt.fdir expmt.fLabel '_' trackDat.fields{i} '.bin'];
     expmt.(trackDat.fields{i}).fID = ...
         fopen(expmt.(trackDat.fields{i}).path,'w');         % open fileID with write permission
 end
@@ -37,7 +54,7 @@ params = fieldnames(gui_handles.gui_fig.UserData);
 for i = 1:length(params)
     expmt.parameters.(params{i}) = gui_handles.gui_fig.UserData.(params{i});
 end
-save([expmt.fdir expmt.date expmt.Name '_' expmt.strain '_' expmt.treatment '.mat'],'expmt');
+save([expmt.fdir expmt.fLabel '.mat'],'expmt');
 
 
 %% Setup the camera and/or video object
