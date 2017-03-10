@@ -189,7 +189,6 @@ expmt.Dark.mean = blank_avg_occ;
 expmt.Dark.mad = blank_mad_occ;
 
 %% Clean up the workspace
-expmt.strain(ismember(expmt.strain,' ')) = [];
 save([expmt.fdir expmt.fLabel '.mat'],'expmt');
 
 if exist('handles','var')

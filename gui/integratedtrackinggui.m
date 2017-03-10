@@ -2765,12 +2765,22 @@ has_enable = findall(handles.gui_fig, '-property', 'enable');
 enable_states = get(has_enable,'enable');
 set(has_enable,'enable','off');
 
+axh = handles.axes_handle;
+instructions = {'Right-click in an existing ROI to delete it'...
+    'Left-click to switch tool to draw tool, then left-click and drag to define new ROI' ...
+    'Press any key to accept changes and exit'};
+text(axh,axh.XLim(2)*0.5,axh.YLim(2)*0.05,instructions,...
+    'color','m','HorizontalAlignment','center');
+
+
 set(handles.axes_handle,'ButtonDownFcn',@mouse_click_Callback);
 handles.hImage.HitTest = 'off';
 handles.gui_fig.UserData.edit_rois = true;
 guidata(hObject,handles);
 
 if isfield(expmt,'ROI')
+    
+    % set display to ROI image and label ROIs
     handles.hImage.CData = expmt.ROI.im;
     hold on
     for i =1:length(expmt.ROI.centers)
@@ -2782,36 +2792,82 @@ if isfield(expmt,'ROI')
     hold off
 
     while handles.gui_fig.UserData.edit_rois
-        pause(0.01);
+        
+        pause(0.001);
+        
+        % listen for mouse clicks
         if isfield(handles.gui_fig.UserData,'click')
+            
+            % get click info
             b = handles.gui_fig.UserData.click.button;
             c = handles.gui_fig.UserData.click.coords;
+            
             switch b
+                
+                % case for left-click
                 case 1
+                    roi = getrect(handles.axes_handle);
+                    expmt.ROI.bounds = [expmt.ROI.bounds; roi];
+                    roi(3) = roi(1) + roi(3);
+                    roi(4) = roi(2) + roi(4);
+                    expmt.ROI.corners = [expmt.ROI.corners; roi];
+                    
+                % case for right-click
                 case 3
+                    
+                    % check to see if click occured in ROI
                     x_bounded = c(1) > expmt.ROI.bounds(:,1) &...
                         c(1) < sum(expmt.ROI.bounds(:,[1 3]),2);
                     y_bounded = c(2) > expmt.ROI.bounds(:,2) &...
                         c(2) < sum(expmt.ROI.bounds(:,[2 4]),2);
+                    
+                    % delete targeted ROI
                     idx = find(x_bounded & y_bounded);
                     delete(hBounds(x_bounded & y_bounded));
-                    expmt.ROI.bounds(idx) = [];
-                    expmt.ROI.centers(idx) = [];
-                    expmt.ROI.orientation(idx) = [];
-                    expmt.ROI.corners(idx) = [];
+                    expmt.ROI.bounds(idx,:) = [];
+                    expmt.ROI.centers(idx,:) = [];
+                    expmt.ROI.orientation(idx,:) = [];
+                    expmt.ROI.corners(idx,:) = [];
+                    
             end
+            
+            % remove click data
             handles.gui_fig.UserData = rmfield(handles.gui_fig.UserData,'click');
             
+            % re-sort and label ROIs
+            [x,y] = ROIcenters(expmt.ROI.im,expmt.ROI.corners);
+            expmt.ROI.centers = [x,y];
+            [expmt.ROI.centers,expmt.ROI.corners,expmt.ROI.bounds] = ...
+                sortROIs(expmt.ROI.centers,expmt.ROI.corners,expmt.ROI.bounds);
+            expmt.ROI.orientation = getMazeOrientation(expmt.ROI.im,expmt.ROI.corners);
+            
+            % re-draw ROIs
+            delete(hBounds);
+            delete(hNum);
+            hold on
+            for i =1:length(expmt.ROI.centers)
+                hBounds(i) = rectangle(handles.axes_handle,'Position',expmt.ROI.bounds(i,:),'EdgeColor','r');
+                hNum(i) = text(handles.axes_handle,expmt.ROI.centers(i,1),...
+                    expmt.ROI.centers(i,2),num2str(i),'Color',[0 0 1],...
+                    'HorizontalAlignment','center','VerticalAlignment','middle');
+            end
+            hold off
             
         end
     end
 
 end
 
+% re-enable objects that were enabled before selecting manual edit
 for i = 1:length(has_enable)
     has_enable(i).Enable = enable_states{i};
 end
 
+% clear drawn objects from the axes
+clean_gui(handles.axes_handle);
+
+% save changes to master struct and gui data
+setappdata(handles.gui_fig,'expmt',expmt);
 guidata(hObject,handles);
 
 function mouse_click_Callback(hObject,eventdata)
