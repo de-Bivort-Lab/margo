@@ -108,8 +108,6 @@ for i = 1:nRows;
         newLabel(mazeStarts(i):mazeEnds(i),iCol) = repmat(labels(i,11),d+1,1);
         iCol = iCol+1;
     end
-    
-    iCol = 1;
 end
 
 label_table = cell2table(newLabel,'VariableNames',varnames(active_fields));

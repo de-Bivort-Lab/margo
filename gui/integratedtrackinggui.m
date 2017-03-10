@@ -1081,6 +1081,17 @@ expmt = getappdata(handles.gui_fig,'expmt');
 
 tmp_lbl = label_subgui(expmt);
 if ~isempty(tmp_lbl)
+    iString = cellfun('isclass',tmp_lbl,'char');
+    numeric = false(size(iString));
+    numeric(:,4:8) = true;
+    convert = numeric & iString;
+    for i = 1:size(convert,1)
+        for j = 1:size(convert,2)
+            if convert(i,j)
+                tmp_lbl(i,j) = {str2num(tmp_lbl{i,j})};
+            end
+        end
+    end
     expmt.labels = tmp_lbl;
 end
 
