@@ -121,7 +121,7 @@ while stop~=1;
     nROIs = size(ROI_coords,1);
 
     % Calculate coords of ROI centers
-    [xCenters,yCenters]=ROIcenters(trackDat.im,binaryimage,ROI_coords);
+    [xCenters,yCenters]=ROIcenters(binaryimage,ROI_coords);
     centers=[xCenters,yCenters];
 
     % Define a permutation vector to sort ROIs from top-right to bottom left

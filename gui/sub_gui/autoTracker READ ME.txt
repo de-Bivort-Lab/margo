@@ -1,0 +1,79 @@
+AutoTrackerV2 - Read Me
+
+
+
+
+NOTE: autoTrackerV2 is known to have compatibility issues with MATLAB 2015a. 
+Editing the GUI or script in 2015a in any way will cause the GUI to crash when 
+opened.A known work around is to first save the GUI in an older version of 
+MATLAB and then re-open the file in MATLAB 2015a.
+
+
+
+
+Getting started with autoTracker
+
+1. If you don't have it installed already, start by installing Git Bash. This 
+will allow you to clone the most up to date version of autoTracker and will allow 
+you to branch your own version of autoTracker for customization. Download and 
+install Git at "https://git-scm.com/downloads". Default installation settings are 
+fine.
+
+2. Open the Git Bash command terminal. Start by initiating your user name and email
+with the following two commands:
+
+	git config --global user.name "Your Name"
+	git config --global user.email your@address.here
+
+3. Now create a folder for autoTracker in windows explorer. I recommend installing 
+it in the MATLAB directory under:
+
+	C:\\Users\\yourCompUserName\\Documents\\MATLAB\\autoTrackerV2
+
+4. Change the Git Bash working directory to the newly created folder with the command:
+
+	cd  C:/Users/yourCompUserName/Documents/MATLAB/autoTrackerV2
+
+5. Initialize a new local Git repository in the folder with the command:
+
+	git init
+
+6. Now clone the remote autoTrackerV2 Git repository by running:
+
+	git clone https://github.com/winsl0w/autoTrackerV2.git
+
+7. The latest version of autoTrackerV2 files should now be in the folder you created.
+Now add the new folder to the MATLAB path with the MATLAB path tool.
+
+8. Start autoTracker GUI by executing "autotrackergui" in the MATLAB command line.
+
+
+
+
+Adding a new experiment to autoTracker
+
+
+1. To add a new experiment to autoTracker, you can create a new script  that can be 
+executed in the master script for the GUI, autotrackergui.m.
+
+2. If you would like to implement existing autoTracker features (eg. ROI segregation, 
+fast centroid sorting, turn scoring, microcontroller hardware control), you can use 
+any of the autoTracker core experiment files or their dependencies as a template:
+
+	autoTrackerv2_ymaze120.m  (best commented)
+	autoTrackerv2_ymaze96.m
+	autoTrackerv2_arena.m
+	autoTrackerv2_led.m
+
+3. Once your your new experiment is created, add the script as an additional case to 
+the experiment case switch statement in autotrackergui.m. This will appear under the 
+pushbutton2_Callback function (~ line 250).
+
+4. Now add the experiment to the drop-down experiment select menu in the GUI 
+(popupmenu3). Open the GUI file by executing "guide" in the MATLAB command line and 
+browsing to autotrackergui.fig. Double click on the drop-down menu to edit properties. 
+Select the "String" field and add a descriptive entry on a new line. Save the changes.
+
+5. Now the GUI should execute your script when you select the new entry from the 
+drop-down menu and select "Run Experiment".
+ 

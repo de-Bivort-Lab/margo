@@ -22,7 +22,7 @@ function varargout = integratedtrackinggui(varargin)
 
 % Edit the above text to modify the response to help integratedtrackinggui
 
-% Last Modified by GUIDE v2.5 08-Mar-2017 11:33:39
+% Last Modified by GUIDE v2.5 10-Mar-2017 16:26:57
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -2632,3 +2632,216 @@ function edit_speed_thresh_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --------------------------------------------------------------------
+function view_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to view_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function view_roi_bounds_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to view_roi_bounds_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+expmt = getappdata(handles.gui_fig,'expmt');
+
+switch hObject.Checked
+    
+    case 'off'
+
+        if isfield(expmt,'ROI')
+            hObject.Checked = 'on';
+            hold on
+            for i =1:length(expmt.ROI.centers)
+                handles.view_menu.UserData.hBounds(i) =...
+                    rectangle(handles.axes_handle,'Position',expmt.ROI.bounds(i,:),'EdgeColor','r');
+            end
+            hold off
+        else
+            gui_notify('ROIs are not set and cannot be displayed',handles.disp_note);
+        end
+        
+    case 'on'
+        
+        hObject.Checked = 'off';
+        
+        if isfield(handles.view_menu.UserData,'hBounds')
+            set(handles.view_menu.UserData.hBounds,'Visible','off');
+        end
+end
+
+% --------------------------------------------------------------------
+function view_roi_num_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to view_roi_num_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+expmt = getappdata(handles.gui_fig,'expmt');
+
+switch hObject.Checked
+    
+    case 'off'
+        
+        if isfield(expmt,'ROI')
+            hObject.Checked = 'on';
+            hold on
+            for i =1:length(expmt.ROI.centers)
+                handles.view_menu.UserData.hNum(i) =...
+                    text(handles.axes_handle,expmt.ROI.centers(i,1),...
+                    expmt.ROI.centers(i,2),num2str(i),'Color',[0 0 1],...
+                    'HorizontalAlignment','center','VerticalAlignment','middle');
+            end
+            hold off
+        else
+            gui_notify('ROIs are not set and cannot be displayed',handles.disp_note);
+        end
+        
+    case 'on'
+        
+        hObject.Checked = 'off';
+        
+        if isfield(handles.view_menu.UserData,'hNum')
+            set(handles.view_menu.UserData.hNum,'Visible','off');
+        end
+end
+
+
+% --------------------------------------------------------------------
+function view_roi_ori_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to view_roi_ori_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+expmt = getappdata(handles.gui_fig,'expmt');
+
+switch hObject.Checked
+    
+    case 'off'
+
+        if isfield(expmt,'ROI')
+            hObject.Checked = 'on';
+            hold on
+            for i =1:length(expmt.ROI.centers)
+                handles.view_menu.UserData.hOri(i) =...
+                    text(handles.axes_handle,expmt.ROI.centers(i,1),...
+                    expmt.ROI.centers(i,2),num2str(expmt.ROI.orientation(i)),...
+                    'HorizontalAlignment','center');
+                if expmt.ROI.orientation(i)
+                    handles.view_menu.UserData.hOri(i).Color = [1 0 1];
+                else
+                    handles.view_menu.UserData.hOri(i).Color = [0 0 1];
+                end
+            end
+            hold off
+        else
+            gui_notify('ROIs are not set and cannot be displayed',handles.disp_note);
+        end
+        
+    case 'on'
+        
+        hObject.Checked = 'off';
+        
+        if isfield(handles.view_menu.UserData,'hOri')
+            set(handles.view_menu.UserData.hOri,'Visible','off');
+        end
+end
+
+% --------------------------------------------------------------------
+function man_edit_roi_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to man_edit_roi_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+expmt = getappdata(handles.gui_fig,'expmt');
+
+clean_gui(handles.axes_handle);
+
+has_enable = findall(handles.gui_fig, '-property', 'enable');
+enable_states = get(has_enable,'enable');
+set(has_enable,'enable','off');
+
+set(handles.axes_handle,'ButtonDownFcn',@mouse_click_Callback);
+handles.hImage.HitTest = 'off';
+handles.gui_fig.UserData.edit_rois = true;
+guidata(hObject,handles);
+
+if isfield(expmt,'ROI')
+    handles.hImage.CData = expmt.ROI.im;
+    hold on
+    for i =1:length(expmt.ROI.centers)
+        hBounds(i) = rectangle(handles.axes_handle,'Position',expmt.ROI.bounds(i,:),'EdgeColor','r');
+        hNum(i) = text(handles.axes_handle,expmt.ROI.centers(i,1),...
+            expmt.ROI.centers(i,2),num2str(i),'Color',[0 0 1],...
+            'HorizontalAlignment','center','VerticalAlignment','middle');
+    end
+    hold off
+
+    while handles.gui_fig.UserData.edit_rois
+        pause(0.01);
+        if isfield(handles.gui_fig.UserData,'click')
+            b = handles.gui_fig.UserData.click.button;
+            c = handles.gui_fig.UserData.click.coords;
+            switch b
+                case 1
+                case 3
+                    x_bounded = c(1) > expmt.ROI.bounds(:,1) &...
+                        c(1) < sum(expmt.ROI.bounds(:,[1 3]),2);
+                    y_bounded = c(2) > expmt.ROI.bounds(:,2) &...
+                        c(2) < sum(expmt.ROI.bounds(:,[2 4]),2);
+                    idx = find(x_bounded & y_bounded);
+                    delete(hBounds(x_bounded & y_bounded));
+                    expmt.ROI.bounds(idx) = [];
+                    expmt.ROI.centers(idx) = [];
+                    expmt.ROI.orientation(idx) = [];
+                    expmt.ROI.corners(idx) = [];
+            end
+            handles.gui_fig.UserData = rmfield(handles.gui_fig.UserData,'click');
+            
+            
+        end
+    end
+
+end
+
+for i = 1:length(has_enable)
+    has_enable(i).Enable = enable_states{i};
+end
+
+guidata(hObject,handles);
+
+function mouse_click_Callback(hObject,eventdata)
+
+hObject.Parent.UserData.click.button = eventdata.Button;
+hObject.Parent.UserData.click.coords = eventdata.IntersectionPoint;
+
+
+% --- Executes on key press with focus on gui_fig and none of its controls.
+function gui_fig_KeyPressFcn(hObject, eventdata, handles)
+% hObject    handle to gui_fig (see GCBO)
+% eventdata  structure with the following fields (see MATLAB.UI.FIGURE)
+%	Key: name of the key that was pressed, in lower case
+%	Character: character interpretation of the key(s) that was pressed
+%	Modifier: name(s) of the modifier key(s) (i.e., control, shift) pressed
+% handles    structure with handles and user data (see GUIDATA)
+
+if handles.gui_fig.UserData.edit_rois
+    handles.gui_fig.UserData.edit_rois = false;
+end
+
+guidata(hObject,handles);
+
+
+% --- Executes on key press with focus on gui_fig or any of its controls.
+function gui_fig_WindowKeyPressFcn(hObject, eventdata, handles)
+% hObject    handle to gui_fig (see GCBO)
+% eventdata  structure with the following fields (see MATLAB.UI.FIGURE)
+%	Key: name of the key that was pressed, in lower case
+%	Character: character interpretation of the key(s) that was pressed
+%	Modifier: name(s) of the modifier key(s) (i.e., control, shift) pressed
+% handles    structure with handles and user data (see GUIDATA)
+
