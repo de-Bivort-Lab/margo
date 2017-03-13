@@ -69,7 +69,16 @@ end
 clean_gui(gui_handles.axes_handle);
 imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','Image');
 
-if strcmp(imh.CDataMapping,'direct')
+if isempty(imh)
+        % Take single frame
+    switch expmt.source
+        case 'camera'
+            trackDat.im = peekdata(expmt.camInfo.vid,1);
+        case 'video'
+            [trackDat.im, expmt.video] = nextFrame(expmt.video,gui_handles);
+    end
+    imh = imagesc(trackDat.im);
+elseif strcmp(imh.CDataMapping,'direct')
    imh.CDataMapping = 'scaled';
 end
 

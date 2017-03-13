@@ -14,8 +14,8 @@ end
 %% Separate right-side down ROIs (0) from right to left
 
 y = centers(:,2);
-[val,perm_y] = sort(y);                                % Sort ROI yCoords from left to right
-row_breaks = find([0;diff(val)>std(diff(val)*3)]);    % Find breaks between rows
+[val,perm_y] = sort(y);                                % Sort ROI yCoords
+row_breaks = find([0;diff(val)>std(diff(val))*2]);    % Find breaks between rows
 
 
 % find a final permutation by sorting each clustered set of y 

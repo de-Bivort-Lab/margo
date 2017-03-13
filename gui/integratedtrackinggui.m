@@ -1910,12 +1910,17 @@ if isfield(handles,'fig_size')
             handles.disp_note.Position(4) = handles.disp_note.UserData(4) - dh;
     end
     
-    if isfield(expmt.camInfo,'vid')
+    handles.hImage = findobj(handles.axes_handle,'-depth',3,'Type','Image');
+    if ~isempty(handles.hImage)
 
         handles.axes_handle.Position(3) = handles.gui_fig.Position(3) - handles.axes_handle.Position(1) - 10;
         handles.axes_handle.Position(4) = handles.gui_fig.Position(4) - handles.axes_handle.Position(2) - 5;
 
-        res = expmt.camInfo.vid.VideoResolution;
+        res = size(handles.hImage.CData);
+        if length(res)>2
+            res(3) = [];
+        end
+        res = fliplr(res);
         aspectR = res(2)/res(1);
         plot_aspect = pbaspect;
         fscale = aspectR/plot_aspect(2);
@@ -2760,6 +2765,7 @@ function man_edit_roi_menu_Callback(hObject, eventdata, handles)
 expmt = getappdata(handles.gui_fig,'expmt');
 
 clean_gui(handles.axes_handle);
+handles.hImage = findobj(handles.axes_handle,'-depth',3,'Type','Image');
 
 has_enable = findall(handles.gui_fig, '-property', 'enable');
 enable_states = get(has_enable,'enable');
@@ -2787,7 +2793,8 @@ if isfield(expmt,'ROI')
         hBounds(i) = rectangle(handles.axes_handle,'Position',expmt.ROI.bounds(i,:),'EdgeColor','r');
         hNum(i) = text(handles.axes_handle,expmt.ROI.centers(i,1),...
             expmt.ROI.centers(i,2),num2str(i),'Color',[0 0 1],...
-            'HorizontalAlignment','center','VerticalAlignment','middle');
+            'HorizontalAlignment','center','VerticalAlignment','middle',...
+            'HitTest','off');
     end
     hold off
 
@@ -2801,16 +2808,22 @@ if isfield(expmt,'ROI')
             % get click info
             b = handles.gui_fig.UserData.click.button;
             c = handles.gui_fig.UserData.click.coords;
+            disp(b)
             
             switch b
                 
                 % case for left-click
                 case 1
                     roi = getrect(handles.axes_handle);
-                    expmt.ROI.bounds = [expmt.ROI.bounds; roi];
-                    roi(3) = roi(1) + roi(3);
-                    roi(4) = roi(2) + roi(4);
-                    expmt.ROI.corners = [expmt.ROI.corners; roi];
+                    if roi(3) > 0.1*median(expmt.ROI.bounds(3)) &&...
+                            roi(4) > 0.1*median(expmt.ROI.bounds(4))
+                        
+                        expmt.ROI.bounds = [expmt.ROI.bounds; roi];
+                        roi(3) = roi(1) + roi(3);
+                        roi(4) = roi(2) + roi(4);
+                        expmt.ROI.corners = [expmt.ROI.corners; roi];
+                        
+                    end
                     
                 % case for right-click
                 case 3
@@ -2849,10 +2862,11 @@ if isfield(expmt,'ROI')
                 hBounds(i) = rectangle(handles.axes_handle,'Position',expmt.ROI.bounds(i,:),'EdgeColor','r');
                 hNum(i) = text(handles.axes_handle,expmt.ROI.centers(i,1),...
                     expmt.ROI.centers(i,2),num2str(i),'Color',[0 0 1],...
-                    'HorizontalAlignment','center','VerticalAlignment','middle');
+                    'HorizontalAlignment','center','VerticalAlignment','middle',...
+                    'HitTest','off');
             end
             hold off
-            
+
         end
     end
 
