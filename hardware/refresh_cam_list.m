@@ -1,4 +1,4 @@
-function [camInfo] = refresh_cam_list(handles)
+function [camInfo,cam_list] = refresh_cam_list(handles)
     
 % Query available camera and modes
 imaqreset
@@ -22,7 +22,6 @@ if ~isempty(c.InstalledAdaptors)
             end
         end
     end
-    handles.cam_list = cam_list;
 
     % populate camera select menu
     if exist('adaptor','var')
@@ -49,8 +48,6 @@ if ~isempty(c.InstalledAdaptors)
         set(handles.cam_mode_popupmenu,'String','No camera modes available');
     end
 
-
-    camInfo;
 
 else
     camInfo=[];

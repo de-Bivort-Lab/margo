@@ -116,7 +116,7 @@ end
 
 % cam setup
 expmt.source = 'camera';                    % set the source mode to camera by default
-expmt.camInfo = refresh_cam_list(handles);  % query available cameras and camera info
+[expmt.camInfo,handles.cam_list] = refresh_cam_list(handles);  % query available cameras and camera info
 
 % Initialize teensy for motor and light board control
 
@@ -134,8 +134,8 @@ end
 set(handles.microcontroller_popupmenu,'string',expmt.COM);
 
 % Initialize light panel at default values
-IR_intensity = str2num(get(handles.edit_IR_intensity,'string'));
-White_intensity = str2num(get(handles.edit_White_intensity,'string'));
+IR_intensity = str2double(get(handles.edit_IR_intensity,'string'));
+White_intensity = str2double(get(handles.edit_White_intensity,'string'));
 
 % Convert intensity percentage to uint8 PWM value 0-255
 expmt.light.infrared = uint8((IR_intensity/100)*255);
@@ -172,9 +172,9 @@ for i = 1:length(handles.aux_COM_list)
 end
 
 % Initialize expmteriment parameters from text boxes in the GUI
-handles.edit_ref_depth.Value  =  str2num(get(handles.edit_ref_depth,'String'));
-handles.edit_ref_freq.Value = str2num(get(handles.edit_ref_freq,'String'));
-handles.edit_exp_duration.Value = str2num(get(handles.edit_exp_duration,'String'));
+handles.edit_ref_depth.Value  =  str2double(get(handles.edit_ref_depth,'String'));
+handles.edit_ref_freq.Value = str2double(get(handles.edit_ref_freq,'String'));
+handles.edit_exp_duration.Value = str2double(get(handles.edit_exp_duration,'String'));
 handles.disp_ROI_thresh.String = num2str(round(handles.ROI_thresh_slider.Value));
 handles.disp_track_thresh.String = num2str(round(handles.track_thresh_slider.Value));
 
@@ -194,9 +194,9 @@ expmt.parameters.vignette_sigma = handles.gui_fig.UserData.vignette_sigma;
 expmt.parameters.vignette_weight = handles.gui_fig.UserData.vignette_weight;
 expmt.parameters.area_min = handles.gui_fig.UserData.area_min;
 expmt.parameters.area_max = handles.gui_fig.UserData.area_max;
-expmt.parameters.ref_depth = str2num(get(handles.edit_ref_depth,'String'));
-expmt.parameters.ref_freq = str2num(get(handles.edit_ref_freq,'String'));
-expmt.parameters.duration = str2num(get(handles.edit_exp_duration,'String'));
+expmt.parameters.ref_depth = str2double(get(handles.edit_ref_depth,'String'));
+expmt.parameters.ref_freq = str2double(get(handles.edit_ref_freq,'String'));
+expmt.parameters.duration = str2double(get(handles.edit_exp_duration,'String'));
 expmt.parameters.ROI_thresh = num2str(round(handles.ROI_thresh_slider.Value));
 expmt.parameters.track_thresh = num2str(round(handles.track_thresh_slider.Value));
 expmt.parameters.sort_mode = 'distance';
@@ -292,7 +292,7 @@ guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function cam_select_popupmenu_CreateFcn(hObject, eventdata, handles)
+function cam_select_popupmenu_CreateFcn(hObject,~,~)
 % hObject    handle to cam_select_popupmenu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -323,7 +323,7 @@ guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function cam_mode_popupmenu_CreateFcn(hObject, eventdata, handles)
+function cam_mode_popupmenu_CreateFcn(hObject,~,~)
 % hObject    handle to cam_mode_popupmenu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -494,7 +494,7 @@ guidata(hObject,handles);
 
 
 % --- Executes on selection change in microcontroller_popupmenu.
-function microcontroller_popupmenu_Callback(hObject, eventdata, handles)
+function microcontroller_popupmenu_Callback(~,~,~)
 % hObject    handle to microcontroller_popupmenu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -504,7 +504,7 @@ function microcontroller_popupmenu_Callback(hObject, eventdata, handles)
 
 
 % --- Executes during object creation, after setting all properties.
-function microcontroller_popupmenu_CreateFcn(hObject, eventdata, handles)
+function microcontroller_popupmenu_CreateFcn(hObject,~,~)
 % hObject    handle to microcontroller_popupmenu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -526,7 +526,7 @@ function edit_IR_intensity_Callback(hObject, eventdata, handles)
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 
-expmt.light.infrared = str2num(get(handles.edit_IR_intensity,'string'));
+expmt.light.infrared = str2double(get(handles.edit_IR_intensity,'string'));
 
 % Convert intensity percentage to uint8 PWM value 0-255
 expmt.light.infrared = uint8((expmt.light.infrared/100)*255);
@@ -538,7 +538,7 @@ setappdata(handles.gui_fig,'expmt',expmt);
 
 
 % --- Executes during object creation, after setting all properties.
-function edit_IR_intensity_CreateFcn(hObject, eventdata, handles)
+function edit_IR_intensity_CreateFcn(hObject,~,~)
 % hObject    handle to edit_IR_intensity (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -557,7 +557,7 @@ function edit_White_intensity_Callback(hObject, eventdata, handles)
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 
-White_intensity = str2num(get(handles.edit_White_intensity,'string'));
+White_intensity = str2double(get(handles.edit_White_intensity,'string'));
 
 % Convert intensity percentage to uint8 PWM value 0-255
 expmt.light.white = uint8((White_intensity/100)*255);
@@ -570,7 +570,7 @@ guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function edit_White_intensity_CreateFcn(hObject, eventdata, handles)
+function edit_White_intensity_CreateFcn(hObject,~,~)
 % hObject    handle to edit_White_intensity (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -624,7 +624,7 @@ guidata(hObject,handles);
 
 
 
-function save_path_Callback(hObject, eventdata, handles)
+function save_path_Callback(~,~,~)
 % hObject    handle to save_path (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -634,7 +634,7 @@ function save_path_Callback(hObject, eventdata, handles)
 
 
 % --- Executes during object creation, after setting all properties.
-function save_path_CreateFcn(hObject, eventdata, handles)
+function save_path_CreateFcn(hObject,~,~)
 % hObject    handle to save_path (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -702,7 +702,7 @@ function edit_ref_depth_Callback(hObject, eventdata, handles)
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 
-handles.edit_ref_depth.Value = str2num(get(handles.edit_ref_depth,'String'));
+handles.edit_ref_depth.Value = str2double(get(handles.edit_ref_depth,'String'));
 expmt.parameters.ref_depth = handles.edit_ref_depth.Value;
 
 % Store expmteriment data struct
@@ -712,7 +712,7 @@ guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function edit_ref_depth_CreateFcn(hObject, eventdata, handles)
+function edit_ref_depth_CreateFcn(hObject,~,~)
 % hObject    handle to edit_ref_depth (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -733,7 +733,7 @@ function edit_ref_freq_Callback(hObject, eventdata, handles)
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 
-handles.edit_ref_freq.Value = str2num(get(handles.edit_ref_freq,'String'));
+handles.edit_ref_freq.Value = str2double(get(handles.edit_ref_freq,'String'));
 expmt.parameters.ref_freq = handles.edit_ref_freq.Value;
 
 % Store expmteriment data struct
@@ -745,7 +745,7 @@ guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function edit_ref_freq_CreateFcn(hObject, eventdata, handles)
+function edit_ref_freq_CreateFcn(hObject,~,~)
 % hObject    handle to edit_ref_freq (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -766,7 +766,7 @@ function edit_exp_duration_Callback(hObject, eventdata, handles)
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 
-handles.edit_exp_duration.Value = str2num(get(handles.edit_exp_duration,'String'));
+handles.edit_exp_duration.Value = str2double(get(handles.edit_exp_duration,'String'));
 expmt.parameters.duration = handles.edit_exp_duration.Value;
 
 
@@ -779,7 +779,7 @@ guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function edit_exp_duration_CreateFcn(hObject, eventdata, handles)
+function edit_exp_duration_CreateFcn(hObject,~,~)
 % hObject    handle to edit_exp_duration (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -882,7 +882,7 @@ setappdata(handles.gui_fig,'expmt',expmt);
 
 
 % --- Executes during object creation, after setting all properties.
-function ROI_thresh_slider_CreateFcn(hObject, eventdata, handles)
+function ROI_thresh_slider_CreateFcn(hObject,~,~)
 % hObject    handle to ROI_thresh_slider (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -910,17 +910,15 @@ setappdata(handles.gui_fig,'expmt',expmt);
 
 
 
-function edit_frame_rate_Callback(hObject, eventdata, handles)
+function edit_frame_rate_Callback(~, ~, ~)
 % hObject    handle to edit_frame_rate (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of edit_frame_rate as text
-%        str2double(get(hObject,'String')) returns contents of edit_frame_rate as a double
 
 
 % --- Executes during object creation, after setting all properties.
-function edit_frame_rate_CreateFcn(hObject, eventdata, handles)
+function edit_frame_rate_CreateFcn(hObject, ~, ~)
 % hObject    handle to edit_frame_rate (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -967,7 +965,7 @@ guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function exp_select_popupmenu_CreateFcn(hObject, eventdata, handles)
+function exp_select_popupmenu_CreateFcn(hObject, ~, ~)
 % hObject    handle to exp_select_popupmenu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -979,7 +977,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-function edit_time_remaining_Callback(hObject, eventdata, handles)
+function edit_time_remaining_Callback(~, ~, ~)
 % hObject    handle to edit_time_remaining (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -989,7 +987,7 @@ function edit_time_remaining_Callback(hObject, eventdata, handles)
 
 
 % --- Executes during object creation, after setting all properties.
-function edit_time_remaining_CreateFcn(hObject, eventdata, handles)
+function edit_time_remaining_CreateFcn(hObject, ~, ~)
 % hObject    handle to edit_time_remaining (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -1088,7 +1086,7 @@ if ~isempty(tmp_lbl)
     for i = 1:size(convert,1)
         for j = 1:size(convert,2)
             if convert(i,j)
-                tmp_lbl(i,j) = {str2num(tmp_lbl{i,j})};
+                tmp_lbl(i,j) = {str2double(tmp_lbl{i,j})};
             end
         end
     end
@@ -1129,7 +1127,7 @@ guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function track_thresh_slider_CreateFcn(hObject, eventdata, handles)
+function track_thresh_slider_CreateFcn(hObject, ~, ~)
 % hObject    handle to track_thresh_slider (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -1158,7 +1156,7 @@ guidata(hObject,handles);
 
 
 
-function edit_numObj_Callback(hObject, eventdata, handles)
+function edit_numObj_Callback(~, ~, ~)
 % hObject    handle to edit_numObj (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1168,7 +1166,7 @@ function edit_numObj_Callback(hObject, eventdata, handles)
 
 
 % --- Executes during object creation, after setting all properties.
-function edit_numObj_CreateFcn(hObject, eventdata, handles)
+function edit_numObj_CreateFcn(hObject, ~, ~)
 % hObject    handle to edit_numObj (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -1180,7 +1178,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-function edit_object_num_Callback(hObject, eventdata, handles)
+function edit_object_num_Callback(~, ~, ~)
 % hObject    handle to edit_object_num (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1190,7 +1188,7 @@ function edit_object_num_Callback(hObject, eventdata, handles)
 
 
 % --- Executes during object creation, after setting all properties.
-function edit_object_num_CreateFcn(hObject, eventdata, handles)
+function edit_object_num_CreateFcn(hObject, ~, ~)
 % hObject    handle to edit_object_num (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -1203,7 +1201,7 @@ end
 
 
 % --- Executes on button press in reg_test_pushbutton.
-function reg_test_pushbutton_Callback(hObject, eventdata, handles)
+function reg_test_pushbutton_Callback(~, ~, ~)
 % hObject    handle to reg_test_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1233,7 +1231,7 @@ guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function aux_COM_popupmenu_CreateFcn(hObject, eventdata, handles)
+function aux_COM_popupmenu_CreateFcn(hObject,~,~)
 % hObject    handle to aux_COM_popupmenu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -1255,7 +1253,7 @@ function refresh_aux_COM_pushbutton_Callback(hObject, eventdata, handles)
 expmt = getappdata(handles.gui_fig,'expmt');
 
 % Attempt handshake with light panel teensy
-[lightBoardPort,handles.aux_COM_list] = identifyMicrocontrollers;
+[~,handles.aux_COM_list] = identifyMicrocontrollers;
 
 % Assign unidentified ports to LED ymaze menu
 if ~isempty(handles.aux_COM_list)
@@ -1298,7 +1296,7 @@ guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function param_prof_popupmenu_CreateFcn(hObject, eventdata, handles)
+function param_prof_popupmenu_CreateFcn(hObject,~,~)
 % hObject    handle to param_prof_popupmenu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -1342,7 +1340,7 @@ function save_params_pushbutton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % import expmteriment data struct
-expmt = getappdata(handles.gui_fig,'expmt');
+expmt = getappdata(handles.gui_fig,'expmt');  %#ok<NASGU>
 
 % set profile save path
 save_path = [handles.gui_dir 'profiles\'];
@@ -1379,7 +1377,7 @@ end
 
 
 % --- Executes during object deletion, before destroying properties.
-function ROI_thresh_slider_DeleteFcn(hObject, eventdata, handles)
+function ROI_thresh_slider_DeleteFcn(~,~,~)
 % hObject    handle to ROI_thresh_slider (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1514,14 +1512,14 @@ guidata(hObject,handles);
 
 
 % --------------------------------------------------------------------
-function hardware_props_menu_Callback(hObject, eventdata, handles)
+function hardware_props_menu_Callback(~,~,~)
 % hObject    handle to hardware_props_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 
 % --------------------------------------------------------------------
-function display_menu_Callback(hObject, eventdata, handles)
+function display_menu_Callback(~,~,~)
 % hObject    handle to display_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1547,14 +1545,14 @@ guidata(hObject,handles);
 
 
 % --------------------------------------------------------------------
-function proj_settings_menu_Callback(hObject, eventdata, handles)
+function proj_settings_menu_Callback(~,~,~)
 % hObject    handle to proj_settings_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 
 % --------------------------------------------------------------------
-function file_menu_Callback(hObject, eventdata, handles)
+function file_menu_Callback(~,~,~)
 % hObject    handle to file_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1744,7 +1742,7 @@ if isfield(expmt,'reg_params')
     writeInfraredWhitePanel(expmt.COM,1,0);
     writeInfraredWhitePanel(expmt.COM,0,0);
 
-    msg_title = ['Registration Error Measurment'];
+    msg_title = ['Registration Error Measurment']; %#ok<*NBRAK>
     spc = [' '];
     intro = ['Please check the following before continuing to ensure successful registration:'];
     item1 = ['1.) Both the infrared and white lights for imaging illumination are set to OFF. '...
@@ -1780,7 +1778,7 @@ guidata(hObject, handles);
 
 
 % --------------------------------------------------------------------
-function tracking_menu_Callback(hObject, eventdata, handles)
+function tracking_menu_Callback(~,~,~)
 % hObject    handle to tracking_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1844,35 +1842,35 @@ setappdata(handles.gui_fig,'expmt',expmt);
 
 
 % --------------------------------------------------------------------
-function Untitled_4_Callback(hObject, eventdata, handles)
+function Untitled_4_Callback(~,~,~)
 % hObject    handle to Untitled_4 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 
 % --------------------------------------------------------------------
-function speed_thresh_menu_Callback(hObject, eventdata, handles)
+function speed_thresh_menu_Callback(~,~,~)
 % hObject    handle to speed_thresh_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 
 % --------------------------------------------------------------------
-function ROI_distance_thresh_menu_Callback(hObject, eventdata, handles)
+function ROI_distance_thresh_menu_Callback(~,~,~)
 % hObject    handle to ROI_distance_thresh_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 
 % --------------------------------------------------------------------
-function Untitled_7_Callback(hObject, eventdata, handles)
+function Untitled_7_Callback(~,~,~)
 % hObject    handle to Untitled_7 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 
 % --------------------------------------------------------------------
-function Untitled_8_Callback(hObject, eventdata, handles)
+function Untitled_8_Callback(~,~,~)
 % hObject    handle to Untitled_8 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1884,14 +1882,9 @@ function gui_fig_SizeChangedFcn(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% get expmt data struct
-expmt = getappdata(handles.gui_fig,'expmt');
-axpos = handles.axes_handle.Position;
-
 % calculate delta width and height
 if isfield(handles,'fig_size')
     
-    dw = handles.fig_size(3) - hObject.Position(3);
     dh = handles.fig_size(4) - hObject.Position(4);
 
 
@@ -1953,14 +1946,14 @@ guidata(hObject,handles);
 
 
 % --------------------------------------------------------------------
-function load_video_menu_Callback(hObject, eventdata, handles)
+function load_video_menu_Callback(~,~,~)
 % hObject    handle to load_video_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 
 % --------------------------------------------------------------------
-function saved_presets_menu_Callback(hObject, eventdata, handles)
+function saved_presets_menu_Callback(~,~,~)
 % hObject    handle to saved_presets_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -2069,7 +2062,7 @@ end
 
 
 % --- Executes on button press in pushbutton23.
-function pushbutton23_Callback(hObject, eventdata, handles)
+function pushbutton23_Callback(~,~,~)
 % hObject    handle to pushbutton23 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -2097,7 +2090,7 @@ setappdata(handles.gui_fig,'expmt',expmt);
 
 
 % --- Executes during object creation, after setting all properties.
-function vid_select_popupmenu_CreateFcn(hObject, eventdata, handles)
+function vid_select_popupmenu_CreateFcn(hObject,~,~)
 % hObject    handle to vid_select_popupmenu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -2110,7 +2103,7 @@ end
 
 
 
-function edit_video_dir_Callback(hObject, eventdata, handles)
+function edit_video_dir_Callback(~,~,~)
 % hObject    handle to edit_video_dir (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -2120,7 +2113,7 @@ function edit_video_dir_Callback(hObject, eventdata, handles)
 
 
 % --- Executes during object creation, after setting all properties.
-function edit_video_dir_CreateFcn(hObject, eventdata, handles)
+function edit_video_dir_CreateFcn(hObject,~,~)
 % hObject    handle to edit_video_dir (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -2178,7 +2171,7 @@ setappdata(handles.gui_fig,'expmt',expmt);
 
 
 % --------------------------------------------------------------------
-function select_source_menu_Callback(hObject, eventdata, handles)
+function select_source_menu_Callback(~,~,~)
 % hObject    handle to select_source_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -2366,7 +2359,7 @@ setappdata(handles.gui_fig,'expmt',expmt);
 
 guidata(hObject,handles);
 
-function saved_preset_Callback(hObject, eventData)
+function saved_preset_Callback(hObject, ~)
 
 
 gui_fig = hObject.Parent.Parent.Parent;     % get gui handles
@@ -2374,7 +2367,7 @@ expmt_new = getappdata(gui_fig,'expmt');        % get expmt data struct
 load(hObject.UserData.path);
 
 % load new settings in from file
-expmt = load_settings(expmt,expmt_new,hObject.UserData.gui_handles);
+expmt = load_settings(expmt,expmt_new,hObject.UserData.gui_handles); %#ok<NODEF>
 
 % save loaded settings to master struct
 setappdata(gui_fig,'expmt',expmt);  
@@ -2424,7 +2417,7 @@ end
 
 
 % --------------------------------------------------------------------
-function aux_com_menu_Callback(hObject, eventdata, handles)
+function aux_com_menu_Callback(~,~,~)
 % hObject    handle to aux_com_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -2452,8 +2445,8 @@ expmt = getappdata(handles.gui_fig,'expmt');                    % load master da
 set(handles.microcontroller_popupmenu,'string',expmt.COM);
 
 % Initialize light panel at default values
-IR_intensity = str2num(get(handles.edit_IR_intensity,'string'));
-White_intensity = str2num(get(handles.edit_White_intensity,'string'));
+IR_intensity = str2double(get(handles.edit_IR_intensity,'string'));
+White_intensity = str2double(get(handles.edit_White_intensity,'string'));
 
 % Convert intensity percentage to uint8 PWM value 0-255
 expmt.light.infrared = uint8((IR_intensity/100)*255);
@@ -2470,7 +2463,7 @@ hParent = findobj('Tag','aux_com_menu');
 del=[];
 for i = 1:length(hParent.Children)
     if ~strcmp(hParent.Children(i).Label,'refresh list')
-        del = [del i];
+        del = [del i]; %#ok<*AGROW>
     end
 end
 delete(hParent.Children(del));
@@ -2492,7 +2485,7 @@ end
 setappdata(handles.gui_fig,'expmt',expmt);  
 guidata(hObject,handles);
 
-function aux_com_list_Callback(hObject, eventData)
+function aux_com_list_Callback(hObject, ~)
 
 gui_fig = hObject.Parent.Parent.Parent;                 % get gui_handle
 expmt = getappdata(gui_fig,'expmt');                    % load master data struct
@@ -2550,7 +2543,7 @@ setappdata(handles.gui_fig,'expmt',expmt);
 
 
 % --- Executes on button press in pause_togglebutton.
-function pause_togglebutton_Callback(hObject, eventdata, handles)
+function pause_togglebutton_Callback(hObject,~,~)
 % hObject    handle to pause_togglebutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -2566,7 +2559,7 @@ end
 
 
 % --- Executes on button press in record_vid_radiobutton.
-function record_vid_radiobutton_Callback(hObject, eventdata, handles)
+function record_vid_radiobutton_Callback(~,~,~)
 % hObject    handle to record_vid_radiobutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -2575,13 +2568,13 @@ function record_vid_radiobutton_Callback(hObject, eventdata, handles)
 
 
 % --- Executes during object creation, after setting all properties.
-function record_vid_radiobutton_CreateFcn(hObject, eventdata, handles)
+function record_vid_radiobutton_CreateFcn(~,~,~)
 % hObject    handle to record_vid_radiobutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
 % --------------------------------------------------------------------
-function record_video_menu_Callback(hObject, eventdata, handles)
+function record_video_menu_Callback(hObject,~,~)
 % hObject    handle to record_video_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -2599,12 +2592,12 @@ function edit_dist_thresh_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-handles.gui_fig.UserData.distance_thresh = str2num(hObject.String);
+handles.gui_fig.UserData.distance_thresh = str2double(hObject.String);
 guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function edit_dist_thresh_CreateFcn(hObject, eventdata, handles)
+function edit_dist_thresh_CreateFcn(hObject,~,~)
 % hObject    handle to edit_dist_thresh (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -2622,12 +2615,12 @@ function edit_speed_thresh_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-handles.gui_fig.UserData.speed_thresh = str2num(hObject.String);
+handles.gui_fig.UserData.speed_thresh = str2double(hObject.String);
 guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function edit_speed_thresh_CreateFcn(hObject, eventdata, handles)
+function edit_speed_thresh_CreateFcn(hObject,~,~)
 % hObject    handle to edit_speed_thresh (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -2640,7 +2633,7 @@ end
 
 
 % --------------------------------------------------------------------
-function view_menu_Callback(hObject, eventdata, handles)
+function view_menu_Callback(~,~,~)
 % hObject    handle to view_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -2808,7 +2801,6 @@ if isfield(expmt,'ROI')
             % get click info
             b = handles.gui_fig.UserData.click.button;
             c = handles.gui_fig.UserData.click.coords;
-            disp(b)
             
             switch b
                 
@@ -2907,7 +2899,7 @@ guidata(hObject,handles);
 
 
 % --- Executes on key press with focus on gui_fig or any of its controls.
-function gui_fig_WindowKeyPressFcn(hObject, eventdata, handles)
+function gui_fig_WindowKeyPressFcn(~,~,~)
 % hObject    handle to gui_fig (see GCBO)
 % eventdata  structure with the following fields (see MATLAB.UI.FIGURE)
 %	Key: name of the key that was pressed, in lower case

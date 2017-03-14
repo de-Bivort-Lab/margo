@@ -29,7 +29,7 @@ for i=1:nROIs
     end
 end
 
-mazeOri = boolean(mazeOri);
+mazeOri = logical(mazeOri);
         
 
 
