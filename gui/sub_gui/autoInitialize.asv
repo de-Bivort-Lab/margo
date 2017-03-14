@@ -23,16 +23,16 @@ expmt.fLabel = [expmt.date '_' expmt.Name];
 for i = 1:length(lab_fields)
     switch lab_fields{i}
         case 'Strain'
-            expmt.(lab_fields{i}) = expmt.labels{1,i}{:};
+            expmt.(lab_fields{i}) = lab_fields{i};
             expmt.fLabel = [expmt.fLabel '_' expmt.labels{1,i}{:}];
         case 'Sex'
-            expmt.(lab_fields{i}) = expmt.labels{1,i}{:};
+            expmt.(lab_fields{i}) = lab_fields{i};
             expmt.fLabel = [expmt.fLabel '_' expmt.labels{1,i}{:}];
         case 'Treatment'
-            expmt.(lab_fields{i}) = expmt.labels{1,i}{:};
+            expmt.(lab_fields{i}) = lab_fields{i};
             expmt.fLabel = [expmt.fLabel '_' expmt.labels{1,i}{:}];
         case 'Day'
-            expmt.(lab_fields{i}) = expmt.labels{1,i};
+            expmt.(lab_fields{i}) = lab_fields{i};
             expmt.fLabel = [expmt.fLabel '_Day' num2str(expmt.labels{1,i})];
     end
 end

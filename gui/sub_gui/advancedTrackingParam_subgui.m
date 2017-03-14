@@ -519,6 +519,8 @@ function edit_dist_thresh_Callback(hObject, eventdata, handles)
 %        str2double(get(hObject,'String')) returns contents of edit_dist_thresh as a double
 
 gui_fig = handles.figure1.UserData.gui_handles.gui_fig;
+handles.figure1.UserData.gui_handles.edit_dist_thresh.String =...
+    get(handles.edit_dist_thresh,'string');
 
 gui_fig.UserData.distance_thresh=str2num(get(handles.edit_dist_thresh,'string'));
 guidata(hObject,handles);
@@ -534,6 +536,8 @@ function edit_speed_thresh_Callback(hObject, eventdata, handles)
 %        str2double(get(hObject,'String')) returns contents of edit_speed_thresh as a double
 
 gui_fig = handles.figure1.UserData.gui_handles.gui_fig;
+handles.figure1.UserData.gui_handles.edit_speed_thresh.String =...
+    get(handles.edit_speed_thresh,'string');
 
 gui_fig.UserData.speed_thresh=str2num(get(handles.edit_speed_thresh,'string'));
 guidata(hObject,handles);

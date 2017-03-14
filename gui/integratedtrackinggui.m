@@ -201,6 +201,9 @@ expmt.parameters.ROI_thresh = num2str(round(handles.ROI_thresh_slider.Value));
 expmt.parameters.track_thresh = num2str(round(handles.track_thresh_slider.Value));
 expmt.parameters.sort_mode = 'distance';
 
+handles.edit_speed_thresh.String = num2str(handles.gui_fig.UserData.speed_thresh);
+handles.edit_dist_thresh.String = num2str(handles.gui_fig.UserData.distance_thresh);
+
 expmt.parameters.mm_per_pix = 1;            % set default distance scale 1 mm per pixel
 expmt.parameters.units = 'pixels';          % set default units to pixels
 expmt.vignette.mode = 'auto';
@@ -479,6 +482,7 @@ switch get(hObject,'value')
         else
             preview(expmt.camInfo.vid,handles.hImage);     
             set(hObject,'string','Stop preview','BackgroundColor',[0.8 0.45 0.45]);
+            waitfor(handles.gui_fig);
         end
     case 0
         if ~isempty(expmt.camInfo) && isfield(expmt.camInfo,'vid');
@@ -489,8 +493,10 @@ switch get(hObject,'value')
 end
 
 % Store expmteriment data struct
-setappdata(handles.gui_fig,'expmt',expmt);
-guidata(hObject,handles);
+if exist('handles','var') && isfield(handles,'gui_fig') && ishghandle(handles.gui_fig)
+    setappdata(handles.gui_fig,'expmt',expmt);
+    guidata(hObject,handles);
+end
 
 
 % --- Executes on selection change in microcontroller_popupmenu.
@@ -836,7 +842,7 @@ else
             analyze_ymaze(expmt,handles);
         case 8
             expmt = run_basictracking(expmt,handles);     % Run expmt
-            analyze_basictracking(expmt,handles,0);
+            analyze_basictracking(expmt,handles);
             
     end
     
@@ -1081,7 +1087,8 @@ tmp_lbl = label_subgui(expmt);
 if ~isempty(tmp_lbl)
     iString = cellfun('isclass',tmp_lbl,'char');
     numeric = false(size(iString));
-    numeric(:,4:8) = true;
+    hasData = any(~cellfun('isempty',tmp_lbl),2);
+    numeric(hasData,4:8) = true;
     convert = numeric & iString;
     for i = 1:size(convert,1)
         for j = 1:size(convert,2)

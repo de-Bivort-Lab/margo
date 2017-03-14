@@ -137,8 +137,8 @@ while stop~=1;
     % Define a permutation vector to sort ROIs from top-right to bottom left
     [centers,ROI_coords,ROI_bounds] = sortROIs(centers,ROI_coords,ROI_bounds);
   
-   % detect assymetry about vertical axis
-   mazeOri = getMazeOrientation(binaryimage,ROI_coords);
+    % detect assymetry about vertical axis
+    mazeOri = getMazeOrientation(binaryimage,ROI_coords);
     
     % Display ROIs
     imh.CData = binaryimage;
@@ -177,7 +177,7 @@ while stop~=1;
             end
         end
     end
-    gui_notify('drawn',gui_handles.disp_note);
+
     hRect(idel) = [];
     hText(idel) = [];
     hold off
