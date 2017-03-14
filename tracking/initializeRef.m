@@ -8,6 +8,19 @@ gui_notify('initializing reference',gui_handles.disp_note);
 gui_fig = gui_handles.gui_fig;
 imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');   % image handle
 
+if isempty(imh)
+        % Take single frame
+    switch expmt.source
+        case 'camera'
+            trackDat.im = peekdata(expmt.camInfo.vid,1);
+        case 'video'
+            [trackDat.im, expmt.video] = nextFrame(expmt.video,gui_handles);
+    end
+    imh = imagesc(trackDat.im);
+elseif strcmp(imh.CDataMapping,'direct')
+   imh.CDataMapping = 'scaled';
+end
+
 % enable display adjustment and set set the view to thresholded by default
 colormap('gray');
 set(gui_handles.display_menu.Children,'Enable','on');
