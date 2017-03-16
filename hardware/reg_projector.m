@@ -259,5 +259,8 @@ else
     mkdir([handles.gui_dir 'hardware\projector_fit\']);
     save([handles.gui_dir 'hardware\projector_fit\projector_fit.mat'],'reg_data');
 end
+
+% close open projector window
+sca
     
 

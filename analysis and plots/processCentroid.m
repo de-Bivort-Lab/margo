@@ -4,8 +4,8 @@ function [expmt,trackProps] = processCentroid(expmt)
     nFrames = size(expmt.Centroid.data,1);
     empty = single(NaN(nFrames, expmt.nTracks));
     trackProps = struct('r',empty,'theta',empty,'direction',empty,...
-        'turning',empty,'speed',empty,'turn_d',empty,...
-        'center',empty(1,:));
+        'turning',empty,'speed',empty,'center',empty(1,:));
+        
     
     % initialize handedness struct
     bins = 0:2*pi/25:2*pi;
@@ -46,7 +46,7 @@ for j = 1:expmt.nTracks
     trackProps.speed(trackProps.speed(:,j) > 12, j) = NaN;
     
     % restrict frames for handedness measures to set criteria
-    moving = trackProps.speed(:,j) > 0.001;
+    moving = trackProps.speed(:,j) > 0.8;
     %in_center = trackProps.r(:,j) < 0.5 * trackProps.center(j);
     include = moving;
     handedness.circum_vel(include,j) = trackProps.theta(include,j)-trackProps.direction(include,j);

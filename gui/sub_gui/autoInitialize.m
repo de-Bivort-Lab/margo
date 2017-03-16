@@ -15,25 +15,25 @@ trackDat.pix_dev = zeros(10,1);                             % stdev of pixels ov
 %% Initialize labels, file paths, and files for tracked fields
 
 expmt.date = datestr(clock,'mm-dd-yyyy-HH-MM-SS_');         % get date string
-expmt.labels = labelMaker(expmt);                           % convert labels cell into table format
+expmt.labels_table = labelMaker(expmt);                           % convert labels cell into table format
 
 % Query label fields and set label for file
-lab_fields = expmt.labels.Properties.VariableNames;
+lab_fields = expmt.labels_table.Properties.VariableNames;
 expmt.fLabel = [expmt.date '_' expmt.Name];
 for i = 1:length(lab_fields)
     switch lab_fields{i}
         case 'Strain'
-            expmt.(lab_fields{i}) = expmt.labels{1,i}{:};
-            expmt.fLabel = [expmt.fLabel '_' expmt.labels{1,i}{:}];
+            expmt.(lab_fields{i}) = expmt.labels_table{1,i}{:};
+            expmt.fLabel = [expmt.fLabel '_' expmt.labels_table{1,i}{:}];
         case 'Sex'
-            expmt.(lab_fields{i}) = expmt.labels{1,i}{:};
-            expmt.fLabel = [expmt.fLabel '_' expmt.labels{1,i}{:}];
+            expmt.(lab_fields{i}) = expmt.labels_table{1,i}{:};
+            expmt.fLabel = [expmt.fLabel '_' expmt.labels_table{1,i}{:}];
         case 'Treatment'
-            expmt.(lab_fields{i}) = expmt.labels{1,i}{:};
-            expmt.fLabel = [expmt.fLabel '_' expmt.labels{1,i}{:}];
+            expmt.(lab_fields{i}) = expmt.labels_table{1,i}{:};
+            expmt.fLabel = [expmt.fLabel '_' expmt.labels_table{1,i}{:}];
         case 'Day'
-            expmt.(lab_fields{i}) = expmt.labels{1,i};
-            expmt.fLabel = [expmt.fLabel '_Day' num2str(expmt.labels{1,i})];
+            expmt.(lab_fields{i}) = expmt.labels_table{1,i};
+            expmt.fLabel = [expmt.fLabel '_Day' num2str(expmt.labels_table{1,i})];
     end
 end
 

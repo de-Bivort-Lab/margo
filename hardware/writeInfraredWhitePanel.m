@@ -14,9 +14,9 @@ s = serial(COM_port{:});    % Create Serial Object
     fopen(s);                       % Open the port
     
     if panel==0
-        panel=9;
-    else
         panel=10;
+    else
+        panel=9;
     end
 
     writeData=char([level panel]);

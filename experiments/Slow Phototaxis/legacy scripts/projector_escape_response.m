@@ -10,22 +10,22 @@ cmd_str = 'wmic process where name="MATLAB.exe" CALL setpriority 128';
 % Experimental parameters
 exp_duration=handles.exp_duration;
 exp_duration=exp_duration*60;
-referenceStackSize=handles.ref_stack_size;                  % Number of images to keep in rolling reference
-referenceFreq=handles.ref_freq;                             % Seconds between reference images
-referenceTime = 60;                                         % Seconds over which intial reference images are taken
-
+referenceStackSize=handles.ref_stack_size;   % Number of images to keep in rolling reference
+referenceFreq=handles.ref_freq;              % Seconds between reference images
+referenceTime = 60;                          % Seconds over which intial reference images are taken
 % Tracking parameters
-imageThresh=get(handles.threshold_slider,'value');          % Difference image threshold for detecting centroids
-speedThresh=80;                                             % Maximum allow pixel speed (px/s);
+imageThresh=get(handles.threshold_slider,'value');    % Difference image threshold for detecting centroids
+speedThresh=35;                              % Maximum allow pixel speed (px/s);
 
 % ROI detection parameters
-ROI_thresh=get(handles.threshold_slider,'value')/255;       % Binary image threshold from zero (black) to one (white) for segmentation  
-sigma=0.47;                                                 % Sigma expressed as a fraction of the image height
-gaussWeight=0.34;                                           % Scalar weighting of gaussian vignette correction when applied to the image
+ROI_thresh=get(handles.threshold_slider,'value')/255;    % Binary image threshold from zero (black) to one (white) for segmentation  
+sigma=0.47;                                 % Sigma expressed as a fraction of the image height
+kernelWeight=0.34;                          % Scalar weighting of kernel when applied to the image
 
-% Optomotor stimulus parameters
-stim_int=handles.exp_parameters.stim_int;                   % interval between stimuli (min)
-stim_duration=handles.exp_parameters.stim_duration;         % duration of the pinwheel per trial (min)
+% Looming stimulus parameters
+dr=20;                                       % change in radius (pixels/frame)
+loom_int=1.5;                               % interval between looming stimuli (min)
+num_loom=1;                                 % number of looms per trial
 
 %% Save labels and create placeholder files for data
 
@@ -38,14 +38,12 @@ writetable(labels, labelID);
 
 % Create placeholder files
 cenID = [handles.fpath '\' t strain '_' treatment '_Centroid.dat'];            % File ID for centroid data
-oriID = [handles.fpath '\' t strain '_' treatment '_Orientation.dat'];         % File ID for turn data
+turnID = [handles.fpath '\' t strain '_' treatment '_RightTurns.dat'];         % File ID for turn data
 stimID = [handles.fpath '\' t strain '_' treatment '_StimStatus.dat'];         % File ID for stimulus state
-rotID = [handles.fpath '\' t strain '_' treatment '_StimRotation.dat'];         % File ID for stimulus state
  
 dlmwrite(cenID, []);                          % create placeholder ASCII file
-dlmwrite(oriID, []);                         % create placeholder ASCII file
+dlmwrite(turnID, []);                         % create placeholder ASCII file
 dlmwrite(stimID, []);                         % create placeholder ASCII file
-dlmwrite(rotID, []);                         % create placeholder ASCII file
 
 %% Setup the camera and video object
 imaqreset
@@ -71,7 +69,7 @@ ROI_image=imagedata(:,:,2);
 ROI_thresh=get(handles.threshold_slider,'value')/255;
 
 % Build a kernel to smooth vignetting
-gaussianKernel=buildGaussianKernel(size(ROI_image,2),size(ROI_image,1),sigma,gaussWeight);
+gaussianKernel=buildGaussianKernel(size(ROI_image,2),size(ROI_image,1),sigma,kernelWeight);
 ROI_image=(uint8(double(ROI_image).*gaussianKernel));
 
 % Extract ROIs from thresholded image
@@ -114,6 +112,7 @@ set(handles.accept_thresh_pushbutton,'value',0);
 %% Initialize the psychtoolbox window and query projector properties
 bg_color=[1 1 1];          
 scrProp=initialize_projector(bg_color);
+%Screen('BlendFunction', scrProp.window, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 pause(1);
 
 %% Automatically average out flies from reference image
@@ -121,7 +120,7 @@ pause(1);
 refImage=imagedata(:,:,2);                              % Assign reference image
 lastCentroid=centers;                                   % Create placeholder for most recent non-NaN centroids
 referenceCentroids=zeros(size(ROI_coords,1),2,10);      % Create placeholder for cen. coords when references are taken
-propFields={'Centroid';'Area';'Orientation'};           % Define fields for regionprops
+propFields={'Centroid';'Area'};           % Define fields for regionprops
 nRefs=zeros(size(ROI_coords,1),1);                      % Reference number placeholder
 numbers=1:size(ROI_coords,1);                           % Numbers to display while tracking
 centStamp=zeros(size(ROI_coords,1),1);
@@ -171,6 +170,7 @@ while toc<referenceTime&&get(handles.accept_thresh_pushbutton,'value')~=1
             set(handles.edit_time_remaining, 'String', [sprintf('%0.2d', hr) ':' sprintf('%0.2d',min) ':' sprintf('%0.2d',sec)]);
             set(handles.edit_time_remaining, 'BackgroundColor', [1 1 1]);
         end
+
         
         % Take difference image
         imagedata=peekdata(vid,1);
@@ -255,8 +255,10 @@ ct=1;                               % Frame counter
 pixDistSize=100;                    % Num values to record in p
 pixelDist=NaN(pixDistSize,1);       % Distribution of total number of pixels above image threshold
 tElapsed=0;
-
+shg
+%title('Displaying Tracking for 120s - Please check tracking and ROIs')
 tic   
+
 while ct<pixDistSize;
         
         % Grab image thresh from GUI slider
@@ -367,65 +369,44 @@ stim_centers(:,2)=Fy(centers(:,1),centers(:,2));
 
 %% Pre-allocate stimulus image for texture making
 
-% Determine stimulus size
-pinwheel_size=round(nanmean(nanmean([stim_coords(:,3)-stim_coords(:,1) stim_coords(:,4)-stim_coords(:,2)]))*4);
-nCycles = handles.exp_parameters.num_cycles;            % num dark-light cycles in 360 degrees
-mask_r = handles.exp_parameters.mask_r;                 % radius of center circle dark mask (as fraction of stim_size)
-ang_vel = handles.exp_parameters.ang_per_frame;         % angular velocity of stimulus (degrees/frame)
-subim_r = floor(pinwheel_size/2*sqrt(2)/2);
-
-% Initialize the stimulus image
-pinwheel=initialize_pinwheel(pinwheel_size,pinwheel_size,nCycles,mask_r);
-imcenter=[size(pinwheel,1)/2+0.5 size(pinwheel,2)/2+0.5];
-subim_bounds = [imcenter(2)-subim_r imcenter(1)-subim_r imcenter(2)+subim_r imcenter(1)+subim_r];
-stim_sz_x = subim_bounds(3)-subim_bounds(1)+1;
-stim_sz_y = subim_bounds(4)-subim_bounds(2)+1;
-
-
-% Initialize source rect and scaling factors
-base_srcRect=[0 0 stim_sz_x/2 stim_sz_y/2];
-centered_srcRect=CenterRectOnPointd(base_srcRect,stim_sz_x/2,stim_sz_y/2);
+stim_size=round(nanmean(nanmean([stim_coords(:,3)-stim_coords(:,1) stim_coords(:,4)-stim_coords(:,2)]))*4);
+base_srcRect=[0 0 stim_size/2 stim_size/2]
+centered_srcRect=CenterRectOnPointd(base_srcRect,stim_size/2,stim_size/2);
 src_scaling_factor=NaN(size(centers));
-src_scaling_factor(:,1)=(stim_sz_x/2)./(stim_coords(:,3)-stim_coords(:,1));
-src_scaling_factor(:,2)=(stim_sz_y/2)./(stim_coords(:,4)-stim_coords(:,2));
+src_scaling_factor(:,1)=(stim_size/2)./(stim_coords(:,3)-stim_coords(:,1));
+src_scaling_factor(:,2)=(stim_size/2)./(stim_coords(:,4)-stim_coords(:,2));
 
 %% Run Experiment
-
-clearvars numbers oldRef ROI_image subtractedData
-pinwheelTex = Screen('MakeTexture', scrProp.window, pinwheel);
-
+shg
 tic
 delay=0.0001;
 pt=0; % Initialize pause time
-stim_timer=zeros(size(ROI_coords,1),1);
-stim_tStamp=zeros(size(ROI_coords,1),1);
-stim_ON=logical(stim_timer);
-stim_count=0;                                                           % Counter for number of looming stim displayed each stimulation period
-angle=0;                                                                % Initialize stimulus starting angle to 0
-local_spd = NaN(15,size(ROI_coords,1));
-lastOrientation=NaN(size(ROI_coords,1),1);
-stim_ct=0;
-pinwheelTex_pos = Screen('MakeTexture', scrProp.window, pinwheel);          % Placeholder for pinwheel textures positively rotating
-pinwheelTex_neg = Screen('MakeTexture', scrProp.window, pinwheel);         % Placeholder for pinwheel textures negatively rotating
-rot_dir = boolean(ones(size(ROI_coords,1),1));                              % Direction of rotation for the pinwheel
+loom_timer=0;
+stim_ON=logical(0);
+stim_r=round(logspace(0,log10((stim_size-10)/2),10));
+%stim_r=round(ones(1000,1)*0.05*stim_size);
+loom_index=1;
+stim_count=0;                 % Counter for number of looming stim displayed each stimulation period
+loom_int=loom_int*60;           % Convert the stim interval from min to sec
 
 while toc < exp_duration
     
         % Grab new time stamp
         current_tStamp = toc-pt;
-        ifi=current_tStamp-previous_tStamp;
-        tElapsed=tElapsed+ifi;
+        tElapsed=tElapsed+current_tStamp-previous_tStamp;
         set(handles.edit_frame_rate,'String',num2str(round(1/(current_tStamp-previous_tStamp))));
+        ifi=current_tStamp-previous_tStamp;
         previous_tStamp=current_tStamp;
         ct=ct+1;
         tempCount=tempCount+1;
 
         % Get framerate delay to slow acquisition
         %delay=str2double(get(handles.edit9,'String'));
-        %delay=delay/1000;
-        %pause(delay);
+        delay=delay/1000;
+        pause(delay);
     
         % Update clock in the GUI
+        
         timeRemaining = round(exp_duration - toc);
         if timeRemaining < 60; 
             set(handles.edit_time_remaining, 'String', ['00:00:' sprintf('%0.2d',timeRemaining)]);
@@ -442,7 +423,7 @@ while toc < exp_duration
             set(handles.edit_time_remaining, 'String', [sprintf('%0.2d', hr) ':' sprintf('%0.2d',min) ':' sprintf('%0.2d',sec)]);
             set(handles.edit_time_remaining, 'BackgroundColor', [1 1 1]);
         end
-
+        
         
         % Capture frame and extract centroid
         imagedata=peekdata(vid,1);
@@ -462,7 +443,6 @@ while toc < exp_duration
             % Match centroids to ROIs by finding nearest ROI center
             validCentroids=([props.Area]>4&[props.Area]<120);
             cenDat=reshape([props(validCentroids).Centroid],2,length([props(validCentroids).Centroid])/2)';
-            oriDat=[props(validCentroids).Orientation];
 
             [cen_permutation,update_centroid]=matchCentroids2ROIs(cenDat,lastCentroid,centers,distanceThresh);
 
@@ -480,7 +460,6 @@ while toc < exp_duration
             % Use permutation vector to sort raw centroid data and update
             % vector to specify which centroids are reliable and should be updated
             lastCentroid(update_centroid,:)=cenDat(cen_permutation,:);
-            lastOrientation(update_centroid)=oriDat(cen_permutation);
             centStamp(update_centroid)=tElapsed;
             speed = zeros(1,size(ROI_coords,1));
             speed(update_centroid)=spd(~above_spd_thresh);
@@ -488,102 +467,74 @@ while toc < exp_duration
             
             % Write data to the hard drive
             dlmwrite(cenID, [[ct;ifi] lastCentroid'], '-append');
-            dlmwrite(oriID, lastOrientation', '-append');
             dlmwrite(stimID, stim_ON, '-append');
-            dlmwrite(rotID, rot_dir, '-append');
             
 
         end
         
-        % Calculate radial distance for each fly
-        r=sqrt((lastCentroid(:,1)-centers(:,1)).^2 + (lastCentroid(:,2)-centers(:,2)).^2);
-        
-        % Update which stimuli (if any) need to be turned on
-        local_spd(mod(ct-1,15)+1,:)=speed;
-        moving = nanmean(local_spd)'>1;
-        in_center = r < (ROI_widths./4);
-        interval_exceeded = tElapsed-stim_timer > stim_int;
-        
-        % Activate the stimulus when flies are: moving, away from the 
-        % edges, have exceeded the mandatory wait time between subsequent
-        % presentations, and are not already being presented with a stimulus
-        activate_stim = moving & in_center & interval_exceeded & ~stim_ON;
-        rot_dir(activate_stim)=rand(sum(activate_stim),1)>0.5;      % Randomize the rotational direction
-        stim_ON(activate_stim)=boolean(1);                          % Set stim status to ON
-        stim_tStamp(activate_stim)=tElapsed;                        % Record the time
-        
-        if tElapsed < 0
-            stim_ON=boolean(zeros(size(ROI_coords,1),1));
+        % Check loom timer and display stimuli
+        if tElapsed-loom_timer > loom_int && ~stim_ON
+            stim_ON=logical(1);
+            disp('STIM TURNED ON')
         end
         
-        if any(stim_ON)
+        if stim_ON
+                % Initialize circle
+                circImage=ones(stim_size);
+                circCenter=size(circImage)/2;
+                circBounds=[circCenter(2)-stim_r(loom_index) circCenter(1)-stim_r(loom_index) ...
+                    circCenter(2)+stim_r(loom_index)-1 circCenter(1)+stim_r(loom_index)-1];
+                circMask=~(Circle(stim_r(loom_index)));
+                circImage(circBounds(2):circBounds(4),circBounds(1):circBounds(3))=circMask;
+                circTex = Screen('MakeTexture', scrProp.window, circImage);
+                
+                % Calculate the distance from the center in projector space
+                proj_centroid=NaN(size(lastCentroid));
+                proj_centroid(:,1)=Fx(lastCentroid(:,1),lastCentroid(:,2));
+                proj_centroid(:,2)=Fy(lastCentroid(:,1),lastCentroid(:,2));
+                proj_displacement=[proj_centroid(:,1)-stim_centers(:,1) proj_centroid(:,2)-stim_centers(:,2)];
+                proj_displacement=proj_displacement.*src_scaling_factor;
+                src_rects=NaN(size(stim_coords));
+                src_rects(:,[1 3])=[centered_srcRect(1)-proj_displacement(:,1) centered_srcRect(3)-proj_displacement(:,1)];
+                src_rects(:,[2 4])=[centered_srcRect(2)-proj_displacement(:,2) centered_srcRect(4)-proj_displacement(:,2)];
+                
+                % Pass textures to screen
+                Screen('DrawTextures', scrProp.window, circTex, src_rects', stim_coords', [],...
+                [], [], [],[], []);
             
-            stim_ct=stim_ct+1;
-            
-            % Rotate stim image and generate stim texture
-            pos_rotim=imrotate(pinwheel,angle,'bilinear','crop');
-            pos_rotim=pos_rotim(subim_bounds(2):subim_bounds(4),subim_bounds(1):subim_bounds(3));
-            neg_rotim=imrotate(pinwheel,-angle,'bilinear','crop');
-            neg_rotim=neg_rotim(subim_bounds(2):subim_bounds(4),subim_bounds(1):subim_bounds(3));
-
-            % Calculate the displacement from the ROI center in projector space
-            proj_centroid=NaN(sum(stim_ON),2);
-            proj_centroid(:,1)=Fx(lastCentroid(stim_ON,1),lastCentroid(stim_ON,2));
-            proj_centroid(:,2)=Fy(lastCentroid(stim_ON,1),lastCentroid(stim_ON,2));
-            proj_displacement=[proj_centroid(:,1)-stim_centers(stim_ON,1) proj_centroid(:,2)-stim_centers(stim_ON,2)];
-            proj_displacement=proj_displacement.*src_scaling_factor(stim_ON,:);
-            src_rects=NaN(size(stim_coords(stim_ON,:)));
-            src_rects(:,[1 3])=[centered_srcRect(1)-proj_displacement(:,1) centered_srcRect(3)-proj_displacement(:,1)];
-            src_rects(:,[2 4])=[centered_srcRect(2)-proj_displacement(:,2) centered_srcRect(4)-proj_displacement(:,2)];
-            
-            Screen('Close', pinwheelTex_pos);
-            Screen('Close', pinwheelTex_neg);
-            pinwheelTex_pos = Screen('MakeTexture', scrProp.window, pos_rotim);
-            pinwheelTex_neg = Screen('MakeTexture', scrProp.window, neg_rotim);
-
-            % Pass textures to screen
-            if any(rot_dir(stim_ON))
-            Screen('DrawTextures', scrProp.window, pinwheelTex_pos, src_rects(rot_dir(stim_ON),:)', stim_coords(stim_ON & rot_dir,:)', [],...
-            [], [], [],[], []);
-            end
-            if any(~rot_dir(stim_ON))
-            Screen('DrawTextures', scrProp.window, pinwheelTex_neg, src_rects(~rot_dir(stim_ON),:)', stim_coords(stim_ON & ~rot_dir,:)', [],...
-            [], [], [],[], []);
-            end
-
-            % Flip to the screen
-            scrProp.vbl = Screen('Flip', scrProp.window, scrProp.vbl + (scrProp.waitframes - 0.5) * scrProp.ifi);
-
-            % Advance the stimulus angle
-            angle=angle+ang_vel;
-            if angle >= 360
-                angle=angle-360;
-            end
-        
-        end
-        
-        % Turn off stimuli that have exceed the display duration
-          stim_OFF = tElapsed-stim_tStamp >= stim_duration & stim_ON;
-          stim_ON(stim_OFF) = logical(0);         % Set stim status to OFF
+                % Flip to the screen
+                % Flip our drawing to the screen
+                scrProp.vbl = Screen('Flip', scrProp.window, scrProp.vbl + (scrProp.waitframes - 0.5) * scrProp.ifi);
+                
+                % Advance the radius of the spot
+                loom_index=loom_index+1;
+                if loom_index > length(stim_r)
+                    stim_count=stim_count+1;
+                    loom_index=1;
+                end
+                if stim_count==num_loom
+                    stim_ON=logical(0);         % Set stim status to OFF
+                    stim_count=0;
                     
-        % Update stim timer for stimulus turned off
-        if any(stim_OFF)
-            
-            % Reset the stimulus timer
-            stim_timer(stim_OFF)=tElapsed;
+                    % Draw blank white screen and flip it to the projector
+                    Screen('FillRect',scrProp.window,[1 1 1],scrProp.windowRect);
+                    scrProp.vbl = Screen('Flip', scrProp.window, scrProp.vbl + (scrProp.waitframes - 0.5) * scrProp.ifi);
+                    
+                    % Reset the stimulus timer
+                    loom_timer=tElapsed;
+                end
         end
         
-        % Update the display if the stimulus is not on
-        if ~any(stim_ON)
-           cla reset
+        % Update the display every 30 frames
+        if mod(ct,30)==0
+           %cla reset
            imagesc((imagedata-vignetteMat));
            hold on
            plot(lastCentroid(:,1),lastCentroid(:,2),'o','Color','r');
            hold off
-           set(gca,'Xtick',[],'Ytick',[]);
            drawnow
-        end 
-
+        end
+        
 
         % Display current noise level once/sec
         if mod(ct,round(60/delay))==0
@@ -614,13 +565,8 @@ while toc < exp_duration
             end         
         end 
         previous_refUpdater=current_refUpdater;
-        
-        clearvars imagedata cenDat pos_rotim neg_rotim moving in_center interval_exceeded r props diffImage...
-            src_rects proj_centroid
-        
+    
 end
-
-clearvars min refImage refStack
 
 %% Pull in ASCII data, format into matrices
 disp('Experiment Complete')
@@ -645,7 +591,7 @@ clearvars tmp
 % Reshape centroid data
 centroid(:,1,:)=xCen;
 centroid(:,2,:)=yCen;
-clearvars xCen yCen
+clearvars xCen yCen min
 
 % Create tmp holder for handedness processing
 tmpCen=NaN(size(centroid,1),2*flyTracks.nFlies);
@@ -682,7 +628,7 @@ for i = 1:flyTracks.nFlies
     habRate(i)=linCoeffs(1);
 end
 
-%% Record arena circling metrics
+%% Discard the first turn in every maze
 % Calculate averaged circling angle mu. Assign data in flyCircles to master data struct flyData
 % Assign flyID to each fly
 
@@ -707,40 +653,15 @@ flyTracks.angHist=angHist;
 
 %plotArenaTraces(flyCircles,tmpCen,flyTracks.ROI_coords)
 
-%% Analyze stimulus response
+%% Analyze Escape Response
 
-clearvars tmpSpeed
-
-tElapsed=flyTracks.tStamps;
 stim_status=boolean(dlmread(stimID));
-stim_status=reshape(stim_status,flyTracks.nFlies,size(stim_status,1)/flyTracks.nFlies)';
-rotDat=logical(dlmread(rotID));
-rotDat=reshape(rotDat,flyTracks.nFlies,size(rotDat,1)/flyTracks.nFlies)';
-opto = avgAngle_optomotor(cData,[cData(:).width],stim_status,~rotDat);
-baseline = avgAngle_optomotor(cData,[cData(:).width],~stim_status,rotDat);
-off_spd=NaN(flyTracks.nFlies,1);
-on_spd=NaN(flyTracks.nFlies,1);
-base_spd=NaN(flyTracks.nFlies,1);
+tElapsed=cumsum(flyTracks.tStamps);
+ifi=flyTracks.tStamps;
+speed=[cData(:).speed]./repmat(ifi,1,flyTracks.nFlies);
 speed=[cData(:).speed];
-speed(speed<0.25)=0;
-%plotArenaTraces(opto,tmpCen,flyTracks.ROI_coords)
-%plotArenaTraces(baseline,tmpCen,flyTracks.ROI_coords)
-
-for i=1:flyTracks.nFlies
-    
-    off_spd(i)=nanmean(speed(~stim_status(:,i),i));
-    on_spd(i)=nanmean(speed(stim_status(:,i),i));
-    base_spd(i)=nanmean(speed(tElapsed<30*60,i));
-end
-
-[iOFFr,iOFFc]=find(diff(stim_status)==-1);
-iOFFr=iOFFr+1;
-nTrials=NaN(flyTracks.nFlies,1);
-
-for i=1:flyTracks.nFlies
-    nTrials(i)=sum(iOFFc==i);
-end
-
+%speed(speed==0)=NaN;
+%speed(speed<0.05)=0;
 
 [iONr,iONc]=find(diff(stim_status)==1);
 iONr=iONr+1;
@@ -748,124 +669,165 @@ iONr=iONr+1;
 iOFFr=iOFFr+1;
 
 % Stimulus triggered averaging of each stimulus bout
-win_sz=stim_duration;     % Size of the window on either side of the stimulus in sec
-win_start=NaN(size(iONr,1),flyTracks.nFlies);
-win_stop=NaN(size(iOFFr,1),flyTracks.nFlies);
-tElapsed=flyTracks.tStamps;
-nTrials=NaN(flyTracks.nFlies,1);
+win_sz=0.5;     % Size of the window on either side of the stimulus in sec
+win_start=NaN(size(iONr,1),1);
+win_stop=NaN(size(iOFFr,1),1);
 
-%{
 % Start by finding tStamps
-for i=1:flyTracks.nFlies
-    disp(i)
-    tStamps=tElapsed(iONr(iONc==i));
-    tON=tStamps-win_sz;
-    tOFF=tStamps+win_sz;
-    [v,start] = min(abs(repmat(tElapsed,1,length(tON))-repmat(tON',size(tElapsed,1),1))); 
-    [v,stop] = min(abs(repmat(tElapsed,1,length(tON))-repmat(tOFF',size(tElapsed,1),1)));
-    win_start(1:length(tStamps),i)=start;
-    win_stop(1:length(tStamps),i)=stop;
-end
+tStamps=tElapsed(iONr);
+tON=tStamps-win_sz;
+tOFF=tStamps+win_sz;
+[v,start] = min(abs(repmat(tElapsed,1,length(tON))-repmat(tON',size(tElapsed,1),1))); 
+[v,stop] = min(abs(repmat(tElapsed,1,length(tON))-repmat(tOFF',size(tElapsed,1),1)));
+win_start(1:length(tStamps))=start;
+win_stop(1:length(tStamps))=stop;
 
-clearvars tElapsed iONc iONr iOFFc iOFFr
+clearvars iONc iOFFc iOFFr
 
 win_start(sum(~isnan(win_start),2)==0,:)=[];
 win_stop(sum(~isnan(win_stop),2)==0,:)=[];
 nPts=max(max(win_stop-win_start));
-da=NaN(nPts,size(win_start,1),flyTracks.nFlies);
-%turning=dlmread(oriID);
-%turning=diff(turning);
-%turning=[zeros(1,size(turning,2));turning];
-%}
-turning = trackProps.turning;
-turn_distance = [cData(:).turn_distance];
-turn_distance(rotDat&stim_status)=-turn_distance(rotDat&stim_status);
-tmp_tdist = turn_distance;
-tmp_tdist(~stim_status)=NaN;
-tmp_r = nansum(tmp_tdist);
-tmp_tot = nansum(abs(tmp_tdist));
-opto_bias = tmp_r./tmp_tot;
-%turning(rotDat&stim_status)=-turning(rotDat&stim_status);
-speed=[cData(:).speed];
-%turning(speed<0.2)=0;
-%speed(speed<0.2)=0;
+spd_dat=NaN(nPts,size(win_start,1),flyTracks.nFlies);
 t0=nPts/2;
-off_spd=NaN(flyTracks.nFlies,1);
-on_spd=NaN(flyTracks.nFlies,1);
+peak_spd=NaN(size(win_start,1),flyTracks.nFlies);
+peak_index=NaN(size(win_start,1),flyTracks.nFlies);
 
-%{
-for i=1:flyTracks.nFlies
+for i=1:flyTracks.nFlies    
+% Integrate change in speed over the entire stimulus bout
+    for j=1:sum(~isnan(win_start(:)))
+        tmpSpd=speed(win_start(j):win_stop(j),i);
+        tmp_peak_spd=max(tmpSpd(length(tmpSpd)*0.49:end));
+        if tmp_peak_spd > 3
+            [peak_spd(j,i),peak_index(j,i)]=max(tmpSpd);
+            peak_index(j,i)=peak_index(j,i)+win_start(j)-1;
+            tmpSpd=interp1(1:length(tmpSpd),tmpSpd,linspace(1,length(tmpSpd),nPts));
+            spd_dat(:,j,i)=tmpSpd;
+        end
+    end
+end
+
+%% Watch escape movies
+
+figure();
+centroid=flyTracks.centroid;
+title('Escape Response Movies')
+ROI_coords=flyTracks.ROI_coords;
+w=ROI_coords(:,3)-ROI_coords(:,1);
+h=ROI_coords(:,4)-ROI_coords(:,2);
+r=mean([w h],2)./2;
+colormap('gray')
+hold on
+fly_pos=plot([],[],'ro','Linewidth',2);
+trace=plot([],[],'ro','Linewidth',2);
+stim_symbol=plot([],[],'ro','Linewidth',2);
+pk_trace=plot([],[],'ro','Linewidth',2);
+t_disp=plot([],[],'ro','Linewidth',2);
+trial_num=plot([],[],'ro','Linewidth',2);
+shg
+for i=2:flyTracks.nFlies
     
-    off_spd(i)=nanmean(speed(~stim_status(:,i),i));
-    on_spd(i)=nanmean(speed(stim_status(:,i),i));
+    image(zeros(h(i)+1,w(i)+1));
+    fly_num=text(w(i)*0.05,h(i)*0.1,['fly ' num2str(i)],'Color','r');
+    rectangle('Position',[1 1 w(i) h(i)],'Curvature',[1 1],'Edgecolor',[1 0 0]);
     
-% Integrate change in heading angle over the entire stimulus bout
-    for j=1:sum(~isnan(win_start(:,i)))
-        tmpTurn=turning(win_start(j,i):win_stop(j,i),i);
-        tmpTurn(tmpTurn > pi*0.95 | tmpTurn < -pi*0.95)=0;
-        if ~isempty(tmpTurn)
-            tmpTurn=interp1(1:length(tmpTurn),tmpTurn,linspace(1,length(tmpTurn),nPts));
-            if nanmean(speed(win_start(j,i):win_stop(j,i),i))>0.03
-            da(1:t0,j,i)=cumsum(tmpTurn(1:t0));
-            da(t0+1:end,j,i)=cumsum(tmpTurn(t0+1:end));
+    % For each trial
+    for j=1:sum(~isnan(win_start(:)))
+        
+        % If the frame is valid
+        if ~isnan(peak_spd(j,i))
+            delete(trial_num);
+            delete(stim_symbol);
+            delete(pk_trace);
+            trial_num=text(w(i)*0.1,h(i)*0.1,['- trial ' num2str(j)],'Color','r');
+            
+            % For each frame in the trial
+            for k=1:win_stop(j)-win_start(j)
+                pause(1/60);
+                f = win_start(j)+k-1;
+                s = win_start(j)-1;
+                    if f==iONr(j);
+                        stim_symbol=plot(w(i)*0.9,h(i)*0.9,'wo','Linewidth',4);
+                    end
+                delete(trace);
+                delete(fly_pos);
+                trace=plot(centroid(s:f,1,i)-ROI_coords(i,1),centroid(s:f,2,i)-ROI_coords(i,2),'Color',[1 1 1],'Linewidth',1);
+                fly_pos=plot(centroid(f,1,i)-ROI_coords(i,1),centroid(f,2,i)-ROI_coords(i,2),'ro','Linewidth',2); 
+                
+                if peak_index(j,i)==f
+                    pk_trace=plot(centroid(f-1:f+1,1,i)-ROI_coords(i,1),centroid(f-1:f+1,2,i)-ROI_coords(i,2),'Color',[1 0 0],'Linewidth',2);
+                end
+                
+                delete(t_disp);
+                t_disp=text(w(i)*0.1,h(i)*0.9,num2str(round((tElapsed(f)-tElapsed(iONr(j)))*1000)),'Color',[1 1 1],'FontSize',14);   
+                drawnow
+                
             end
         end
     end
 end
-%}
-
-
-active=nTrials>40;
 
 %% Generate plots
-%{
+
 figure();
-optoplots=squeeze(nanmean(da,2));
-clearvars da tmpTurn win_start win_stop
-flyTracks.optoplots=optoplots;
-flyTracks.nTrials=nTrials;
-flyTracks.tScore=optoplots(end,:);
-flyTracks.off_spd=off_spd;
-flyTracks.on_spd=on_spd;
-flyTracks.stim_duration=stim_duration;
-[v,p]=sort(mean(optoplots(t0+1:end,:)));
-p_optoplots=optoplots(:,p);
-p_cormap=cormap(p,:);
+escapeplots=squeeze(nanmean(spd_dat,2));
+escapeplots=escapeplots-repmat(mean(escapeplots,1),size(escapeplots,1),1);
+flyTracks.escapeplots=escapeplots;
+flyTracks.nTrials=size(spd_dat,2);
 hold on
-for i=1:flyTracks.nFlies
-    plot(smooth(p_optoplots(:,i),10),'Color',cormap(i,:),'linewidth',2);
+ymin=0;
+ymax=0;
+for i=1:size(escapeplots,2)
+    tmp_smoothed=smooth(escapeplots(:,i),0.0001*size(escapeplots,1));
+    if min(tmp_smoothed)<ymin
+        ymin=min(tmp_smoothed);
+    end
+    if max(tmp_smoothed)>ymax
+        ymax=max(tmp_smoothed);
+    end
+    plot(tmp_smoothed);
+end
+axis([0 size(escapeplots,1) ymin ymax]);
+splot=smooth(nanmean(escapeplots,2),0.0001*size(escapeplots,1));
+plot(splot,'k-','LineWidth',3);
+plot([t0 t0],[ymin ymax],'k--','LineWidth',2);
+hold off
+set(gca,'Xtick',linspace(1,size(escapeplots,1),7),'XtickLabel',linspace(-win_sz,win_sz,7));
+ylabel('speed')
+xlabel('time to stimulus onset')
+title('Change in speed before and after looming stimulus')
+
+% Individual plots
+figure()
+for i=1:size(escapeplots,2)
+    tmp_smoothed=smooth(escapeplots(:,i),0.05*size(escapeplots,1));
+    if min(tmp_smoothed)<ymin
+        ymin=min(tmp_smoothed);
+    end
+    if max(tmp_smoothed)>ymax
+        ymax=max(tmp_smoothed);
+    end
+    subplot(4,4,i);
+    plot(tmp_smoothed);
+    hold on
+    plot([t0 t0],[min(tmp_smoothed) max(tmp_smoothed)],'k--','LineWidth',2);
+    hold off
 end
 
-axis([0 size(optoplots,1) min(min(optoplots)) max(max(optoplots))]);
-hold on
-plot(nanmean(optoplots(:,active),2),'k-','LineWidth',3);
-plot([t0 t0],[min(min(optoplots)) max(max(optoplots))],'k--','LineWidth',2);
-hold off
-set(gca,'Xtick',linspace(1,size(optoplots,1),7),'XtickLabel',linspace(-win_sz,win_sz,7));
-ylabel('cumulative d\theta (rad)')
-xlabel('time to stimulus onset')
-title('Change in heading direction before and after optomotor stimulus')
-%}
-    
-flyTracks.nTrials=nTrials;
-flyTracks.optoMu = [opto(:).mu]';
-flyTracks.baseMu = [baseline(:).mu]';
-flyTracks.off_spd=off_spd;
-flyTracks.on_spd=on_spd;
-flyTracks.stim_duration=stim_duration;
-flyTracks.active=active;
 
 %% Clean up the workspace
 strain(ismember(strain,' ')) = [];
-save(strcat(handles.fpath,'\',t,'Optomotor','_',strain,'.mat'),'flyTracks');
+save(strcat(handles.fpath,'\',t,'_Escape','_',strain,'.mat'),'flyTracks');
 
 %% Display command to load data struct into workspace
 
 disp('Execute the following command to load your data into the workspace:')
-disp(['load(',char(39),strcat(handles.fpath,'\',t,'Optomotor','_',strain,'.mat'),char(39),');'])
+disp(['load(',char(39),strcat(handles.fpath,'\',t,'Circling','_',strain,'.mat'),char(39),');'])
 
 %% Set MATLAB priority to Above Normal via Windows Command Line
 cmd_str = 'wmic process where name="MATLAB.exe" CALL setpriority 32768';
 [~,~] = system(cmd_str);
+
+clear
+
 
 clearvars -except handles

@@ -52,7 +52,7 @@ function warningbox_subgui_OpeningFcn(hObject, eventdata, handles, varargin)
 % varargin   command line arguments to warningbox_subgui (see VARARGIN)
 
 % Choose default command line output for warningbox_subgui
-handles.output = 'Yes';
+handles.output = 'Exit';
 
 % Update handles structure
 guidata(hObject, handles);
@@ -69,6 +69,10 @@ if(nargin > 3)
           set(hObject, 'Name', varargin{index+1});
          case 'string'
           set(handles.text1, 'String', varargin{index+1});
+         case 'buttons'
+          names = varargin{index+1};
+          handles.pushbutton1.String = names{1};
+          handles.cancel_pushbutton.String = names{2};
         end
     end
 end

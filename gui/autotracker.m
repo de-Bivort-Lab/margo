@@ -1,35 +1,35 @@
-function varargout = integratedtrackinggui(varargin)
-% INTEGRATEDTRACKINGGUI MATLAB code for integratedtrackinggui.fig
-%      INTEGRATEDTRACKINGGUI, by itself, creates a new INTEGRATEDTRACKINGGUI or raises the existing
+function varargout = autotracker(varargin)
+% AUTOTRACKER MATLAB code for autotracker.fig
+%      AUTOTRACKER, by itself, creates a new AUTOTRACKER or raises the existing
 %      singleton*.
 %
-%      H = INTEGRATEDTRACKINGGUI returns the handle to a new INTEGRATEDTRACKINGGUI or the handle to
+%      H = AUTOTRACKER returns the handle to a new AUTOTRACKER or the handle to
 %      the existing singleton*.
 %
-%      INTEGRATEDTRACKINGGUI('CALLBACK',hObject,eventData,handles,...) calls the local
-%      function named CALLBACK in INTEGRATEDTRACKINGGUI.M with the given input arguments.
+%      AUTOTRACKER('CALLBACK',hObject,eventData,handles,...) calls the local
+%      function named CALLBACK in AUTOTRACKER.M with the given input arguments.
 %
-%      INTEGRATEDTRACKINGGUI('Property','Value',...) creates a new INTEGRATEDTRACKINGGUI or raises the
+%      AUTOTRACKER('Property','Value',...) creates a new AUTOTRACKER or raises the
 %      existing singleton*.  Starting from the left, property value pairs are
-%      applied to the GUI before integratedtrackinggui_OpeningFcn gets called.  An
+%      applied to the GUI before autotracker_OpeningFcn gets called.  An
 %      unrecognized property name or invalid value makes property application
-%      stop.  All inputs are passed to integratedtrackinggui_OpeningFcn via varargin.
+%      stop.  All inputs are passed to autotracker_OpeningFcn via varargin.
 %
 %      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
 %      instance to run (singleton)".
 %
 % See also: GUIDE, GUIDATA, GUIHANDLES
 
-% Edit the above text to modify the response to help integratedtrackinggui
+% Edit the above text to modify the response to help autotracker
 
-% Last Modified by GUIDE v2.5 16-Mar-2017 16:01:50
+% Last Modified by GUIDE v2.5 16-Mar-2017 17:07:49
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
                    'gui_Singleton',  gui_Singleton, ...
-                   'gui_OpeningFcn', @integratedtrackinggui_OpeningFcn, ...
-                   'gui_OutputFcn',  @integratedtrackinggui_OutputFcn, ...
+                   'gui_OpeningFcn', @autotracker_OpeningFcn, ...
+                   'gui_OutputFcn',  @autotracker_OutputFcn, ...
                    'gui_LayoutFcn',  [] , ...
                    'gui_Callback',   []);
 if nargin && ischar(varargin{1})
@@ -44,13 +44,13 @@ end
 % End initialization code - DO NOT EDIT
 
 
-% --- Executes just before integratedtrackinggui is made visible.
-function integratedtrackinggui_OpeningFcn(hObject, eventdata, handles, varargin)
+% --- Executes just before autotracker is made visible.
+function autotracker_OpeningFcn(hObject, eventdata, handles, varargin)
 % This function has no output args, see OutputFcn.
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-% varargin   command line arguments to integratedtrackinggui (see VARARGIN)
+% varargin   command line arguments to autotracker (see VARARGIN)
 
 warning('off','MATLAB:JavaEDTAutoDelegation');
 
@@ -77,7 +77,7 @@ set(findall(handles.run_uipanel, '-property', 'enable'), 'enable', 'off');
 
 
 
-% Choose default command line output for integratedtrackinggui
+% Choose default command line output for autotracker
 handles.output = hObject;
 handles.axes_handle = gca;
 handles.gui_dir = which('autotrackergui');
@@ -232,11 +232,11 @@ end
 % Update handles structure
 guidata(hObject,handles);
 
-% UIWAIT makes integratedtrackinggui wait for user response (see UIRESUME)
+% UIWAIT makes autotracker wait for user response (see UIRESUME)
 % uiwait(handles.gui_fig);
 
 % --- Outputs from this function are returned to the command line.
-function varargout = integratedtrackinggui_OutputFcn(hObject, eventdata, handles) 
+function varargout = autotracker_OutputFcn(hObject, eventdata, handles) 
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -836,8 +836,18 @@ expmt = getappdata(handles.gui_fig,'expmt');
 
 keep_gui_state = false;
 
+% check labels
+if isfield(expmt,'labels')
+    hasData = any(~cellfun('isempty',expmt.labels));
+    hasLabelData = hasData(1);
+else 
+    hasLabelData = false;
+end
+
 if isfield(expmt, 'fpath') == 0 
     errordlg('Please specify Save Location')
+elseif ~hasLabelData
+    errordlg('Please set labels before running experiment')
 elseif ~isfield(expmt, 'camInfo')
     errordlg('Please confirm camera settings')
 elseif ~isfield(expmt,'ROI')
@@ -852,26 +862,50 @@ else
             projector_escape_response;
         case 3
             expmt = run_optomotor(expmt,handles);
-            expmt = analyze_optomotor(expmt,handles);
+            if isfield(expmt,'date')
+                expmt = analyze_optomotor(expmt,handles);
+            else
+                keep_gui_state = true;
+            end
         case 4
+            if isfield(expmt,'date')
             expmt = run_slowphototaxis(expmt,handles);
+            else
+                keep_gui_state = true;
+            end
         case 5
             if ~isfield(expmt,'AUX_COM') || isempty(expmt.AUX_COM)
                 errordlg('No aux COM assigned for LED Y-maze');
                 keep_gui_state = true;
             else
                 expmt = run_ledymaze(expmt,handles);
-                expmt = analyze_ledymaze(expmt, handles);
+                if isfield(expmt,'date')
+                    expmt = analyze_ledymaze(expmt, handles);
+                else
+                    keep_gui_state = true;
+                end
             end
         case 6
             expmt = run_arenacircling(expmt,handles);
-            analyze_arenacircling(expmt,handles);
+            if isfield(expmt,'date')
+                analyze_arenacircling(expmt,handles);
+            else
+                keep_gui_state = true;
+            end
         case 7
             expmt = run_ymaze(expmt,handles);
-            analyze_ymaze(expmt,handles);
+            if isfield(expmt,'date')
+                analyze_ymaze(expmt,handles);
+            else
+                keep_gui_state = true;
+            end
         case 8
             expmt = run_basictracking(expmt,handles);     % Run expmt
-            analyze_basictracking(expmt,handles);
+            if isfield(expmt,'date')
+                analyze_basictracking(expmt,handles);
+            else
+                keep_gui_state = true;
+            end
             
     end
     
@@ -891,6 +925,14 @@ else
         set(findall(handles.tracking_uipanel, '-property', 'enable'), 'enable', 'off');
         set(findall(handles.exp_uipanel, '-property', 'enable'), 'enable', 'off');
         set(findall(handles.run_uipanel, '-property', 'enable'), 'enable', 'off');
+        
+        if isfield(expmt,'camInfo') && isfield(expmt.camInfo,'vid') && isvalid(expmt.camInfo.vid)
+            handles.auto_detect_ROIs_pushbutton.Enable = 'on';
+            handles.accept_ROI_thresh_pushbutton.Enable = 'on';
+            handles.ROI_thresh_slider.Enable = 'on';
+            handles.ROI_thresh_label.Enable = 'on';
+            handles.disp_ROI_thresh.Enable = 'on';
+        end
     end
         
 end
@@ -2586,10 +2628,8 @@ function pause_togglebutton_Callback(hObject,~,~)
 
 switch hObject.Value
     case 1
-        hObject.String = 'Paused';
         hObject.BackgroundColor = [0.85 0.65 0.65];
     case 0
-        hObject.String = 'Pause';
         hObject.BackgroundColor = [0.502 0.7529 0.8392];
 end
 
@@ -2984,8 +3024,13 @@ function stop_pushbutton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 
+if hObject.Value
+        hObject.UserData.Value = 1;
+end
 
 guidata(hObject,handles);
+
+
 
 
 % --- Executes during object creation, after setting all properties.
@@ -3047,4 +3092,6 @@ hObject.UserData.ps = ps;
 
 hObject.CData = ps;
 hObject.Units = 'Points';
+
+hObject.UserData.Value = 0;
 guidata(hObject,handles);

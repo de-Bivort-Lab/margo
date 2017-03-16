@@ -777,7 +777,7 @@ da=NaN(nPts,size(win_start,1),flyTracks.nFlies);
 %turning=diff(turning);
 %turning=[zeros(1,size(turning,2));turning];
 %}
-turning = trackProps.turning;
+turning=[cData(:).turning];
 turn_distance = [cData(:).turn_distance];
 turn_distance(rotDat&stim_status)=-turn_distance(rotDat&stim_status);
 tmp_tdist = turn_distance;
