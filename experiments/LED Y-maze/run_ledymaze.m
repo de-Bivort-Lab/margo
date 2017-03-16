@@ -229,9 +229,11 @@ while trackDat.t < gui_handles.edit_exp_duration.Value * 3600 && ~lastFrame
     drawnow
     
     % listen for gui pause/unpause
-    while gui_handles.pause_togglebutton.Value
-        tPrev = toc;
-        pause(0.01);
+    while gui_handles.pause_togglebutton.Value || gui_handles.stop_pushbutton.UserData.Value
+        [expmt,tPrev,exit] = updatePauseStop(trackDat,expmt,gui_handles);
+        if exit
+            return
+        end
     end
         
     % optional: save vid data to file if record video menu item is checked
@@ -241,32 +243,6 @@ while trackDat.t < gui_handles.edit_exp_duration.Value * 3600 && ~lastFrame
     
 end
 
-% record the dimensions of data in each recorded field
-for i = 1:length(trackDat.fields)
-    expmt.(trackDat.fields{i}).dim = size(trackDat.(trackDat.fields{i}));
-    expmt.(trackDat.fields{i}).precision = class(trackDat.(trackDat.fields{i}));
-end
 
-% store number of dropped frames for each object in master data struct
-expmt.drop_ct = trackDat.drop_ct;
-expmt.fields = trackDat.fields;
-expmt.nFrames = trackDat.ct;
-
-if isfield(expmt.camInfo,'vid')
-    delete(expmt.camInfo.vid);
-    expmt.camInfo = rmfield(expmt.camInfo,'src');
-    expmt.camInfo = rmfield(expmt.camInfo,'vid');
-end
-
-% close fileIDs
-% generate file ID for files to write
-for i = 1:length(trackDat.fields)                           
-    fclose(expmt.(trackDat.fields{i}).fID);
-end
-
-% re-save updated expmt data struct to file
-save([expmt.fdir expmt.fLabel '.mat'],'expmt');
-gui_notify(['experiment complete'],gui_handles.disp_note);
-
-
-
+% wrap up experiment and save master struct
+expmt = autoFinish(trackDat, expmt, gui_handles);
