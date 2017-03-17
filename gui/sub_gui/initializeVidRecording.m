@@ -4,14 +4,12 @@ function [trackDat,expmt] = initializeVidRecording(trackDat,expmt,gui_handles)
 trackDat.fields = [trackDat.fields;{'VideoData'};{'VideoIndex'}];
 
 expmt.VideoData.path = ...
-    [expmt.fdir expmt.date expmt.Name '_' ...
-    expmt.strain '_' expmt.treatment '_VideoData.bin'];
+    [expmt.fdir expmt.fLabel '_VideoData.bin'];
 
 expmt.VideoData.fID = fopen(expmt.VideoData.path,'w');
 
 expmt.VideoIndex.path = ...
-    [expmt.fdir expmt.date expmt.Name '_' ...
-    expmt.strain '_' expmt.treatment '_VideoIndex.bin'];
+    [expmt.fdir expmt.fLabel '_VideoIndex.bin'];
     fopen(expmt.VideoIndex.path,'w');
     
 expmt.VideoIndex.fID = fopen(expmt.VideoIndex.path,'w');

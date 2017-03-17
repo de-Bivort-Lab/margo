@@ -13,6 +13,13 @@ end
 
 %% Clean up the workspace
 
+% temporarily remove vid obj/source from struct for saving
+if isfield(expmt.camInfo,'vid')
+    expmt.camInfo = rmfield(expmt.camInfo,'src');
+    expmt.camInfo = rmfield(expmt.camInfo,'vid');
+end
+
+% re-save updated expmt data struct to file
 save([expmt.fdir expmt.fLabel '.mat'],'expmt');
 
 if exist('handles','var')
@@ -53,5 +60,3 @@ disp(['load(',char(39),strcat(expmt.fdir,expmt.fLabel,'.mat'),char(39),');'])
 %% Set MATLAB priority to Above Normal via Windows Command Line
 cmd_str = 'wmic process where name="MATLAB.exe" CALL setpriority 32768';
 [~,~] = system(cmd_str);
-
-clearvars -except handles expmt

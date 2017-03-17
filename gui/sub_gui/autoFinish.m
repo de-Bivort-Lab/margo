@@ -20,8 +20,9 @@ function expmt = autoFinish(trackDat, expmt, gui_handles)
             expmt.nFrames = trackDat.ct;
 
             % close fileIDs
-            for i = 1:length(trackDat.fields)                           
-                fclose(expmt.(trackDat.fields{i}).fID);
+            allIDs = fopen('all');
+            for i = 1:length(allIDs)                           
+                fclose(allIDs(i));
             end
             
             % temporarily remove vid obj/source from struct for saving

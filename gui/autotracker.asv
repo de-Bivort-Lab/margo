@@ -2440,7 +2440,6 @@ if vid
     expmt.vignette.mode = 'manual';
     
     imh.CData = im - expmt.vignette.im;
-    imh.CDataMapping = 'direct';
     text(handles.axes_handle.XLim(2)*0.01,handles.axes_handle.YLim(2)*0.01,...
         'Vignette Correction Preview','Color',[1 0 0]);
     

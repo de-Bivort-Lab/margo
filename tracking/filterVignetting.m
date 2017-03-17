@@ -8,7 +8,8 @@ function vignetteMat=filterVignetting(refImage,dimROI)
 
 dimROI = round(dimROI);
 tmpIm=refImage(dimROI(2):dimROI(4),dimROI(1):dimROI(3));    % Reference image for the dimROI
-lumOffset=median(median(tmpIm));                            % Find max intensity inside the ROI
+lumOffset=nanmedian(nanmedian(tmpIm));                            % Find max intensity inside the ROI
+refImage = uint8(refImage);
 
 % Create subtraction matrix which is everything above the maximum intensity
 vignetteMat=refImage-lumOffset;      

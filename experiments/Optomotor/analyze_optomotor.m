@@ -138,9 +138,10 @@ turning=diff(turning');
 %turning(trackProps.speed<0.7) = 0;
 %turning = diff(turning);
 turning = [zeros(1,size(turning,2));turning];
-turning(trackProps.speed<0.7) = 0;
+turning(turning>90) = turning(turning>90) - 180;
+turning(turning<-90) = turning(turning<-90) + 180;
+turning(expmt.Texture.data & expmt.StimStatus.data)=-turning(expmt.Texture.data & expmt.StimStatus.data);
 
-%turning(expmt.Texture.data & expmt.StimStatus.data)=-turning(expmt.Texture.data & expmt.StimStatus.data);
 tmp_tdist = turning;
 tmp_tdist(~expmt.StimStatus.data)=NaN;
 tmp_r = nansum(tmp_tdist);
@@ -160,7 +161,7 @@ for i=1:expmt.nTracks
     % Integrate change in heading angle over the entire stimulus bout
     for j=1:sum(~isnan(win_start(:,i)))
         tmpTurn=turning(win_start(j,i):win_stop(j,i),i);
-        tmpTurn(tmpTurn > pi*0.95 | tmpTurn < -pi*0.95)=0;
+        %tmpTurn(tmpTurn > pi*0.95 | tmpTurn < -pi*0.95)=0;
         if ~isempty(tmpTurn)
             tmpTurn=interp1(1:length(tmpTurn),tmpTurn,linspace(1,length(tmpTurn),nPts));
             if nanmean(trackProps.speed(win_start(j,i):win_stop(j,i),i))>0.1
@@ -173,7 +174,7 @@ end
 
 
 
-active=nTrials>40;
+active=nTrials>2;
 
 %% Generate plots
 
