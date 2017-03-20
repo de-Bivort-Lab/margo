@@ -75,8 +75,6 @@ set(findall(handles.tracking_uipanel, '-property', 'enable'), 'enable', 'off');
 handles.run_uipanel.ForegroundColor = [.5   .5  .5];
 set(findall(handles.run_uipanel, '-property', 'enable'), 'enable', 'off');
 
-
-
 % Choose default command line output for autotracker
 handles.output = hObject;
 handles.axes_handle = gca;
@@ -1562,6 +1560,7 @@ if strcmp(expmt.source,'camera') && isfield(expmt.camInfo,'vid')
     handles.reference_pushbutton.Enable = 'on';
     handles.track_thresh_label.Enable = 'on';
     handles.disp_track_thresh.Enable = 'on';
+    handles.man_edit_roi_menu.Enable = 'on';
     
 elseif strcmp(expmt.source,'camera')
     errordlg('Confirm camera and camera settings before running ROI detection');

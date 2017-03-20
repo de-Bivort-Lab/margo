@@ -35,6 +35,8 @@ end
 
 if exist('handles','var')
     gui_notify('zipping raw data',handles.disp_note)
+else
+    disp('zipping raw data... may take a few minutes');
 end
 
 flist = [];

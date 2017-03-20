@@ -70,6 +70,29 @@ end
 clearvars -except handles expmt trackProps varargin
 
 %% Analyze stimulus response
+%{
+expmt.Orientation.data = expmt.Orientation.data.*pi./180;
+expmt.Optomotor.data = expmt.Orientation.data;
+expmt.Optomotor.bins = -pi/2:pi/25:pi/2;
+
+for i = 1:expmt.nTracks
+    expmt.Optomotor.data(i,expmt.Texture.data(i,:)) = -expmt.Optomotor.data(i,expmt.Texture.data(i,:));
+    expmt.Optomotor.include(:,i) = expmt.handedness.include(:,i)' & expmt.StimStatus.data(i,:);
+    expmt.Baseline.include(:,i) = expmt.handedness.include(:,i)' & ~expmt.StimStatus.data(i,:);
+    h = histc(expmt.Optomotor.data(i,expmt.Optomotor.include(:,i)),expmt.Optomotor.bins);
+    expmt.Optomotor.hist(:,i) = h./sum(h);
+end
+
+off_spd=NaN(expmt.nTracks,1);
+on_spd=NaN(expmt.nTracks,1);
+
+for i = 1:expmt.nTracks
+    
+    off_spd(i)=nanmean(trackProps.speed(expmt.Baseline.include(:,i),i));
+    on_spd(i)=nanmean(trackProps.speed(expmt.Optomotor.include(:,i),i));
+    
+end
+%}
 
 [iOFFr,iOFFc]=find(diff(expmt.StimStatus.data)==-1);
 iOFFr=iOFFr+1;
@@ -89,30 +112,23 @@ win_sz = expmt.parameters.stim_int;     % Size of the window on either side of t
 win_start=NaN(size(iONr,1),expmt.nTracks);
 win_stop=NaN(size(iOFFr,1),expmt.nTracks);
 tElapsed = cumsum(expmt.Time.data);
-search_win = round(win_sz/nanmean(expmt.Time.data)*1.5);
 
-
+%{
+tStamps=tElapsed(iONr(iONc==i));
+tON=tStamps-win_sz;
+tOFF=tStamps+win_sz;
+%}
+%
 % Start by finding tStamps
 for i=1:expmt.nTracks
-    
-    idx = iONr(iONc==i);
-    tStamps=tElapsed(idx);
+    disp(i)
+    tStamps=tElapsed(iONr(iONc==i));
     tON=tStamps-win_sz;
     tOFF=tStamps+win_sz;
-    lbs = idx - search_win;
-    lbs(lbs<1) = 1;
-    ubs = idx + search_win;
-    ubs(ubs>length(tElapsed)) = length(tElapsed);
-    
-    for j = 1:length(lbs)
-        
-        [v,start] = min(abs(tElapsed(lbs(j):ubs(j)) - tON(j))); 
-        [v,stop] = min(abs(tElapsed(lbs(j):ubs(j)) - tOFF(j)));
-        win_start(j,i)=start + lbs(j) - 1;
-        win_stop(j,i)=stop + lbs(j) - 1;
-        
-    end
-    
+    [v,start] = min(abs(repmat(tElapsed,1,length(tON))-repmat(tON',size(tElapsed,1),1))); 
+    [v,stop] = min(abs(repmat(tElapsed,1,length(tON))-repmat(tOFF',size(tElapsed,1),1)));
+    win_start(1:length(tStamps),i)=start;
+    win_stop(1:length(tStamps),i)=stop;
     clearvars start stop tON tOFF tStamps
 end
 
@@ -125,6 +141,8 @@ da=NaN(nPts,size(win_start,1),expmt.nTracks);
 
 turning=expmt.Orientation.data;
 turning=diff(turning);
+%turning(trackProps.speed<0.7) = 0;
+%turning = diff(turning);
 turning = [zeros(1,size(turning,2));turning];
 turning(turning>90) = turning(turning>90) - 180;
 turning(turning<-90) = turning(turning<-90) + 180;
@@ -161,15 +179,17 @@ for i=1:expmt.nTracks
 end
 
 
+
 active=nTrials>40;
 
 %% Generate plots
 
 figure();
-optoplots=squeeze(nanmedian(da(:,1:60,:),2));
+optoplots=squeeze(nanmedian(da(:,1:40,:),2));
 clearvars tmpTurn win_start win_stop
 [v,p]=sort(mean(optoplots(t0+1:end,:)));
 p_optoplots=optoplots(:,p);
+%p_cormap=cormap(p,:);
 hold on
 for i=1:expmt.nTracks
     plot(smooth(p_optoplots(:,i),20),'Color',rand(1,3),'linewidth',2);
@@ -184,10 +204,6 @@ set(gca,'Xtick',linspace(1,size(optoplots,1),7),'XtickLabel',round(linspace(-win
 ylabel('cumulative d\theta (rad)')
 xlabel('time to stimulus onset')
 title('Change in heading direction before and after optomotor stimulus')
-
-expmt.Optomotor.bias = opto_bias;
-expmt.Optomotor.avgtrace = optoplots;
-expmt.Optomotor.n = nTrials;
 
 
 %% Generate plots
@@ -205,3 +221,17 @@ clearvars -except handles expmt plot_mode varargin
 
 autoFinishAnalysis(expmt,varargin);
 
+end
+
+function get_stim_indices(win_start, win_stop)
+
+    tStamps=tElapsed(iONr(iONc==i));
+    tON=tStamps-win_sz;
+    tOFF=tStamps+win_sz;
+    [v,start] = min(abs(repmat(tElapsed,1,length(tON))-repmat(tON',size(tElapsed,1),1))); 
+    [v,stop] = min(abs(repmat(tElapsed,1,length(tON))-repmat(tOFF',size(tElapsed,1),1)));
+    win_start(1:length(tStamps),i)=start;
+    win_stop(1:length(tStamps),i)=stop;
+    clearvars start stop tON tOFF tStamps
+    
+end
