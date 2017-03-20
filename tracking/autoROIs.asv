@@ -80,6 +80,11 @@ if size(trackDat.im,3) > 1
     trackDat.im=trackDat.im(:,:,2);
 end
 
+% get a good first estimate of ROI threshold using Otsu's method
+switch class(trackDat.im)
+tmp_thresh = graythresh(trackDat.im);
+gui_handles.ROI_thresh_slider.Value = 
+
 if isempty(imh)
     imh = imagesc(trackDat.im);
 elseif strcmp(imh.CDataMapping,'direct')
