@@ -10,7 +10,7 @@ if ~isfield(camInfo,'vid') || strcmp(camInfo.vid.Running,'off')
     pause(0.1);
 end
 
-nFrames = 20;
+nFrames = 6;
 tStamps = NaN(nFrames,1);
 prev_im = peekdata(camInfo.vid,1);
 prev_im = prev_im(:,:,1);

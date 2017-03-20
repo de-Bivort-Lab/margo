@@ -75,16 +75,18 @@ set(findall(handles.tracking_uipanel, '-property', 'enable'), 'enable', 'off');
 handles.run_uipanel.ForegroundColor = [.5   .5  .5];
 set(findall(handles.run_uipanel, '-property', 'enable'), 'enable', 'off');
 
-
-
 % Choose default command line output for autotracker
 handles.output = hObject;
 handles.axes_handle = gca;
-handles.gui_dir = which('autotrackergui');
-handles.gui_dir = handles.gui_dir(1:strfind(handles.gui_dir,'\gui\'));
-handles.display_menu.UserData = 1;                                           
 set(gca,'Xtick',[],'Ytick',[]);
 expmt = [];
+
+% get gui directory and ensure all dependencies are added to path
+handles.gui_dir = which('autotracker');
+handles.gui_dir = handles.gui_dir(1:strfind(handles.gui_dir,'\gui\'));
+addpath(genpath(handles.gui_dir));
+handles.display_menu.UserData = 1;                                           
+
 
 % initialize array indicating expIDs for experiments with an associated
 % parameter subgui. NOTE: any custom experiments with an experiment
@@ -351,13 +353,13 @@ if ~isempty(expmt.camInfo)
     if ~isempty(expmt.camInfo.DeviceInfo)
         cla reset
         imaqreset;
-        pause(0.02);
+        pause(0.01);
         expmt.camInfo = initializeCamera(expmt.camInfo);
         start(expmt.camInfo.vid);
         
         % Store expmteriment data struct
         setappdata(handles.gui_fig,'expmt',expmt);
-        pause(0.2);
+        pause(0.1);
         
         % measure frame rate
         [handles.gui_fig.UserData.target_rate, expmt.camInfo] = estimateFrameRate(expmt.camInfo);
@@ -1562,6 +1564,7 @@ if strcmp(expmt.source,'camera') && isfield(expmt.camInfo,'vid')
     handles.reference_pushbutton.Enable = 'on';
     handles.track_thresh_label.Enable = 'on';
     handles.disp_track_thresh.Enable = 'on';
+    handles.man_edit_roi_menu.Enable = 'on';
     
 elseif strcmp(expmt.source,'camera')
     errordlg('Confirm camera and camera settings before running ROI detection');
@@ -2440,6 +2443,7 @@ if vid
     expmt.vignette.mode = 'manual';
     
     imh.CData = im - expmt.vignette.im;
+    imh.CDataMapping = 'direct';
     text(handles.axes_handle.XLim(2)*0.01,handles.axes_handle.YLim(2)*0.01,...
         'Vignette Correction Preview','Color',[1 0 0]);
     

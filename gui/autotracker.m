@@ -78,11 +78,15 @@ set(findall(handles.run_uipanel, '-property', 'enable'), 'enable', 'off');
 % Choose default command line output for autotracker
 handles.output = hObject;
 handles.axes_handle = gca;
-handles.gui_dir = which('autotrackergui');
-handles.gui_dir = handles.gui_dir(1:strfind(handles.gui_dir,'\gui\'));
-handles.display_menu.UserData = 1;                                           
 set(gca,'Xtick',[],'Ytick',[]);
 expmt = [];
+
+% get gui directory and ensure all dependencies are added to path
+handles.gui_dir = which('autotracker');
+handles.gui_dir = handles.gui_dir(1:strfind(handles.gui_dir,'\gui\'));
+addpath(genpath(handles.gui_dir));
+handles.display_menu.UserData = 1;                                           
+
 
 % initialize array indicating expIDs for experiments with an associated
 % parameter subgui. NOTE: any custom experiments with an experiment
@@ -349,13 +353,13 @@ if ~isempty(expmt.camInfo)
     if ~isempty(expmt.camInfo.DeviceInfo)
         cla reset
         imaqreset;
-        pause(0.02);
+        pause(0.01);
         expmt.camInfo = initializeCamera(expmt.camInfo);
         start(expmt.camInfo.vid);
         
         % Store expmteriment data struct
         setappdata(handles.gui_fig,'expmt',expmt);
-        pause(0.2);
+        pause(0.09);
         
         % measure frame rate
         [handles.gui_fig.UserData.target_rate, expmt.camInfo] = estimateFrameRate(expmt.camInfo);
