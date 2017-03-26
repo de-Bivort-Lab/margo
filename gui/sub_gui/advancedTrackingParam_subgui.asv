@@ -141,26 +141,7 @@ switch expmt.source
         end
 end
 
-imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');
-
-if display && isempty(imh)
-    
-    % Take single frame
-    if strcmp(expmt.source,'camera')
-        trackDat.im = peekdata(expmt.camInfo.vid,1);
-    else
-        [trackDat.im, expmt.video] = nextFrame(expmt.video,gui_handles);
-    end
-
-    % extract green channel if format is RGB
-    if size(trackDat.im,3)>1
-        trackDat.im = trackDat.im(:,:,2);
-    end     
-    
-    imh = image(gui_handles.axes_handle,trackDat.im);
-    colormap(gui_handles.axes_handle,'gray');
-    
-end
+display
 
 %% Tracking setup
 
@@ -205,6 +186,23 @@ tic
 trackDat.t=0;
 tPrev = toc;
 trackDat.tStamp = zeros(size(trackDat.Centroid,1),1);
+
+imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');
+if isempty(imh)
+    
+    % Take single frame
+    if strcmp(expmt.source,'camera')
+        trackDat.im = peekdata(expmt.camInfo.vid,1);
+    else
+        [trackDat.im, expmt.video] = nextFrame(expmt.video,gui_handles);
+    end
+
+    % extract green channel if format is RGB
+    if size(trackDat.im,3)>1
+        trackDat.im = trackDat.im(:,:,2);
+    end     
+    
+    imh = image(
 
 
 %% Tracking loop

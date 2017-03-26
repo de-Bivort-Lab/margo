@@ -11,6 +11,7 @@ clearvars -except gui_handles expmt
 colormap('gray')
 
 gui_notify('running ROI detection',gui_handles.disp_note);
+gui_handles.auto_detect_ROIs_pushbutton.Enable = 'off';
 
 %% Define parameters - adjust parameters here to fix tracking and ROI segmentation errors
 
@@ -102,7 +103,8 @@ while stop~=1;
     centers=[xCenters,yCenters];
 
     % Define a permutation vector to sort ROIs from top-right to bottom left
-    [centers,ROI_coords,ROI_bounds] = sortROIs(centers,ROI_coords,ROI_bounds);
+    ROI_tol = gui_fig.UserData.ROI_tol;             % n stdevs from
+    [centers,ROI_coords,ROI_bounds] = sortROIs(ROI_tol,centers,ROI_coords,ROI_bounds);
   
     % detect assymetry about vertical axis
     mazeOri = getMazeOrientation(binaryimage,ROI_coords);
@@ -171,3 +173,5 @@ expmt.ROI.centers = centers;
 expmt.ROI.orientation = mazeOri;
 expmt.ROI.bounds = ROI_bounds;
 expmt.ROI.im = binaryimage;
+
+gui_handles.auto_detect_ROIs_pushbutton.Enable = 'on';

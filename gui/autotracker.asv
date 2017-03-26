@@ -77,6 +77,7 @@ set(findall(handles.run_uipanel, '-property', 'enable'), 'enable', 'off');
 
 % Choose default command line output for autotracker
 handles.output = hObject;
+handles.gui_fig.UserData.edit_rois = false;
 handles.axes_handle = gca;
 set(gca,'Xtick',[],'Ytick',[]);
 expmt = [];
@@ -181,13 +182,14 @@ handles.disp_ROI_thresh.String = num2str(round(handles.ROI_thresh_slider.Value))
 handles.disp_track_thresh.String = num2str(round(handles.track_thresh_slider.Value));
 
 % initialize tracking parameters to default values
-handles.gui_fig.UserData.speed_thresh = 45;
+handles.gui_fig.UserData.speed_thresh = 95;
 handles.gui_fig.UserData.distance_thresh = 20;
 handles.gui_fig.UserData.vignette_sigma = 0.47;
 handles.gui_fig.UserData.vignette_weight = 0.35;
 handles.gui_fig.UserData.area_min = 4;
 handles.gui_fig.UserData.area_max = 300;
 handles.gui_fig.UserData.sort_mode = 'distance';
+handles.gui_fig.UserData.ROI_tol = 2.5;
 
 % save values to expmt master struct
 expmt.parameters.speed_thresh = handles.gui_fig.UserData.speed_thresh;
@@ -507,6 +509,22 @@ switch get(hObject,'value')
         elseif isfield(expmt.camInfo, 'vid') && strcmp(expmt.camInfo.vid.Running,'on')
             set(hObject,'string','Stop preview','BackgroundColor',[0.8 0.45 0.45]);
             stoppreview(expmt.camInfo.vid);
+            if isempty(handles.hImage)
+                
+                % Take single frame
+                if strcmp(expmt.source,'camera')
+                    trackDat.im = peekdata(expmt.camInfo.vid,1);
+                else
+                    [trackDat.im, expmt.video] = nextFrame(expmt.video,gui_handles);
+                end
+
+                % extract green channel if format is RGB
+                if size(trackDat.im,3)>1
+                    trackDat.im = trackDat.im(:,:,2);
+                end
+                
+                handles.hImage = image(trackDat.im);
+            end
             preview(expmt.camInfo.vid,handles.hImage); 
             
         end
@@ -2938,7 +2956,7 @@ if isfield(expmt,'ROI')
             [x,y] = ROIcenters(expmt.ROI.im,expmt.ROI.corners);
             expmt.ROI.centers = [x,y];
             [expmt.ROI.centers,expmt.ROI.corners,expmt.ROI.bounds] = ...
-                sortROIs(expmt.ROI.centers,expmt.ROI.corners,expmt.ROI.bounds);
+                sortROIs(handles.gui_fig.UserData.ROI_tol,expmt.ROI.centers,expmt.ROI.corners,expmt.ROI.bounds);
             expmt.ROI.orientation = getMazeOrientation(expmt.ROI.im,expmt.ROI.corners);
             
             % re-draw ROIs

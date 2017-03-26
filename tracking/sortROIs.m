@@ -1,4 +1,4 @@
-function [varargout]=sortROIs(varargin)
+function [varargout]=sortROIs(tolerance,varargin)
 
 for i = 1:nargin
     switch i
@@ -15,7 +15,7 @@ end
 
 y = centers(:,2);
 [val,perm_y] = sort(y);                                % Sort ROI yCoords
-row_breaks = find([0;diff(val)>std(diff(val))*2]);    % Find breaks between rows
+row_breaks = find([0;diff(val)>std(diff(val))*tolerance]);    % Find breaks between rows
 
 
 % find a final permutation by sorting each clustered set of y 
