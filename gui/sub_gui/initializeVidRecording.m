@@ -1,12 +1,16 @@
 function [trackDat,expmt] = initializeVidRecording(trackDat,expmt,gui_handles)
 
 % initialize video recording file if record video menu item is checked
-trackDat.fields = [trackDat.fields;{'VideoData'};{'VideoIndex'}];
+trackDat.fields = [trackDat.fields;{'VideoIndex'}];
 
 expmt.VideoData.path = ...
-    [expmt.fdir expmt.fLabel '_VideoData.bin'];
+    [expmt.fdir expmt.fLabel '_VideoData.avi'];
 
-expmt.VideoData.fID = fopen(expmt.VideoData.path,'w');
+%expmt.VideoData.fID = fopen(expmt.VideoData.path,'w');
+expmt.VideoData.obj = VideoWriter(expmt.VideoData.path,'Uncompressed AVI');
+expmt.VideoData.FrameRate = gui_handles.gui_fig.UserData.target_rate;
+open(expmt.VideoData.obj);
+
 
 expmt.VideoIndex.path = ...
     [expmt.fdir expmt.fLabel '_VideoIndex.bin'];
@@ -37,7 +41,10 @@ switch c
         sign = 0;
 end
 
-fwrite(expmt.VideoData.fID,[res;prcn;sign],'double');
+%fwrite(expmt.VideoData.fID,[res;prcn;sign],'double');
+expmt.VideoData.prcn = prcn;
+expmt.VideoData.sign = sign;
+expmt.VideoData.res = res;
 
 
 

@@ -18,6 +18,11 @@ function expmt = autoFinish(trackDat, expmt, gui_handles)
             expmt.drop_ct = trackDat.drop_ct;
             expmt.fields = trackDat.fields;
             expmt.nFrames = trackDat.ct;
+            
+            % close .avi file if one exists
+            if isfield(expmt,'VideoData') && isfield(expmt.VideoData,'obj') 
+                close(expmt.VideoData.obj);
+            end
 
             % close fileIDs
             allIDs = fopen('all');

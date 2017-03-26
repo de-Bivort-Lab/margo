@@ -105,7 +105,7 @@ gui_fig = gui_handles.gui_fig;
 display_menu = findobj('Tag','display_menu');
 display_menu.UserData = 1;
 thresh_slider = findobj('Tag','track_thresh_slider');
-imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');
+
 
 % enable display controls
 for i = 1:length(display_menu.Children)
@@ -127,53 +127,19 @@ delete(text_handles);
 
 %% Initialize camera and video object
 
-if strcmp(expmt.source,'camera')
-    if isfield(expmt.camInfo,'vid') && strcmp(expmt.camInfo.vid.Running,'off')
-        % Clear old video objects
-        imaqreset
-        pause(0.2);
+expmt = getVideoInput(expmt,gui_handles);
 
-        % Create camera object with input parameters
-        expmt.camInfo = initializeCamera(expmt.camInfo);
-        start(expmt.camInfo.vid);
-        pause(0.1);
-        
-    end
-    display = true;
-elseif strcmp(expmt.source,'video') 
-    
-    if isfield(expmt,'video') && isfield(expmt.video,'fID')
-        
-        % ensure that the current position of the file is set to 
-        % the beginning of the file (bof) + an offset of 32 bytes
-        % (the first 32 bytes store info on resolution and precision)
-        fseek(expmt.video.fID, 32, 'bof');
-        
-    else
-        
-        % open video object from file
-        expmt.video.vid = ...
-            VideoReader([expmt.video.fdir ...
-            expmt.video.fnames{gui_handles.vid_select_popupmenu.Value}]);
-
-        % get file number in list
-        expmt.video.ct = gui_handles.vid_select_popupmenu.Value;
-
-        % estimate duration based on video duration
-        gui_handles.edit_exp_duration.Value = expmt.video.total_duration * 1.15 / 3600;
-        
-    end
-
-    % get next frame and update image
-    [trackDat.im, expmt.video] = nextFrame(expmt.video,handles);      
-    
-    % extract green channel if format is RGB
-    if size(trackDat.im,3)>1
-        trackDat.im = trackDat.im(:,:,2);
-    end
-    imh.CData = trackDat.im;
-    display = true;
+switch expmt.source
+    case 'camera'
+        if isfield(expmt.camInfo,'vid')
+            display = true;
+        end
+    case 'video'
+        if isfield(expmt.video,'vid')
+            display = true;
+        end
 end
+
 %% Tracking setup
 
 % initialize tracking variables if any parameter display is ticked
@@ -188,7 +154,6 @@ else
 end
 
 % initialize coords
-s_bounds = centerRect(trackDat.Centroid,gui_fig.UserData.speed_thresh);
 d_bounds = centerRect(trackDat.Centroid,gui_fig.UserData.distance_thresh);
 mi_bounds = centerRect(trackDat.Centroid,sqrt(gui_fig.UserData.area_min/pi));
 ma_bounds = centerRect(trackDat.Centroid,sqrt(gui_fig.UserData.area_max/pi));
@@ -196,8 +161,6 @@ ma_bounds = centerRect(trackDat.Centroid,sqrt(gui_fig.UserData.area_max/pi));
 % initialize handles with position set to bounds
 for i = 1:size(trackDat.Centroid,1)
 
-    spdCirc(i) = rectangle(gui_handles.axes_handle,'Position',s_bounds(i,:),...
-        'EdgeColor',[1 0 1],'Curvature',[1 1],'Visible','off');
     spdText(i) = text(gui_handles.axes_handle,'Position',trackDat.Centroid(i,:),...
         'String','0','Visible','off','Color',[1 0 1]);
     minCirc(i) = rectangle(gui_handles.axes_handle,'Position',mi_bounds(i,:),...
@@ -220,6 +183,8 @@ tic
 trackDat.t=0;
 tPrev = toc;
 trackDat.tStamp = zeros(size(trackDat.Centroid,1),1);
+
+imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');
 
 
 %% Tracking loop
@@ -265,9 +230,8 @@ while ishghandle(hObject) && display
     if disp_speed
 
         % re-enable display if necessary
-        if strcmp(spdCirc(1).Visible,'off') || strcmp(spdText(1).Visible,'off') 
-            for i = 1:length(spdCirc)
-                spdCirc(i).Visible = 'on';
+        if strcmp(spdText(1).Visible,'off') 
+            for i = 1:length(spdText)
                 spdText(i).Visible = 'on';
             end
         end
@@ -288,8 +252,7 @@ while ishghandle(hObject) && display
         s_bounds = centerRect(trackDat.Centroid,px_r);
 
         % update display
-        for i = 1:length(spdCirc)
-            spdCirc(i).Position = s_bounds(i,:);
+        for i = 1:length(spdText)
             spdText(i).Position = [trackDat.Centroid(i,1) trackDat.Centroid(i,2)+5];
             if isnan(round(nanmean(roll_speed(i,:))*10)/10)
                 spdText(i).String = '';
@@ -305,9 +268,8 @@ while ishghandle(hObject) && display
         
     % disable display if necessary
     else
-        if strcmp(spdCirc(1).Visible,'on')
-            for i = 1:length(spdCirc)
-                spdCirc(i).Visible = 'off';
+        if strcmp(spdText(1).Visible,'on')
+            for i = 1:length(spdText)
                 spdText(i).Visible = 'off';
             end
         end

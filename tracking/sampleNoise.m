@@ -27,46 +27,7 @@ trackDat.ct = 0;
 
 %% Initalize camera and axes
 
-
-if strcmp(expmt.source,'camera') && strcmp(expmt.camInfo.vid.Running,'off')
-    
-    % Clear old video objects
-    imaqreset
-    pause(0.2);
-
-    % Create camera object with input parameters
-    expmt.camInfo = initializeCamera(expmt.camInfo);
-    start(expmt.camInfo.vid);
-    pause(0.1);
-    
-elseif strcmp(expmt.source,'video') 
-    
-    % set current file to first file in list
-    gui_handles.vid_select_popupmenu.Value = 1;
-    
-    if isfield(expmt.video,'fID')
-        
-        % ensure that the current position of the file is set to 
-        % the beginning of the file (bof) + an offset of 32 bytes
-        % (the first 32 bytes store info on resolution and precision)
-        fseek(expmt.video.fID, 32, 'bof');
-        
-    else
-        
-        % open video object from file
-        expmt.video.vid = ...
-            VideoReader([expmt.video.fdir ...
-            expmt.video.fnames{gui_handles.vid_select_popupmenu.Value}]);
-
-        % get file number in list
-        expmt.video.ct = gui_handles.vid_select_popupmenu.Value;
-
-        % estimate duration based on video duration
-        gui_handles.edit_exp_duration.Value = expmt.video.total_duration * 1.15 / 3600;
-        
-    end
-    
-end
+expmt = getVideoInput(expmt,gui_handles);
 
 %% Sample noise
 
@@ -85,7 +46,8 @@ tPrev = toc;
 while trackDat.ct < pixDistSize;
 
         % update time stamps and frame rate
-        [trackDat, tPrev] = updateTime(trackDat, tPrev, expmt, gui_handles);
+        [trackDat, tPrev] = updateTime(trackDat, tPrev, expmt, gui_handles,1);
+        gui_handles.edit_time_remaining.String = num2str(pixDistSize - trackDat.ct);
 
         % Take single frame
         if strcmp(expmt.source,'camera')
@@ -121,6 +83,11 @@ while trackDat.ct < pixDistSize;
        pixelDist(mod(trackDat.ct,pixDistSize)+1) = nansum(nansum(diffim > gui_handles.track_thresh_slider.Value));
    
 end
+
+trackDat.t = 0;
+tic
+tPrev = toc;
+[trackDat, tPrev] = updateTime(trackDat, tPrev, expmt, gui_handles);
 
 gui_notify('noise sampling complete',gui_handles.disp_note);
 

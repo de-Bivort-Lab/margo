@@ -78,6 +78,13 @@ else
     handles.output=hObject.Children(3).Data;
 end
 
+gui_fig = findobj('Name','autotracker');
+light_panel = findobj('Tag','cam_uipanel');
+handles.figure1.Position(1) = gui_fig.Position(1) + ...
+    light_panel.Position(1);
+handles.figure1.Position(2) = gui_fig.Position(2) + ...
+    sum(light_panel.Position([2 4])) - handles.figure1.Position(4) - 25;
+
 % Update handles structure
 guidata(hObject, handles);
 

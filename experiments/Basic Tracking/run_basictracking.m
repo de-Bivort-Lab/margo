@@ -122,6 +122,8 @@ while trackDat.t < gui_handles.edit_exp_duration.Value * 3600 && ~lastFrame
     % optional: save vid data to file if record video menu item is checked
     if ~isfield(expmt,'VideoData') && strcmp(gui_handles.record_video_menu.Checked,'on')
         [trackDat,expmt] = initializeVidRecording(trackDat,expmt,gui_handles);
+    elseif isfield(expmt,'VideoData')
+        writeVideo(expmt.VideoData.obj,trackDat.im);
     end
     
 end

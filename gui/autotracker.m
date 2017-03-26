@@ -485,6 +485,7 @@ switch get(hObject,'value')
             errordlg('Please confirm camera settings')
             hObject.Value = 0;
         elseif isfield(expmt.camInfo, 'vid') && ~isvalid(expmt.camInfo.vid)
+            set(hObject,'string','Stop preview','BackgroundColor',[0.8 0.45 0.45]);
             
             % Clear old video objects
             imaqreset
@@ -495,16 +496,16 @@ switch get(hObject,'value')
             start(expmt.camInfo.vid);
             pause(0.1);
             preview(expmt.camInfo.vid,handles.hImage);  
-            set(hObject,'string','Stop preview','BackgroundColor',[0.8 0.45 0.45]);
+            
             
         elseif isfield(expmt.camInfo, 'vid') && strcmp(expmt.camInfo.vid.Running,'off')
+            set(hObject,'string','Stop preview','BackgroundColor',[0.8 0.45 0.45]);
             
             preview(expmt.camInfo.vid,handles.hImage);     
-            set(hObject,'string','Stop preview','BackgroundColor',[0.8 0.45 0.45]);
             waitfor(handles.gui_fig);
             
         elseif isfield(expmt.camInfo, 'vid') && strcmp(expmt.camInfo.vid.Running,'on')
-            
+            set(hObject,'string','Stop preview','BackgroundColor',[0.8 0.45 0.45]);
             stoppreview(expmt.camInfo.vid);
             preview(expmt.camInfo.vid,handles.hImage); 
             
@@ -2231,6 +2232,7 @@ if ~isempty(tmp_video)
     handles.edit_video_dir.String = expmt.video.fdir;
     handles.vid_select_popupmenu.String = expmt.video.fnames;
     handles.edit_time_remaining.String = num2str(expmt.video.nFrames);
+    handles.gui_fig.UserData.target_rate = tmp_video.vid.FrameRate;
     
     % set downstream UI panel enable status
     handles.tracking_uipanel.ForegroundColor = [0 0 0];

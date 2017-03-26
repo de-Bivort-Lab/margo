@@ -28,47 +28,11 @@ set(gui_handles.display_menu.Children,'Checked','off');
 set(gui_handles.display_threshold_menu,'Checked','on');
 gui_handles.display_menu.UserData = 3;
 
+gui_handles.accept_track_thresh_pushbutton.Value = 0;
+
 %% Setup the camera and/or video object
 
-if strcmp(expmt.source,'camera') && strcmp(expmt.camInfo.vid.Running,'off')
-    
-    % Clear old video objects
-    imaqreset
-    pause(0.2);
-
-    % Create camera object with input parameters
-    expmt.camInfo = initializeCamera(expmt.camInfo);
-    start(expmt.camInfo.vid);
-    pause(0.1);
-    
-elseif strcmp(expmt.source,'video') 
-    
-    % set current file to first file in list
-    gui_handles.vid_select_popupmenu.Value = 1;
-    
-    if isfield(expmt.video,'fID')
-        
-        % ensure that the current position of the file is set to 
-        % the beginning of the file (bof) + an offset of 32 bytes
-        % (the first 32 bytes store info on resolution and precision)
-        fseek(expmt.video.fID, 32, 'bof');
-        
-    else
-        
-        % open video object from file
-        expmt.video.vid = ...
-            VideoReader([expmt.video.fdir ...
-            expmt.video.fnames{gui_handles.vid_select_popupmenu.Value}]);
-
-        % get file number in list
-        expmt.video.ct = gui_handles.vid_select_popupmenu.Value;
-
-        % estimate duration based on video duration
-        gui_handles.edit_exp_duration.Value = expmt.video.total_duration * 1.15 / 3600;
-        
-    end
-    
-end
+expmt = getVideoInput(expmt,gui_handles);
 
 %% Assign parameters and placeholders
 
@@ -136,9 +100,10 @@ hold off
 % Time stamp placeholders
 trackDat.t = 0;
 tic
-tPrev=toc;
+tPrev = toc - gui_handles.edit_exp_duration.Value*3600 + 60;
 
-while toc<60 && get(gui_handles.accept_track_thresh_pushbutton,'value')~=1
+while trackDat.t < expmt.parameters.duration*3600 &&...
+        ~gui_handles.accept_track_thresh_pushbutton.Value
     
     % update time stamps and frame rate
     [trackDat, tPrev] = updateTime(trackDat, tPrev, expmt, gui_handles);
@@ -204,6 +169,10 @@ while toc<60 && get(gui_handles.accept_track_thresh_pushbutton,'value')~=1
 end
 
 %% Reset UI properties
+trackDat.t = 0;
+tic
+tPrev = toc;
+[trackDat, tPrev] = updateTime(trackDat, tPrev, expmt, gui_handles);
 
 % Reset accept reference button
 set(gui_handles.accept_track_thresh_pushbutton,'value',0);

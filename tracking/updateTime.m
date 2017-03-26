@@ -1,5 +1,10 @@
-function [trackDat,tPrev] = updateTime(trackDat, tPrev, expmt, gui_handles)
+function [trackDat,tPrev] = updateTime(trackDat, tPrev, expmt, gui_handles, varargin)
     
+    no_plot = false;
+    if ~isempty(varargin)
+        no_plot = logical(varargin{1});
+    end
+
     % calculate the interframe interval (ifi)
     tCurrent = toc;
     ifi = tCurrent - tPrev;
@@ -21,13 +26,13 @@ function [trackDat,tPrev] = updateTime(trackDat, tPrev, expmt, gui_handles)
         trackDat.t_ref = trackDat.t_ref + ifi;
     end
     
-    if strcmp(expmt.source,'camera')
+    if strcmp(expmt.source,'camera') && ~no_plot
         
         % report time remaining to reference timeout to GUI
         tRemain = round(gui_handles.edit_exp_duration.Value * 3600 - trackDat.t);
         updateTimeString(tRemain, gui_handles.edit_time_remaining);
         
-    else
+    elseif ~no_plot
         
         frames_remaining = expmt.video.nFrames - trackDat.ct;
         gui_handles.edit_time_remaining.String = num2str(frames_remaining);
