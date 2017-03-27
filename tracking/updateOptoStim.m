@@ -5,8 +5,9 @@ function [trackDat, expmt] = updateOptoStim(trackDat, expmt)
             (trackDat.Centroid(:,2)-expmt.ROI.centers(:,2)).^2);
         
         % Update which stimuli (if any) need to be turned on
-        local_spd(mod(trackDat.ct-1,15)+1,:) = trackDat.Speed;
-        moving = nanmean(local_spd)' > 2;
+        trackDat.local_spd(mod(trackDat.ct-1,15)+1,:) = trackDat.Speed;
+        moving = nanmean(trackDat.local_spd)' > 3.5;
+        trackDat.moving = moving;
         in_center = r < (expmt.ROI.bounds(:,4)./4);
         timeup = trackDat.t - expmt.stim.timer > expmt.parameters.stim_int;
         

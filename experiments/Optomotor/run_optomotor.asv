@@ -171,9 +171,7 @@ tPrev = toc;
 clean_gui(gui_handles.axes_handle);
 hold on
 hMark = plot(trackDat.Centroid(:,1),trackDat.Centroid(:,2),'ro');
-for i = 1:nROIs
-    hText(i) = text(0,0,'','Color','b');
-end
+for i 
 hold off
 
 % run experimental loop until duration is exceeded or last frame
@@ -226,7 +224,6 @@ while trackDat.t < gui_handles.edit_exp_duration.Value * 3600 && ~lastFrame
         % update centroid mark position
         hMark.XData = trackDat.Centroid(:,1);
         hMark.YData = trackDat.Centroid(:,2);
-        
     end
 
     % update the gui
@@ -251,8 +248,3 @@ end
 % wrap up experiment and save master struct
 expmt = autoFinish(trackDat, expmt, gui_handles);
 
-
-function updateText(h,pos,val)
-
-h.Position = pos{:}+10;
-h.String = num2str(val);

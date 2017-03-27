@@ -129,7 +129,7 @@ end
 Screen('FillRect',scrProp.window,[0 0 0], scrProp.windowRect);
 Screen('Flip',scrProp.window);
 
-delay = t*1.35;
+delay = t*1.5;
 
 %% Registration loop
 

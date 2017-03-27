@@ -12,6 +12,12 @@ gui_notify('sampling imaging noise',gui_handles.disp_note);
 gui_fig = gui_handles.gui_fig;
 imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');   % image handle
 
+colormap('gray');
+set(gui_handles.display_menu.Children,'Enable','on');
+set(gui_handles.display_menu.Children,'Checked','off');
+set(gui_handles.display_threshold_menu,'Checked','on');
+gui_handles.display_menu.UserData = 3;
+
 
 %% Sampling Parameters
 

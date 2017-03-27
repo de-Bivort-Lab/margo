@@ -85,7 +85,15 @@ while stop~=1;
     switch expmt.vignette.mode
         case 'manual'
             % subtract the vignette correction off of the raw image
-            trackDat.im = trackDat.im - expmt.vignette.im;
+            if isfield(expmt.vignette,'im');
+                trackDat.im = trackDat.im - expmt.vignette.im;
+            else
+                gauss = buildGaussianKernel(size(trackDat.im,2),...
+                    size(trackDat.im,1),sigma,kernelWeight);
+                trackDat.im=(uint8(double(trackDat.im).*gauss));
+                expmt.vignette.mode = 'auto';
+            end
+            
         case 'auto'
             % approximate light source as guassian to smooth vignetting
             % for more even illumination and better ROI detection

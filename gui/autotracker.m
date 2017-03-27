@@ -2479,7 +2479,8 @@ if vid
     imh.CDataMapping = 'direct';
     text(handles.axes_handle.XLim(2)*0.01,handles.axes_handle.YLim(2)*0.01,...
         'Vignette Correction Preview','Color',[1 0 0]);
-    
+    drawnow limitrate
+        
 end
 
 % set expmt data struct

@@ -109,7 +109,7 @@ end
 Screen('FillRect',scrProp.window,[0 0 0], scrProp.windowRect);
 Screen('Flip',scrProp.window);
 
-delay = t*1.35;
+delay = t*1.5;
 
 %% clear axes objects and initialize marker and text objects
 
