@@ -13,23 +13,9 @@ gui_notify(['executing ' mfilename '.m'],gui_handles.disp_note);
 % clear memory
 clearvars -except gui_handles expmt
 
-% set MATLAB to highest priority via windows cmd line
-cmd_str = 'wmic process where name="MATLAB.exe" CALL setpriority 128';
-[~,~] = system(cmd_str);
-
 % get handles
 gui_fig = gui_handles.gui_fig;                            % gui figure handle
 imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');   % image handle
-
-% clear any objects drawn to gui window
-clean_gui(gui_handles.axes_handle);
-
-% set colormap and enable display control
-colormap('gray');
-set(gui_handles.display_menu.Children,'Checked','off')
-set(gui_handles.display_menu.Children,'Enable','on')
-gui_handles.display_raw_menu.Checked = 'on';
-gui_handles.display_menu.UserData = 1;
 
 
 %% Experimental Setup
@@ -68,8 +54,12 @@ while trackDat.t < gui_handles.edit_exp_duration.Value * 3600 && ~lastFrame
 
     % Take single frame
     if strcmp(expmt.source,'camera')
+        
+        % grab frame from camera
         trackDat.im = peekdata(expmt.camInfo.vid,1);
+        
     else
+        % get next frame from video file
         [trackDat.im, expmt.video] = nextFrame(expmt.video,gui_handles);
         
         % stop expmt when last frame of last video is reached
@@ -78,6 +68,7 @@ while trackDat.t < gui_handles.edit_exp_duration.Value * 3600 && ~lastFrame
         elseif ~hasFrame(expmt.video.vid) && expmt.video.ct == expmt.video.nVids
             lastFrame = true;
         end
+        
     end
 
     % ensure that image is mono
@@ -85,12 +76,12 @@ while trackDat.t < gui_handles.edit_exp_duration.Value * 3600 && ~lastFrame
         trackDat.im=trackDat.im(:,:,2);
     end
 
-    % track, sort to ROIs, and output optional fields to sorted fields,
-    % and sample the number of pixels above the image threshold
+    % track, sort to ROIs, output optional fields set during intialization
+    % and compare noise to the noise distribution measured during sampling
     trackDat = autoTrack(trackDat,expmt,gui_handles);
 
 
-    % output data to binary files
+    % output data tracked fields to binary files
     for i = 1:length(trackDat.fields)
         precision = class(trackDat.(trackDat.fields{i}));
         fwrite(expmt.(trackDat.fields{i}).fID,trackDat.(trackDat.fields{i}),precision);
@@ -99,17 +90,19 @@ while trackDat.t < gui_handles.edit_exp_duration.Value * 3600 && ~lastFrame
     % update ref at the reference frequency or reset if noise thresh is exceeded
     [trackDat, ref_stack, expmt] = updateRef(trackDat, ref_stack, expmt, gui_handles);
 
+    % display update
     if gui_handles.display_menu.UserData ~= 5
-        % update the display
+        
+        % set image data
         updateDisplay(trackDat, expmt, imh, gui_handles);
 
         % update centroid mark position
         hMark.XData = trackDat.Centroid(:,1);
         hMark.YData = trackDat.Centroid(:,2);
     end
-
-    % update the gui
-    drawnow
+    
+    % force immediate screen drawing and callback evaluation
+    drawnow                 
     
     % listen for gui pause/unpause
     while gui_handles.pause_togglebutton.Value || gui_handles.stop_pushbutton.UserData.Value

@@ -56,11 +56,11 @@ nColumns = ceil(nControls/12);   % set column number
 %  Create and then hide the UI as it is being constructed.
 font_scale = 6;
 f = figure('Visible','on','Position',...
-    [400,100,(hscale*font_scale + 400)*nColumns,600],'Name','Camera Settings');
+    [400,100,(hscale*font_scale + 250)*nColumns,600],'Name','Camera Settings');
 set(f,'MenuBar','none','Toolbar','none','resize','off','NumberTitle','off');
 
 % initialize ui scaling components
-col_w = (hscale*font_scale + 350);
+col_w = (hscale*font_scale + 225);
 uival(1) = uicontrol('Style','text','string','','Position',[0 0 0 0]);
 fw = f.Position(3);
 fh = f.Position(4);
@@ -85,7 +85,7 @@ for i = 1:length(names)
         uival(i).UserData = i;
         uictl(i) = uicontrol('Style','slider','Min',field.ConstraintValue(1),...
             'Max',field.ConstraintValue(2),'value',src.(names{i}),...
-           'Position',[sum(uival(i).Position([1,3]))+15,(fh-current_height),250,slider_height],...
+           'Position',[sum(uival(i).Position([1,3]))+15,(fh-current_height),125,slider_height],...
            'Callback',@slider_Callback);
         uictl(i).UserData = i;
         uilbl(i) = uicontrol('Style','text','string',names{i},'Position',...

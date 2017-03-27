@@ -178,11 +178,10 @@ tPrev = toc;
 set(gui_handles.accept_track_thresh_pushbutton,'value',0);
 
 % disable display control
-set(gui_handles.display_raw_menu,'Enable','off');
-set(gui_handles.display_difference_menu,'Enable','off');
-set(gui_handles.display_threshold_menu,'Enable','off');
-set(gui_handles.display_reference_menu,'checked','off');
-set(gui_handles.display_none_menu,'Enable','off');
+set(gui_handles.display_menu.Children,'Enable','off');
+set(gui_handles.display_menu.Children,'Checked','off');
+gui_handles.display_raw_menu.Checked = 'on';
+gui_handles.display_menu.UserData = 1;
 
 % Set time to zero
 if strcmp(expmt.source,'camera')

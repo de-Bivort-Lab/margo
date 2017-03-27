@@ -53,6 +53,7 @@ function autotracker_OpeningFcn(hObject, eventdata, handles, varargin)
 % varargin   command line arguments to autotracker (see VARARGIN)
 
 warning('off','MATLAB:JavaEDTAutoDelegation');
+warning('off','imaq:peekdata:tooManyFramesRequested');
 
 gui_notify('welcome to autotracker',handles.disp_note);
 
@@ -79,7 +80,7 @@ set(findall(handles.run_uipanel, '-property', 'enable'), 'enable', 'off');
 handles.output = hObject;
 handles.gui_fig.UserData.edit_rois = false;
 handles.axes_handle = gca;
-set(gca,'Xtick',[],'Ytick',[]);
+set(gca,'Xtick',[],'Ytick',[],'XLabel',[],'YLabel',[]);
 expmt = [];
 
 % get gui directory and ensure all dependencies are added to path
@@ -353,7 +354,7 @@ expmt = getappdata(handles.gui_fig,'expmt');
 
 if ~isempty(expmt.camInfo)
     if ~isempty(expmt.camInfo.DeviceInfo)
-        cla reset
+        
         imaqreset;
         pause(0.01);
         expmt.camInfo = initializeCamera(expmt.camInfo);
@@ -370,7 +371,9 @@ if ~isempty(expmt.camInfo)
         % adjust aspect ratio of plot to match camera
         colormap('gray');
         im = peekdata(expmt.camInfo.vid,1);
+        clean_gui(handles.axes_handle);
         handles.hImage = imagesc(im);
+        set(handles.axes_handle,'Xtick',[],'Ytick',[],'XLabel',[],'YLabel',[]);
         handles.axes_handle.Position(3) = ...
             handles.gui_fig.Position(3) - 5 - handles.axes_handle.Position(1);
         res = expmt.camInfo.vid.VideoResolution;
@@ -398,7 +401,7 @@ if ~isempty(expmt.camInfo)
         
         % set the colormap and axes ticks
         colormap('gray');
-        set(gca,'Xtick',[],'Ytick',[]);
+        set(gca,'Xtick',[],'Ytick',[],'XLabel',[],'YLabel',[]);
         
         % set downstream UI panel enable status
         handles.tracking_uipanel.ForegroundColor = [0 0 0];
@@ -941,6 +944,7 @@ else
     
     % remove saved rois, images, and noise statistics from prev experiment
     if isfield(expmt,'ROI') && ~keep_gui_state
+        
         expmt = rmfield(expmt,'ROI');
         expmt = rmfield(expmt,'ref');
         expmt = rmfield(expmt,'noise');
@@ -949,6 +953,11 @@ else
             'noise statistics, and labels have been reset.']);
         note = 'ROIs, references, and noise statistics reset';
         gui_notify(note,handles.disp_note);
+        
+        % remove tracked fields from master expmt for next run
+        for i = 1:length(expmt.fields)
+            expmt = rmfield(expmt,expmt.fields{i});
+        end
 
         % set downstream UI panel enable status
         handles.tracking_uipanel.ForegroundColor = [0 0 0];
@@ -2594,8 +2603,11 @@ end
 for i = 1:length(handles.aux_COM_list)
     menu_items(i) = uimenu(hParent,'Label',handles.aux_COM_list{i},...
         'Callback',@aux_com_list_Callback);
-    if i ==1
-        menu_items(i).Separator = 'on';
+    switch i
+        case 1
+            menu_items(i).Separator = 'on';
+            menu_items(i).Checked = 'on';
+            expmt.AUX_COM = handles.aux_COM_list{i};
     end
 end
 

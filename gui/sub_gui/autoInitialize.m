@@ -1,5 +1,15 @@
 function [trackDat,expmt] = autoInitialize(trackDat,expmt,gui_handles)
 
+% clear any objects drawn to gui window
+clean_gui(gui_handles.axes_handle);
+
+% set colormap and enable display control
+colormap('gray');
+set(gui_handles.display_menu.Children,'Checked','off')
+set(gui_handles.display_menu.Children,'Enable','on')
+gui_handles.display_raw_menu.Checked = 'on';
+gui_handles.display_menu.UserData = 1;
+
 %% Initialize tracking variables
 
 trackDat.Centroid=expmt.ROI.centers;                        % last known centroid of the object in each ROI 

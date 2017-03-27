@@ -4,29 +4,14 @@ function [expmt] = run_ledymaze(expmt,gui_handles)
 
 %% Initialization: Get handles and set default preferences
 
+gui_notify(['executing ' mfilename '.m'],gui_handles.disp_note);
+
 % clear memory
 clearvars -except gui_handles expmt
 
-% set MATLAB to highest priority via windows cmd line
-cmd_str = 'wmic process where name="MATLAB.exe" CALL setpriority 128';
-[~,~] = system(cmd_str);
- 
 % get handles
 gui_fig = gui_handles.gui_fig;                            % gui figure handle
 imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');   % image handle
-
-% clear any objects drawn to gui window
-clean_gui(gui_handles.axes_handle);
-
-% set colormap and enable display control
-colormap('gray');
-set(gui_handles.display_menu.Children,'Enable','on');
-set(gui_handles.display_menu.Children,'Checked','off');
-set(gui_handles.display_raw_menu,'Checked','on');
-gui_handles.display_menu.UserData = 1;
-
-% update notifcations log
-gui_notify(['executing ' mfilename '.m'],gui_handles.disp_note);
 
 %% Experimental Setup
 
@@ -47,7 +32,7 @@ lastFrame = false;
 %% Y-maze specific parameters
 
 % Calculate coordinates of end of each maze arm
-trackDat.arm = zeros(nROIs,2,6);                              % Placeholder
+trackDat.arm = zeros(nROIs,2,6);                            % Placeholder
 w = expmt.ROI.bounds(:,3);                                  % width of each ROI
 h = expmt.ROI.bounds(:,4);                                  % height of each ROI
 

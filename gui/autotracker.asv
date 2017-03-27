@@ -53,6 +53,7 @@ function autotracker_OpeningFcn(hObject, eventdata, handles, varargin)
 % varargin   command line arguments to autotracker (see VARARGIN)
 
 warning('off','MATLAB:JavaEDTAutoDelegation');
+warning('off','imaq:peekdata:tooManyFramesRequested');
 
 gui_notify('welcome to autotracker',handles.disp_note);
 
@@ -79,7 +80,7 @@ set(findall(handles.run_uipanel, '-property', 'enable'), 'enable', 'off');
 handles.output = hObject;
 handles.gui_fig.UserData.edit_rois = false;
 handles.axes_handle = gca;
-set(gca,'Xtick',[],'Ytick',[]);
+set(gca,'Xtick',[],'Ytick',[],'XLabel',[],'YLabel',[]);
 expmt = [];
 
 % get gui directory and ensure all dependencies are added to path
@@ -353,7 +354,7 @@ expmt = getappdata(handles.gui_fig,'expmt');
 
 if ~isempty(expmt.camInfo)
     if ~isempty(expmt.camInfo.DeviceInfo)
-        cla reset
+        
         imaqreset;
         pause(0.01);
         expmt.camInfo = initializeCamera(expmt.camInfo);
@@ -398,7 +399,7 @@ if ~isempty(expmt.camInfo)
         
         % set the colormap and axes ticks
         colormap('gray');
-        set(gca,'Xtick',[],'Ytick',[]);
+        set(gca,'Xtick',[],'Ytick',[],'XLabel',[],'YLabel',[]);
         
         % set downstream UI panel enable status
         handles.tracking_uipanel.ForegroundColor = [0 0 0];
@@ -515,7 +516,7 @@ switch get(hObject,'value')
                 if strcmp(expmt.source,'camera')
                     trackDat.im = peekdata(expmt.camInfo.vid,1);
                 else
-                    [trackDat.im, expmt.video] = nextFrame(expmt.video,gui_handles);
+                    [trackDat.im, expmt.video] = nextFrame(expmt.video,handles);
                 end
 
                 % extract green channel if format is RGB
@@ -523,7 +524,9 @@ switch get(hObject,'value')
                     trackDat.im = trackDat.im(:,:,2);
                 end
                 
-                handles.hImage = image(trackDat.im);
+                handles.hImage = image(handles.axes_handle,trackDat.im);
+                colormap(handles.axes_handle,'gray');
+                
             end
             preview(expmt.camInfo.vid,handles.hImage); 
             
@@ -939,6 +942,7 @@ else
     
     % remove saved rois, images, and noise statistics from prev experiment
     if isfield(expmt,'ROI') && ~keep_gui_state
+        
         expmt = rmfield(expmt,'ROI');
         expmt = rmfield(expmt,'ref');
         expmt = rmfield(expmt,'noise');
@@ -947,6 +951,11 @@ else
             'noise statistics, and labels have been reset.']);
         note = 'ROIs, references, and noise statistics reset';
         gui_notify(note,handles.disp_note);
+        
+        % remove tracked fields from master expmt for next run
+        for i = 1:length(expmt.fields)
+            expmt = rmfield(expmt,expmt.fields{i});
+        end
 
         % set downstream UI panel enable status
         handles.tracking_uipanel.ForegroundColor = [0 0 0];
@@ -1599,6 +1608,7 @@ if strcmp(expmt.source,'video') && isfield(expmt,'video')
     handles.reference_pushbutton.Enable = 'on';
     handles.track_thresh_label.Enable = 'on';
     handles.disp_track_thresh.Enable = 'on';
+    handles.man_edit_roi_menu.Enable = 'on';
     
 elseif strcmp(expmt.source,'video')
     errordlg('Select valid video path before running ROI detection');
@@ -2414,9 +2424,9 @@ elseif strcmp(expmt.source,'video')
     
     % open video object from file
     expmt.video.vid = ...
-        VideoReader([expmt.video.fdir expmt.video.fnames{gui_handles.vid_select_popupmenu.Value}]);
+        VideoReader([expmt.video.fdir expmt.video.fnames{handles.vid_select_popupmenu.Value}]);
     
-    expmt.video.ct = gui_handles.vid_select_popupmenu.Value;    % get file number in list
+    expmt.video.ct = handles.vid_select_popupmenu.Value;    % get file number in list
 
 elseif ~strcmp(expmt.camInfo.vid.Running,'on')
     errordlg('Must confirm a camera or video source before correcting vignetting');
@@ -2430,7 +2440,7 @@ if vid
     if strcmp(expmt.source,'camera')
         im = peekdata(expmt.camInfo.vid,1);
     else
-        [im, expmt.video] = nextFrame(expmt.video,gui_handles);
+        [im, expmt.video] = nextFrame(expmt.video,handles);
     end
     
     % extract green channel if format is RGB
@@ -2591,8 +2601,11 @@ end
 for i = 1:length(handles.aux_COM_list)
     menu_items(i) = uimenu(hParent,'Label',handles.aux_COM_list{i},...
         'Callback',@aux_com_list_Callback);
-    if i ==1
-        menu_items(i).Separator = 'on';
+    switch i
+        case 1
+            menu_items(i).Separator = 'on';
+            menu_items(i).Checked = 'on';
+            expmt.AUX_COM = handles.aux_COM_list{i};
     end
 end
 
@@ -2892,8 +2905,21 @@ guidata(hObject,handles);
 
 if isfield(expmt,'ROI')
     
+        % Take single frame
+    if strcmp(expmt.source,'camera')
+        trackDat.im = peekdata(expmt.camInfo.vid,1);
+    else
+        [trackDat.im, expmt.video] = nextFrame(expmt.video,handles);
+    end
+
+    % extract green channel if format is RGB
+    if size(trackDat.im,3)>1
+        trackDat.im = trackDat.im(:,:,2);
+    end
+    
     % set display to ROI image and label ROIs
-    handles.hImage.CData = expmt.ROI.im;
+    handles.hImage.CData = trackDat.im;
+    
     hold on
     for i =1:length(expmt.ROI.centers)
         hBounds(i) = rectangle(handles.axes_handle,'Position',expmt.ROI.bounds(i,:),'EdgeColor','r');
