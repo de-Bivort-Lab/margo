@@ -81,7 +81,7 @@ while stop~=1;
 
     % Update threshold value
     ROI_thresh=get(gui_handles.ROI_thresh_slider,'value');
-
+    tic
     switch expmt.vignette.mode
         case 'manual'
             % subtract the vignette correction off of the raw image
@@ -89,15 +89,16 @@ while stop~=1;
         case 'auto'
             % approximate light source as guassian to smooth vignetting
             % for more even illumination and better ROI detection
+
             gauss = buildGaussianKernel(size(trackDat.im,2),...
                 size(trackDat.im,1),sigma,kernelWeight);
             trackDat.im=(uint8(double(trackDat.im).*gauss));
+            
     end
 
     % Extract ROIs from thresholded image
     [ROI_bounds,ROI_coords,~,~,binaryimage] = detect_ROIs(trackDat.im,ROI_thresh);
     nROIs = size(ROI_coords,1);
-
     % Calculate coords of ROI centers
     [xCenters,yCenters]=ROIcenters(binaryimage,ROI_coords);
     centers=[xCenters,yCenters];
@@ -120,6 +121,9 @@ while stop~=1;
     end
 
     idel = [];
+    
+    roi = num2cell(ROI_bounds,2);
+    cen = num2cell(centers,2);
     
     for i = 1:nDraw
         
@@ -150,7 +154,8 @@ while stop~=1;
     hRect(idel) = [];
     hText(idel) = [];
     hold off
-    drawnow
+    %}
+    %drawnow limitrate
 
 
     % Report frames per sec to GUI

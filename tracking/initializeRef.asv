@@ -160,6 +160,11 @@ while trackDat.t < expmt.parameters.duration*3600 &&...
        % Draw last known centroid for each ROI and update ref. number indicator
        tcen = num2cell(trackDat.Centroid,2);
        arrayfun(@updateText,hText',tcen);
+       %{
+       for i=1:nROIs
+           hText(i).Position = trackDat.Centroid(i,:);
+       end
+       %}
        
     end
     
@@ -189,4 +194,4 @@ end
 
 function updateText(h,pos)
 
-h.Position = pos{:};
+h.Position = pos{:}

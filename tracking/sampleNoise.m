@@ -74,7 +74,7 @@ while trackDat.ct < pixDistSize;
            hCirc.YData = trackDat.Centroid(:,2);
            
         end
-        drawnow
+        drawnow limitrate
 
 
        % Create distribution for num pixels above imageThresh

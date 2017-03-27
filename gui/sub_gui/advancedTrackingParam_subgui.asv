@@ -433,17 +433,14 @@ function updateSpeed(h,pos,spd)
         st_dev = num2str(round(nanstd(spd{:})*10)/10);
         h.String = [u ' ' char(177) ' ' st_dev];
     end
-
     
-% update distance circle display bounds
 function updateDistance(h,bounds)
 
 h.Position = bounds{:};
 
-
-% update area circle display bounds and text
 function updateArea(hmi,hma,ht,pos,minb,maxb,area)
 
+    % update position
     hmi.Position = minb{:};
     hma.Position = maxb{:};
     ht.Position = [pos{:}(1) pos{:}(2)+20];

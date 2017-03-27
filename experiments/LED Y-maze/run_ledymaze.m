@@ -211,7 +211,7 @@ while trackDat.t < gui_handles.edit_exp_duration.Value * 3600 && ~lastFrame
     end
 
     % update the gui
-    drawnow
+    drawnow limitrate
     
     % listen for gui pause/unpause
     while gui_handles.pause_togglebutton.Value || gui_handles.stop_pushbutton.UserData.Value

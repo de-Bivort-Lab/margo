@@ -8,5 +8,9 @@ delete(rect_handles);
 text_handles = findobj(axes_handle,'-depth',3,'Type','text');
 delete(text_handles);
 
+if strcmp(axes_handle.Visible,'off')
+    axes_handle.Visible = 'on';
+end
+
 vm = findobj('Tag','view_menu');
 set(vm.Children,'Checked','off');

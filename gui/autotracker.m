@@ -54,6 +54,7 @@ function autotracker_OpeningFcn(hObject, eventdata, handles, varargin)
 
 warning('off','MATLAB:JavaEDTAutoDelegation');
 warning('off','imaq:peekdata:tooManyFramesRequested');
+set(handles.gui_fig,'doublebuffer','off');
 
 gui_notify('welcome to autotracker',handles.disp_note);
 
