@@ -24,7 +24,7 @@ imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');   % image hand
 ref_stack = repmat(expmt.ref, 1, 1, gui_handles.edit_ref_depth.Value);  % initialize the reference stack
 
 % Initialize tracking variables
-trackDat.fields={'Centroid';'Time'};                 % properties of the tracked objects to be recorded
+trackDat.fields={'Centroid';'Time';'Stimstatus'};                 % properties of the tracked objects to be recorded
 
 % initialize labels, files, and cam/video
 [trackDat,expmt] = autoInitialize(trackDat,expmt,gui_handles);
@@ -79,6 +79,7 @@ while trackDat.t < gui_handles.edit_exp_duration.Value * 3600 && ~lastFrame
     % track, sort to ROIs, output optional fields set during intialization
     % and compare noise to the noise distribution measured during sampling
     trackDat = autoTrack(trackDat,expmt,gui_handles);
+
 
 
     % output data tracked fields to binary files
