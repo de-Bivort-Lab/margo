@@ -38,7 +38,9 @@ pause(2);
 %% Query cam resolution and collect reference image
 
 ref=peekdata(expmt.camInfo.vid,1);
-ref=ref(:,:,2);
+if size(ref,3)>1
+    ref=ref(:,:,2);
+end
 
 % Save the camera resolution that the registration was performed at
 [reg_yPixels,reg_xPixels] = size(ref);
