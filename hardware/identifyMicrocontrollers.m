@@ -1,4 +1,4 @@
-function [lightBoardPort,ports]=identifyMicrocontrollers
+function [lightBoard,ports]=identifyMicrocontrollers
 
 IR_white_panel_handshake=[1 1 0 0 1 0 1]';
 
@@ -36,8 +36,8 @@ for i=1:size(ports,1)
 end
 
 if ~isempty(panelNum)
-    lightBoardPort=ports(panelNum);
+    lightBoard = serial(ports{panelNum});
 else
-    lightBoardPort={'COM not detected'};
+    lightBoard = [];
 end
 ports(panelNum)=[];

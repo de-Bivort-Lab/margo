@@ -136,11 +136,7 @@ end
 
 
 % Update GUI menus with port names
-if ~isempty(expmt.COM)
-    set(handles.microcontroller_popupmenu,'string',expmt.COM.port);
-else
-    set(handles.microcontroller_popupmenu,'string','No COM detected');
-end
+set(handles.microcontroller_popupmenu,'string',expmt.COM);
 
 % Initialize light panel at default values
 IR_intensity = str2double(get(handles.edit_IR_intensity,'string'));
@@ -151,8 +147,8 @@ expmt.light.infrared = uint8((IR_intensity/100)*255);
 expmt.light.white = uint8((White_intensity/100)*255);
 
 % Write values to microcontroller
-expmt.COM = writeInfraredWhitePanel(expmt.COM,1,expmt.light.infrared);
-expmt.COM = writeInfraredWhitePanel(expmt.COM,0,expmt.light.white);
+writeInfraredWhitePanel(expmt.COM,1,expmt.light.infrared);
+writeInfraredWhitePanel(expmt.COM,0,expmt.light.white);
 
 % generate menu items for AUX COMs and config their callbacks
 hParent = findobj('Tag','aux_com_menu');
@@ -597,7 +593,7 @@ expmt.light.infrared = str2double(get(handles.edit_IR_intensity,'string'));
 % Convert intensity percentage to uint8 PWM value 0-255
 expmt.light.infrared = uint8((expmt.light.infrared/100)*255);
 
-expmt.COM = writeInfraredWhitePanel(expmt.COM,1,expmt.light.infrared);
+writeInfraredWhitePanel(expmt.COM,1,expmt.light.infrared);
 
 % Store expmteriment data struct
 setappdata(handles.gui_fig,'expmt',expmt);
@@ -627,7 +623,7 @@ White_intensity = str2double(get(handles.edit_White_intensity,'string'));
 
 % Convert intensity percentage to uint8 PWM value 0-255
 expmt.light.white = uint8((White_intensity/100)*255);
-expmt.COM = writeInfraredWhitePanel(expmt.COM,0,expmt.light.white);
+writeInfraredWhitePanel(expmt.COM,0,expmt.light.white);
 
 % Store expmteriment data struct
 setappdata(handles.gui_fig,'expmt',expmt);
@@ -946,11 +942,6 @@ else
         case 9
             
             expmt = run_circadian(expmt,handles);
-            if isfield(expmt,'date')
-                analyze_basictracking(expmt,handles);
-            else
-                keep_gui_state = true;
-            end
             
     end
     
@@ -1070,12 +1061,10 @@ function exp_select_popupmenu_Callback(hObject, eventdata, handles)
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 
-if expmt.expID ~= handles.exp_select_popupmenu.Value
-    expmt.expID = get(handles.exp_select_popupmenu,'Value');    % index of the experiment in exp list
-    names = get(handles.exp_select_popupmenu,'string');         % name of the experiment
-    expmt.Name = names{expmt.expID};                            % store name in master struct
-    expmt.parameters = trimParameters(expmt.parameters, handles);                 % remove all experiment specific parameters
-end
+expmt.expID = get(handles.exp_select_popupmenu,'Value');    % index of the experiment in exp list
+names = get(handles.exp_select_popupmenu,'string');         % name of the experiment
+expmt.Name = names{expmt.expID};                            % store name in master struct
+expmt.parameters = trimParameters(expmt.parameters, handles);                 % remove all experiment specific parameters
 
 % enable Experiment Parameters pushbutton if expID has an associated subgui
 if ismember(expmt.expID,handles.parameter_subgui)
@@ -1194,11 +1183,11 @@ expmt = getappdata(handles.gui_fig,'expmt');
 % Attempt handshake with light panel teensy
 [expmt.COM,handles.aux_COM_list] = identifyMicrocontrollers;
 
-if ~isempty(expmt.COM)
-    % Update GUI menus with port names
-    set(handles.microcontroller_popupmenu,'string',expmt.COM.port);
+if ~isempty(handles.aux_COM_list)
+% Update GUI menus with port names
+set(handles.microcontroller_popupmenu,'string',expmt.COM);
 else
-    set(handles.microcontroller_popupmenu,'string','COM not detected');
+set(handles.microcontroller_popupmenu,'string','COM not detected');
 end
 
 guidata(hObject,handles);
@@ -1852,8 +1841,8 @@ expmt = getappdata(handles.gui_fig,'expmt');
 
 if isfield(expmt,'reg_params')
     % Turn infrared and white background illumination off during registration
-    expmt.COM = writeInfraredWhitePanel(expmt.COM,1,0);
-    expmt.COM = writeInfraredWhitePanel(expmt.COM,0,0);
+    writeInfraredWhitePanel(expmt.COM,1,0);
+    writeInfraredWhitePanel(expmt.COM,0,0);
 
     msg_title = ['Projector Registration Tips'];
     spc = [' '];
@@ -1880,8 +1869,8 @@ if isfield(expmt,'reg_params')
     reg_projector(expmt,handles);
 
     % Reset infrared and white lights to prior values
-    expmt.COM = writeInfraredWhitePanel(expmt.COM,1,expmt.light.infrared);
-    expmt.COM = writeInfraredWhitePanel(expmt.COM,0,expmt.light.white);
+    writeInfraredWhitePanel(expmt.COM,1,expmt.light.infrared);
+    writeInfraredWhitePanel(expmt.COM,0,expmt.light.white);
 else
     errordlg('Set registration parameters before running projector registration.');
 end
@@ -1922,8 +1911,8 @@ expmt = getappdata(handles.gui_fig,'expmt');
 
 if isfield(expmt,'reg_params')
     % Turn infrared and white background illumination off during registration
-    expmt.COM = writeInfraredWhitePanel(expmt.COM,1,0);
-    expmt.COM = writeInfraredWhitePanel(expmt.COM,0,0);
+    writeInfraredWhitePanel(expmt.COM,1,0);
+    writeInfraredWhitePanel(expmt.COM,0,0);
 
     msg_title = ['Registration Error Measurment']; %#ok<*NBRAK>
     spc = [' '];
@@ -1950,8 +1939,8 @@ if isfield(expmt,'reg_params')
     projector_testFit(expmt,handles);
 
     % Reset infrared and white lights to prior values
-    expmt.COM = writeInfraredWhitePanel(expmt.COM,1,expmt.light.infrared);
-    expmt.COM = writeInfraredWhitePanel(expmt.COM,0,expmt.light.white);
+    writeInfraredWhitePanel(expmt.COM,1,expmt.light.infrared);
+    writeInfraredWhitePanel(expmt.COM,0,expmt.light.white);
 else
     errordlg('Set registration parameters before running projector registration.');
 end
@@ -1983,8 +1972,7 @@ expmt.parameters.vignette_sigma = handles.gui_fig.UserData.vignette_sigma;
 expmt.parameters.vignette_weight = handles.gui_fig.UserData.vignette_weight;
 expmt.parameters.area_min = handles.gui_fig.UserData.area_min;
 expmt.parameters.area_max = handles.gui_fig.UserData.area_max;
-expmt.parameters.ROI_mode = handles.gui_fig.UserData.ROI_mode;
-expmt.parameters.sort_mode = handles.gui_fig.UserData.sort_mode;
+expmt.parameters.ROI_mode = 
              
 % Store expmteriment data struct
 setappdata(handles.gui_fig,'expmt',expmt);
@@ -2647,8 +2635,8 @@ expmt.light.infrared = uint8((IR_intensity/100)*255);
 expmt.light.white = uint8((White_intensity/100)*255);
 
 % Write values to microcontroller
-expmt.COM = writeInfraredWhitePanel(expmt.COM,1,expmt.light.infrared);
-expmt.COM = writeInfraredWhitePanel(expmt.COM,0,expmt.light.white);
+writeInfraredWhitePanel(expmt.COM,1,expmt.light.infrared);
+writeInfraredWhitePanel(expmt.COM,0,expmt.light.white);
 
 % generate menu items for AUX COMs and config their callbacks
 hParent = findobj('Tag','aux_com_menu');

@@ -128,7 +128,7 @@ turning=diff(turning);
 turning = [zeros(1,size(turning,2));turning];
 turning(turning>90) = turning(turning>90) - 180;
 turning(turning<-90) = turning(turning<-90) + 180;
-turning(expmt.Texture.data)=-turning(expmt.Texture.data);
+turning(expmt.Texture.data&expmt.StimStatus.data)=-turning(expmt.Texture.data&expmt.StimStatus.data);
 
 tmp_tdist = turning;
 tmp_tdist(~expmt.StimStatus.data)=NaN;
@@ -171,13 +171,16 @@ clearvars tmpTurn win_start win_stop
 [v,p]=sort(mean(optoplots(t0+1:end,:)));
 p_optoplots=optoplots(:,p);
 hold on
+
 for i=1:expmt.nTracks
-    plot(smooth(p_optoplots(:,i),20),'Color',rand(1,3),'linewidth',2);
+    plot(1:t0-1,smooth(p_optoplots(1:t0-1,i),20),'Color',rand(1,3),'linewidth',2);
+    plot(t0+1:length(p_optoplots),smooth(p_optoplots(t0+1:end,i),20),'Color',rand(1,3),'linewidth',2);
 end
 
 axis([0 size(optoplots,1) min(min(optoplots)) max(max(optoplots))]);
 hold on
-plot(nanmean(optoplots(:,active),2),'k-','LineWidth',3);
+plot(1:t0-1,nanmean(optoplots(1:t0-1,active),2),'k-','LineWidth',3);
+plot(t0+1:length(p_optoplots),nanmean(optoplots(t0+1:end,active),2),'k-','LineWidth',3);
 plot([t0 t0],[min(min(optoplots)) max(max(optoplots))],'k--','LineWidth',2);
 hold off
 set(gca,'Xtick',linspace(1,size(optoplots,1),7),'XtickLabel',round(linspace(-win_sz,win_sz,7)*10)/10);

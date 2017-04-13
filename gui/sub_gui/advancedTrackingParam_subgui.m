@@ -22,7 +22,7 @@ function varargout = advancedTrackingParam_subgui(varargin)
 
 % Edit the above text to modify the response to help advancedTrackingParam_subgui
 
-% Last Modified by GUIDE v2.5 26-Mar-2017 12:23:00
+% Last Modified by GUIDE v2.5 31-Mar-2017 18:13:46
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -58,8 +58,8 @@ expmt = varargin{1};
 param_data = expmt.parameters;
 
 in_handles = varargin{2};
-handles.figure1.UserData.gui_handles = in_handles;
-handles.figure1.UserData.expmt = expmt;
+handles.track_fig.UserData.gui_handles = in_handles;
+handles.track_fig.UserData.expmt = expmt;
 gui_fig = in_handles.gui_fig;
 
 
@@ -74,14 +74,19 @@ set(handles.edit_area_min,'string',round(10*gui_fig.UserData.area_min)/10);
 set(handles.edit_area_max,'string',round(10*gui_fig.UserData.area_max)/10);
 set(handles.edit_ROI_cluster_tolerance,'string',round(100*gui_fig.UserData.ROI_tol)/100);
 
+% find idx of active mode in menu and set it in gui
 activemode = find(strcmp(gui_fig.UserData.sort_mode,handles.sort_mode_popupmenu.String));
 handles.sort_mode_popupmenu.Value = activemode;
 
+% find idx of active mode in menu and set it in gui
+activemode = find(strcmp(gui_fig.UserData.ROI_mode,handles.roi_mode_popupmenu.String));
+handles.roi_mode_popupmenu.Value = activemode;
 
-handles.figure1.Position(1) = gui_fig.Position(1) + ...
-    sum(in_handles.light_uipanel.Position([1 3])) - handles.figure1.Position(3);
-handles.figure1.Position(2) = gui_fig.Position(2) + ...
-    sum(in_handles.light_uipanel.Position([2 4])) - handles.figure1.Position(4) - 25;
+% set subgui position to top left corner of the axes
+handles.track_fig.Position(1) = gui_fig.Position(1) + ...
+    sum(in_handles.light_uipanel.Position([1 3])) - handles.track_fig.Position(3);
+handles.track_fig.Position(2) = gui_fig.Position(2) + ...
+    sum(in_handles.light_uipanel.Position([2 4])) - handles.track_fig.Position(4) - 25;
 
 % Update handles structure
 guidata(hObject, handles);
@@ -100,8 +105,8 @@ trackDat.ct = 0;
 
 
 % get handles to main gui
-expmt = handles.figure1.UserData.expmt;
-gui_handles = handles.figure1.UserData.gui_handles;
+expmt = handles.track_fig.UserData.expmt;
+gui_handles = handles.track_fig.UserData.gui_handles;
 gui_fig = gui_handles.gui_fig;
 display_menu = findobj('Tag','display_menu');
 display_menu.UserData = 1;
@@ -324,10 +329,8 @@ while ishghandle(hObject) && display
 
     % disable display if necessary
     else
-        if strcmp(dstCirc(1).Visible,'on')
-            for i = 1:length(dstCirc)
-                dstCirc(i).Visible = 'off';
-            end
+        if strcmp(dstCirc(1).Visible,'on')      
+            set(dstCirc,'Visible','off');
         end
     end
         
@@ -336,14 +339,12 @@ while ishghandle(hObject) && display
 
         % re-enable display if necessary
         if strcmp(minCirc(1).Visible,'off') || strcmp(maxCirc(1).Visible,'off')
-            for i = 1:length(minCirc)
-                minCirc(i).Visible = 'on';
-                maxCirc(i).Visible = 'on';
-                areaText(i).Visible = 'on';
-            end
+            set(minCirc,'Visible','on');
+            set(maxCirc,'Visible','on');
+            set(areaText,'Visible','on');
         end
 
-        % use trackiog from disp_speed if toggled, else initiate
+        % use tracking from disp_speed if toggled, else initiate
         % tracking
         if ~disp_speed && ~disp_dist
 
@@ -373,35 +374,19 @@ while ishghandle(hObject) && display
         cen = num2cell(trackDat.Centroid,2);
         arrayfun(@updateArea,minCirc',maxCirc',areaText',cen,mib,mab,rar);
 
-        % update position
-        for i = 1:length(dstCirc)
-            minCirc(i).Position = mi_bounds(i,:);
-            maxCirc(i).Position = ma_bounds(i,:);
-            areaText(i).Position = [trackDat.Centroid(i,1) trackDat.Centroid(i,2)+20];
-            if isnan(round(nanmean(roll_area(i,:))*10)/10)
-                areaText(i).String = '';
-            else
-                u = num2str(round(nanmean(roll_area(i,:))*10)/10);
-                st_dev = num2str(round(nanstd(roll_area(i,:))*10)/10);
-                areaText(i).String = [u ' ' char(177) ' ' st_dev];
-            end
-        end
-
     % else make objects invisible
     else
         if strcmp(minCirc(1).Visible,'on') || strcmp(maxCirc(1).Visible,'on')
-            for i = 1:length(minCirc)
-                minCirc(i).Visible = 'off';
-                maxCirc(i).Visible = 'off';
-                areaText(i).Visible = 'off';
-            end
+            set(minCirc,'Visible','off');
+            set(maxCirc,'Visible','off');
+            set(areaText,'Visible','off');
         end
     end
 
 
     % update the display
     updateDisplay(trackDat, expmt, imh, gui_handles);
-    drawnow
+    drawnow limitrate
             
 end
 
@@ -458,13 +443,13 @@ function updateArea(hmi,hma,ht,pos,minb,maxb,area)
 
 
 
-% --- Executes when user attempts to close figure1.
-function figure1_CloseRequestFcn(hObject, eventdata, handles)
-% hObject    handle to figure1 (see GCBO)
+% --- Executes when user attempts to close track_fig.
+function track_fig_CloseRequestFcn(hObject, eventdata, handles)
+% hObject    handle to track_fig (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-delete(handles.figure1);
+delete(handles.track_fig);
 
 
 
@@ -486,7 +471,7 @@ function edit_vignette_weight_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of edit_vignette_weight as text
 %        str2double(get(hObject,'String')) returns contents of edit_vignette_weight as a double
 
-gui_fig = handles.figure1.UserData.gui_handles.gui_fig;
+gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
 
 gui_fig.UserData.vignette_weight=str2num(get(handles.edit_vignette_weight,'string'));
 guidata(hObject,handles);
@@ -500,7 +485,7 @@ function edit_vignette_sigma_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of edit_vignette_sigma as text
 %        str2double(get(hObject,'String')) returns contents of edit_vignette_sigma as a double
 
-gui_fig = handles.figure1.UserData.gui_handles.gui_fig;
+gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
 
 gui_fig.UserData.vignette_sigma=str2num(get(handles.edit_vignette_sigma,'string'));
 guidata(hObject,handles);
@@ -514,7 +499,7 @@ function edit_target_rate_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of edit29 as text
 %        str2double(get(hObject,'String')) returns contents of edit29 as a double
 
-gui_fig = handles.figure1.UserData.gui_handles.gui_fig;
+gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
 
 gui_fig.UserData.target_rate=str2num(handles.edit_target_rate.String);
 guidata(hObject,handles);
@@ -529,8 +514,8 @@ function edit_dist_thresh_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of edit_dist_thresh as text
 %        str2double(get(hObject,'String')) returns contents of edit_dist_thresh as a double
 
-gui_fig = handles.figure1.UserData.gui_handles.gui_fig;
-handles.figure1.UserData.gui_handles.edit_dist_thresh.String =...
+gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
+handles.track_fig.UserData.gui_handles.edit_dist_thresh.String =...
     get(handles.edit_dist_thresh,'string');
 
 gui_fig.UserData.distance_thresh=str2num(get(handles.edit_dist_thresh,'string'));
@@ -546,8 +531,8 @@ function edit_speed_thresh_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of edit_speed_thresh as text
 %        str2double(get(hObject,'String')) returns contents of edit_speed_thresh as a double
 
-gui_fig = handles.figure1.UserData.gui_handles.gui_fig;
-handles.figure1.UserData.gui_handles.edit_speed_thresh.String =...
+gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
+handles.track_fig.UserData.gui_handles.edit_speed_thresh.String =...
     get(handles.edit_speed_thresh,'string');
 
 gui_fig.UserData.speed_thresh=str2num(get(handles.edit_speed_thresh,'string'));
@@ -560,7 +545,7 @@ function edit_area_max_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-gui_fig = handles.figure1.UserData.gui_handles.gui_fig;
+gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
 
 gui_fig.UserData.area_max = str2num(get(hObject,'string'));
 guidata(hObject,handles);
@@ -572,7 +557,7 @@ function edit_area_min_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-gui_fig = handles.figure1.UserData.gui_handles.gui_fig;
+gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
 
 gui_fig.UserData.area_min = str2num(get(hObject,'string'));
 guidata(hObject,handles);
@@ -768,7 +753,7 @@ function sort_mode_popupmenu_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-gui_fig = handles.figure1.UserData.gui_handles.gui_fig;
+gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
 
 gui_fig.UserData.sort_mode = hObject.String{hObject.Value};
 guidata(hObject,handles);
@@ -793,7 +778,7 @@ function edit_ROI_cluster_tolerance_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-gui_fig = handles.figure1.UserData.gui_handles.gui_fig;
+gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
 
 gui_fig.UserData.ROI_tol = str2num(get(hObject,'string'));
 guidata(hObject,handles);
@@ -806,6 +791,33 @@ function edit_ROI_cluster_tolerance_CreateFcn(hObject, eventdata, handles)
 % handles    empty - handles not created until after all CreateFcns called
 
 % Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on selection change in roi_mode_popupmenu.
+function roi_mode_popupmenu_Callback(hObject, eventdata, handles)
+% hObject    handle to roi_mode_popupmenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
+
+gui_fig.UserData.ROI_mode = hObject.String{hObject.Value};
+guidata(hObject,handles);
+
+
+
+
+% --- Executes during object creation, after setting all properties.
+function roi_mode_popupmenu_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to roi_mode_popupmenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');

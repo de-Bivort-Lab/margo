@@ -13,3 +13,5 @@ out_parameters.area_min = gui_handles.gui_fig.UserData.area_min;
 out_parameters.area_max = gui_handles.gui_fig.UserData.area_max;
 out_parameters.mm_per_pix = in_parameters.mm_per_pix;
 out_parameters.units = in_parameters.units;
+out_parameters.ROI_mode = in_parameters.ROI_mode;
+out_parameters.sort_mode = in_parameters.sort_mode;

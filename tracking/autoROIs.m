@@ -176,15 +176,17 @@ gui_notify([num2str(size(centers,1)) ' ROIs detected'],gui_handles.disp_note);
 set(gui_handles.accept_ROI_thresh_pushbutton,'value',0);
 
 % create a vignette correction image if mode is set to auto
-if strcmp(expmt.vignette.mode,'auto');
+if strcmp(expmt.vignette.mode,'auto') && ~isempty(ROI_coords)
     expmt.vignette.im = filterVignetting(trackDat.im,ROI_coords(end,:));
 end
 
 % assign outputs
-expmt.ROI.corners = ROI_coords;
-expmt.ROI.centers = centers;
-expmt.ROI.orientation = mazeOri;
-expmt.ROI.bounds = ROI_bounds;
-expmt.ROI.im = binaryimage;
+if ~isempty(ROI_coords)
+    expmt.ROI.corners = ROI_coords;
+    expmt.ROI.centers = centers;
+    expmt.ROI.orientation = mazeOri;
+    expmt.ROI.bounds = ROI_bounds;
+    expmt.ROI.im = binaryimage;
+end
 
 gui_handles.auto_detect_ROIs_pushbutton.Enable = 'on';

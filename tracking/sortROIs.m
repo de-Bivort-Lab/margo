@@ -1,6 +1,6 @@
 function [varargout]=sortROIs(tolerance,varargin)
 
-for i = 1:nargin
+for i = 1:nargin-1
     switch i
         case 1
             centers = varargin{i};

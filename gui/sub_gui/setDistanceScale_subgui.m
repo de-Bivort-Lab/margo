@@ -22,7 +22,7 @@ function varargout = setDistanceScale_subgui(varargin)
 
 % Edit the above text to modify the response to help setDistanceScale_subgui
 
-% Last Modified by GUIDE v2.5 19-Dec-2016 20:22:00
+% Last Modified by GUIDE v2.5 05-Apr-2017 17:06:24
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -69,16 +69,16 @@ if isfield(param_data,'distance_scale')
     handles.line_handle = imline(handles.input.axes_handle,param_data.distance_scale.Pos);
 
     % Assign current values as default output
-    handles.figure1.UserData.target_size=str2num(get(handles.edit_target_size,'string'));
-    handles.figure1.UserData.mm_per_pixel=str2num(get(handles.edit_mm_per_pixel,'string'));
-    handles.figure1.UserData.Pos = param_data.distance_scale.Pos;
+    handles.dist_fig.UserData.target_size=str2num(get(handles.edit_target_size,'string'));
+    handles.dist_fig.UserData.mm_per_pixel=str2num(get(handles.edit_mm_per_pixel,'string'));
+    handles.dist_fig.UserData.Pos = param_data.distance_scale.Pos;
     
 end
 
-handles.figure1.Position(1) = gui_fig.Position(1) + ...
-    sum(gui_handles.light_uipanel.Position([1 3])) - handles.figure1.Position(3);
-handles.figure1.Position(2) = gui_fig.Position(2) + ...
-    sum(gui_handles.light_uipanel.Position([2 4])) - handles.figure1.Position(4) - 25;
+handles.dist_fig.Position(1) = gui_fig.Position(1) + ...
+    sum(gui_handles.light_uipanel.Position([1 3])) - handles.dist_fig.Position(3);
+handles.dist_fig.Position(2) = gui_fig.Position(2) + ...
+    sum(gui_handles.light_uipanel.Position([2 4])) - handles.dist_fig.Position(4) - 25;
 
 % Update handles structure
 guidata(hObject, handles);
@@ -96,15 +96,15 @@ function varargout = setDistanceScale_subgui_OutputFcn(hObject, eventdata, handl
 
 while ishghandle(hObject)
     pause(0.001);
-    if isprop(handles.figure1,'UserData')
-    	varargout{1} = handles.figure1.UserData;
+    if isprop(handles.dist_fig,'UserData')
+    	varargout{1} = handles.dist_fig.UserData;
     end
 end
 
 
-% --- Executes when user attempts to close figure1.
-function figure1_CloseRequestFcn(hObject, eventdata, handles)
-% hObject    handle to figure1 (see GCBO)
+% --- Executes when user attempts to close dist_fig.
+function dist_fig_CloseRequestFcn(hObject, eventdata, handles)
+% hObject    handle to dist_fig (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
@@ -135,15 +135,15 @@ end
 % Create new image line object
 handles.line_handle = imline(handles.input.axes_handle);
 
-if isfield(handles.figure1.UserData,'target_size')
+if isfield(handles.dist_fig.UserData,'target_size')
     pos = handles.line_handle.getPosition();
-    handles.figure1.UserData.Pos = pos;
+    handles.dist_fig.UserData.Pos = pos;
     d = sqrt((pos(1,1)-pos(2,1))^2+(pos(2,2)-pos(1,2))^2);
-    handles.figure1.UserData.mm_per_pixel = handles.figure1.UserData.target_size/d;
-    set(handles.edit_mm_per_pixel,'string',num2str(round(handles.figure1.UserData.mm_per_pixel*1000)/1000));
+    handles.dist_fig.UserData.mm_per_pixel = handles.dist_fig.UserData.target_size/d;
+    set(handles.edit_mm_per_pixel,'string',num2str(round(handles.dist_fig.UserData.mm_per_pixel*1000)/1000));
 end
 
-figure(handles.figure1);
+figure(handles.dist_fig);
 
 guidata(hObject,handles);
 
@@ -157,12 +157,12 @@ function update_button_Callback(hObject, eventdata, handles)
 
 if isfield(handles,'line_handle')
 
-    if isfield(handles.figure1.UserData,'target_size')
+    if isfield(handles.dist_fig.UserData,'target_size')
         pos = handles.line_handle.getPosition();
-        handles.figure1.UserData.Pos = pos;
+        handles.dist_fig.UserData.Pos = pos;
         d = sqrt((pos(1,1)-pos(2,1))^2+(pos(2,2)-pos(1,2))^2);
-        handles.figure1.UserData.mm_per_pixel = handles.figure1.UserData.target_size/d;
-        set(handles.edit_mm_per_pixel,'string',num2str(round(handles.figure1.UserData.mm_per_pixel*1000)/1000));
+        handles.dist_fig.UserData.mm_per_pixel = handles.dist_fig.UserData.target_size/d;
+        set(handles.edit_mm_per_pixel,'string',num2str(round(handles.dist_fig.UserData.mm_per_pixel*1000)/1000));
     end
     
 end
@@ -179,7 +179,7 @@ function edit_target_size_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit_target_size as text
 %        str2double(get(hObject,'String')) returns contents of edit_target_size as a double
-handles.figure1.UserData.target_size = str2num(get(handles.edit_target_size,'string'));
+handles.dist_fig.UserData.target_size = str2num(get(handles.edit_target_size,'string'));
 guidata(hObject,handles);
 
 
@@ -193,7 +193,7 @@ function edit_mm_per_pixel_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of edit_mm_per_pixel as text
 %        str2double(get(hObject,'String')) returns contents of edit_mm_per_pixel as a double
 
-set(handles.edit_mm_per_pixel,'string',num2str(round(handles.figure1.UserData.mm_per_pixel*100)/100));
+set(handles.edit_mm_per_pixel,'string',num2str(round(handles.dist_fig.UserData.mm_per_pixel*100)/100));
 guidata(hObject,handles);
 
 
@@ -279,8 +279,8 @@ end
 
 
 % --- Executes on mouse press over figure background.
-function figure1_ButtonDownFcn(hObject, eventdata, handles)
-% hObject    handle to figure1 (see GCBO)
+function dist_fig_ButtonDownFcn(hObject, eventdata, handles)
+% hObject    handle to dist_fig (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
