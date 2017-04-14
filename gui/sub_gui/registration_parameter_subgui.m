@@ -200,7 +200,7 @@ function scr_popupmenu_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-handles.output.screen_num = handles.scr_popupmenu.String(handles.scr_popupmenu.Value);
+handles.output.screen_num = str2double(handles.scr_popupmenu.String{handles.scr_popupmenu.Value});
 guidata(hObject,handles);
 
 
