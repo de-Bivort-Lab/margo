@@ -148,9 +148,7 @@ while trackDat.t < gui_handles.edit_exp_duration.Value * 3600 && ~lastFrame
         hMark.YData = trackDat.Centroid(:,2);
         
         cen = num2cell(trackDat.Centroid,2);
-        change = num2cell(trackDat.changed_arm);
-
-        arrayfun(@update_turn_display, cen, nTurns, change, hNTurns);
+        arrayfun(@update_turn_display, cen, nTurns, trackDat.changed_arm, hNTurns');
 
         
     end
@@ -180,7 +178,7 @@ expmt = autoFinish(trackDat, expmt, gui_handles);
 function update_turn_display(c, n, ch, h)
 
 
-h.Position = [c{1}-5,c{2}+15];
+h.Position = [c{1}(1)-5,c{1}(2)+15];
 if ch
     h.String = n;
 end
