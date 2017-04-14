@@ -2114,7 +2114,8 @@ if isfield(handles,'fig_size')
         res = fliplr(res);
         aspectR = res(2)/res(1);
         plot_aspect = pbaspect;
-        fscale = aspectR/plot_aspect(2);
+        pbr = plot_aspect(2)/plot_aspect(1);
+        fscale = aspectR/pbr;
 
         axes_height_old = handles.axes_handle.Position(4);
         axes_height_new = axes_height_old*fscale;
@@ -2132,9 +2133,11 @@ if isfield(handles,'fig_size')
         else
             
             handles.axes_handle.Position(4) = axes_height_new;
-            handles.axes_handle.Position(2) = handles.axes_handle.Position(2) + axes_height_old - axes_height_new;   
+            handles.axes_handle.Position(2) = handles.axes_handle.Position(2) + axes_height_old - axes_height_new;
             
-        end
+            
+        end        
+
         
     end
 
