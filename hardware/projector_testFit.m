@@ -33,7 +33,9 @@ pause(2);
 %% Query cam resolution and collect reference image
 
 ref=peekdata(expmt.camInfo.vid,1);
-ref=ref(:,:,2);
+if size(ref,3)>1
+    ref=ref(:,:,2);
+end
 
 %% Load the projector fit
 
@@ -157,7 +159,9 @@ for i=1:x_stp
         
         % Image spot with cam
         im=peekdata(expmt.camInfo.vid,1);
-        im=im(:,:,2);
+        if size(im,3)>1
+            im=im(:,:,2);
+        end
         im=im-ref;
         
         % Extract centroid of spot

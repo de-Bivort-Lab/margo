@@ -149,7 +149,9 @@ for i=1:x_stp
         
         % Image spot with cam
         im=peekdata(expmt.camInfo.vid,1);
-        im=im(:,:,2);
+        if size(im,3)>1
+            im=im(:,:,2);
+        end
         im=im-ref;
         
         % Extract centroid of spot
