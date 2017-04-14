@@ -1,4 +1,4 @@
-function scrProp=initialize_projector(background_color)
+function scrProp=initialize_projector(screen_num,background_color)
 
 % Clear the workspace
 sca;
@@ -13,7 +13,7 @@ Screen('Preference', 'SkipSyncTests', 1);
 rand('seed', sum(100 * clock));
 
 % Screen Number
-screenNumber = max(Screen('Screens'));
+%screenNumber = max(Screen('Screens'));
 
 % Define black, white and grey
 white = WhiteIndex(screenNumber);
@@ -21,7 +21,7 @@ grey = white / 2;
 black = BlackIndex(screenNumber);
 
 % Open the screen
-[window, windowRect] = PsychImaging('OpenWindow', screenNumber, background_color);
+[window, windowRect] = PsychImaging('OpenWindow', screen_num, background_color);
 Screen('Flip', window);
 
 % Query the frame duration

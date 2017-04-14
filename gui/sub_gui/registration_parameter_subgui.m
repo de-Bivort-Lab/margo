@@ -22,7 +22,7 @@ function varargout = registration_parameter_subgui(varargin)
 
 % Edit the above text to modify the response to help registration_parameter_subgui
 
-% Last Modified by GUIDE v2.5 25-Jan-2017 16:10:35
+% Last Modified by GUIDE v2.5 14-Apr-2017 11:04:05
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -54,6 +54,14 @@ function registration_parameter_subgui_OpeningFcn(hObject, eventdata, handles, v
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to registration_parameter_subgui (see VARARGIN)
 
+% Clear the workspace
+sca;
+
+% Here we call some default settings for setting up Psychtoolbox
+available_screens = Screen('Screens');
+handles.scr_popupmenu.String = num2cell(available_screens);
+handles.scr_popupmenu.Value = 2;
+
 if ~isempty(varargin)
     param_data = varargin{1};
     reg_params = param_data.reg_params;
@@ -61,12 +69,14 @@ if ~isempty(varargin)
     set(handles.edit_pixel_step_size,'string',reg_params.pixel_step_size);
     set(handles.edit_step_interval,'string',reg_params.step_interval);
     set(handles.edit_spot_r,'string',reg_params.spot_r);
+    handles.scr_popupmenu.Value = reg_params.screen_num;
 else
     handles.output = [];
     handles.output.name = 'Registration Parameters';
     handles.output.pixel_step_size=str2num(get(handles.edit_pixel_step_size,'string'));
     handles.output.step_interval=str2num(get(handles.edit_step_interval,'string'));
     handles.output.spot_r=str2num(get(handles.edit_spot_r,'string'));
+    handles.output.screen_num = 1;
 end
 
 % Update handles structure
@@ -178,6 +188,29 @@ function edit_pixel_step_size_CreateFcn(hObject, eventdata, handles)
 % handles    empty - handles not created until after all CreateFcns called
 
 % Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on selection change in scr_popupmenu.
+function scr_popupmenu_Callback(hObject, eventdata, handles)
+% hObject    handle to scr_popupmenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+handles.output.screen_num = handles.scr_popupmenu.String(handles.scr_popupmenu.Value);
+guidata(hObject,handles);
+
+
+% --- Executes during object creation, after setting all properties.
+function scr_popupmenu_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to scr_popupmenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');

@@ -13,6 +13,7 @@ function reg_projector(expmt,handles)
 stp_sz = expmt.reg_params.pixel_step_size;
 stp_t = expmt.reg_params.step_interval;
 r = expmt.reg_params.spot_r;
+screen_num = expmt.reg_params.screen_num;
 
 %% Estimate camera frame rate
 
@@ -32,7 +33,7 @@ end
 
 % Initialize the psychtoolbox window and query projector properties
 bg_color=[0 0 0];
-scrProp=initialize_projector(bg_color);
+scrProp=initialize_projector(screen_num,bg_color);
 pause(2);
 
 %% Query cam resolution and collect reference image
