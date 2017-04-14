@@ -55,7 +55,7 @@ pause(1);
 
 %% Load the projector fit
 
-gui_dir = which('autotrackergui');
+gui_dir = which('autotracker');
 gui_dir = gui_dir(1:strfind(gui_dir,'\gui\'));
 fName = 'projector_fit.mat';
 

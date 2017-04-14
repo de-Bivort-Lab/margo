@@ -180,9 +180,9 @@ expmt = autoFinish(trackDat, expmt, gui_handles);
 function update_turn_display(c, n, ch, h)
 
 
-h.Position = [c{1}-5,c{2}+15];
+n.Position = [c{1}-5,trackDat.Centroid{2}+15];
 if ch
-    h.String = n;
+    hNTurns(i).String = nTurns(i);
 end
 
 

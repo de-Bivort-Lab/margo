@@ -59,13 +59,12 @@ sca;
 
 % Here we call some default settings for setting up Psychtoolbox
 available_screens = Screen('Screens');
-disp_str = cell(length(available_screens),1);
+
 for i = 1:length(available_screens)
     [w,h]=Screen('WindowSize',i-1);
-    disp_str(i) = {['display ' num2str(i-1) ' (' num2str(w) 'x' num2str(h) ')']};
-end
     
-handles.scr_popupmenu.String = disp_str;
+    
+handles.scr_popupmenu.String = num2cell(available_screens);
 handles.scr_popupmenu.Value = 2;
 
 if ~isempty(varargin)
@@ -206,7 +205,7 @@ function scr_popupmenu_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-handles.output.screen_num = handles.scr_popupmenu.Value-1;
+handles.output.screen_num = str2double(handles.scr_popupmenu.String{handles.scr_popupmenu.Value});
 guidata(hObject,handles);
 
 

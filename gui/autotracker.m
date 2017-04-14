@@ -56,6 +56,13 @@ warning('off','MATLAB:JavaEDTAutoDelegation');
 warning('off','imaq:peekdata:tooManyFramesRequested');
 set(handles.gui_fig,'doublebuffer','off');
 
+
+% get gui directory and ensure all dependencies are added to path
+handles.gui_dir = which('autotracker');
+handles.gui_dir = handles.gui_dir(1:strfind(handles.gui_dir,'\gui\'));
+addpath(genpath(handles.gui_dir));
+handles.display_menu.UserData = 1;     
+
 gui_notify('welcome to autotracker',handles.disp_note);
 
 % store panel starting location for reference when resizing
@@ -82,13 +89,7 @@ handles.output = hObject;
 handles.gui_fig.UserData.edit_rois = false;
 handles.axes_handle = gca;
 set(gca,'Xtick',[],'Ytick',[],'XLabel',[],'YLabel',[]);
-expmt = [];
-
-% get gui directory and ensure all dependencies are added to path
-handles.gui_dir = which('autotracker');
-handles.gui_dir = handles.gui_dir(1:strfind(handles.gui_dir,'\gui\'));
-addpath(genpath(handles.gui_dir));
-handles.display_menu.UserData = 1;                                           
+expmt = [];                                      
 
 
 % initialize array indicating expIDs for experiments with an associated
@@ -211,6 +212,7 @@ expmt.parameters.duration = str2double(get(handles.edit_exp_duration,'String'));
 expmt.parameters.ROI_thresh = num2str(round(handles.ROI_thresh_slider.Value));
 expmt.parameters.track_thresh = num2str(round(handles.track_thresh_slider.Value));
 expmt.parameters.sort_mode = 'distance';
+expmt.parameters.ROI_mode = 'auto';
 
 handles.edit_speed_thresh.String = num2str(handles.gui_fig.UserData.speed_thresh);
 handles.edit_dist_thresh.String = num2str(handles.gui_fig.UserData.distance_thresh);
@@ -1850,41 +1852,50 @@ function reg_proj_menu_Callback(hObject, eventdata, handles)
 
 expmt = getappdata(handles.gui_fig,'expmt');
 
-if isfield(expmt,'reg_params')
-    % Turn infrared and white background illumination off during registration
-    expmt.COM = writeInfraredWhitePanel(expmt.COM,1,0);
-    expmt.COM = writeInfraredWhitePanel(expmt.COM,0,0);
-
-    msg_title = ['Projector Registration Tips'];
-    spc = [' '];
-    intro = ['Please check the following before continuing to ensure successful registration:'];
-    item1 = ['1.) Both the infrared and white lights for imaging illumination are set to OFF. '...
-        'Make sure the projector is the only light source visible to the camera'];
-    item2 = ['2.) Camera is not imaging through infrared filter. '...
-        'Projector display should be visible through the camera.'];
-    item3 = ['3.) Projector is connected to the computer, turned on and set to desired resolution.'];
-    item4 = ['4.) Camera shutter speed is adjusted to match the refresh rate of the projector.'...
-        ' This will appear as moving streaks in the camera if not properly adjusted.'];
-    item5 = ['5.) Both camera and projector are in fixed positions and will not need to be adjusted'...
-        ' after registration.'];
-    item6 = ['6.) The projector is set as the most external display (ie. the highest number display). Hint: '...
-        'this is the most likely problem if the projector is connected but psych Toolbox is drawing to '...
-        'the primary display. MATLAB must be restarted before this change will take effect.'];
-    closing = ['Click OK to continue with the registration'];
-    message = {intro spc item1 spc item2 spc item3 spc item4 spc item5 spc item6 spc closing};
-
-    % Display registration tips
-    waitfor(msgbox(message,msg_title));
-
-    % Register projector
-    reg_projector(expmt,handles);
-
-    % Reset infrared and white lights to prior values
-    expmt.COM = writeInfraredWhitePanel(expmt.COM,1,expmt.light.infrared);
-    expmt.COM = writeInfraredWhitePanel(expmt.COM,0,expmt.light.white);
-else
-    errordlg('Set registration parameters before running projector registration.');
+if ~isfield(expmt,'reg_params')
+    tmp = registration_parameter_subgui(expmt);
+    if ~isempty(tmp)
+        expmt.reg_params = tmp;
+    end
 end
+
+if ~isfield(expmt,'reg_params')
+% Turn infrared and white background illumination off during registration
+expmt.COM = writeInfraredWhitePanel(expmt.COM,1,0);
+expmt.COM = writeInfraredWhitePanel(expmt.COM,0,0);
+
+msg_title = ['Projector Registration Tips'];
+spc = [' '];
+intro = ['Please check the following before continuing to ensure successful registration:'];
+item1 = ['1.) Both the infrared and white lights for imaging illumination are set to OFF. '...
+    'Make sure the projector is the only light source visible to the camera'];
+item2 = ['2.) Camera is not imaging through infrared filter. '...
+    'Projector display should be visible through the camera.'];
+item3 = ['3.) Projector is connected to the computer, turned on and set to desired resolution.'];
+item4 = ['4.) Camera shutter speed is adjusted to match the refresh rate of the projector.'...
+    ' This will appear as moving streaks in the camera if not properly adjusted.'];
+item5 = ['5.) Both camera and projector are in fixed positions and will not need to be adjusted'...
+    ' after registration.'];
+item6 = ['6.) The projector is set as the most external display (ie. the highest number display). Hint: '...
+    'this is the most likely problem if the projector is connected but psych Toolbox is drawing to '...
+    'the primary display. MATLAB must be restarted before this change will take effect.'];
+closing = ['Click OK to continue with the registration'];
+message = {intro spc item1 spc item2 spc item3 spc item4 spc item5 spc item6 spc closing};
+
+% Display registration tips
+waitfor(msgbox(message,msg_title));
+
+% Register projector
+reg_projector(expmt,handles);
+
+% Reset infrared and white lights to prior values
+expmt.COM = writeInfraredWhitePanel(expmt.COM,1,expmt.light.infrared);
+expmt.COM = writeInfraredWhitePanel(expmt.COM,0,expmt.light.white);
+
+else
+    errordlg('Please set registration parameters before running registration');
+end
+
 
 guidata(hObject, handles);
 
