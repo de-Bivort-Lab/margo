@@ -551,6 +551,7 @@ switch get(hObject,'value')
                 handles.hImage = imagesc(handles.axes_handle,handles.hImage.CData);
             end
             set(hObject,'string','Start preview','BackgroundColor',[1 1 1]);
+            set(handles.axes_handle,'Xtick',[],'Ytick',[],'XtickLabel',[],'YtickLabel',[]);
         end
 end
 
@@ -2103,6 +2104,7 @@ if isfield(handles,'fig_size')
     if ~isempty(handles.hImage)
 
         handles.axes_handle.Position(3) = handles.gui_fig.Position(3) - handles.axes_handle.Position(1) - 10;
+        handles.axes_handle.Position(2) = handles.bottom_uipanel.Position(2);
         handles.axes_handle.Position(4) = handles.gui_fig.Position(4) - handles.axes_handle.Position(2) - 5;
 
         res = size(handles.hImage.CData);
