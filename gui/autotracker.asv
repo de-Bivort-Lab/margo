@@ -1932,8 +1932,9 @@ function reg_error_menu_Callback(hObject, eventdata, handles)
 
 expmt = getappdata(handles.gui_fig,'expmt');
 
-if exist([handles.gui_dir 'hardware\projector_fit\']) == 7 && isfield(expmt,'reg_params')
-    
+if exist([gui_dir 'hardware\projector_fit\']) == 7
+
+if isfield(expmt,'reg_params')
     % Turn infrared and white background illumination off during registration
     expmt.COM = writeInfraredWhitePanel(expmt.COM,1,0);
     expmt.COM = writeInfraredWhitePanel(expmt.COM,0,0);
@@ -1966,7 +1967,7 @@ if exist([handles.gui_dir 'hardware\projector_fit\']) == 7 && isfield(expmt,'reg
     expmt.COM = writeInfraredWhitePanel(expmt.COM,1,expmt.light.infrared);
     expmt.COM = writeInfraredWhitePanel(expmt.COM,0,expmt.light.white);
 else
-    errordlg('Set registration parameters and run projector registration before measuring registration error.');
+    errordlg('Set registration parameters before running projector registration.');
 end
 
 guidata(hObject, handles);
