@@ -24,6 +24,12 @@ function [trackDat, expmt] = updateOptoStim(trackDat, expmt)
             
             expmt.stim.ct = expmt.stim.ct+1;
             
+            % Advance the stimulus angle
+            expmt.stim.angle=expmt.stim.angle+(expmt.parameters.ang_per_frame*trackDat.ifi);
+            if expmt.stim.angle >= 360
+                expmt.stim.angle=expmt.stim.angle-360;
+            end
+            
             % Rotate stim image and generate stim texture
             p_rotim = imrotate(expmt.stim.im, expmt.stim.angle, 'bilinear', 'crop');
             p_rotim = p_rotim(expmt.stim.bounds(2):expmt.stim.bounds(4),...
@@ -70,11 +76,7 @@ function [trackDat, expmt] = updateOptoStim(trackDat, expmt)
             expmt.scrProp.vbl = Screen('Flip', expmt.scrProp.window, ...
                 expmt.scrProp.vbl + (expmt.scrProp.waitframes - 0.5) * expmt.scrProp.ifi);
 
-            % Advance the stimulus angle
-            expmt.stim.angle=expmt.stim.angle+(expmt.parameters.ang_per_frame*trackDat.ifi);
-            if expmt.stim.angle >= 360
-                expmt.stim.angle=expmt.stim.angle-360;
-            end
+
         
         end
         
