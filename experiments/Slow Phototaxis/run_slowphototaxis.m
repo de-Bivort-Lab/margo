@@ -49,7 +49,7 @@ lastFrame = false;
 
 %% Initialize the psychtoolbox window and query projector properties
 bg_color=[0 0 0];          
-expmt.scrProp=initialize_projector(bg_color);
+expmt.scrProp=initialize_projector(expmt.reg_params.screen_num,bg_color);
 pause(1);
 
 %% Load the projector fit
