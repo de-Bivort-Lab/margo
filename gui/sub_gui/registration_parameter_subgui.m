@@ -69,18 +69,19 @@ handles.scr_popupmenu.String = disp_str;
 handles.scr_popupmenu.Value = 2;
 
 if ~isempty(varargin)
-    param_data = varargin{1};
-    reg_params = param_data.reg_params;
+    expmt = varargin{1};
+end
+
+if exist('expmt','var') && isfield(expmt,'reg_params')
+    reg_params = expmt.reg_params;
     handles.output=reg_params;
     set(handles.edit_pixel_step_size,'string',reg_params.pixel_step_size);
-    set(handles.edit_step_interval,'string',reg_params.step_interval);
     set(handles.edit_spot_r,'string',reg_params.spot_r);
     handles.scr_popupmenu.Value = reg_params.screen_num+1;
 else
     handles.output = [];
     handles.output.name = 'Registration Parameters';
     handles.output.pixel_step_size=str2num(get(handles.edit_pixel_step_size,'string'));
-    handles.output.step_interval=str2num(get(handles.edit_step_interval,'string'));
     handles.output.spot_r=str2num(get(handles.edit_spot_r,'string'));
     handles.output.screen_num = 1;
 end

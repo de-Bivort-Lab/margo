@@ -6,14 +6,12 @@ function projector_testFit(expmt,handles)
 %% Parameters
 
 stp_sz = expmt.reg_params.pixel_step_size;
-stp_t = expmt.reg_params.step_interval;
 r = expmt.reg_params.spot_r;
 screenNumber = expmt.reg_params.screen_num;
 
 %% Estimate camera frame rate
 
 [frameRate, expmt.camInfo] = estimateFrameRate(expmt.camInfo);
-stp_t = stp_t*60/frameRate;
 
 
 %% Initialize the camera with settings tailored to imaging the projector

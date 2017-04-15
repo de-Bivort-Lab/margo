@@ -1860,7 +1860,7 @@ if ~isfield(expmt,'reg_params')
     end
 end
 
-if ~isfield(expmt,'reg_params')
+if isfield(expmt,'reg_params')
 % Turn infrared and white background illumination off during registration
 expmt.COM = writeInfraredWhitePanel(expmt.COM,1,0);
 expmt.COM = writeInfraredWhitePanel(expmt.COM,0,0);

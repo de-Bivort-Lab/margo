@@ -149,7 +149,6 @@ while trackDat.t < gui_handles.edit_exp_duration.Value * 3600 && ~lastFrame
         
         cen = num2cell(trackDat.Centroid,2);
         arrayfun(@update_turn_display, cen, nTurns, trackDat.changed_arm, hNTurns');
-
         
     end
 

@@ -11,15 +11,12 @@ function reg_projector(expmt,handles)
 %% Parameters
 
 stp_sz = expmt.reg_params.pixel_step_size;
-stp_t = expmt.reg_params.step_interval;
 r = expmt.reg_params.spot_r;
 screenNumber = expmt.reg_params.screen_num;
 
 %% Estimate camera frame rate
 
 [frameRate, expmt.camInfo] = estimateFrameRate(expmt.camInfo);
-stp_t = stp_t*60/frameRate;
-
 
 %% Initialize the camera with settings tailored to imaging the projector
 
@@ -146,7 +143,7 @@ for i=1:x_stp
         
         % Draw circle with projector at pixel coords x,y
         scrProp=drawCircles(x,y,r,white,scrProp);     
-        pause(stp_t);
+        pause(delay);
         
         % Image spot with cam
         im=peekdata(expmt.camInfo.vid,1);

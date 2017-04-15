@@ -146,7 +146,7 @@ for i=1:x_stp
         
         % Draw circle with projector at pixel coords x,y
         scrProp=drawCircles(x,y,r,white,scrProp);     
-        pause(stp_t);
+        pause(delay);
         
         % Image spot with cam
         im=peekdata(expmt.camInfo.vid,1);
