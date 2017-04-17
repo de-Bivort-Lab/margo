@@ -22,7 +22,7 @@ function varargout = optomotor_parameter_gui(varargin)
 
 % Edit the above text to modify the response to help optomotor_parameter_gui
 
-% Last Modified by GUIDE v2.5 13-Oct-2016 12:51:38
+% Last Modified by GUIDE v2.5 15-Apr-2017 16:23:17
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -76,6 +76,10 @@ function optomotor_parameter_gui_OpeningFcn(hObject, eventdata, handles, varargi
     if isfield(parameters,'mask_r')
         set(handles.edit_mask_r,'string',parameters.mask_r);
     end
+     
+    if isfield(parameters,'contrast')
+        set(handles.edit_contrast,'string',parameters.contrast);
+    end
 
 
     handles.output.stim_duration=str2num(get(handles.edit_stim_duration,'string'));
@@ -83,6 +87,7 @@ function optomotor_parameter_gui_OpeningFcn(hObject, eventdata, handles, varargi
     handles.output.ang_per_frame=str2num(get(handles.edit_ang_per_frame,'string'));
     handles.output.num_cycles=str2num(get(handles.edit_num_cycles,'string'));
     handles.output.mask_r=str2num(get(handles.edit_mask_r,'string'));
+    handles.output.contrast=str2num(get(handles.edit_contrast,'string'));
     
     light_uipanel = findobj('Tag','light_uipanel');
     gui_fig = findobj('Name','autotracker');
@@ -247,6 +252,29 @@ guidata(hObject, handles);
 % --- Executes during object creation, after setting all properties.
 function edit_stim_duration_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to edit_stim_duration (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_contrast_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_contrast (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+handles.output.contrast = str2num(get(handles.edit_contrast,'string'));
+guidata(hObject, handles);
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_contrast_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_contrast (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 

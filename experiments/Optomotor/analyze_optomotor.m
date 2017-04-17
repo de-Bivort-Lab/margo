@@ -160,27 +160,30 @@ for i=1:expmt.nTracks
     end
 end
 
-
-active=nTrials>40;
+a=~isnan(da);
+sampling =(squeeze(sum(sum(a(:,1:40,:))))./(size(da,1)*size(da,2)));
+active = nTrials>40 & sampling > 0.01;
 
 %% Generate plots
 
 figure();
 optoplots=squeeze(nanmedian(da(:,1:60,:),2));
 clearvars tmpTurn win_start win_stop
-[v,p]=sort(mean(optoplots(t0+1:end,:)));
-p_optoplots=optoplots(:,p);
+%[v,p]=sort(mean(optoplots(t0+1:end,:)));
+%p_optoplots=optoplots(:,p);
 hold on
 
 for i=1:expmt.nTracks
-    plot(1:t0-1,smooth(p_optoplots(1:t0-1,i),20),'Color',rand(1,3),'linewidth',2);
-    plot(t0+1:length(p_optoplots),smooth(p_optoplots(t0+1:end,i),20),'Color',rand(1,3),'linewidth',2);
+    if active(i)
+        plot(1:t0-1,smooth(optoplots(1:t0-1,i),20),'Color',rand(1,3),'linewidth',2);
+        plot(t0+1:length(optoplots),smooth(optoplots(t0+1:end,i),20),'Color',rand(1,3),'linewidth',2);
+    end
 end
 
 axis([0 size(optoplots,1) min(min(optoplots)) max(max(optoplots))]);
 hold on
 plot(1:t0-1,nanmean(optoplots(1:t0-1,active),2),'k-','LineWidth',3);
-plot(t0+1:length(p_optoplots),nanmean(optoplots(t0+1:end,active),2),'k-','LineWidth',3);
+plot(t0+1:length(optoplots),nanmean(optoplots(t0+1:end,active),2),'k-','LineWidth',4);
 plot([t0 t0],[min(min(optoplots)) max(max(optoplots))],'k--','LineWidth',2);
 hold off
 set(gca,'Xtick',linspace(1,size(optoplots,1),7),'XtickLabel',round(linspace(-win_sz,win_sz,7)*10)/10);

@@ -25,7 +25,7 @@ function [trackDat, expmt] = updateOptoStim(trackDat, expmt)
             expmt.stim.ct = expmt.stim.ct+1;
             
             % Advance the stimulus angle
-            expmt.stim.angle=expmt.stim.angle+(expmt.parameters.ang_per_frame*trackDat.ifi);
+            expmt.stim.angle=expmt.stim.angle+(expmt.parameters.ang_per_frame.*trackDat.ifi);
             if expmt.stim.angle >= 360
                 expmt.stim.angle=expmt.stim.angle-360;
             end

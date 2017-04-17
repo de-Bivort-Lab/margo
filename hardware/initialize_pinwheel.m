@@ -1,4 +1,4 @@
-function [pinwheel]=initialize_pinwheel(xdim,ydim,nCycles,mask_r)
+function [pinwheel]=initialize_pinwheel(xdim,ydim,nCycles,mask_r,contrast)
 
 % Generates a pinwheel image to be used in texture generation.
 % Inputs:
@@ -20,7 +20,6 @@ inc = white - grey;
 % Contrast for our contrast modulation mask: 0 = mask has no effect, 1 = mask
 % will at its strongest part be completely opaque i.e. 0 and 100% contrast
 % respectively
-contrast = 1;
 
 % Define the stimulus texture
 [x, y] = meshgrid(-xdim:xdim, -ydim:ydim);

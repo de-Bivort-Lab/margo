@@ -118,10 +118,11 @@ pin_sz=round(nanmean(nanmean([scor(:,3)-scor(:,1) scor(:,4)-scor(:,2)]))*4);
 nCycles = expmt.parameters.num_cycles;            % num dark-light cycles in 360 degrees
 mask_r = expmt.parameters.mask_r;                 % radius of center circle dark mask (as fraction of stim_size)
 ang_vel = expmt.parameters.ang_per_frame;         % angular velocity of stimulus (degrees/frame)
+contrast = expmt.parameters.contrast;
 subim_r = floor(pin_sz/2*sqrt(2)/2);
 
 % Initialize the stimulus image
-expmt.stim.im = initialize_pinwheel(pin_sz,pin_sz,nCycles,mask_r);
+expmt.stim.im = initialize_pinwheel(pin_sz,pin_sz,nCycles,mask_r,contrast);
 imcenter = [size(expmt.stim.im,1)/2+0.5 size(expmt.stim.im,2)/2+0.5];
 expmt.stim.bounds = [imcenter(2)-subim_r imcenter(1)-subim_r imcenter(2)+subim_r imcenter(1)+subim_r];
 ssz_x = expmt.stim.bounds(3)-expmt.stim.bounds(1)+1;
@@ -160,6 +161,14 @@ expmt.stim.corners = scor;
 expmt.stim.centers = scen;
 expmt.projector.Fx = Fx;
 expmt.projector.Fy = Fy;
+
+%% Parameter sweeping configuration
+
+sweep.interval = 2*60;              % wait time between stimulus blocks
+sweep.t = 0;                        % tstamp of last block initiation
+sweep.contrasts = 0.25:0.15:1;      % range of contrasts to sweep
+sweep.ang_vel = 60:90:420;          % angular velocities
+sweep.spatial_freq = 4:2:16;        % spatial frequencies
 
 %% Main Experimental Loop
 
