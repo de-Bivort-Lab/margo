@@ -258,6 +258,9 @@ while trackDat.t < gui_handles.edit_exp_duration.Value * 3600 && ~lastFrame
 end
 
 
+expmt.parameters.stim_duration = ...
+    expmt.parameters.stim_duration / 60;   % duration of the stimulus per trial (min)
+
 % wrap up experiment and save master struct
 expmt = autoFinish(trackDat, expmt, gui_handles);
 
