@@ -159,6 +159,7 @@ expmt.stim.dir = true(nROIs,1);  % Direction of rotation for the light
 expmt.stim.angle = 0;
 expmt.stim.corners = scor;
 expmt.stim.centers = scen;
+expmt.stim.sz = pin_sz;
 expmt.projector.Fx = Fx;
 expmt.projector.Fy = Fy;
 
