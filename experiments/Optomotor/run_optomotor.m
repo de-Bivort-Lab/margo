@@ -149,7 +149,7 @@ trackDat.StimStatus = false(nROIs,1);
 trackDat.Texture = true(nROIs,1);
 
 expmt.parameters.stim_duration = ...
-    expmt.parameters.stim_duration * 60;   % duration of the stimulus per trial (min)
+    expmt.parameters.stim_duration;   % duration of the stimulus per trial (min)
 
 expmt.stim.t = zeros(nROIs,1);
 expmt.stim.timer = zeros(nROIs,1);
@@ -258,8 +258,6 @@ while trackDat.t < gui_handles.edit_exp_duration.Value * 3600 && ~lastFrame
 end
 
 
-expmt.parameters.stim_duration = ...
-    expmt.parameters.stim_duration / 60;   % duration of the stimulus per trial (min)
 
 % wrap up experiment and save master struct
 expmt = autoFinish(trackDat, expmt, gui_handles);
