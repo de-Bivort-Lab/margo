@@ -22,7 +22,7 @@ function varargout = autotracker(varargin)
 
 % Edit the above text to modify the response to help autotracker
 
-% Last Modified by GUIDE v2.5 16-Mar-2017 17:07:49
+% Last Modified by GUIDE v2.5 20-Apr-2017 17:18:52
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -382,30 +382,11 @@ if ~isempty(expmt.camInfo)
         clean_gui(handles.axes_handle);
         handles.hImage = imagesc(im);
         set(handles.axes_handle,'Xtick',[],'Ytick',[],'XLabel',[],'YLabel',[]);
+        res = expmt.camInfo.vid.VideoResolution;
         handles.axes_handle.Position(3) = ...
             handles.gui_fig.Position(3) - 5 - handles.axes_handle.Position(1);
-        res = expmt.camInfo.vid.VideoResolution;
-        aspectR = res(2)/res(1);
-        plot_aspect = pbaspect;
-        fscale = aspectR/plot_aspect(2);
+        handles.gui_fig.Position = handles.gui_fig.Position;
 
-        if fscale < 1
-            axes_height_old = handles.axes_handle.Position(4);
-            axes_height_new = axes_height_old*fscale;
-            handles.axes_handle.Position(4) = axes_height_new;
-            handles.axes_handle.Position(2) = handles.axes_handle.Position(2) + axes_height_old - axes_height_new;
-        else
-            aspectR = res(1)/res(2);
-            plot_aspect = pbaspect;
-            plot_aspect = plot_aspect./plot_aspect(2);
-            fscale = aspectR/plot_aspect(1);
-            axes_width_old = handles.axes_handle.Position(3);
-            axes_width_new = axes_width_old*fscale;
-            handles.axes_handle.Position(3) = axes_width_new;
-            handles.gui_fig.Position(3) = ...
-                sum(handles.axes_handle.Position([1 3])) + 10;
-
-        end
         
         % set the colormap and axes ticks
         colormap('gray');
@@ -1151,9 +1132,9 @@ else
 
         case 3
             
-                tmp_param = optomotor_parameter_gui(expmt.parameters);
+                tmp_param = optomotor_parameter_gui(expmt);
                 if ~isempty(tmp_param)
-                    expmt.parameters = tmp_param;
+                    expmt = tmp_param;
                 end
 
              
@@ -3243,4 +3224,14 @@ hObject.CData = ps;
 hObject.Units = 'Points';
 
 hObject.UserData.Value = 0;
+guidata(hObject,handles);
+
+
+% --------------------------------------------------------------------
+function unlock_controls_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to unlock_controls_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+set(findall(handles.gui_fig,'-property','enable'),'enable','on');
 guidata(hObject,handles);

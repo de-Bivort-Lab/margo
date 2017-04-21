@@ -6,25 +6,27 @@ function [trackDat, expmt] = updateOptoStim(trackDat, expmt)
         
         % Update which stimuli (if any) need to be turned on
         trackDat.local_spd(mod(trackDat.ct-1,15)+1,:) = trackDat.Speed;
-        moving = nanmean(trackDat.local_spd)' > 6;
+        moving = nanmean(trackDat.local_spd)' > 3;
         trackDat.moving = moving;
         in_center = r < (expmt.ROI.bounds(:,4)./4);
         timeup = trackDat.t - expmt.stim.timer > expmt.parameters.stim_int;
-%         switching_block = ((expmt.sweep.t + expmt.sweep.interval) - trackDat.t) < ...
-%             expmt.stim.expmt.parameters.stim_int;
+        switching_block = ((expmt.sweep.t + expmt.sweep.interval) - trackDat.t) < ...
+            expmt.parameters.stim_int;
         
-        % Activate the stimulus when flies are: moving, away from the 
-        % edges, have exceeded the mandatory wait time between subsequent
-        % presentations, and are not already being presented with a stimulus
-%         if switching_block
-%             activate_stim = false(size(moving));
-%         else
+%       Activate the stimulus when flies are: moving, away from the 
+%       edges, have exceeded the mandatory wait time between subsequent
+%       presentations, and are not already being presented with a stimulus
+        if switching_block
+            activate_stim = false(size(moving));
+        else
             activate_stim = moving & in_center & timeup & ~trackDat.StimStatus;
-%         end
+        end
         
-        trackDat.Texture(activate_stim) = rand(sum(activate_stim),1)>0.5;      % Randomize the rotational direction
-        trackDat.StimStatus(activate_stim) = true;                          % Set stim status to ON
-        expmt.stim.t(activate_stim)=trackDat.t;                        % Record the time
+        trackDat.Texture(activate_stim) = rand(sum(activate_stim),1)>0.5;       % Randomize the rotational direction
+        trackDat.StimStatus(activate_stim) = true;                              % Set stim status to ON
+        expmt.stim.t(activate_stim)=trackDat.t;                                 % Record the time
+        
+        [trackDat,expmt] = updateStimBlocks(trackDat, expmt);
         
         
         if any(trackDat.StimStatus)
@@ -88,7 +90,7 @@ function [trackDat, expmt] = updateOptoStim(trackDat, expmt)
         end
         
         % Turn off stimuli that have exceed the display duration
-          stim_OFF = trackDat.t-expmt.stim.t >= expmt.parameters.stim_int & trackDat.StimStatus;
+          stim_OFF = trackDat.t-expmt.stim.t >= expmt.parameters.stim_duration & trackDat.StimStatus;
           trackDat.StimStatus(stim_OFF) = false;         % Set stim status to OFF
                     
         % Update stim timer for stimulus turned off

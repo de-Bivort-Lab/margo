@@ -217,7 +217,7 @@ trackDat.tStamp = zeros(size(trackDat.Centroid,1),1);
 
 while ishghandle(hObject) && display
 
-    pause(0.001);
+    pause(0.002);
     
     % update timer
     if isfield(trackDat,'t')
@@ -386,7 +386,7 @@ while ishghandle(hObject) && display
 
     % update the display
     updateDisplay(trackDat, expmt, imh, gui_handles);
-    drawnow limitrate
+    drawnow
             
 end
 

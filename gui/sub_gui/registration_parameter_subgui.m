@@ -74,10 +74,22 @@ end
 
 if exist('expmt','var') && isfield(expmt,'reg_params')
     reg_params = expmt.reg_params;
-    handles.output=reg_params;
-    set(handles.edit_pixel_step_size,'string',reg_params.pixel_step_size);
-    set(handles.edit_spot_r,'string',reg_params.spot_r);
+    
+    if isfield(reg_params,'pixel_step_size')
+        set(handles.edit_pixel_step_size,'string',reg_params.pixel_step_size);
+    else
+        reg_params.pixel_step_size = str2num(get(handles.edit_pixel_step_size,'string'));
+    end
+        
+    if isfield(reg_params,'spot_r')
+        set(handles.edit_spot_r,'string',reg_params.spot_r);
+    else
+        reg_params.spot_r=str2num(get(handles.edit_spot_r,'string'));
+    end
+        
     handles.scr_popupmenu.Value = reg_params.screen_num+1;
+    
+    handles.output=reg_params;
 else
     handles.output = [];
     handles.output.name = 'Registration Parameters';

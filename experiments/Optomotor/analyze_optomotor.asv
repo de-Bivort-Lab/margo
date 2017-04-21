@@ -173,8 +173,8 @@ active = nTrials>trialnum_thresh & sampling > 0.01;
 figure();
 optoplots=squeeze(nanmedian(da(:,:,:),2));
 clearvars tmpTurn win_start win_stop
-t0 = round(length(optoplots)/2);
-win_sz = expmt.parameters.stim_int;
+%[v,p]=sort(mean(optoplots(t0+1:end,:)));
+%p_optoplots=optoplots(:,p);
 hold on
 
 for i=1:expmt.nTracks

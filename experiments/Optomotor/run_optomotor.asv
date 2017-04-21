@@ -168,7 +168,7 @@ expmt.projector.Fy = Fy;
 
 %% Parameter sweeping configuration
 
-sweep.interval = 1*60;              % wait time between stimulus blocks
+sweep.interval = 0.2*60;              % wait time between stimulus blocks
 sweep.t = 0;                        % tstamp of last block initiation
 sweep.contrasts = 0.15:0.05:0.45;      % range of contrasts to sweep
 sweep.ang_vel = 60:90:420;          % angular velocities
