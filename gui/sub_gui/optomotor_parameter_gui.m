@@ -80,6 +80,8 @@ function optomotor_parameter_gui_OpeningFcn(hObject, eventdata, handles, varargi
         expmt.reg_params.screen_num = 1;
     end
     
+    handles.output = expmt;
+    
     if isfield(parameters,'stim_duration')
         set(handles.edit_stim_duration,'string',parameters.stim_duration);
     end
@@ -119,7 +121,7 @@ function optomotor_parameter_gui_OpeningFcn(hObject, eventdata, handles, varargi
     handles.figure1.Position(2) = gui_fig.Position(2) + ...
         sum(light_uipanel.Position([2 4])) - handles.figure1.Position(4) - 25;
     
-    handles.output = expmt;
+
 
 % Update handles structure
 guidata(hObject, handles);

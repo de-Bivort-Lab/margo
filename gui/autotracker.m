@@ -363,6 +363,8 @@ expmt = getappdata(handles.gui_fig,'expmt');
 if ~isempty(expmt.camInfo)
     if ~isempty(expmt.camInfo.DeviceInfo)
         
+        handles.Cam_preview_togglebutton.Enable = 'off';
+        
         imaqreset;
         pause(0.01);
         expmt.camInfo = initializeCamera(expmt.camInfo);
@@ -446,6 +448,8 @@ if ~isempty(expmt.camInfo)
         note = ['resolution: ' num2str(res(1)) ' x ' num2str(res(2))];
         gui_notify(note, handles.disp_note);
         
+        handles.Cam_preview_togglebutton.Enable = 'on';
+        
     else
         errordlg('Settings not confirmed, no camera detected');
     end
@@ -497,7 +501,7 @@ switch get(hObject,'value')
             set(hObject,'string','Stop preview','BackgroundColor',[0.8 0.45 0.45]);
             
             preview(expmt.camInfo.vid,handles.hImage);     
-            waitfor(handles.gui_fig);
+            %waitfor(handles.gui_fig);
             
         elseif isfield(expmt.camInfo, 'vid') && strcmp(expmt.camInfo.vid.Running,'on')
             set(hObject,'string','Stop preview','BackgroundColor',[0.8 0.45 0.45]);
