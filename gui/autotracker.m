@@ -385,7 +385,8 @@ if ~isempty(expmt.camInfo)
         res = expmt.camInfo.vid.VideoResolution;
         handles.axes_handle.Position(3) = ...
             handles.gui_fig.Position(3) - 5 - handles.axes_handle.Position(1);
-        handles.gui_fig.Position = handles.gui_fig.Position;
+        handles.gui_fig.Position(3) = handles.gui_fig.Position(3)+1;
+        handles.gui_fig.Position(3) = handles.gui_fig.Position(3)-1;
 
         
         % set the colormap and axes ticks
@@ -2634,7 +2635,7 @@ expmt = getappdata(handles.gui_fig,'expmt');                    % load master da
 [expmt.COM,handles.aux_COM_list] = identifyMicrocontrollers;
 
 % Update GUI menus with port names
-set(handles.microcontroller_popupmenu,'string',expmt.COM);
+set(handles.microcontroller_popupmenu,'string',expmt.COM.Port);
 
 % Initialize light panel at default values
 IR_intensity = str2double(get(handles.edit_IR_intensity,'string'));
