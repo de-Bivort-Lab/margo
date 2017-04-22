@@ -66,13 +66,10 @@ handles.display_menu.UserData = 1;
 gui_notify('welcome to autotracker',handles.disp_note);
 
 % open in main display window
-
 pdisp_res = get(0,'screensize');
-handles.gui_fig.Units = 'pixels';
-handles.gui_fig.Position(1) = 0;
-handles.gui_fig.Position(2) = pdisp_res(4) - handles.gui_fig.Position(4);
-handles.gui_fig.Units = 'points';
-
+handles.gui_fig.units = 'pixels';
+handles.gui_fig.Position(1) = 
+handles.gui_fig.Position(2) = 
 
 % store panel starting location for reference when resizing
 handles.fig_size = handles.gui_fig.Position;
