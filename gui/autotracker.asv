@@ -95,19 +95,11 @@ c=findobj(handles.gui_fig.Children,'Tag','cam_uipanel');
 dh = (handles.gui_fig.Position(4) - c.Position(4)) - c.Position(2)-3;
 panels = findobj(handles.gui_fig.Children,'Type','uipanel');
 for i = 1:length(panels)
+    if strcmp(panels(i).Tag,'bottom_uipanel')
+        panels(i).Position
     panels(i).Position(2) = panels(i).Position(2) + dh;
     panels(i).UserData = panels(i).Position;
 end
-
-rp = findobj('Tag','run_uipanel');
-bp = findobj('Tag','bottom_uipanel');
-dn = findobj('Tag','disp_note');
-bp.Position(2) = 3;
-dh = (rp.Position(2) - bp.Position(2)) - bp.Position(4);
-bp.Position(4) = rp.Position(2) - bp.Position(2);
-dn.Position(4) = dn.Position(4)+ dh;
-bp.UserData = bp.Position;
-
 handles.left_edge = handles.exp_uipanel.Position(1) + handles.exp_uipanel.Position(3);
 handles.vid_uipanel.Position = handles.cam_uipanel.Position;
 handles.vid_uipanel.UserData = handles.vid_uipanel.Position;
