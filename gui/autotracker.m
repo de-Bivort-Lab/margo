@@ -2111,7 +2111,6 @@ if isfield(handles,'fig_size')
     
     dh = handles.fig_size(4) - hObject.Position(4);
 
-
     % adjust panel position to be constant
     panels = findobj(handles.gui_fig.Children,'Type','uipanel');
     for i = 1:length(panels)
@@ -2122,6 +2121,8 @@ if isfield(handles,'fig_size')
     handles.disp_note.Position(2) = handles.disp_note.UserData(2);
     if handles.bottom_uipanel.UserData(4) - dh > 0
         handles.bottom_uipanel.Position(4) = handles.bottom_uipanel.UserData(4) - dh;
+    else
+        handles.bottom_uipanel.Position(4) = 0;
     end
     if handles.disp_note.UserData(4) - dh > 0
             handles.disp_note.Position(4) = handles.disp_note.UserData(4) - dh;
