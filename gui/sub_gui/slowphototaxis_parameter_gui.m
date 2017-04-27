@@ -22,7 +22,7 @@ function varargout = slowphototaxis_parameter_gui(varargin)
 
 % Edit the above text to modify the response to help optomotor_parameter_gui
 
-% Last Modified by GUIDE v2.5 28-Nov-2016 17:42:34
+% Last Modified by GUIDE v2.5 25-Apr-2017 18:53:26
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -52,9 +52,30 @@ function optomotor_parameter_gui_OpeningFcn(hObject, eventdata, handles, varargi
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to optomotor_parameter_gui (see VARARGIN)
 
+    expmt = varargin{1};
+    parameters = expmt.parameters;    
+    
+    % Clear the workspace
+    sca;
 
-    parameters = varargin{1};
-    handles.output=parameters;
+    % Here we call some default settings for setting up Psychtoolbox
+    available_screens = Screen('Screens');
+    disp_str = cell(length(available_screens),1);
+    for i = 1:length(available_screens)
+        [w,h]=Screen('WindowSize',i-1);
+        disp_str(i) = {['display ' num2str(i-1) ' (' num2str(w) 'x' num2str(h) ')']};
+    end
+
+    handles.scr_popupmenu.String = disp_str;
+    handles.scr_popupmenu.Value = 1;
+    
+    if isfield(expmt,'reg_params')
+        handles.scr_popupmenu.Value = expmt.reg_params.screen_num+1;
+    else
+        expmt.reg_params.screen_num = 0;
+    end
+    
+    handles.output = expmt;
 
     if isfield(parameters,'stim_duration')
         set(handles.edit_stim_duration,'string',parameters.stim_duration);     
@@ -69,9 +90,9 @@ function optomotor_parameter_gui_OpeningFcn(hObject, eventdata, handles, varargi
     end
     
     % Choose default command line output for optomotor_parameter_gui
-    handles.output.stim_duration=str2num(get(handles.edit_stim_duration,'string'));
-    handles.output.divider_size=str2num(get(handles.edit_stim_divider_size,'string'));
-    handles.output.stim_contrast=str2num(get(handles.edit_stim_contrast,'string'));
+    handles.output.parameters.stim_duration=str2num(get(handles.edit_stim_duration,'string'));
+    handles.output.parameters.divider_size=str2num(get(handles.edit_stim_divider_size,'string'));
+    handles.output.parameters.stim_contrast=str2num(get(handles.edit_stim_contrast,'string'));
 
 
 
@@ -103,7 +124,7 @@ function edit_stim_divider_size_Callback(hObject, eventdata, handles)
 % hObject    handle to edit_stim_divider_size (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-handles.output.divider_size=str2num(get(handles.edit_stim_divider_size,'string'));
+handles.output.parameters.divider_size=str2num(get(handles.edit_stim_divider_size,'string'));
 guidata(hObject, handles);
 
 
@@ -140,7 +161,7 @@ function edit_stim_duration_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-handles.output.stim_duration=str2num(get(handles.edit_stim_duration,'string'));
+handles.output.parameters.stim_duration=str2num(get(handles.edit_stim_duration,'string'));
 guidata(hObject, handles);
 
 
@@ -162,7 +183,7 @@ function edit_stim_contrast_Callback(hObject, eventdata, handles)
 % hObject    handle to edit_stim_contrast (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-handles.output.stim_contrast=str2num(get(handles.edit_stim_contrast,'string'));
+handles.output.parameters.stim_contrast=str2num(get(handles.edit_stim_contrast,'string'));
 guidata(hObject, handles);
 
 
@@ -173,6 +194,29 @@ function edit_stim_contrast_CreateFcn(hObject, eventdata, handles)
 % handles    empty - handles not created until after all CreateFcns called
 
 % Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on selection change in scr_popupmenu.
+function scr_popupmenu_Callback(hObject, eventdata, handles)
+% hObject    handle to scr_popupmenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns scr_popupmenu contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from scr_popupmenu
+
+
+% --- Executes during object creation, after setting all properties.
+function scr_popupmenu_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to scr_popupmenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');

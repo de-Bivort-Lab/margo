@@ -132,8 +132,7 @@ function optomotor_parameter_gui_OpeningFcn(hObject, eventdata, handles, varargi
         if isfield(expmt.sweep,'interval')
             handles.edit_block_interval = num2str(expmt.sweep.interval);
         else
-            handles.output.sweep.interval = str2double(handles.edit_block_interval.String);
-        end
+            expmt.sweep.interval = 
     else
         handles.sweep_uitable.Data = cell(8,3);
     end

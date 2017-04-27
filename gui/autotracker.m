@@ -1185,9 +1185,9 @@ else
              
         case 4                       
 
-                tmp_param = slowphototaxis_parameter_gui(expmt.parameters);
+                tmp_param = slowphototaxis_parameter_gui(expmt);
                 if ~isempty(tmp_param)
-                    expmt.parameters = tmp_param;
+                    expmt = tmp_param;
                 end
                 
         case 9

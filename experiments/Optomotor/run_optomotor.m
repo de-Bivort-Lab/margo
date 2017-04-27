@@ -166,15 +166,6 @@ expmt.stim.sz = pin_sz;
 expmt.projector.Fx = Fx;
 expmt.projector.Fy = Fy;
 
-%% Parameter sweeping configuration
-
-sweep.interval = 1*60;              % wait time between stimulus blocks
-sweep.t = 0;                        % tstamp of last block initiation
-sweep.contrasts = 0.15:0.05:0.45;      % range of contrasts to sweep
-sweep.ang_vel = 60:90:420;          % angular velocities
-sweep.spatial_freq = 3:1:16;        % spatial frequencies
-expmt.sweep = sweep;
-
 %% Main Experimental Loop
 
 % start timer
