@@ -170,9 +170,9 @@ expmt.projector.Fy = Fy;
 
 sweep.interval = 1*60;              % wait time between stimulus blocks
 sweep.t = 0;                        % tstamp of last block initiation
-sweep.contrasts = 0.15:0.05:0.45;      % range of contrasts to sweep
-sweep.ang_vel = 60:90:420;          % angular velocities
-sweep.spatial_freq = 3:1:16;        % spatial frequencies
+sweep.contrasts = 0.05:0.04:0.2;      % range of contrasts to sweep
+sweep.ang_vel = 60:60:240;          % angular velocities
+sweep.spatial_freq = 6:2:14;        % spatial frequencies
 expmt.sweep = sweep;
 
 %% Main Experimental Loop

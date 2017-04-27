@@ -72,12 +72,12 @@ function optomotor_parameter_gui_OpeningFcn(hObject, eventdata, handles, varargi
     end
 
     handles.scr_popupmenu.String = disp_str;
-    handles.scr_popupmenu.Value = 2;
+    handles.scr_popupmenu.Value = 1;
     
     if isfield(expmt,'reg_params')
         handles.scr_popupmenu.Value = expmt.reg_params.screen_num+1;
     else
-        expmt.reg_params.screen_num = 1;
+        expmt.reg_params.screen_num = 0;
     end
     
     handles.output = expmt;

@@ -126,7 +126,6 @@ hold off
 
 % Initialize both x and y to zero and raster the projector
 x=0;
-shg
 tic
 tPrev = toc;
 for i=1:x_stp
