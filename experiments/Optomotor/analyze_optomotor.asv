@@ -169,17 +169,14 @@ mkdir(figdir);
 [v,~] = sort(da(~isnan(da)));
 llim = v(round(0.05*length(v)));
 ulim = v(round(0.95*length(v)));
-
-%get activity filter
 a=~isnan(da);
 trialnum_thresh = 40;
 sampling =(squeeze(sum(sum(a(:,1:trialnum_thresh,:))))./(size(da,1)*size(da,2)));
 active = nTrials>trialnum_thresh & sampling > 0.01;
 expmt.Optomotor.bias = opto_bias;
 expmt.Optomotor.n = nTrials;
-expmt.Optomotor.active;
 
-% create plot and save fig
+% create plot and sa
 f=figure();
 plotOptoTraces(da,active,expmt.parameters.stim_int);
 fname = [figdir expmt.fLabel '_combined'];
@@ -231,7 +228,7 @@ if isfield(expmt,'Contrast')
     set(gca,'Xtick',1:length(avg_trace),'XtickLabel',expmt.sweep.contrasts);    
     fname = [figdir expmt.fLabel '_contrast_sweep'];
     hgsave(f,fname);
-    close(f);
+    %close(f);
         
     
 end
@@ -283,7 +280,6 @@ if isfield(expmt,'AngularVel')
     set(gca,'Xtick',1:length(avg_trace),'XtickLabel',expmt.sweep.ang_vel);    
     fname = [figdir expmt.fLabel '_angvelocity_sweep'];
     hgsave(f,fname);
-    close(f);
     
 end
 
@@ -335,9 +331,11 @@ if isfield(expmt,'SpatialFreq')
     set(gca,'Xtick',1:length(avg_trace),'XtickLabel',expmt.sweep.ang_vel);    
     fname = [figdir expmt.fLabel '_spatialfreq_sweep'];
     hgsave(f,fname);
-    close(f);
     
 end
+
+%% Generate plots
+
 
 
 

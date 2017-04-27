@@ -66,7 +66,7 @@ for i = 1:length(available_screens)
 end
     
 handles.scr_popupmenu.String = disp_str;
-handles.scr_popupmenu.Value = 2;
+handles.scr_popupmenu.Value = 1;
 
 if ~isempty(varargin)
     expmt = varargin{1};
@@ -95,7 +95,7 @@ else
     handles.output.name = 'Registration Parameters';
     handles.output.pixel_step_size=str2num(get(handles.edit_pixel_step_size,'string'));
     handles.output.spot_r=str2num(get(handles.edit_spot_r,'string'));
-    handles.output.screen_num = 1;
+    handles.output.screen_num = 0;
 end
 
 % Update handles structure

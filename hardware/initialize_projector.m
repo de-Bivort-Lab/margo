@@ -5,7 +5,7 @@ sca;
 
 % Here we call some default settings for setting up Psychtoolbox
 PsychDefaultSetup(2);
-Screen('Preference', 'SkipSyncTests', 1);
+%Screen('Preference', 'SkipSyncTests', 1);
 
 % Seed the random number generator. Here we use the an older way to be
 % compatible with older systems. Newer syntax would be rng('shuffle'). Look
