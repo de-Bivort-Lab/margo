@@ -262,11 +262,8 @@ expmt.parameters.units = 'pixels';          % set default units to pixels
 expmt.vignette.mode = 'auto';
 expmt.expID = 1;
 
-if ~isempty(expmt.camInfo) && ~isempty(expmt.camInfo.activeID)
-    [handles.gui_fig.UserData.target_rate, expmt.camInfo] = estimateFrameRate(expmt.camInfo);
-else
-    handles.gui_fig.UserData.target_rate = 60;
-end
+
+handles.gui_fig.UserData.target_rate = 60;
 expmt.parameters.target_rate = handles.gui_fig.UserData.target_rate;
 
 setappdata(handles.gui_fig,'expmt',expmt);
@@ -405,10 +402,13 @@ if ~isempty(expmt.camInfo)
         
         handles.Cam_preview_togglebutton.Enable = 'off';
         
+        gui_notify('initializing camera',handles.disp_note);
+        gui_notify('may take a few moments...',handles.disp_note);
         imaqreset;
         pause(0.01);
         expmt.camInfo = initializeCamera(expmt.camInfo);
         start(expmt.camInfo.vid);
+        gui_notify('camera started, measuring frame rate...',handles.disp_note);
         
         % Store expmteriment data struct
         setappdata(handles.gui_fig,'expmt',expmt);
@@ -452,8 +452,6 @@ if ~isempty(expmt.camInfo)
         if ~isfield(expmt,'ref')
             handles.sample_noise_pushbutton.Enable = 'off';
         end
-            
-        gui_notify('cam settings confirmed',handles.disp_note);
         
         if isfield(expmt,'ROI') && isfield(expmt,'ref') &&  isfield(expmt,'noise')
             expmt = rmfield(expmt,'ROI');

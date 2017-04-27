@@ -5,12 +5,9 @@ function [frameRate,camInfo]=estimateFrameRate(camInfo)
 
 if ~isfield(camInfo,'vid') || strcmp(camInfo.vid.Running,'off')
     imaqreset;
-    disp('initializing cam');
     camInfo = initializeCamera(camInfo);
-    disp('starting cam')
     start(camInfo.vid);
     pause(0.1);
-    disp('cam started')
 end
 
 nFrames = 6;

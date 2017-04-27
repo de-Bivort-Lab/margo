@@ -63,7 +63,8 @@ tmp_tdist = turning;
 tmp_tdist(~include)=NaN;
 tmp_r = nansum(tmp_tdist);
 tmp_tot = nansum(abs(tmp_tdist));
-opto_bias = tmp_r./tmp_tot;
+%opto_bias = tmp_r./tmp_tot;
+opto_bias = nanmedian(tmp_tdist);
 
 t0=round(nPts/2);
 off_spd=NaN(expmt.nTracks,1);

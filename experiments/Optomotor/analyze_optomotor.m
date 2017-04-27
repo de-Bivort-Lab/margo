@@ -177,7 +177,7 @@ sampling =(squeeze(sum(sum(a(:,1:trialnum_thresh,:))))./(size(da,1)*size(da,2)))
 active = nTrials>trialnum_thresh & sampling > 0.01;
 expmt.Optomotor.bias = opto_bias;
 expmt.Optomotor.n = nTrials;
-expmt.Optomotor.active;
+expmt.Optomotor.active = active;
 
 % create plot and save fig
 f=figure();
