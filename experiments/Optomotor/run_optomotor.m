@@ -166,11 +166,18 @@ expmt.stim.sz = pin_sz;
 expmt.projector.Fx = Fx;
 expmt.projector.Fy = Fy;
 
+% set stim block timer if stim mode is sweep
+switch expmt.parameters.stim_mode
+    case 'sweep'
+        expmt.sweep.t = 0;
+end
+
 %% Main Experimental Loop
 
 % start timer
 tic
 tPrev = toc;
+shg
 
 % initialize centroid markers
 clean_gui(gui_handles.axes_handle);

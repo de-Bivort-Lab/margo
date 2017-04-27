@@ -14,7 +14,7 @@ function [trackDat, expmt] = updateOptoStim(trackDat, expmt)
         % query stim mode and calculate time to switching block in
         % parameter sweep mode is enabled
         if strcmp(expmt.parameters.stim_mode,'sweep')
-            switching_block = ((expmt.sweep.t + expmt.sweep.interval) - trackDat.t) < ...
+            switching_block = ((expmt.sweep.t + expmt.sweep.interval*60) - trackDat.t) < ...
                 expmt.parameters.stim_int;
             [trackDat,expmt] = updateStimBlocks(trackDat, expmt);
         else

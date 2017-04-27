@@ -1,6 +1,6 @@
 function [trackDat,expmt] = updateStimBlocks(trackDat, expmt)
 
-if ((expmt.sweep.t + expmt.sweep.interval) - trackDat.t) <= 0
+if ((expmt.sweep.t + expmt.sweep.interval*60) - trackDat.t) <= 0
     
     % get sweep parameters
     sweep = expmt.sweep;
