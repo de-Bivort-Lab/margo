@@ -2,7 +2,7 @@ function expmt = getVideoInput(expmt,gui_handles)
 
 if strcmp(expmt.source,'camera') && isfield(expmt.camInfo,'vid')
     
-    if strcmp(expmt.camInfo.vid.Running,'off')
+    if ~isvalid(expmt.camInfo.vid) || strcmp(expmt.camInfo.vid.Running,'off')
     
         % Clear old video objects
         imaqreset

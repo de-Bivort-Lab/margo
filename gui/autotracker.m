@@ -931,8 +931,9 @@ else
                 keep_gui_state = true;
             end
         case 4
-            if isfield(expmt,'date')
             expmt = run_slowphototaxis(expmt,handles);
+            if isfield(expmt,'date')
+                analyze_optomotor(expmt,handles);
             else
                 keep_gui_state = true;
             end

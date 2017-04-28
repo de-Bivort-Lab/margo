@@ -14,9 +14,8 @@ mid = round(ydim/2);
 stim(1:mid,:)=contrast;
 
 % Define the divider line
-div_value = logspace(log10(1),log10(256),3)-1;
-div_value = div_value(2)/div_value(3);
-div_value=contrast/2;
+logvec = simple_logspace(0,contrast,3);
+div_value=logvec(2);
 stim_divider_size = stim_divider_size*xdim;
 div_ub = mid+round(stim_divider_size/2);
 div_lb = mid-round(stim_divider_size/2)+1;
