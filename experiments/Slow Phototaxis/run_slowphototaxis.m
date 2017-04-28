@@ -80,7 +80,9 @@ if cam_xPixels ~= reg_data.cam_xPixels || cam_yPixels ~= reg_data.cam_yPixels
     
     % Create scattered interpolant for current camera resolution
     expmt.projector.Fx=scatteredInterpolant(cam_x,cam_y,reg_data.proj_xCoords);
+    Fx = expmt.projector.Fx;
     expmt.projector.Fy=scatteredInterpolant(cam_x,cam_y,reg_data.proj_yCoords);
+    Fy = expmt.projector.Fy;
     
 else
     Fx = reg_data.Fx;

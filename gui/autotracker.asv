@@ -987,9 +987,8 @@ else
     catch ME
         
         switch expmt.Name
-            case 'Slow Phototaxis', sca;
-            case 'Optomotor', sca;
-        end
+            case 'Slow Phototaxis' sca;
+            case 'Optomotor' s
         
         keep_gui_state = true;
         title = 'Error encountered - experiment ending early';
