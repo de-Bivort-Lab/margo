@@ -137,19 +137,14 @@ if isfield(expmt,'Contrast')
         ci_trace = [ci_trace ci95];
     end
     plot(avg_trace,'Linewidth',3);
-    vx = [1:length(avg_trace) fliplr(1:length(avg_trace))];
-    vy = [ci_trace(1,:) fliplr(ci_trace(2,:))];
-    hold on
-    ph = patch(vx,vy,[0 0.9 0.9],'FaceAlpha',0.3);
-    uistack(ph,'bottom');
     title('avg. trace');
     xlabel('contrast')
-    ylabel('opto index')
-    set(gca,'Xtick',1:length(avg_trace),'XtickLabel',expmt.sweep.contrasts);
-    legend({'95%CI' 'index'})
+    ylabel('opto score')
+    set(gca,'Xtick',1:length(avg_trace),'XtickLabel',expmt.sweep.contrasts);    
     fname = [figdir expmt.fLabel '_contrast_sweep'];
     hgsave(f,fname);
-    close(f);     
+    close(f);
+        
     
 end
 
@@ -190,22 +185,13 @@ if isfield(expmt,'AngularVel')
     
     subplot(dim,3,i+1);
     avg_trace = [];
-    ci_trace = [];
     for i = 1:length(expmt.sweep.ang_vel)
-        [m,~,ci95,~] = normfit(expmt.AngularVel.bias(i,expmt.AngularVel.active(i,:))');
-        avg_trace = [avg_trace m];
-        ci_trace = [ci_trace ci95];
+        avg_trace = [avg_trace nanmean(expmt.AngularVel.bias(i,expmt.AngularVel.active(i,:)))];
     end
     plot(avg_trace,'Linewidth',3);
-    vx = [1:length(avg_trace) fliplr(1:length(avg_trace))];
-    vy = [ci_trace(1,:) fliplr(ci_trace(2,:))];
-    hold on
-    ph = patch(vx,vy,[0 0.9 0.9],'FaceAlpha',0.3);
-    uistack(ph,'bottom');
     title('avg. trace');
-    legend({'95%CI' 'index'})
     xlabel('stim \omega  (deg/s)')
-    ylabel('opto index')
+    ylabel('opto score')
     set(gca,'Xtick',1:length(avg_trace),'XtickLabel',expmt.sweep.ang_vel);    
     fname = [figdir expmt.fLabel '_angvelocity_sweep'];
     hgsave(f,fname);
@@ -251,23 +237,14 @@ if isfield(expmt,'SpatialFreq')
     
     subplot(dim,3,i+1);
     avg_trace = [];
-    ci_trace = [];
     for i = 1:length(expmt.sweep.spatial_freq)
-        [m,~,ci95,~] = normfit(expmt.SpatialFreq.bias(i,expmt.SpatialFreq.active(i,:))');
-        avg_trace = [avg_trace m];
-        ci_trace = [ci_trace ci95];
+        avg_trace = [avg_trace nanmean(expmt.SpatialFreq.bias(i,expmt.SpatialFreq.active(i,:)))];
     end
     plot(avg_trace,'Linewidth',3);
-    vx = [1:length(avg_trace) fliplr(1:length(avg_trace))];
-    vy = [ci_trace(1,:) fliplr(ci_trace(2,:))];
-    hold on
-    ph = patch(vx,vy,[0 0.9 0.9],'FaceAlpha',0.3);
-    uistack(ph,'bottom');
     title('avg. trace');
-    legend({'95%CI' 'index'})
-    xlabel('stim nCycles/360°')
-    ylabel('opto index')
-    set(gca,'Xtick',1:length(avg_trace),'XtickLabel',expmt.sweep.spatial_freq);  
+    xlabel('stim nCycles/360°)')
+    ylabel('opto score')
+    set(gca,'Xtick',1:length(avg_trace),'XtickLabel',expmt.sweep.ang_vel);    
     fname = [figdir expmt.fLabel '_spatialfreq_sweep'];
     hgsave(f,fname);
     close(f);
