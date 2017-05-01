@@ -1,4 +1,4 @@
-function expmt = analyze_basictracking(expmt,varargin)
+function expmt = analyze_slowphototaxis(expmt,varargin)
 %
 % This function provides a sample analysis function to run after the
 % sample bare-bones template 'experimental_template.m'. It takes the
@@ -127,7 +127,7 @@ blank_total_time = blank_total_time./3600;
 
 %% Generate plots
 
-min_active_period = 0.4;        % Minimum time spent off the boundary divider (hours)
+min_active_period = 0.65;        % Minimum time spent off the boundary divider (hours)
 active = nanmean(trackProps.speed)' > 0.1;
 %active = boolean(ones(size(flyTracks.speed)));
 
@@ -154,11 +154,11 @@ n_blank=sum(blank_total_time>min_active_period&active);
 hold off
 
 % Generate legend labels
-if iscellstr(expmt.labels{1,1})
-    strain=expmt.labels{1,1}{:};
+if isfield(expmt,'Strain')
+    strain=expmt.Strain;
 end
-if iscellstr(expmt.labels{1,3})
-    treatment=expmt.labels{1,3}{:};
+if isfield(expmt,'Treatment')
+    treatment=expmt.Treatment;
 end
 
 % light ON label
