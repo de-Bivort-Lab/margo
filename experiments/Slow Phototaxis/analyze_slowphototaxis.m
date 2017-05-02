@@ -83,47 +83,92 @@ x=squeeze(expmt.Centroid.data(:,1,:));
 y=squeeze(expmt.Centroid.data(:,2,:));
 proj_x = expmt.projector.Fx(x,y);
 proj_y = expmt.projector.Fy(x,y);
-[div_dist,lightStat] = ...
+clearvars x y
+tic
+[div_dist,in_Light] = ...
     parseShadeLight(expmt.StimAngle.data, proj_x, proj_y, expmt.stim.centers, 0);
+toc
 
 % Calculate mean distance to divider for each fly
-avg_d = mean(div_dist);
+avg_d = cellfun(@mean,div_dist);
+
+
+% get stimulus transitions
+stim_trans = diff([1;expmt.Texture.data]);
+expmt.Light.blocks = find(stim_trans==1);
+expmt.Light.nBlocks = length(expmt.Light.blocks);
+expmt.Blank.blocks = find(stim_trans==-1);
+expmt.Blank.nBlocks = length(expmt.Blank.blocks);
+
+% get indices of stim endings
+iOFF = expmt.Blank.blocks - 1;
+iOFF = iOFF(iOFF>1);
+if iOFF(end) < expmt.Light.blocks(end)
+    iOFF = [iOFF;length(stim_trans)];
+end
+expmt.Light.blocks = [expmt.Light.blocks iOFF];
+lb = num2cell(expmt.Light.blocks,2);
+
+iOFF = expmt.Light.blocks(:,1) - 1;
+iOFF = iOFF(iOFF>1);
+if iOFF(end) < expmt.Blank.blocks(end)
+    iOFF = [iOFF;length(stim_trans)];
+end
+expmt.Blank.blocks = [expmt.Blank.blocks iOFF];
+bb = num2cell(expmt.Blank.blocks,2);
+
+
+% get divider distance threshold for each ROI
+div_thresh = (mean(expmt.ROI.bounds(:,[3 4]),2) .* expmt.parameters.divider_size * 0.5)';
 
 % Initialize light occupancy variables
-light_occupancy = NaN(expmt.nTracks,1);
-light_occupancy_time = NaN(expmt.nTracks,1);
-light_total_time = NaN(expmt.nTracks,1);
+expmt.Light.include = cell(expmt.Light.nBlocks,expmt.nTracks);
+expmt.Light.occ = cell(expmt.Light.nBlocks,expmt.nTracks);
+expmt.Light.tOcc = cell(expmt.Light.nBlocks,expmt.nTracks);
+expmt.Light.tInc = cell(expmt.Light.nBlocks,expmt.nTracks);
+expmt.Light.tDiv = cell(expmt.Light.nBlocks,expmt.nTracks);
 
 % Initialize blank stimulus occupancy variables
-blank_occupancy = NaN(expmt.nTracks,1);
-blank_occupancy_time = NaN(expmt.nTracks,1);
-blank_total_time = NaN(expmt.nTracks,1);
+expmt.Blank.include = cell(expmt.Blank.nBlocks,expmt.nTracks);
+expmt.Blank.occ = cell(expmt.Blank.nBlocks,expmt.nTracks);
+expmt.Blank.tOcc = cell(expmt.Blank.nBlocks,expmt.nTracks);
+expmt.Blank.tInc = cell(expmt.Blank.nBlocks,expmt.nTracks);
+expmt.Blank.tDiv = cell(expmt.Blank.nBlocks,expmt.nTracks);
+
 
 % Calculate occupancy for each fly in both blank and photo_stim conditions
 for i=1:expmt.nTracks
     
     % When one half of the arena is lit
-    off_divider = abs(div_dist(:,i))>3;                         % data mask for trials where fly is clearly in one half or the other
-    tmp_tStamps = expmt.Time.data(off_divider & expmt.Texture.data);               % ifi for included frames
-    tmp_lightStat = lightStat(off_divider & expmt.Texture.data,i);                   % light status for included frames
-    light_occupancy_time(i) = sum(tmp_tStamps(tmp_lightStat));        % total time in the light
-    light_total_time(i) = sum(tmp_tStamps);
-    light_occupancy(i) = sum(tmp_tStamps(tmp_lightStat))/light_total_time(i);    % fractional time in light
+    off_divider = abs(div_dist{i})>div_thresh(i);                       % data mask for trials where fly is clearly in one half or the other
+    include = off_divider & expmt.Texture.data;
+    [occ,tOcc,tInc,tDiv,inc] = arrayfun(@(k) parseBlocks(k,include,...  % extract occupancy for each stimulus block
+        in_Light{i},expmt.Time.data), lb, 'UniformOutput',false);
+    expmt.Light.include(:,i) = inc;                                     % light status for included frames
+    expmt.Light.tOcc(:,i) = tOcc;                                       % total time in the light
+    expmt.Light.tInc(:,i) = tInc;                                       % time of included frames
+    expmt.Light.tDiv(:,i) = tDiv;                                       % time on stim divider
+    expmt.Light.occ(:,i) = occ;                                         % fractional time in light of included frames
+    clearvars occ tOcc tInc tDiv inc
     
     % When both halfs of the arena are unlit
-    tmp_tStamps = expmt.Time.data(off_divider & ~expmt.Texture.data);               % ifi for included frames
-    tmp_lightStat = lightStat(off_divider & ~expmt.Texture.data,i);                   % light status for included frames
-    blank_occupancy_time(i) = sum(tmp_tStamps(tmp_lightStat));        % total time in the fake lit half
-    blank_total_time(i) = sum(tmp_tStamps);
-    blank_occupancy(i) = sum(tmp_tStamps(tmp_lightStat))/blank_total_time(i);    % fractional time in fake lit half
+    include = off_divider & ~expmt.Texture.data;
+    [occ,tOcc,tInc,tDiv,inc] = arrayfun(@(k) parseBlocks(k,include,...  % extract occupancy for each stimulus block
+        in_Light{i},expmt.Time.data), bb, 'UniformOutput',false);
+    expmt.Blank.include(:,i) = inc;                                     % light status for included frames
+    expmt.Blank.tOcc(:,i) = tOcc;                                       % total time in the light
+    expmt.Blank.tInc(:,i) = tInc;
+    expmt.Blank.tDiv(:,i) = tDiv;
+    expmt.Blank.occ(:,i) = occ;  
     
 end
 
-% Convert occupancy time from seconds to hours
-light_occupancy_time = light_occupancy_time./3600;
-light_total_time = light_total_time./3600;
-blank_occupancy_time = blank_occupancy_time./3600;
-blank_total_time = blank_total_time./3600;
+%% Bootstrap data to measure overdispersion
+
+nReps = 1000;
+bootstrap_slowphototaxis(expmt,nReps,'Light');
+bootstrap_slowphototaxis(expmt,nReps,'Blank');
+
 
 %% Generate plots
 
@@ -134,23 +179,23 @@ active = nanmean(trackProps.speed)' > 0.1;
 % Histogram for stimulus ON period
 figure();
 bins = 0:0.05:1;
-c=histc(light_occupancy(light_total_time>min_active_period&active),bins)./sum(light_total_time>min_active_period&active);
+c=histc(expmt.Light.occ(expmt.Light.tTotal>min_active_period&active),bins)./sum(expmt.Light.tTotal>min_active_period&active);
 c(end)=[];
 plot(c,'Color',[1 0 1],'Linewidth',2);
 set(gca,'Xtick',0:2:length(c),'XtickLabel',0:0.1:1);
 axis([0 length(c) 0 max(c)+0.05]);
-n_light=sum(light_total_time>min_active_period&active);
+n_light=sum(expmt.Light.tTotal>min_active_period&active);
 
 % Histogram for blank stimulus with fake lit half
 bins = 0:0.05:1;
-c=histc(blank_occupancy(blank_total_time>min_active_period&active),bins)./sum(blank_total_time>min_active_period&active);
+c=histc(expmt.Blank.occ(expmt.Blank.tTotal>min_active_period&active),bins)./sum(expmt.Blank.tTotal>min_active_period&active);
 c(end)=[];
 hold on
 plot(c,'Color',[0 0 1],'Linewidth',2);
 set(gca,'Xtick',0:2:length(c),'XtickLabel',0:0.1:1);
 axis([0 length(c) 0 max(c)+0.05]);
 title('Light Occupancy Histogram');
-n_blank=sum(blank_total_time>min_active_period&active);
+n_blank=sum(expmt.Blank.tTotal>min_active_period&active);
 hold off
 
 % Generate legend labels
@@ -162,15 +207,15 @@ if isfield(expmt,'Treatment')
 end
 
 % light ON label
-light_avg_occ = round(mean(light_occupancy(light_total_time>min_active_period&active))*100)/100;
-light_mad_occ = round(mad(light_occupancy(light_total_time>min_active_period&active))*100)/100;
-n = sum(light_total_time>min_active_period&active);
+light_avg_occ = round(mean(expmt.Light.occ(expmt.Light.tTotal>min_active_period&active))*100)/100;
+light_mad_occ = round(mad(expmt.Light.occ(expmt.Light.tTotal>min_active_period&active))*100)/100;
+n = sum(expmt.Light.tTotal>min_active_period&active);
 legendLabel(1)={['Stim ON: ' strain ' ' treatment ' (u=' num2str(light_avg_occ)...
     ', MAD=' num2str(light_mad_occ) ', n=' num2str(n) ')']};
 % light OFF label
-blank_avg_occ = round(mean(blank_occupancy(blank_total_time>min_active_period&active))*100)/100;
-blank_mad_occ = round(mad(blank_occupancy(blank_total_time>min_active_period&active))*100)/100;
-n = sum(blank_total_time>min_active_period&active);
+blank_avg_occ = round(mean(expmt.Blank.occ(expmt.Blank.tTotal>min_active_period&active))*100)/100;
+blank_mad_occ = round(mad(expmt.Blank.occ(expmt.Blank.tTotal>min_active_period&active))*100)/100;
+n = sum(expmt.Blank.tTotal>min_active_period&active);
 legendLabel(2)={['Stim OFF: ' strain ' ' treatment ' (u=' num2str(blank_avg_occ)...
     ', MAD=' num2str(blank_mad_occ) ', n=' num2str(n) ')']};
 legend(legendLabel);
@@ -178,13 +223,13 @@ shg
 
 % Save data to struct
 expmt.Photo.Occ = light_occupancy;
-expmt.Photo.tOcc = light_occupancy_time;
-expmt.Photo.tTotal = light_total_time;
+expmt.Photo.tOcc = expmt.Light.tOcc;
+expmt.Photo.tTotal = expmt.Light.tTotal;
 expmt.Photo.mean = light_avg_occ;
 expmt.Photo.mad = light_mad_occ;
-expmt.Dark.Occ = blank_occupancy;
-expmt.Dark.tOcc = blank_occupancy_time;
-expmt.Dark.tTotal = blank_total_time;
+expmt.Dark.Occ = expmt.Blank.occ;
+expmt.Dark.tOcc = expmt.Blank.tOcc;
+expmt.Dark.tTotal = expmt.Blank.tTotal;
 expmt.Dark.mean = blank_avg_occ;
 expmt.Dark.mad = blank_mad_occ;
 
@@ -202,3 +247,21 @@ clearvars -except handles expmt plot_mode varargin
 %% Clean up files and wrap up analysis
 
 autoFinishAnalysis(expmt,varargin);
+
+
+
+function [occ,tOcc,tInc,tDiv,include] = parseBlocks(idx,include,in_light,t)
+
+    % extract block
+    include = include(idx{:}(1):idx{:}(2));
+    t = t(idx{:}(1):idx{:}(2));
+    in_light = in_light(idx{:}(1):idx{:}(2));
+
+    % When one half of the arena is lit
+    tmp_t = t(include);                         % ifi for included frames
+    tOcc = sum(t(in_light & include))./3600;    % time in the light
+    tInc = sum(tmp_t)./3600;                    % time of included frames
+    tDiv = (sum(t) - tInc)./3600 ;              % time spent on the divider
+    occ = tOcc/tInc;                            % fraction of included time spent in light
+    
+

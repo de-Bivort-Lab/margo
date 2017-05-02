@@ -92,7 +92,7 @@ if mode==1
         center_distance = sqrt((stim_centers(:,1)-tmp_x).^2+(stim_centers(:,2)-tmp_y).^2);
         div_dist = center_distance.*sin(da);
         div_dist(tmp_lightStat)=-div_dist(tmp_lightStat);
-        in_light=~tmp_lightStat;
+        in_=~tmp_lightStat;
 end
 
 
