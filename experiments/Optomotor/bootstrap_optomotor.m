@@ -1,4 +1,4 @@
-function bootstrap_slowphototaxis(expmt,nReps,field)
+function bootstrap_optomotor(expmt,nReps,field)
 
 % Create bootstrapped distribution of occupancy from slow phototaxis data.
 % For each bootstrap iteration:
@@ -13,7 +13,15 @@ function bootstrap_slowphototaxis(expmt,nReps,field)
 %      random chance.
 
 %% bootstrap sample data
-nb = expmt.(field).nBlocks;
+nf = expmt.nTracks;
+
+for k = 1:nReps
+    
+    n = expmt.(field).n(randi([1 nf],nf,1));
+    ids = arrayfun(@(k) drawIDs(k,nf), n, 'UniformOutput',false);
+     
+end
+    
 fly_sub = randi([1 expmt.nTracks],nb*expmt.nTracks*nReps,1);
 block_sub = randi([1 nb],nb*expmt.nTracks*nReps,1);
 data = cell2mat(expmt.(field).occ);
@@ -48,6 +56,23 @@ vx = [1:length(bins) fliplr(1:length(bins))];
 vy = [ci95(1,:) fliplr(ci95(2,:))];
 ph = patch(vx,vy,[0 0.9 0.9],'FaceAlpha',0.3);
 uistack(ph,'bottom');
+
+
+
+
+function ids = drawIDs(n,nf)
+    
+    ids = randi([1 nf],n,1);
+
+
+
+
+
+function drawTrials(id)
+
+
+
+
 
 
 

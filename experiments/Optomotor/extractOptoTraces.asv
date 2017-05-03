@@ -1,4 +1,4 @@
-function [varargout] = extractOptoTraces(include,expmt,speed)
+function [cumang,opto_bias,nTrials] = extractOptoTraces(include,expmt,speed)
 
 % Find indices of stimulus ON/OFF transitions
 [~,iOFFc]=find(diff(include)==-1);
@@ -59,9 +59,7 @@ turning=expmt.Orientation.data;
 turning=diff(turning);
 turning = [zeros(1,size(turning,2));turning];       % pad first frame with zero to equal total frame number
 
-% shift all values to be between -180 and 180 (from 360->0 single frame
-% artifacts), and adjust all values to be with respect to the stimulus such
-% that all turns in the direction of the stimulus rotation are negative
+% shift all values to be between -180 and 180 (from 360->0 single frame 
 turning(turning>90) = turning(turning>90) - 180;    
 turning(turning<-90) = turning(turning<-90) + 180;
 turning(expmt.Texture.data&include)=-turning(expmt.Texture.data&include);
@@ -103,19 +101,9 @@ for i=1:expmt.nTracks
     end
 end
 
-for i = 1:nargout
-    switch i
-        case 1, varargout{i}=cumang;
-        case 2, varargout{i}=avg_index;
-        case 3, varargout{i}=nTrials;
-        case 4, varargout{i}=stimdir_dist;
-        case 5, varargout{i}=total_dist;
-    end
-end
 
 
 
-%{
 function [cumang,opto_index]=getOptoIndex(t,inc,wst,wsp,spd,nPts,t0)
 
 off_spd = nanmean(spd{:}(~inc{:}));
@@ -148,7 +136,7 @@ if ~isempty(tmp_t)
         opto_index = NaN;
     end
 end
-%}
+
 
 
 

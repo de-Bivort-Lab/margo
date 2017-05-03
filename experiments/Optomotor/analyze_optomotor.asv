@@ -88,12 +88,9 @@ active = nTrials>trialnum_thresh & sampling > 0.01;
 expmt.Optomotor.index = opto_index;
 expmt.Optomotor.n = nTrials;
 expmt.Optomotor.active = active;
-expmt.Optomotor.sdist = stimdir_dist;
-expmt.Optomotor.tdist = total_dist;
+expmt.Optomotor.
 
 % bootstrap optomotor index
-nReps = 1000;
-bootstrap_optomotor(expmt,nReps,'Optomotor')
 
 % create plot and save fig
 f=figure();
