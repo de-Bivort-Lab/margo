@@ -173,29 +173,33 @@ bootstrap_slowphototaxis(expmt,nReps,'Blank');
 %% Generate plots
 
 min_active_period = 0.65;        % Minimum time spent off the boundary divider (hours)
-active = nanmean(trackProps.speed)' > 0.1;
+active = nanmean(trackProps.speed) > 0.1;
 %active = boolean(ones(size(flyTracks.speed)));
+tTotal = nansum(cell2mat(expmt.Light.tInc));
+btTotal = nansum(cell2mat(expmt.Blank.tInc));
+locc = nanmean(cell2mat(expmt.Light.occ));
+bocc = nanmean(cell2mat(expmt.Blank.occ));
 
 % Histogram for stimulus ON period
 figure();
 bins = 0:0.05:1;
-c=histc(expmt.Light.occ(expmt.Light.tTotal>min_active_period&active),bins)./sum(expmt.Light.tTotal>min_active_period&active);
+c=histc(locc(tTotal>min_active_period&active),bins)./sum(tTotal>min_active_period&active);
 c(end)=[];
 plot(c,'Color',[1 0 1],'Linewidth',2);
 set(gca,'Xtick',0:2:length(c),'XtickLabel',0:0.1:1);
 axis([0 length(c) 0 max(c)+0.05]);
-n_light=sum(expmt.Light.tTotal>min_active_period&active);
+n_light=sum(tTotal>min_active_period&active);
 
 % Histogram for blank stimulus with fake lit half
 bins = 0:0.05:1;
-c=histc(expmt.Blank.occ(expmt.Blank.tTotal>min_active_period&active),bins)./sum(expmt.Blank.tTotal>min_active_period&active);
+c=histc(bocc(btTotal>min_active_period&active),bins)./sum(btTotal>min_active_period&active);
 c(end)=[];
 hold on
 plot(c,'Color',[0 0 1],'Linewidth',2);
 set(gca,'Xtick',0:2:length(c),'XtickLabel',0:0.1:1);
 axis([0 length(c) 0 max(c)+0.05]);
 title('Light Occupancy Histogram');
-n_blank=sum(expmt.Blank.tTotal>min_active_period&active);
+n_blank=sum(btTotal>min_active_period&active);
 hold off
 
 % Generate legend labels
@@ -207,31 +211,26 @@ if isfield(expmt,'Treatment')
 end
 
 % light ON label
-light_avg_occ = round(mean(expmt.Light.occ(expmt.Light.tTotal>min_active_period&active))*100)/100;
-light_mad_occ = round(mad(expmt.Light.occ(expmt.Light.tTotal>min_active_period&active))*100)/100;
-n = sum(expmt.Light.tTotal>min_active_period&active);
+light_avg_occ = round(mean(locc(tTotal>min_active_period&active))*100)/100;
+light_mad_occ = round(mad(locc(tTotal>min_active_period&active))*100)/100;
+n = sum(tTotal>min_active_period&active);
 legendLabel(1)={['Stim ON: ' strain ' ' treatment ' (u=' num2str(light_avg_occ)...
     ', MAD=' num2str(light_mad_occ) ', n=' num2str(n) ')']};
 % light OFF label
-blank_avg_occ = round(mean(expmt.Blank.occ(expmt.Blank.tTotal>min_active_period&active))*100)/100;
-blank_mad_occ = round(mad(expmt.Blank.occ(expmt.Blank.tTotal>min_active_period&active))*100)/100;
-n = sum(expmt.Blank.tTotal>min_active_period&active);
+blank_avg_occ = round(mean(bocc(btTotal>min_active_period&active))*100)/100;
+blank_mad_occ = round(mad(bocc(btTotal>min_active_period&active))*100)/100;
+n = sum(btTotal>min_active_period&active);
 legendLabel(2)={['Stim OFF: ' strain ' ' treatment ' (u=' num2str(blank_avg_occ)...
     ', MAD=' num2str(blank_mad_occ) ', n=' num2str(n) ')']};
 legend(legendLabel);
 shg
 
 % Save data to struct
-expmt.Photo.Occ = light_occupancy;
-expmt.Photo.tOcc = expmt.Light.tOcc;
-expmt.Photo.tTotal = expmt.Light.tTotal;
-expmt.Photo.mean = light_avg_occ;
-expmt.Photo.mad = light_mad_occ;
-expmt.Dark.Occ = expmt.Blank.occ;
-expmt.Dark.tOcc = expmt.Blank.tOcc;
-expmt.Dark.tTotal = expmt.Blank.tTotal;
-expmt.Dark.mean = blank_avg_occ;
-expmt.Dark.mad = blank_mad_occ;
+expmt.Light.avg_occ = locc;
+expmt.Blank.avg_occ = bocc;
+expmt.Light.active = tTotal>min_active_period&active;
+expmt.Blank.active = btTotal>min_active_period&active;
+
 
 %% Generate plots
 
