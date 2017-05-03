@@ -226,7 +226,11 @@ legend(legendLabel);
 shg
 
 % Save data to struct
-expmt.Light.
+expmt.Light.avg_occ = locc;
+expmt.Blank.avg_occ = bocc;
+expmt.Light.active = tTotal>min_active_period&active;
+expmt.Blank.active = btTotal>min_active_period&active;
+
 
 %% Generate plots
 
