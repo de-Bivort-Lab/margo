@@ -226,16 +226,7 @@ legend(legendLabel);
 shg
 
 % Save data to struct
-expmt.Photo.Occ = light_occupancy;
-expmt.Photo.tOcc = expmt.Light.tOcc;
-expmt.Photo.tTotal = tTotal;
-expmt.Photo.mean = light_avg_occ;
-expmt.Photo.mad = light_mad_occ;
-expmt.Dark.Occ = bocc;
-expmt.Dark.tOcc = expmt.Blank.tOcc;
-expmt.Dark.tTotal = btTotal;
-expmt.Dark.mean = blank_avg_occ;
-expmt.Dark.mad = blank_mad_occ;
+expmt.Light.
 
 %% Generate plots
 
