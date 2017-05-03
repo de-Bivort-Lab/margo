@@ -1,4 +1,4 @@
-function bootstrap_optomotor(expmt,nReps,field)
+function [varargout]=bootstrap_optomotor(expmt,nReps,field)
 
 % Create bootstrapped distribution of occupancy from slow phototaxis data.
 % For each bootstrap iteration:
@@ -14,30 +14,49 @@ function bootstrap_optomotor(expmt,nReps,field)
 
 %% bootstrap sample data
 nf = expmt.nTracks;
+opto_index = NaN(nReps,nf);
+disp(['resampling data with ' num2str(nReps) ' replicates'])
+disp('may a take a while with if number of replications is > 1000')
 
-for k = 1:nReps
+for j = 1:nReps
     
     n = expmt.(field).n(randi([1 nf],nf,1));
     ids = arrayfun(@(k) drawIDs(k,nf), n, 'UniformOutput',false);
-     
+    
+    sd = NaN(max(expmt.(field).n),nf);
+    td = NaN(max(expmt.(field).n),nf);
+    
+    for i = 1:nf
+        
+        fly_sub = ids{i};
+        trial_sub = ceil(expmt.Optomotor.n(fly_sub).*rand(length(i),1));
+        trial_sub(trial_sub==0)=1;
+        idx = sub2ind(size(expmt.Optomotor.sdist),trial_sub,fly_sub);
+        tmp = expmt.Optomotor.sdist(idx);
+        sd(1:numel(tmp),i)=tmp;
+        tmp = expmt.Optomotor.tdist(idx);
+        td(1:numel(tmp),i)=tmp;
+        
+    end
+    
+    opto_index(j,:) = nansum(sd)./nansum(td);
+    clearvars sd td tmp trial_sub fly_sub idx
+    
 end
     
-fly_sub = randi([1 expmt.nTracks],nb*expmt.nTracks*nReps,1);
-block_sub = randi([1 nb],nb*expmt.nTracks*nReps,1);
-data = cell2mat(expmt.(field).occ);
-idx = sub2ind(size(data),block_sub,fly_sub);
-occ = data(idx);
-occ = reshape(occ,nb,expmt.nTracks,nReps);
-occ = squeeze(nanmean(occ,1));
+
+%%
+
+data = expmt.(field).index;
 
 % create histogram of occupancy scores
-bins = 0:0.05:1;
-c = histc(occ,bins) ./ repmat(sum(histc(occ,bins)),numel(bins),1);
+bins = -1:0.05:1;
+c = histc(opto_index,bins) ./ repmat(sum(histc(opto_index,bins)),numel(bins),1);
 [mu,~,ci95,~] = normfit(c');
 
 %% generate plots
 
-figure();
+f=figure();
 hold on
 
 % plot bootstrapped trace
@@ -46,10 +65,10 @@ set(gca,'Xtick',1:2:length(mu),'XtickLabel',bins(mod(1:length(bins),2)==1),...
     'XLim',[1 length(mu)],'YLim',[0 ceil(max(ci95(:))*100)/100]);
 
 % plot observed data
-c = histc(mean(data),bins) ./ sum(sum(histc(mean(data),bins)));
+c = histc(data,bins) ./ sum(sum(histc(data,bins)));
 plot(c,'r','LineWidth',2);
 legend({['bootstrapped (nReps = ' num2str(nReps) ')'];'observed'});
-title([field ' occupancy histogram']);
+title([field ' index histogram (obs v. bootstrapped)']);
 
 % add confidence interval patch
 vx = [1:length(bins) fliplr(1:length(bins))];
@@ -57,18 +76,20 @@ vy = [ci95(1,:) fliplr(ci95(2,:))];
 ph = patch(vx,vy,[0 0.9 0.9],'FaceAlpha',0.3);
 uistack(ph,'bottom');
 
+for i=1:nargout
+    switch i
+        case 1, varargout{i} = mu;
+        case 2, varargout{i} = data;
+        case 3, varargout{i} = f;
+    end
+end
+
 
 
 
 function ids = drawIDs(n,nf)
     
-    ids = randi([1 nf],n,1);
-
-
-
-
-
-function drawTrials(id)
+ids = randi([1 nf],n,1);
 
 
 

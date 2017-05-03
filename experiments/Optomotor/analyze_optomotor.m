@@ -27,34 +27,40 @@ expmt.nTracks = size(expmt.ROI.centers,1);
 % read in data files sequentially and store in data struct
 for i = 1:length(expmt.fields)
     
-    % get subfields
+ 
     f = expmt.fields{i};
-    path = expmt.(f).path;
-    dim = expmt.(f).dim;
-    prcn = expmt.(f).precision;
-    prcn = [prcn '=>' prcn];
-    
-    % read .bin file
-    expmt.(f).fID = fopen(path,'r');
+        
+    if ~isfield(expmt.(f),'data')
+        
+        % get subfields
+        path = expmt.(f).path;
+        dim = expmt.(f).dim;
+        prcn = expmt.(f).precision;
+        prcn = [prcn '=>' prcn];
 
+        % read .bin file
+        expmt.(f).fID = fopen(path,'r');
+
+
+        % if field is centroid, reshape to (frames x dim x nTracks)
+        if strcmp(f,'Centroid')
+            expmt.(f).data = fread(expmt.(f).fID,prcn);
+            expmt.(f).data = reshape(expmt.(f).data,dim(1),dim(2),expmt.nFrames);
+            expmt.(f).data = permute(expmt.(f).data,[3 2 1]);
+            expmt.drop_ct = expmt.drop_ct ./ expmt.nFrames;
+
+        elseif strcmp(f,'Time')
+            expmt.(f).data = fread(expmt.(f).fID,prcn);
+
+        elseif ~strcmp(f,'VideoData') || ~strcmp(f,'VideoIndex')
+            expmt.(f).data = fread(expmt.(f).fID,[expmt.(f).dim(1) expmt.nFrames],prcn);
+            expmt.(f).data = expmt.(f).data';
+
+        end
     
-    % if field is centroid, reshape to (frames x dim x nTracks)
-    if strcmp(f,'Centroid')
-        expmt.(f).data = fread(expmt.(f).fID,prcn);
-        expmt.(f).data = reshape(expmt.(f).data,dim(1),dim(2),expmt.nFrames);
-        expmt.(f).data = permute(expmt.(f).data,[3 2 1]);
-        expmt.drop_ct = expmt.drop_ct ./ expmt.nFrames;
+        fclose(expmt.(f).fID);
     
-    elseif strcmp(f,'Time')
-        expmt.(f).data = fread(expmt.(f).fID,prcn);
-        
-    elseif ~strcmp(f,'VideoData') || ~strcmp(f,'VideoIndex')
-        expmt.(f).data = fread(expmt.(f).fID,[expmt.(f).dim(1) expmt.nFrames],prcn);
-        expmt.(f).data = expmt.(f).data';
-        
     end
-    
-    fclose(expmt.(f).fID);
     
 end
 
@@ -93,7 +99,7 @@ expmt.Optomotor.tdist = total_dist;
 
 % bootstrap optomotor index
 nReps = 1000;
-bootstrap_optomotor(expmt,nReps,'Optomotor')
+[expmt.Optomotor.bootstrap]=bootstrap_optomotor(expmt,nReps,'Optomotor');
 
 % create plot and save fig
 f=figure();

@@ -45,17 +45,12 @@ end
     
 
 %%
-fly_sub = randi([1 expmt.nTracks],nb*expmt.nTracks*nReps,1);
-block_sub = randi([1 nb],nb*expmt.nTracks*nReps,1);
-data = cell2mat(expmt.(field).occ);
-idx = sub2ind(size(data),block_sub,fly_sub);
-occ = data(idx);
-occ = reshape(occ,nb,expmt.nTracks,nReps);
-occ = squeeze(nanmean(occ,1));
+
+data = expmt.(field).index;
 
 % create histogram of occupancy scores
-bins = 0:0.05:1;
-c = histc(occ,bins) ./ repmat(sum(histc(occ,bins)),numel(bins),1);
+bins = -1:0.05:1;
+c = histc(opto_index,bins) ./ repmat(sum(histc(opto_index,bins)),numel(bins),1);
 [mu,~,ci95,~] = normfit(c');
 
 %% generate plots
@@ -69,10 +64,10 @@ set(gca,'Xtick',1:2:length(mu),'XtickLabel',bins(mod(1:length(bins),2)==1),...
     'XLim',[1 length(mu)],'YLim',[0 ceil(max(ci95(:))*100)/100]);
 
 % plot observed data
-c = histc(mean(data),bins) ./ sum(sum(histc(mean(data),bins)));
+c = histc(data,bins) ./ sum(sum(histc(data,bins)));
 plot(c,'r','LineWidth',2);
 legend({['bootstrapped (nReps = ' num2str(nReps) ')'];'observed'});
-title([field ' occupancy histogram']);
+title([field ' opto index histogram']);
 
 % add confidence interval patch
 vx = [1:length(bins) fliplr(1:length(bins))];
