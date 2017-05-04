@@ -1,12 +1,19 @@
 function [trackDat, expmt] = updatePhotoStim(trackDat, expmt)
 
-      % Update the stimuli and trigger new stimulation period if stim
+        % Update the stimuli and trigger new stimulation period if stim
         % time is exceeded
-        if expmt.stim.t + expmt.parameters.stim_duration < trackDat.t || trackDat.ct == 1
+        if trackDat.Texture
+            update = expmt.stim.t + expmt.parameters.stim_duration*60 < trackDat.t;
+        else
+            update = expmt.stim.t + expmt.parameters.blank_duration*60 < trackDat.t;
+        end
+        
+        
+        if  update || trackDat.ct == 1
             
-            trackDat.Texture = ~trackDat.Texture;     % Alternate between baseline and stimulation periods
+            trackDat.Texture = ~trackDat.Texture;       % Alternate between baseline and stimulation periods
             
-            expmt.stim.t = trackDat.t;         % Record the time of new stimulation period
+            expmt.stim.t = trackDat.t;                  % Record the time of new stimulation period
             
             % convert current fly position to stimulus coords
             proj_centroid = NaN(size(expmt.ROI.corners,1),2);

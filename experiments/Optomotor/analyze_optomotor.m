@@ -9,8 +9,17 @@ function expmt = analyze_optomotor(expmt,varargin)
 %% parse inputs
 
 for i = 1:length(varargin)
-    if ischar(varargin{i})
-        plot_mode = varargin{i};
+    
+    arg = varargin{i};
+    
+    if ischar(arg)
+    	switch arg
+            case 'plot'
+                plot_mode = arg;
+            case 'Dir'
+                i=i+1;
+                expmt.fdir = varargin{i};
+        end
     else
         handles = varargin{i};
     end
@@ -77,8 +86,13 @@ clearvars -except handles expmt trackProps varargin
 
 %% Analyze stimulus response
 
-figdir = [expmt.fdir 'figures\'];
-mkdir(figdir);
+figdir = [expmt.fdir 'figures_' expmt.fLabel '\'];
+if ~exist(figdir,'dir')
+    [mkst,~]=mkdir(figdir);
+    if ~mkst
+       figdir=[];
+    end
+end
 
 [da,opto_index,nTrials,stimdir_dist,total_dist] = ...
     extractOptoTraces(expmt.StimStatus.data,expmt,trackProps.speed);
@@ -99,14 +113,16 @@ expmt.Optomotor.tdist = total_dist;
 
 % bootstrap optomotor index
 nReps = 1000;
-[expmt.Optomotor.bootstrap]=bootstrap_optomotor(expmt,nReps,'Optomotor');
+[expmt.Optomotor.bootstrap,~,f]=bootstrap_optomotor(expmt,nReps,'Optomotor');
 
 % create plot and save fig
 f=figure();
 plotOptoTraces(da,active,expmt.parameters);
 fname = [figdir expmt.fLabel '_combined'];
-hgsave(f,fname);
-close(f);
+if ~isempty(figdir)
+    hgsave(f,fname);
+    close(f);
+end
 
 
 
@@ -163,8 +179,10 @@ if isfield(expmt,'Contrast')
     set(gca,'Xtick',1:length(avg_trace),'XtickLabel',expmt.sweep.contrasts);
     legend({'95%CI' 'index'})
     fname = [figdir expmt.fLabel '_contrast_sweep'];
-    hgsave(f,fname);
-    close(f);     
+    if ~isempty(figdir)
+        hgsave(f,fname);
+        close(f);
+    end   
     
 end
 
@@ -223,8 +241,10 @@ if isfield(expmt,'AngularVel')
     ylabel('opto index')
     set(gca,'Xtick',1:length(avg_trace),'XtickLabel',expmt.sweep.ang_vel);    
     fname = [figdir expmt.fLabel '_angvelocity_sweep'];
-    hgsave(f,fname);
-    close(f);
+    if ~isempty(figdir)
+        hgsave(f,fname);
+        close(f);
+    end   
     
 end
 
@@ -284,8 +304,10 @@ if isfield(expmt,'SpatialFreq')
     ylabel('opto index')
     set(gca,'Xtick',1:length(avg_trace),'XtickLabel',expmt.sweep.spatial_freq);  
     fname = [figdir expmt.fLabel '_spatialfreq_sweep'];
-    hgsave(f,fname);
-    close(f);
+    if ~isempty(figdir)
+        hgsave(f,fname);
+        close(f);
+    end   
     
 end
 

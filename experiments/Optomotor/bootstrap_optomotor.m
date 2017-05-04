@@ -13,7 +13,13 @@ function [varargout]=bootstrap_optomotor(expmt,nReps,field)
 %      random chance.
 
 %% bootstrap sample data
-nf = expmt.nTracks;
+
+if isfield(expmt,'nTracks')
+    nf = expmt.nTracks;
+else
+    nf = size(expmt.(field).sdist,2);
+end
+
 opto_index = NaN(nReps,nf);
 disp(['resampling data with ' num2str(nReps) ' replicates'])
 disp('may a take a while with if number of replications is > 1000')
@@ -50,7 +56,7 @@ end
 data = expmt.(field).index;
 
 % create histogram of occupancy scores
-bins = -1:0.05:1;
+bins = -1:0.01:1;
 c = histc(opto_index,bins) ./ repmat(sum(histc(opto_index,bins)),numel(bins),1);
 [mu,~,ci95,~] = normfit(c');
 
@@ -61,7 +67,7 @@ hold on
 
 % plot bootstrapped trace
 plot(mu,'b','LineWidth',2);
-set(gca,'Xtick',1:2:length(mu),'XtickLabel',bins(mod(1:length(bins),2)==1),...
+set(gca,'Xtick',1:10:length(mu),'XtickLabel',bins(mod(1:length(bins),10)==1),...
     'XLim',[1 length(mu)],'YLim',[0 ceil(max(ci95(:))*100)/100]);
 
 % plot observed data

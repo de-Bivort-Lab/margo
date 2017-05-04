@@ -22,7 +22,7 @@ function varargout = slowphototaxis_parameter_gui(varargin)
 
 % Edit the above text to modify the response to help optomotor_parameter_gui
 
-% Last Modified by GUIDE v2.5 25-Apr-2017 18:53:26
+% Last Modified by GUIDE v2.5 04-May-2017 12:10:23
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -79,6 +79,10 @@ function optomotor_parameter_gui_OpeningFcn(hObject, eventdata, handles, varargi
 
     if isfield(parameters,'stim_duration')
         set(handles.edit_stim_duration,'string',parameters.stim_duration);     
+    end
+    
+    if isfield(parameters,'stim_duration')
+        set(handles.edit_blank_duration,'string',parameters.blank_duration);     
     end
 
     if isfield(parameters,'divider_size')
@@ -206,8 +210,8 @@ function scr_popupmenu_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: contents = cellstr(get(hObject,'String')) returns scr_popupmenu contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from scr_popupmenu
+handles.output.reg_params.screen_num=handles.scr_popupmenu.Value-1;
+guidata(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -217,6 +221,29 @@ function scr_popupmenu_CreateFcn(hObject, eventdata, handles)
 % handles    empty - handles not created until after all CreateFcns called
 
 % Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_blank_duration_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_blank_duration (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+handles.output.parameters.blank_duration=str2num(get(handles.edit_blank_duration,'string'));
+guidata(hObject, handles);
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_blank_duration_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_blank_duration (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');

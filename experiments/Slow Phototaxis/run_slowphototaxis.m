@@ -132,9 +132,6 @@ expmt.stim.source = CenterRectOnPointd(expmt.stim.base,stmsz/2,stmsz/2);
 
 stim_ct=0;
 
-expmt.parameters.stim_duration = ...
-    expmt.parameters.stim_duration * 60;                            % duration of the stimulus per trial (min)
-
 expmt.stim.lightTex = Screen('MakeTexture', expmt.scrProp.window, light);      % texture for half-light half-dark
 expmt.stim.darkTex = Screen('MakeTexture', expmt.scrProp.window, dark);        % texture for all dark
 

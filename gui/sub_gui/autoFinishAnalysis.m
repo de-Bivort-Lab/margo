@@ -44,11 +44,15 @@ for i = 1:length(expmt.fields)
     f = expmt.fields{i};
     if ~strcmp(f,'VideoData')
         path = expmt.(f).path;
-        flist = [flist;{path}];
+        if exist(path,'file')
+            flist = [flist;{path}];
+        end
     end
 end
 
-zip([expmt.fdir expmt.fLabel '_RawData.zip'],flist);
+if ~isempty(flist)
+    zip([expmt.fdir expmt.fLabel '_RawData.zip'],flist);
+end
 
 for i = 1:length(flist)
     delete(flist{i});
