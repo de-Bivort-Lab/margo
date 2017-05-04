@@ -6,59 +6,11 @@ function expmt = analyze_ledymaze(expmt, varargin)
 % to extract features and store them to file. This sample also shows how to
 % automatically zip the raw data files after analysis to reduce file size.
 
-%% parse inputs
+%% Parse inputs, read data from hard disk, format in master struct, process centroid data
 
-for i = 1:length(varargin)
-    if ischar(varargin{i})
-        plot_mode = varargin{i};
-    else
-        handles = varargin{i};
-    end
-end
+[expmt,trackProps,meta] = autoDataProcess(expmt,varargin{:});
 
-%% Pull in ASCII data, format into vectors/matrices
-
-if exist('handles','var')
-    gui_notify('importing and processing data...',handles.disp_note);
-end
-
-expmt.nTracks = size(expmt.ROI.centers,1);
-
-% read in data files sequentially and store in data struct
-for i = 1:length(expmt.fields)
-    
-    % get subfields
-    f = expmt.fields{i};
-    path = expmt.(f).path;
-    dim = expmt.(f).dim;
-    prcn = expmt.(f).precision;
-    
-    % read .bin file
-    expmt.(f).fID = fopen(path,'r');
-
-    
-    % if field is centroid, reshape to (frames x dim x nTracks)
-    if strcmp(f,'Centroid')
-        expmt.(f).data = fread(expmt.(f).fID,prcn);
-        expmt.(f).data = reshape(expmt.(f).data,dim(1),dim(2),length(expmt.(f).data)/(prod(dim)));
-        expmt.(f).data = permute(expmt.(f).data,[3 2 1]);
-        expmt.drop_ct = expmt.drop_ct ./ expmt.nFrames;
-    
-    % if area, orientation, or speed, reshape to (frames x nTracks)
-    elseif any(strmatch(f,{'Area' 'Orientation' 'Speed'}))
-        expmt.(f).data = fread(expmt.(f).fID,prcn);
-        expmt.(f).data = reshape(expmt.(f).data,expmt.nTracks,length(expmt.(f).data)/(prod(dim)))';
-    
-    elseif strcmp(f,'Time')
-        expmt.(f).data = fread(expmt.(f).fID,prcn);
-        
-    elseif ~strcmp(f,'VideoData') || ~strcmp(f,'VideoIndex')
-        expmt.(f).data = fread(expmt.(f).fID,[expmt.(f).dim(1) expmt.nFrames],prcn);
-    end
-    
-    fclose(expmt.(f).fID);
-    
-end
+clearvars -except expmt trackProps meta
 
 %% Find index of first turn for each fly and discard to eliminate tracking artifacts
 
@@ -94,8 +46,8 @@ end
 % Calculate right turn probability from tSeq
 expmt.Turns.rBias = nansum(expmt.Turns.seqence)./nansum(~isnan(expmt.Turns.seqence));
 
-if exist('handles','var')
-    gui_notify('processing complete',handles.disp_note);
+if isfield(meta,'handles')
+    gui_notify('processing complete',meta.handles.disp_note);
 end
 
 
@@ -107,7 +59,7 @@ expmt.LightChoice.pBias = sum(expmt.LightChoice.data==1,2)./expmt.LightChoice.n;
 
 %% Create histogram plots of turn bias and light choice probability
 
-if exist('plot_mode','var') && strcmp(plot_mode,'plot')
+if isfield(meta,'plot') && meta.plot
     
     inc=0.05;
     bins=-inc/2:inc:1+inc/2;   % Bins centered from 0 to 1 
@@ -146,8 +98,8 @@ if exist('plot_mode','var') && strcmp(plot_mode,'plot')
 end
 
 
-clearvars -except handles expmt plot_mode varargin
+clearvars -except expmt meta
 
 %% Clean up files and wrap up analysis
 
-autoFinishAnalysis(expmt,varargin);
+autoFinishAnalysis(expmt,meta);

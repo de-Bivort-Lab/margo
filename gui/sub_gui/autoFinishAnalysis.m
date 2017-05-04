@@ -1,15 +1,5 @@
-function autoFinishAnalysis(expmt,varargin)
+function autoFinishAnalysis(expmt,meta)
 
-%% parse inputs
-varargin = varargin{1};
-
-for i = 1:length(varargin)
-    if ischar(varargin{i})
-        plot_mode = varargin{i};
-    else
-        handles = varargin{i};
-    end
-end
 
 %% Clean up the workspace
 
@@ -20,10 +10,11 @@ if isfield(expmt.camInfo,'vid')
 end
 
 % re-save updated expmt data struct to file
-save([expmt.fdir expmt.fLabel '.mat'],'expmt');
-
-if exist('handles','var')
-    gui_notify('processed data saved to file',handles.disp_note)
+if meta.save
+    save([expmt.fdir expmt.fLabel '.mat'],'expmt');
+    if isfield(meta,'handles')
+        gui_notify('processed data saved to file',meta.handles.disp_note)
+    end
 end
 
 %% Zip raw data files to reduce file size and clean up directory
@@ -33,8 +24,8 @@ for i = 1:length(open_IDs)
     fclose(open_IDs(i));
 end
 
-if exist('handles','var')
-    gui_notify('zipping raw data',handles.disp_note)
+if isfield(meta,'handles')
+    gui_notify('zipping raw data',meta.handles.disp_note)
 else
     disp('zipping raw data... may take a few minutes');
 end

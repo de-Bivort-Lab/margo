@@ -20,7 +20,16 @@ else
     nf = size(expmt.(field).sdist,2);
 end
 
+if isfield(expmt.(field),'active')
+    expmt.(field).sdist(:,~expmt.(field).active) = [];
+    expmt.(field).tdist(:,~expmt.(field).active) = [];
+    expmt.(field).n(~expmt.(field).active) = [];
+    nf = numel(expmt.(field).n);
+end
+
+
 opto_index = NaN(nReps,nf);
+
 disp(['resampling data with ' num2str(nReps) ' replicates'])
 disp('may a take a while with if number of replications is > 1000')
 
@@ -54,9 +63,10 @@ end
 %%
 
 data = expmt.(field).index;
+plt_res = round(((1/nf)*2)*100)/100;
 
 % create histogram of occupancy scores
-bins = -1:0.01:1;
+bins = -1:plt_res:1;
 c = histc(opto_index,bins) ./ repmat(sum(histc(opto_index,bins)),numel(bins),1);
 [mu,~,ci95,~] = normfit(c');
 
@@ -67,7 +77,7 @@ hold on
 
 % plot bootstrapped trace
 plot(mu,'b','LineWidth',2);
-set(gca,'Xtick',1:10:length(mu),'XtickLabel',bins(mod(1:length(bins),10)==1),...
+set(gca,'Xtick',linspace(1,length(mu),11),'XtickLabel',linspace(-1,1,11),...
     'XLim',[1 length(mu)],'YLim',[0 ceil(max(ci95(:))*100)/100]);
 
 % plot observed data

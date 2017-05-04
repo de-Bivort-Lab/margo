@@ -922,13 +922,9 @@ else
     % disable controls that are not to be accessed while expmt is running
     handles = toggleSubguis(handles,'off');
     
-    % Execute the appropriate script for the selected experiment
         switch expmt.expID
-            
             case 2
                 projector_escape_response;
-                
-                
             case 3
                 expmt = run_optomotor(expmt,handles);
                 if isfield(expmt,'date')
@@ -936,8 +932,6 @@ else
                 else
                     keep_gui_state = true;
                 end
-                
-                
             case 4
                 expmt = run_slowphototaxis(expmt,handles);
                 if isfield(expmt,'date')
@@ -945,8 +939,6 @@ else
                 else
                     keep_gui_state = true;
                 end
-                
-                
             case 5
                 if ~isfield(expmt,'AUX_COM') || isempty(expmt.AUX_COM)
                     errordlg('No aux COM assigned for LED Y-maze');
@@ -954,13 +946,11 @@ else
                 else
                     expmt = run_ledymaze(expmt,handles);
                     if isfield(expmt,'date')
-                        expmt = analyze_ledymaze(expmt,'Handles',handles);
+                        expmt = analyze_ledymaze(expmt, handles);
                     else
                         keep_gui_state = true;
                     end
                 end
-                
-                
             case 6
                 expmt = run_arenacircling(expmt,handles);
                 if isfield(expmt,'date')
@@ -968,8 +958,6 @@ else
                 else
                     keep_gui_state = true;
                 end
-                
-                
             case 7
                 expmt = run_ymaze(expmt,handles);
                 if isfield(expmt,'date')
@@ -977,8 +965,6 @@ else
                 else
                     keep_gui_state = true;
                 end
-                
-                
             case 8
                 expmt = run_basictracking(expmt,handles);     % Run expmt
                 if isfield(expmt,'date')
@@ -986,9 +972,9 @@ else
                 else
                     keep_gui_state = true;
                 end
-                
 
             case 9
+
                 expmt = run_circadian(expmt,handles);
                 if isfield(expmt,'date')
                     analyze_basictracking(expmt,'Handles',handles);
