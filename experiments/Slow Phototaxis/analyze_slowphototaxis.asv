@@ -174,9 +174,8 @@ if expmt.parameters.blank_duration > 0
     n = sum(btTotal>min_active_period&active);
     legendLabel(2)={['Stim OFF: ' strain ' ' treatment ' (u=' num2str(blank_avg_occ)...
         ', MAD=' num2str(blank_mad_occ) ', n=' num2str(n) ')']};
-end
-legend(legendLabel);
-shg
+    legend(legendLabel);
+    shg
 
 
 % Save data to struct
