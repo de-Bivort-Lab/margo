@@ -80,7 +80,7 @@ expmt.Blank.tDiv = cell(expmt.Blank.nBlocks,expmt.nTracks);
 for i=1:expmt.nTracks
     
     % When one half of the arena is lit
-    off_divider = abs(div_dist{i})>div_thresh(i);                       % data mask for trials where fly is clearly in one half or the other
+    off_divider = abs(div_dist{i})>div_thresh(i)*2;                       % data mask for trials where fly is clearly in one half or the other
     include = off_divider & expmt.Texture.data;
     [occ,tOcc,tInc,tDiv,inc] = arrayfun(@(k) parseBlocks(k,include,...  % extract occupancy for each stimulus block
         in_Light{i},expmt.Time.data), lb, 'UniformOutput',false);

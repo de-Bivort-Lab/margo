@@ -60,6 +60,12 @@ set(handles.gui_fig,'doublebuffer','off');
 % get gui directory and ensure all dependencies are added to path
 handles.gui_dir = which('autotracker');
 handles.gui_dir = handles.gui_dir(1:strfind(handles.gui_dir,'\gui\'));
+if ~exist([handles.gui_dir 'profiles\'],'dir')
+    mkdir([handles.gui_dir 'profiles\']);
+end
+if ~exist([handles.gui_dir 'hardware\projector_fit\'],'dir')
+    mkdir([handles.gui_dir 'hardware\projector_fit\']);
+end
 addpath(genpath(handles.gui_dir));
 handles.display_menu.UserData = 1;     
 
