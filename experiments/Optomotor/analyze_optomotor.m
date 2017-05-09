@@ -15,7 +15,7 @@ clearvars -except expmt trackProps meta
 %% Analyze stimulus response
 
 figdir = [expmt.fdir 'figures_' expmt.fLabel '\'];
-if ~exist(figdir,'dir')
+if ~exist(figdir,'dir') & meta.save
     [mkst,~]=mkdir(figdir);
     if ~mkst
        figdir=[];
@@ -47,7 +47,7 @@ nReps = 1000;
 f=figure();
 plotOptoTraces(da,active,expmt.parameters);
 fname = [figdir expmt.fLabel '_combined'];
-if ~isempty(figdir)
+if ~isempty(figdir) & meta.save
     hgsave(f,fname);
     close(f);
 end
@@ -107,7 +107,7 @@ if isfield(expmt,'Contrast')
     set(gca,'Xtick',1:length(avg_trace),'XtickLabel',expmt.sweep.contrasts);
     legend({'95%CI' 'index'})
     fname = [figdir expmt.fLabel '_contrast_sweep'];
-    if ~isempty(figdir)
+    if ~isempty(figdir) & meta.save
         hgsave(f,fname);
         close(f);
     end   
@@ -169,7 +169,7 @@ if isfield(expmt,'AngularVel')
     ylabel('opto index')
     set(gca,'Xtick',1:length(avg_trace),'XtickLabel',expmt.sweep.ang_vel);    
     fname = [figdir expmt.fLabel '_angvelocity_sweep'];
-    if ~isempty(figdir)
+    if ~isempty(figdir) & meta.save
         hgsave(f,fname);
         close(f);
     end   
@@ -232,7 +232,7 @@ if isfield(expmt,'SpatialFreq')
     ylabel('opto index')
     set(gca,'Xtick',1:length(avg_trace),'XtickLabel',expmt.sweep.spatial_freq);  
     fname = [figdir expmt.fLabel '_spatialfreq_sweep'];
-    if ~isempty(figdir)
+    if ~isempty(figdir) & meta.save
         hgsave(f,fname);
         close(f);
     end   

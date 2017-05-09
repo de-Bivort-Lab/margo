@@ -34,7 +34,7 @@ end
 %% Pull in ASCII data, format into vectors/matrices
 
 if isfield(meta,'handles')
-    gui_notify('importing and processing data...',handles.disp_note)
+    gui_notify('importing and processing data...',meta.handles.disp_note)
 end
 
 expmt.nTracks = size(expmt.ROI.centers,1);
@@ -85,7 +85,7 @@ end
 [expmt,trackProps] = processCentroid(expmt);
 
 if isfield(meta,'handles')
-    gui_notify('processing complete',handles.disp_note)
+    gui_notify('processing complete',meta.handles.disp_note)
 end
 
 

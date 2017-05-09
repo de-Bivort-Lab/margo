@@ -1,5 +1,7 @@
 function [varargout] = extractOptoTraces(include,expmt,speed)
 
+dec_scale = 3;  % factor by which to decimate the data
+
 % Find indices of stimulus ON/OFF transitions
 [~,iOFFc]=find(diff(include)==-1);
 nTrials=NaN(expmt.nTracks,1);
@@ -13,11 +15,15 @@ iONr=iONr+1;
 [iOFFr,~]=find(diff(include)==-1);      % ON to OFF
 iOFFr=iOFFr+1;
 
+iONr = ceil(iONr./dec_scale);
+iOFFr = ceil(iOFFr./dec_scale);
+
 % Stimulus triggered averaging of each stimulus bout
 win_sz = expmt.parameters.stim_int;                         % Size of the window on either side of the stimulus in sec
 win_start=NaN(size(iONr,1),expmt.nTracks);
 win_stop=NaN(size(iOFFr,1),expmt.nTracks);
-tElapsed = cumsum(expmt.Time.data);                         % time elapsed @ each frame      
+tElapsed = cumsum(expmt.Time.data);                         % time elapsed @ each frame
+tElapsed = tElapsed(mod(1:length(tElapsed),dec_scale)==0);
 search_win = round(win_sz/nanmean(expmt.Time.data)*1.5);    % window around stim Off->On index to search for best tStamp
 
 
@@ -25,6 +31,7 @@ search_win = round(win_sz/nanmean(expmt.Time.data)*1.5);    % window around stim
 for i=1:expmt.nTracks
     
     idx = iONr(iONc==i);                % frame indices of transitions for current fly
+    idx(idx>length(tElapsed)) = length(tElapsed);
     tStamps=tElapsed(idx);              % tStamps of stim OFF -> ON
     tON=tStamps-win_sz;                 % tStamps of edges of the stim-centered window
     tOFF=tStamps+win_sz;
@@ -56,18 +63,21 @@ cumang=NaN(nPts,size(win_start,1),expmt.nTracks);   % intialize cumulative chang
 
 % get change in angle at each frame
 turning=expmt.Orientation.data;
+turning = turning(mod(1:length(turning),dec_scale)==0,:);
 turning=diff(turning);
 turning = [zeros(1,size(turning,2));turning];       % pad first frame with zero to equal total frame number
 
 % shift all values to be between -180 and 180 (from 360->0 single frame
 % artifacts), and adjust all values to be with respect to the stimulus such
 % that all turns in the direction of the stimulus rotation are negative
+tex = expmt.Texture.data(mod(1:length(expmt.Texture.data),dec_scale)==0,:);
+inc = include(mod(1:length(include),dec_scale)==0,:);
 turning(turning>90) = turning(turning>90) - 180;    
 turning(turning<-90) = turning(turning<-90) + 180;
-turning(expmt.Texture.data&include)=-turning(expmt.Texture.data&include);
+turning(tex&inc)=-turning(tex&inc);
 
 tdist = turning;
-tdist(~include)=NaN;
+tdist(~inc)=NaN;
 tmp_r = nansum(tdist);
 tmp_tot = nansum(abs(tdist));
 avg_index = tmp_r./tmp_tot;
@@ -82,8 +92,8 @@ on_spd=NaN(expmt.nTracks,1);
 
 for i=1:expmt.nTracks
     
-    off_spd(i)=nanmean(speed(~include(:,i),i));
-    on_spd(i)=nanmean(speed(include(:,i),i));
+    off_spd(i)=nanmean(speed(~inc(:,i),i));
+    on_spd(i)=nanmean(speed(inc(:,i),i));
     
     % Integrate change in heading angle over the entire stimulus bout
     for j=1:sum(~isnan(win_start(:,i)))

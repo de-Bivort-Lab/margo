@@ -63,9 +63,12 @@ end
 %%
 
 data = expmt.(field).index;
-plt_res = round(((1/nf)*2)*100)/100;
 
 % create histogram of occupancy scores
+binmin=-1;
+binmax=1;
+w = binmax - binmin;
+plt_res = w/(10^floor(log10(nf)));
 bins = -1:plt_res:1;
 c = histc(opto_index,bins) ./ repmat(sum(histc(opto_index,bins)),numel(bins),1);
 [mu,~,ci95,~] = normfit(c');
