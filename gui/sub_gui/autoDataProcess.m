@@ -27,6 +27,13 @@ for i = 1:length(varargin)
             case 'Handles'
                 i=i+1;
                 meta.handles = varargin{i};
+            case 'Decimate'
+                i=i+1;
+                meta.decimate = varargin{i};
+            case 'DecFac'
+                i=i+1;
+                meta.decfac = varargin{i};
+                meta.decmask = mod(1:expmt.nFrames,meta.decfac)==1;
         end
     end
 end
@@ -63,12 +70,21 @@ for i = 1:length(expmt.fields)
             expmt.(f).data = reshape(expmt.(f).data,dim(1),dim(2),expmt.nFrames);
             expmt.(f).data = permute(expmt.(f).data,[3 2 1]);
             expmt.drop_ct = expmt.drop_ct ./ expmt.nFrames;
-
+            
+            if isfield(meta,'decimate') && any(strcmp(f,meta.decimate))
+                expmt.(f).data = expmt.(f).data(meta.decmask,:,:);
+            end
+%{
         elseif strcmp(f,'Time')
             expmt.(f).data = fread(expmt.(f).fID,prcn);
-
+%}
         elseif ~strcmp(f,'VideoData') || ~strcmp(f,'VideoIndex')
             expmt.(f).data = fread(expmt.(f).fID,[expmt.(f).dim(1) expmt.nFrames],prcn);
+            
+            if isfield(meta,'decimate') && any(strcmp(f,meta.decimate))
+                expmt.(f).data = expmt.(f).data(:,meta.decmask);
+            end
+            
             expmt.(f).data = expmt.(f).data';
 
         end

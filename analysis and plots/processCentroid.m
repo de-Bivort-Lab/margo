@@ -6,11 +6,6 @@ function [expmt,trackProps] = processCentroid(expmt)
     trackProps = struct('r',empty,'theta',empty,'direction',empty,...
         'turning',empty,'speed',empty,'center',empty(1,:));
         
-    
-    % initialize handedness struct
-    bins = 0:2*pi/25:2*pi;
-    handedness = struct('angle_histogram',single(NaN(length(bins),expmt.nTracks)),...
-        'mu',single(NaN(expmt.nTracks,1)),'bins',bins,'circum_vel',empty,'include',~isnan(empty));
     e=1 + 1E-5;
     
     clearvars empty
@@ -46,29 +41,11 @@ for j = 1:expmt.nTracks
     trackProps.speed(trackProps.speed(:,j) > 12, j) = NaN;
     
     % restrict frames for handedness measures to set criteria
-    moving = trackProps.speed(:,j) > 0.8;
-    %in_center = trackProps.r(:,j) < 0.5 * trackProps.center(j);
-    include = moving;
-    handedness.circum_vel(include,j) = trackProps.theta(include,j)-trackProps.direction(include,j);
-    
-    % shift negative range (-2pi to 0) up to positive (0 to 2pi)
-    handedness.circum_vel(handedness.circum_vel(:,j)<0,j) = ...
-        handedness.circum_vel(handedness.circum_vel(:,j)<0,j)+(2*pi);
-    
-    % bin circumferential velocity into histogram
-    h = histc(handedness.circum_vel(:,j),bins);
-    h = h./sum(h);
-    
-    % save to expmt data struct
-    handedness.angle_histogram(:,j) = h;
-    handedness.mu(j) = -sin(sum(h .* bins(1:length(bins))'));
-    handedness.include(:,j) = include;
+    handedness = getHandedness(trackProps);
     
     clearvars mu h inx iny
     
 end
-
-handedness.bins = bins;
 
 expmt.handedness = handedness;
 

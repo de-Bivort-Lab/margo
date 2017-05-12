@@ -14,8 +14,8 @@ clearvars -except expmt trackProps meta
 
 %% Analyze stimulus response
 
-figdir = [expmt.fdir 'figures_' expmt.fLabel '\'];
-if ~exist(figdir,'dir') & meta.save
+figdir = [expmt.fdir 'figures_' expmt.date '\'];
+if ~exist(figdir,'dir') && meta.save
     [mkst,~]=mkdir(figdir);
     if ~mkst
        figdir=[];
@@ -46,7 +46,7 @@ nReps = 1000;
 % create plot and save fig
 f=figure();
 plotOptoTraces(da,active,expmt.parameters);
-fname = [figdir expmt.fLabel '_combined'];
+fname = [figdir expmt.date '_combined'];
 if ~isempty(figdir) & meta.save
     hgsave(f,fname);
     close(f);

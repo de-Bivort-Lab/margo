@@ -30,7 +30,7 @@ for i = 1:expmt.nTracks
         
         xTrace = expmt.Centroid.data(expmt.(f).include(:,i),1,i) - expmt.ROI.corners(i,1);
         yTrace = expmt.Centroid.data(expmt.(f).include(:,i),2,i) - expmt.ROI.corners(i,2);
-        mu = -sin(expmt.(f).data(i,expmt.(f).include(:,i)));
+        mu = -sin(expmt.(f).circum_vel(expmt.(f).include(:,i),i));
         z=zeros(sum(expmt.(f).include(:,i)),1);
         
     else
@@ -58,11 +58,11 @@ for i = 1:expmt.nTracks
         % Plot angle histogram
         hold on
         subplot(5,5,subP+5);
-        h1=plot(expmt.(f).bins, expmt.(f).hist(:,i),'color',[1 0 1]);
+        h1=plot(expmt.(f).bins, expmt.(f).angle_histogram(:,i),'color',[1 0 1]);
         xLabels={'-pi/2';'-pi/4';'0';'pi/4';'pi/2'};
         set(gca,'Xtick',-pi/2:pi/4:pi/2,'XtickLabel',xLabels)
         set(h1,'Linewidth',2)
-        legend(['u=' num2str(round(expmt.handedness.mu(i)*100)/100)],'Location','northeast')
+        legend(['u=' num2str(round(expmt.(f).mu(i)*100)/100)],'Location','northeast')
         legend('boxoff')
         axis([0,2*pi,0,0.25]);
         

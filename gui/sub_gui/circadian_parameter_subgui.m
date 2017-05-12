@@ -252,11 +252,12 @@ function test_pushbutton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-com_menu = findobj('Tag','microcontroller_popupmenu');
-port = com_menu.String(com_menu.Value);
+gui_fig = findobj('Tag','gui_fig');
+expmt = getappdata(gui_fig,'expmt');
+
 n = handles.circ_fig.UserData.pulse_num;
 amp = handles.circ_fig.UserData.pulse_amp;
-writeVibrationalMotors(port,6,1,1,n,255);
+writeVibrationalMotors(expmt.COM,6,1,1,n,amp);
 
 guidata(hObject, handles);
 

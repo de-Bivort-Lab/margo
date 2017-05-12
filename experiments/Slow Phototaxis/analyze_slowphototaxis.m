@@ -12,6 +12,15 @@ function expmt = analyze_slowphototaxis(expmt,varargin)
 
 clearvars -except expmt trackProps meta
 
+% make figure directory if it doesn't exist
+figdir = [expmt.fdir 'figures_' expmt.date '\'];
+if ~exist(figdir,'dir') && meta.save
+    [mkst,~]=mkdir(figdir);
+    if ~mkst
+       figdir=[];
+    end
+end
+
 %% Analyze stimulus response
 
 % reshape date so that each col is a trace
@@ -109,12 +118,38 @@ for i=1:expmt.nTracks
     
 end
 
+%% Get centroid relative to stimulus
+
+stimang = expmt.StimAngle.data;
+stimang(stimang>180)=stimang(stimang>180)-360;
+stimang = stimang * pi ./ 180;
+cen_theta = trackProps.theta - stimang;
+clearvars stimang
+
+expmt.StimCen.data = NaN(size(expmt.Centroid.data));
+expmt.StimCen.data(:,1,:) = trackProps.r .* cos(cen_theta);
+expmt.StimCen.data(:,2,:) = trackProps.r .* sin(cen_theta);
+
 %% Bootstrap data to measure overdispersion
 
 nReps = 1000;
-bootstrap_slowphototaxis(expmt,nReps,'Light');
-if expmt.parameters.blank_duration > 0
-    bootstrap_slowphototaxis(expmt,nReps,'Blank');
+[expmt.Light.bs,f] = bootstrap_slowphototaxis(expmt,nReps,'Light');
+fname = [figdir expmt.date '_light_bs'];
+if ~isempty(figdir) && meta.save
+    hgsave(f,fname);
+    close(f);
+end
+
+if ~isfield(expmt.parameters,'blank_duration') || ...
+        (isfield(expmt.parameters,'blank_duration') && expmt.parameters.blank_duration > 0)
+    
+    [expmt.Blank.bs,f] = bootstrap_slowphototaxis(expmt,nReps,'Blank');
+    fname = [figdir expmt.date '_dark_bs'];
+    if ~isempty(figdir) && meta.save
+        hgsave(f,fname);
+        close(f);
+    end
+    
 end
 
 
@@ -122,14 +157,13 @@ end
 
 min_active_period = 0.65;        % Minimum time spent off the boundary divider (hours)
 active = nanmean(trackProps.speed) > 0.1;
-%active = boolean(ones(size(flyTracks.speed)));
 tTotal = nansum(cell2mat(expmt.Light.tInc));
 btTotal = nansum(cell2mat(expmt.Blank.tInc));
 locc = nanmean(cell2mat(expmt.Light.occ));
 bocc = nanmean(cell2mat(expmt.Blank.occ));
 
 % Histogram for stimulus ON period
-figure();
+f=figure();
 bins = 0:0.05:1;
 c=histc(locc(tTotal>min_active_period&active),bins)./sum(tTotal>min_active_period&active);
 c(end)=[];
@@ -138,7 +172,8 @@ set(gca,'Xtick',0:2:length(c),'XtickLabel',0:0.1:1);
 axis([0 length(c) 0 max(c)+0.05]);
 n_light=sum(tTotal>min_active_period&active);
 
-if expmt.parameters.blank_duration > 0
+if ~isfield(expmt.parameters,'blank_duration') || ...
+        (isfield(expmt.parameters,'blank_duration') && expmt.parameters.blank_duration > 0)
 % Histogram for blank stimulus with fake lit half
     bins = 0:0.05:1;
     c=histc(bocc(btTotal>min_active_period&active),bins)./sum(btTotal>min_active_period&active);
@@ -167,7 +202,9 @@ n = sum(tTotal>min_active_period&active);
 legendLabel(1)={['Stim ON: ' strain ' ' treatment ' (u=' num2str(light_avg_occ)...
     ', MAD=' num2str(light_mad_occ) ', n=' num2str(n) ')']};
 
-if expmt.parameters.blank_duration > 0
+if ~isfield(expmt.parameters,'blank_duration') || ...
+        (isfield(expmt.parameters,'blank_duration') && expmt.parameters.blank_duration > 0)
+    
     % light OFF label
     blank_avg_occ = round(mean(bocc(btTotal>min_active_period&active))*100)/100;
     blank_mad_occ = round(mad(bocc(btTotal>min_active_period&active))*100)/100;
@@ -178,6 +215,12 @@ end
 legend(legendLabel);
 shg
 
+fname = [figdir expmt.date '_histogram'];
+if ~isempty(figdir) && meta.save
+    hgsave(f,fname);
+    close(f);
+end
+
 
 % Save data to struct
 expmt.Light.avg_occ = locc;
@@ -185,6 +228,47 @@ expmt.Blank.avg_occ = bocc;
 expmt.Light.active = tTotal>min_active_period&active;
 expmt.Blank.active = btTotal>min_active_period&active;
 
+%% Extract handedness from lights ON and lights OFF periods
+
+% blank period
+first_half = false(size(trackProps.speed));
+first_half(1:round(length(first_half)/2),:) = true;
+inc = first_half & trackProps.speed >0.8;
+expmt.handedness_First = getHandedness(trackProps,'Include',inc);
+inc = repmat(~expmt.Texture.data,1,expmt.nTracks) & trackProps.speed >0.8;
+expmt.handedness_Blank = getHandedness(trackProps,'Include',inc);
+ inc = ~first_half & trackProps.speed >0.8;
+expmt.handedness_Second = getHandedness(trackProps,'Include',inc);
+inc = repmat(expmt.Texture.data,1,expmt.nTracks) & trackProps.speed >0.8;
+expmt.handedness_Light = getHandedness(trackProps,'Include',inc);
+
+if isfield(meta,'plot') && meta.plot
+    if isfield(meta,'handles')
+        gui_notify('generating plots',meta.handles.disp_note)
+    end
+    plotArenaTraces(expmt,'handedness_Blank');
+    plotArenaTraces(expmt,'handedness_Light');
+end
+
+f=figure(); 
+[r,p]=corrcoef([expmt.handedness_Blank.mu' expmt.handedness_Light.mu'],'rows','pairwise');
+sh=scatter(expmt.handedness_Blank.mu,expmt.handedness_Light.mu,...
+    'MarkerEdgeColor',[0 0 0],'MarkerFaceColor',[0.5 0.5 0.5]);
+sh.Parent.XLim = [-1 1];
+sh.Parent.YLim = [-1 1];
+xlabel('stimulus OFF \mu');
+ylabel('stimulus ON \mu');
+dim = [.65 .78 .1 .1];
+str = ['r = ' num2str(round(r(2,1)*100)/100) ', p = ' num2str(round(p(2,1)*10000)/10000)...
+    ' (n=' num2str(expmt.nTracks) ')'];
+annotation('textbox',dim,'String',str,'FitBoxToText','on');
+title('slow phototaxis - handedness');
+
+fname = [figdir expmt.date '_handedness'];
+if ~isempty(figdir) && meta.save
+    hgsave(f,fname);
+    close(f);
+end
 
 %% Generate plots
 

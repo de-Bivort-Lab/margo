@@ -1,4 +1,4 @@
-function bootstrap_slowphototaxis(expmt,nReps,field)
+function varargout = bootstrap_slowphototaxis(expmt,nReps,field)
 
 % Create bootstrapped distribution of occupancy from slow phototaxis data.
 % For each bootstrap iteration:
@@ -16,9 +16,9 @@ function bootstrap_slowphototaxis(expmt,nReps,field)
 nb = expmt.(field).nBlocks;
 fly_sub = randi([1 expmt.nTracks],nb*expmt.nTracks*nReps,1);
 block_sub = randi([1 nb],nb*expmt.nTracks*nReps,1);
-data = cell2mat(expmt.(field).occ);
-idx = sub2ind(size(data),block_sub,fly_sub);
-occ = data(idx);
+obs = cell2mat(expmt.(field).occ);
+idx = sub2ind(size(obs),block_sub,fly_sub);
+occ = obs(idx);
 occ = reshape(occ,nb,expmt.nTracks,nReps);
 occ = squeeze(nanmean(occ,1));
 
@@ -29,7 +29,7 @@ c = histc(occ,bins) ./ repmat(sum(histc(occ,bins)),numel(bins),1);
 
 %% generate plots
 
-figure();
+f=figure();
 hold on
 
 % plot bootstrapped trace
@@ -38,7 +38,7 @@ set(gca,'Xtick',1:2:length(mu),'XtickLabel',bins(mod(1:length(bins),2)==1),...
     'XLim',[1 length(mu)],'YLim',[0 ceil(max(ci95(:))*100)/100]);
 
 % plot observed data
-c = histc(mean(data),bins) ./ sum(sum(histc(mean(data),bins)));
+c = histc(mean(obs),bins) ./ sum(sum(histc(mean(obs),bins)));
 plot(c,'r','LineWidth',2);
 legend({['bootstrapped (nReps = ' num2str(nReps) ')'];'observed'});
 title([field ' occupancy histogram']);
@@ -48,6 +48,23 @@ vx = [1:length(bins) fliplr(1:length(bins))];
 vy = [ci95(1,:) fliplr(ci95(2,:))];
 ph = patch(vx,vy,[0 0.9 0.9],'FaceAlpha',0.3);
 uistack(ph,'bottom');
+
+% save output variablie
+bs.obs_data = obs;
+bs.obs_hist = c;
+bs.bs_data = occ;
+bs.bs_hist = mu;
+bs.bs_ci95 = ci95;
+bs.nReps = nReps;
+bs.bins = bins;
+
+% parse outputs
+for i = 1:nargout
+    switch i
+        case 1, varargout(i) = {bs};
+        case 2, varargout(i) = {f};
+    end
+end
 
 
 
