@@ -32,11 +32,11 @@ for j = 1:expmt.nTracks
         trackProps.turning(trackProps.turning(:,j)<-pi*e,j) + 2*pi;
     
     trackProps.speed(:,j) = zeros(size(inx,1),1);
-    if isfield(expmt,'tStamps')
-        trackProps.speed(2:end,j) = sqrt(diff(inx).^2+diff(iny).^2) ./ diff(expmt.tStamps);
-    else
+%     if isfield(expmt,'tStamps')
+%         trackProps.speed(2:end,j) = sqrt(diff(inx).^2+diff(iny).^2) ./ diff(expmt.tStamps);
+%     else
         trackProps.speed(2:end,j) = sqrt(diff(inx).^2+diff(iny).^2);
-    end
+%     end
     
     trackProps.speed(trackProps.speed(:,j) > 12, j) = NaN;
     

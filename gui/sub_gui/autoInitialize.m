@@ -1,5 +1,10 @@
 function [trackDat,expmt] = autoInitialize(trackDat,expmt,gui_handles)
 
+if isfield(gui_handles,'deviceID')
+    webread(['http://lab.debivort.org/mu.php?id=' gui_handles.deviceID '&st=1']);
+end
+
+
 % clear any objects drawn to gui window
 clean_gui(gui_handles.axes_handle);
 

@@ -22,7 +22,7 @@ function varargout = autotracker(varargin)
 
 % Edit the above text to modify the response to help autotracker
 
-% Last Modified by GUIDE v2.5 15-May-2017 13:36:18
+% Last Modified by GUIDE v2.5 28-Apr-2017 12:43:17
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -67,10 +67,9 @@ if ~exist([handles.gui_dir 'hardware\projector_fit\'],'dir')
     mkdir([handles.gui_dir 'hardware\projector_fit\']);
 end
 if exist([handles.gui_dir 'profiles\deviceID.txt'],'file')
-    fID = fopen([handles.gui_dir 'profiles\deviceID.txt']);
+    fID = fopen([handles.gui_dir 'profiles\deviceID.txt'])
     handles.deviceID=char(fread(fID))';
     fclose(fID);
-    webread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=2']);
 end
 addpath(genpath(handles.gui_dir));
 handles.display_menu.UserData = 1;     
@@ -1011,11 +1010,6 @@ else
         end
     
     catch ME
-        
-        if isfield(handles,'deviceID')
-            webread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=0']);
-        end
-
         
         switch expmt.Name
             case 'Slow Phototaxis', sca;
@@ -3338,17 +3332,3 @@ function gui_fig_CreateFcn(hObject, eventdata, handles)
 % handles    empty - handles not created until after all CreateFcns called
 
 
-
-
-% --- Executes when user attempts to close gui_fig.
-function gui_fig_CloseRequestFcn(hObject, eventdata, handles)
-% hObject    handle to gui_fig (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-if isfield(handles,'deviceID')
-    webread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=0']);
-end
-
-% Hint: delete(hObject) closes the figure
-delete(hObject);
