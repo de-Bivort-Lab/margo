@@ -70,7 +70,7 @@ if exist([handles.gui_dir 'profiles\deviceID.txt'],'file')
     fID = fopen([handles.gui_dir 'profiles\deviceID.txt']);
     handles.deviceID=char(fread(fID))';
     fclose(fID);
-    webread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=2']);
+    urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=2']);
 end
 addpath(genpath(handles.gui_dir));
 handles.display_menu.UserData = 1;     
@@ -1013,7 +1013,7 @@ else
     catch ME
         
         if isfield(handles,'deviceID')
-            webread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=0']);
+            urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=0']);
         end
 
         
@@ -3347,7 +3347,7 @@ function gui_fig_CloseRequestFcn(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 if isfield(handles,'deviceID')
-    webread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=0']);
+    urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=0']);
 end
 
 % Hint: delete(hObject) closes the figure
