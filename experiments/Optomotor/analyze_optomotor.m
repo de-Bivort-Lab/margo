@@ -56,7 +56,7 @@ end
 
 %% extract traces by contrast
 
-if isfield(expmt,'Contrast')
+if isfield(expmt,'sweep')
     
     dim = ceil((length(expmt.sweep.contrasts)+1)/3);
     f=figure();
@@ -116,7 +116,7 @@ end
 
 %% extract traces by angular velocity
 
-if isfield(expmt,'AngularVel')
+if isfield(expmt,'sweep')
     
     dim = ceil((length(expmt.sweep.ang_vel)+1)/3);
     expmt.AngularVel.values = expmt.sweep.ang_vel;
@@ -178,7 +178,7 @@ end
 
 %% extract traces by spatial frequency
 
-if isfield(expmt,'SpatialFreq')
+if isfield(expmt,'sweep')
     
     dim = ceil((length(expmt.sweep.spatial_freq)+1)/3);
 
