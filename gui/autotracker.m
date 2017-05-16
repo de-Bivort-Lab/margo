@@ -1013,7 +1013,7 @@ else
     catch ME
         
         if isfield(handles,'deviceID')
-            urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=0']);
+            urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=3']);
         end
 
         
@@ -1028,7 +1028,10 @@ else
         msg=getReport(ME,'extended','hyperlinks','off');
         errordlg(msg,title);
     end
-        
+    
+    if isfield(handles,'deviceID')
+        urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=2']);
+    end
     
     % re-enable control set to off during experiment
     handles = toggleSubguis(handles,'on');
