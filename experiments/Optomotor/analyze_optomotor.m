@@ -14,13 +14,6 @@ clearvars -except expmt trackProps meta
 
 %% Analyze stimulus response
 
-figdir = [expmt.fdir 'figures_' expmt.date '\'];
-if ~exist(figdir,'dir') && meta.save
-    [mkst,~]=mkdir(figdir);
-    if ~mkst
-       figdir=[];
-    end
-end
 
 [da,opto_index,nTrials,stimdir_dist,total_dist] = ...
     extractOptoTraces(expmt.StimStatus.data,expmt,trackProps.speed);
@@ -43,11 +36,18 @@ expmt.Optomotor.tdist = total_dist;
 nReps = 1000;
 [expmt.Optomotor.bootstrap,~,f]=bootstrap_optomotor(expmt,nReps,'Optomotor');
 
+fname = [expmt.figdir expmt.date '_bs_opto'];
+if ~isempty(expmt.figdir) && meta.save
+    hgsave(f,fname);
+    close(f);
+end
+
 % create plot and save fig
 f=figure();
 plotOptoTraces(da,active,expmt.parameters);
-fname = [figdir expmt.date '_combined'];
-if ~isempty(figdir) & meta.save
+
+fname = [expmt.figdir expmt.date '_combined'];
+if ~isempty(expmt.figdir) && meta.save
     hgsave(f,fname);
     close(f);
 end
@@ -106,11 +106,12 @@ if isfield(expmt,'Contrast')
     ylabel('opto index')
     set(gca,'Xtick',1:length(avg_trace),'XtickLabel',expmt.sweep.contrasts);
     legend({'95%CI' 'index'})
-    fname = [figdir expmt.fLabel '_contrast_sweep'];
-    if ~isempty(figdir) & meta.save
+    
+    fname = [expmt.figdir expmt.date '_con_swp'];
+    if ~isempty(expmt.figdir) && meta.save
         hgsave(f,fname);
         close(f);
-    end   
+    end
     
 end
 
@@ -168,11 +169,12 @@ if isfield(expmt,'AngularVel')
     xlabel('stim \omega  (deg/s)')
     ylabel('opto index')
     set(gca,'Xtick',1:length(avg_trace),'XtickLabel',expmt.sweep.ang_vel);    
-    fname = [figdir expmt.fLabel '_angvelocity_sweep'];
-    if ~isempty(figdir) & meta.save
+
+    fname = [expmt.figdir expmt.date '_angv_swp'];
+    if ~isempty(expmt.figdir) && meta.save
         hgsave(f,fname);
         close(f);
-    end   
+    end
     
 end
 
@@ -231,11 +233,12 @@ if isfield(expmt,'SpatialFreq')
     xlabel('stim nCycles/360°')
     ylabel('opto index')
     set(gca,'Xtick',1:length(avg_trace),'XtickLabel',expmt.sweep.spatial_freq);  
-    fname = [figdir expmt.fLabel '_spatialfreq_sweep'];
-    if ~isempty(figdir) & meta.save
+
+    fname = [expmt.figdir expmt.date '_spatf_swp'];
+    if ~isempty(expmt.figdir) && meta.save
         hgsave(f,fname);
         close(f);
-    end   
+    end
     
 end
 

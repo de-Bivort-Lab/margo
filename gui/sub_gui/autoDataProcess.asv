@@ -117,8 +117,8 @@ if isfield(trackProps,'speed')
     [expmt.Speed.bs,f]=bootstrap_speed_blocks(expmt,trackProps,block_indices,100);
     
     % save bootstrap figure to file
-    fname = [expmt.figdir expmt.date '_bs_logspeed'];
-    if ~isempty(expmt.figdir) && meta.save
+    fname = [figdir expmt.date '_bs_logspeed'];
+    if ~isempty(figdir) & meta.save
         hgsave(f,fname);
         close(f);
     end
