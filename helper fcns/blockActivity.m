@@ -33,7 +33,22 @@ function idx = blockByID(id,r,c)
     
 function idx = filterShortBouts(starts,stops)
 
-    bout_length = abs(starts{:}-stops{:});
+    if any(size(starts{:}) ~= size(stops{:}))
+        
+        % determine which comes first
+        start_end = length(starts{:}) > length(stops{:});
+       
+        if start_end
+            starts{:}(end) = [];
+        else
+            stops{:}(end) = [];
+        end
+    end
+        
+        
+
+
+bout_length = abs(starts{:}-stops{:});
     long_bout = bout_length > 15;
     idx = [starts{:}(long_bout) stops{:}(long_bout)];
     
