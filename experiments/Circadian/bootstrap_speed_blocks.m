@@ -117,7 +117,7 @@ range(2) = ceil(range(2));
 % plot bootstrapped trace
 plot(bs.bins,bs.avg,'b','LineWidth',2);
 
-datbins = linspace(min(bs.obs(:)),max(bs.obs(:)),length(bins));
+datbins = linspace(min(bs.obs(:)),max(bs.obs(:)),length(bs.bins));
 % plot observed data
 c = histc(bs.obs,datbins) ./ sum(sum(histc(bs.obs,datbins)));
 c = [0 c 0];

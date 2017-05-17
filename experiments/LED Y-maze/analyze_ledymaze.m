@@ -58,7 +58,13 @@ expmt.LightChoice.pBias = sum(expmt.LightChoice.data==1)./expmt.LightChoice.n;
 expmt.LightChoice.active = expmt.LightChoice.n > 40;
 
 % bootstrap resample data
+[expmt.LightChoice.bs, f] = bootstrap_ledymaze(expmt,200);
 
+fname = [expmt.figdir expmt.date '_bs_light'];
+if ~isempty(expmt.figdir) && meta.save
+    hgsave(f,fname);
+    close(f);
+end
 
 
 %% Create histogram plots of turn bias and light choice probability

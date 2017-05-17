@@ -62,6 +62,9 @@ for i = 1:length(expmt.fields)
 
         % read .bin file
         expmt.(f).fID = fopen(path,'r');
+        
+        if expmt.(f).fID == -1
+            expmt.(f).path = 
 
 
         % if field is centroid, reshape to (frames x dim x nTracks)
@@ -111,14 +114,14 @@ end
 if isfield(trackProps,'speed')
     
     % chunk speed data into individual movement bouts
-    block_indices = blockActivity(speed);
+    block_indices = blockActivity(trackProps.speed);
     
     % bootstrap resample speed data to generate null distribution
     [expmt.Speed.bs,f]=bootstrap_speed_blocks(expmt,trackProps,block_indices,100);
     
     % save bootstrap figure to file
-    fname = [figdir expmt.date '_bs_logspeed'];
-    if ~isempty(figdir) & meta.save
+    fname = [expmt.figdir expmt.date '_bs_logspeed'];
+    if ~isempty(expmt.figdir) && meta.save
         hgsave(f,fname);
         close(f);
     end

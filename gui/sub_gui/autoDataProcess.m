@@ -62,6 +62,11 @@ for i = 1:length(expmt.fields)
 
         % read .bin file
         expmt.(f).fID = fopen(path,'r');
+        
+        if expmt.(f).fID == -1
+            expmt.(f).path = [expmt.fdir expmt.fLabel '_' f '.bin'];
+            expmt.(f).fID = fopen(expmt.(f).path,'r');
+        end
 
 
         % if field is centroid, reshape to (frames x dim x nTracks)
