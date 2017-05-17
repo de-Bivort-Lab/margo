@@ -2768,7 +2768,7 @@ for i = 1:length(handles.aux_COM_list)
         case 1
             menu_items(i).Separator = 'on';
             menu_items(i).Checked = 'on';
-            expmt.AUX_COM = handles.aux_COM_list{i};
+            expmt.AUX_COM = handles.aux_COM_list(i);
     end
 end
 
