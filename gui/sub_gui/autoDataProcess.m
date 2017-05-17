@@ -111,7 +111,7 @@ end
 if isfield(trackProps,'speed')
     
     % chunk speed data into individual movement bouts
-    block_indices = blockActivity(speed);
+    block_indices = blockActivity(trackProps.speed);
     
     % bootstrap resample speed data to generate null distribution
     [expmt.Speed.bs,f]=bootstrap_speed_blocks(expmt,trackProps,block_indices,100);
