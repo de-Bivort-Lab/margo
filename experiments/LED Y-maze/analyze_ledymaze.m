@@ -8,7 +8,7 @@ function expmt = analyze_ledymaze(expmt, varargin)
 
 %% Parse inputs, read data from hard disk, format in master struct, process centroid data
 
-[expmt,trackProps,meta] = autoDataProcess(expmt,varargin{:});
+[expmt,~,meta] = autoDataProcess(expmt,varargin{:});
 
 clearvars -except expmt trackProps meta
 
@@ -22,7 +22,7 @@ for i=1:expmt.nTracks;
 end
 
 %% Calculate turn probability
-expmt.Turns.n = sum(turn_idx,2)-1;
+expmt.Turns.n = sum(turn_idx)-1;
 expmt.Turns.seqence = NaN(max(expmt.Turns.n),expmt.nTracks);
 
 %{
@@ -34,7 +34,7 @@ opposite orientation of a maze. In the output, tSeq, Right turns = 1, Left
 turns = 0.
 %}
 for i=1:expmt.nTracks
-    tSeq = expmt.Turns.data(i,~isnan(expmt.Turns.data(i,:)));
+    tSeq = expmt.Turns.data(~isnan(expmt.Turns.data(:,i)),i);
     tSeq=diff(tSeq);
     if expmt.ROI.orientation(i)
         expmt.Turns.seqence(1:length(tSeq),i)=tSeq==1|tSeq==-2;
@@ -53,8 +53,12 @@ end
 
 %% Calculate light choice probability
 
-expmt.LightChoice.n = sum(~isnan(expmt.LightChoice.data),2);
-expmt.LightChoice.pBias = sum(expmt.LightChoice.data==1,2)./expmt.LightChoice.n;
+expmt.LightChoice.n = sum(~isnan(expmt.LightChoice.data));
+expmt.LightChoice.pBias = sum(expmt.LightChoice.data==1)./expmt.LightChoice.n;
+expmt.LightChoice.active = expmt.LightChoice.n > 40;
+
+% bootstrap resample data
+
 
 
 %% Create histogram plots of turn bias and light choice probability
@@ -68,6 +72,8 @@ if isfield(meta,'plot') && meta.plot
     mad(expmt.Turns.rBias(expmt.Turns.n>40))           % MAD of right turn prob
     c=c./(sum(c));
     c(end)=[];
+    
+    f=figure();
     plot(c,'Linewidth',2);
 
     hold on
@@ -80,11 +86,15 @@ if isfield(meta,'plot') && meta.plot
     axis([0 length(bins) 0 max(c)+0.05]);
 
     % Generate legend labels
-    if iscellstr(expmt.labels{1,1})
-        strain=expmt.labels{1,1}{:};
+    if isfield(expmt,'Strain')
+        strain=expmt.Strain;
+    else
+        strain = '';
     end
-    if iscellstr(expmt.labels{1,3})
-        treatment=expmt.labels{1,3}{:};
+    if isfield(expmt,'Treatment')
+        treatment=expmt.Treatment;
+    else
+        treatment = '';
     end
 
     legendLabel(1)={['Turn Choice Probability: ' strain ' ' treatment ...
@@ -94,7 +104,13 @@ if isfield(meta,'plot') && meta.plot
         ' (u=' num2str(mean(expmt.LightChoice.pBias(expmt.Turns.n>40)))...
         ', n=' num2str(sum(expmt.Turns.n>40)) ')']};
     legend(legendLabel);
-    shg
+    
+    fname = [expmt.figdir expmt.date '_hist_photo'];
+    if ~isempty(expmt.figdir) && meta.save
+        hgsave(f,fname);
+        close(f);
+    end
+
 end
 
 

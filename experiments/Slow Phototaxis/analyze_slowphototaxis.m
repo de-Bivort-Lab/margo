@@ -12,15 +12,6 @@ function expmt = analyze_slowphototaxis(expmt,varargin)
 
 clearvars -except expmt trackProps meta
 
-% make figure directory if it doesn't exist
-figdir = [expmt.fdir 'figures_' expmt.date '\'];
-if ~exist(figdir,'dir') && meta.save
-    [mkst,~]=mkdir(figdir);
-    if ~mkst
-       figdir=[];
-    end
-end
-
 %% Analyze stimulus response
 
 % reshape date so that each col is a trace
@@ -134,8 +125,8 @@ expmt.StimCen.data(:,2,:) = trackProps.r .* sin(cen_theta);
 
 nReps = 1000;
 [expmt.Light.bs,f] = bootstrap_slowphototaxis(expmt,nReps,'Light');
-fname = [figdir expmt.date '_light_bs'];
-if ~isempty(figdir) && meta.save
+fname = [expmt.figdir expmt.date '_light_bs'];
+if ~isempty(expmt.figdir) && meta.save
     hgsave(f,fname);
     close(f);
 end
@@ -144,8 +135,8 @@ if ~isfield(expmt.parameters,'blank_duration') || ...
         (isfield(expmt.parameters,'blank_duration') && expmt.parameters.blank_duration > 0)
     
     [expmt.Blank.bs,f] = bootstrap_slowphototaxis(expmt,nReps,'Blank');
-    fname = [figdir expmt.date '_dark_bs'];
-    if ~isempty(figdir) && meta.save
+    fname = [expmt.figdir expmt.date '_dark_bs'];
+    if ~isempty(expmt.figdir) && meta.save
         hgsave(f,fname);
         close(f);
     end
@@ -215,8 +206,8 @@ end
 legend(legendLabel);
 shg
 
-fname = [figdir expmt.date '_histogram'];
-if ~isempty(figdir) && meta.save
+fname = [expmt.figdir expmt.date '_histogram'];
+if ~isempty(expmt.figdir) && meta.save
     hgsave(f,fname);
     close(f);
 end
@@ -264,8 +255,8 @@ str = ['r = ' num2str(round(r(2,1)*100)/100) ', p = ' num2str(round(p(2,1)*10000
 annotation('textbox',dim,'String',str,'FitBoxToText','on');
 title('slow phototaxis - handedness');
 
-fname = [figdir expmt.date '_handedness'];
-if ~isempty(figdir) && meta.save
+fname = [expmt.figdir expmt.date '_handedness'];
+if ~isempty(expmt.figdir) && meta.save
     hgsave(f,fname);
     close(f);
 end
