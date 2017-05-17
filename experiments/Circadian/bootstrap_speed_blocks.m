@@ -92,52 +92,51 @@ toc
 
 %%
 
-data = log(nanmean(trackProps.speed));
+bs.obs = log(nanmean(trackProps.speed));
 
-lg_speeds = log(bs_speeds);
+bs.sim = log(bs_speeds);
 
 % create histogram of occupancy scores
-binmin=min(lg_speeds(:));
-binmax=max(lg_speeds(:));
+binmin=min(bs.sim(:));
+binmax=max(bs.sim(:));
 w = binmax - binmin;
 plt_res = w/(10^floor(log10(nf)));
-bins = binmin:plt_res:binmax;
-c = histc(lg_speeds,bins) ./ repmat(sum(histc(lg_speeds,bins)),numel(bins),1);
-[mu,~,ci95,~] = normfit(c');
+bs.bins = binmin:plt_res:binmax;
+c = histc(bs.sim,bs.bins) ./ repmat(sum(histc(bs.sim,bs.bins)),numel(bs.bins),1);
+[bs.avg,~,bs.ci95,~] = normfit(c');
 
 %% generate plots
 
 f=figure();
 hold on
 
-range = [min([lg_speeds(:);data(:)]) max([lg_speeds(:);data(:)])];
+range = [min([bs.sim(:);bs.obs(:)]) max([bs.sim(:);bs.obs(:)])];
 range(1) = floor(range(1));
 range(2) = ceil(range(2));
 
 % plot bootstrapped trace
-plot(bins,mu,'b','LineWidth',2);
+plot(bs.bins,bs.avg,'b','LineWidth',2);
 
-datbins = linspace(min(data(:)),max(data(:)),length(bins));
+datbins = linspace(min(bs.obs(:)),max(bs.obs(:)),length(bins));
 % plot observed data
-c = histc(data,datbins) ./ sum(sum(histc(data,datbins)));
+c = histc(bs.obs,datbins) ./ sum(sum(histc(bs.obs,datbins)));
 c = [0 c 0];
 datbins = [range(1) datbins range(2)];
 plot(datbins,c,'r','LineWidth',2);
-set(gca,'XLim',range,'YLim',[0 max(mu)]);
+set(gca,'XLim',range,'YLim',[0 max(bs.avg)]);
 legend({['bootstrapped (nReps = ' num2str(nReps) ')'];'observed'});
 title(['speed histogram (obs v. bootstrapped)']);
 
 % add confidence interval patch
-vx = [bins fliplr(bins)];
-vy = [ci95(1,:) fliplr(ci95(2,:))];
+vx = [bs.bins fliplr(bs.bins)];
+vy = [bs.ci95(1,:) fliplr(bs.ci95(2,:))];
 ph = patch(vx,vy,[0 0.9 0.9],'FaceAlpha',0.3);
 uistack(ph,'bottom');
 
 for i=1:nargout
     switch i
-        case 1, varargout{i} = mu;
-        case 2, varargout{i} = data;
-        case 3, varargout{i} = f;
+        case 1, varargout{i} = bs;
+        case 2, varargout{i} = f;
     end
 end
 
