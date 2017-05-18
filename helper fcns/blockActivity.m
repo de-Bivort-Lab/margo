@@ -44,22 +44,22 @@ function idx = filterShortBouts(starts,stops)
             stops{:}(end) = [];
         end
     end
-        
-        
 
 
     bout_length = abs(starts{:}-stops{:});
     long_bout = bout_length > 15;
     idx = [starts{:}(long_bout) stops{:}(long_bout)];
     
-    % ensure that lower index comes first
-    [~,i]=min(idx');
-    idx(i==2,:) = idx(i==2,[2 1]);
-    
-    % shift indices to get bouts
-    idx = [idx;[idx(1:length(idx)-1,2) idx(2:end,1)]];
-    bout_length = idx(:,2)-idx(:,1);
-    idx(bout_length<30,:)=[];
+    if length(idx>1)
+        % ensure that lower index comes first
+        [~,i]=min(idx');
+        idx(i==2,:) = idx(i==2,[2 1]);
+
+        % shift indices to get bouts
+        idx = [idx;[idx(1:length(idx)-1,2) idx(2:end,1)]];
+        bout_length = idx(:,2)-idx(:,1);
+        idx(bout_length<30,:)=[];
+    end
     
     
     
