@@ -48,7 +48,7 @@ function idx = filterShortBouts(starts,stops)
         
 
 
-bout_length = abs(starts{:}-stops{:});
+    bout_length = abs(starts{:}-stops{:});
     long_bout = bout_length > 15;
     idx = [starts{:}(long_bout) stops{:}(long_bout)];
     
