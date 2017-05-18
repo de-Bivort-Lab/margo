@@ -34,6 +34,7 @@ for i = 1:length(varargin)
                 i=i+1;
                 meta.decfac = varargin{i};
                 meta.decmask = mod(1:expmt.nFrames,meta.decfac)==1;
+                meta.decsz = sum(meta.decmask);
         end
     end
 end
@@ -76,29 +77,72 @@ for i = 1:length(expmt.fields)
             expmt.(f).data = permute(expmt.(f).data,[3 2 1]);
             expmt.drop_ct = expmt.drop_ct ./ expmt.nFrames;
             
-            if isfield(meta,'decimate') && any(strcmp(f,meta.decimate))
-                expmt.(f).data = expmt.(f).data(meta.decmask,:,:);
-            end
-%{
-        elseif strcmp(f,'Time')
-            expmt.(f).data = fread(expmt.(f).fID,prcn);
-%}
+
+
+        % import non-centroid data
         elseif ~strcmp(f,'VideoData') || ~strcmp(f,'VideoIndex')
-            expmt.(f).data = fread(expmt.(f).fID,[expmt.(f).dim(1) expmt.nFrames],prcn);
             
-            if isfield(meta,'decimate') && any(strcmp(f,meta.decimate))
-                expmt.(f).data = expmt.(f).data(:,meta.decmask);
-            end
-            
+            expmt.(f).data = fread(expmt.(f).fID,[expmt.(f).dim(1) expmt.nFrames],prcn);                        
             expmt.(f).data = expmt.(f).data';
 
         end
     
+        % close the .bin file
         fclose(expmt.(f).fID);
-    
+        
+        
     end
     
+
+    % Decimate the data if specified
+    do_decimation = isfield(meta,'decimate') && any(strcmp(f,meta.decimate)) &&...
+            ~any(size(expmt.(f).data) == meta.decsz);
+        
+    if do_decimation
+        
+        % decimate other data as normal
+        decdim = find(size(expmt.(f).data) == expmt.nFrames);
+        dims = 1:ndims(expmt.(f).data);
+        ndim = dims(end);
+        
+        % rearrange data so that time varying dimension is first dimension
+        if decdim ~= 1
+            perm_dim = dims;
+            perm_dim(perm_dim == decdim) = [];
+            expmt.(f).data = permute(expmt.(f).data,[decdim perm_dim]);
+        end
+        
+        % decimate the data along the time dimension
+        switch ndim
+            case 1
+                expmt.(f).data = expmt.(f).data(meta.decmask);
+                
+            case 2               
+                if strcmp(f,'Time')
+
+                    % convert time data from ifi to tElapsed and decimate
+                    expmt.(f).data = cumsum(expmt.(f).data);              
+                    expmt.(f).data = expmt.(f).data(meta.decmask,:);
+                    expmt.(f).data = [0;diff(expmt.(f).data)];
+
+                else   
+                    expmt.(f).data = expmt.(f).data(meta.decmask,:);
+                end
+                
+            case 3
+                expmt.(f).data = expmt.(f).data(meta.decmask,:,:);
+                
+            case 4
+                expmt.(f).data = expmt.(f).data(meta.decmask,:,:,:);              
+        end
+        
+        
+
+    end
+    
+    
 end
+    
 
 % In the example, the centroid is being processed to extract circling
 % handedness for each track. Resulting handedness scores are stored in

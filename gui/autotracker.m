@@ -1003,7 +1003,7 @@ else
             case 9
                 expmt = run_circadian(expmt,handles);
                 if isfield(expmt,'date')
-                    analyze_basictracking(expmt,'Handles',handles);
+                    analyze_circadian(expmt,'Handles',handles);
                 else
                     keep_gui_state = true;
                 end

@@ -12,27 +12,6 @@ function expmt = analyze_circadian(expmt,varargin)
 
 clearvars -except expmt trackProps meta
 
-%% Bootstrap activity
-
-% make figure directory if it doesn't exist
-figdir = [expmt.fdir 'figures_' expmt.date '\'];
-if ~exist(figdir,'dir') && meta.save
-    [mkst,~]=mkdir(figdir);
-    if ~mkst
-       figdir=[];
-    end
-end
-
-[bs,obs,f]=bootstrap_speed(expmt,trackProps,1000);
-expmt.Speed.bootstrap = bs;
-expmt.Speed.avg = obs;
-
-% save fig
-fname = [figdir expmt.date '_bootstrap'];
-if ~isempty(figdir) && meta.save
-    hgsave(f,fname);
-    close(f);
-end
 
 %% extract sliding activity window and create plot
 
@@ -61,13 +40,15 @@ end
 
 tmp_tStamps = tStamps(win_idx);
 clearvars tStamps
-figure();
+f=figure();
 plot(tmp_tStamps,mu,'r','LineWidth',1.3);
 vx = [tmp_tStamps' fliplr(tmp_tStamps')];
 vy = [ci95(1,:) fliplr(ci95(2,:))];
 hold on
 ph=patch(vx,vy,[0.8 0.8 0.8]);
 uistack(ph,'bottom');
+
+
 
 %% Create time labels and light patches
 hr = str2double(expmt.date(12:13));
@@ -106,7 +87,7 @@ if length(tmp_Light)~=length(expmt.Light.data) && isfield(meta,'decimate')...
     
 end
 tmp_Light = tmp_Light(win_idx);
-tmp_Light = tmp_Light > 0;
+tmp_Light = tmp_Light > 127;
 trans = [0;diff(tmp_Light)];
 dark_trans = find(trans==1);
 dark_trans = [dark_trans;find(trans==-1)];
@@ -125,9 +106,14 @@ for i=1:length(dark_trans)-1
     state = ~state;
 end
 
+ylabel('Speed');
+xlabel('Time of day');
+legend({'lights OFF';'95% CI';'mean speed'});
+title('Circadian activity trace');
+
 % save fig
-fname = [figdir expmt.date '_speed'];
-if ~isempty(figdir) && meta.save
+fname = [expmt.figdir expmt.date '_activity trace'];
+if ~isempty(expmt.figdir) && meta.save
     hgsave(f,fname);
     close(f);
 end

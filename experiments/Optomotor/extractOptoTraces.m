@@ -1,6 +1,6 @@
 function [varargout] = extractOptoTraces(include,expmt,speed)
 
-dec_scale = 3;  % factor by which to decimate the data
+dec_scale = 1;  % factor by which to decimate the data
 
 % Find indices of stimulus ON/OFF transitions
 [~,iOFFc]=find(diff(include)==-1);
