@@ -35,6 +35,10 @@ disp('may a take a while with if number of replications is > 1000')
 
 for j = 1:nReps
     
+    if mod(j,100)==0
+        disp(['iteration ' num2str(j) ' out of ' num2str(nReps)]);
+    end
+    
     n = expmt.(field).n(randi([1 nf],nf,1));
     ids = arrayfun(@(k) drawIDs(k,nf), n, 'UniformOutput',false);
     
@@ -79,15 +83,16 @@ f=figure();
 hold on
 
 % plot bootstrapped trace
-plot(mu,'b','LineWidth',2);
+plot(mu,'b','LineWidth',3);
 set(gca,'Xtick',linspace(1,length(mu),11),'XtickLabel',linspace(-1,1,11),...
     'XLim',[1 length(mu)],'YLim',[0 ceil(max(ci95(:))*100)/100]);
 
 % plot observed data
 c = histc(data,bins) ./ sum(sum(histc(data,bins)));
-plot(c,'r','LineWidth',2);
-legend({['bootstrapped (nReps = ' num2str(nReps) ')'];'observed'});
+plot(c,'r','LineWidth',3);
+legend({['bootstrapped (nReps = ' num2str(nReps) ')'];['observed (n=' num2str(nf) ')']});
 title([field ' index histogram (obs v. bootstrapped)']);
+xlabel('Optomotor index');
 
 % add confidence interval patch
 vx = [1:length(bins) fliplr(1:length(bins))];

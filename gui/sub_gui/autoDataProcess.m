@@ -8,6 +8,7 @@ function [varargout] = autoDataProcess(expmt,varargin)
 %% parse inputs
 
 meta.save = true;
+meta.raw = false;
 
 for i = 1:length(varargin)
     
@@ -35,6 +36,8 @@ for i = 1:length(varargin)
                 meta.decfac = varargin{i};
                 meta.decmask = mod(1:expmt.nFrames,meta.decfac)==1;
                 meta.decsz = sum(meta.decmask);
+            case 'Raw'
+                meta.raw = true;
         end
     end
 end
@@ -53,7 +56,7 @@ for i = 1:length(expmt.fields)
  
     f = expmt.fields{i};
         
-    if ~isfield(expmt.(f),'data')
+    if ~isfield(expmt.(f),'data') || meta.raw
         
         % get subfields
         path = expmt.(f).path;
@@ -142,6 +145,8 @@ for i = 1:length(expmt.fields)
     
     
 end
+
+expmt.DecFrames = size(expmt.Centroid.data,1);
     
 
 % In the example, the centroid is being processed to extract circling

@@ -71,19 +71,14 @@ if exist([handles.gui_dir 'profiles\deviceID.txt'],'file')
     handles.deviceID=char(fread(fID))';
     fclose(fID);
     [~,status]=urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=2']);
-    if ~status
-        gui_notify('unable to connect to http://lab.debivort.org',handles.disp_note);
-    end
+    
+    if ~stat
     
 end
 addpath(genpath(handles.gui_dir));
 handles.display_menu.UserData = 1;     
 
 gui_notify('welcome to autotracker',handles.disp_note);
-
-if exist('status','var') && ~status
-    gui_notify('unable to connect to http://lab.debivort.org',handles.disp_note);
-end
 
 % open in main display window
 root = get(0);
@@ -1021,12 +1016,8 @@ else
     catch ME
         
         if isfield(handles,'deviceID')
-            [~,status]=urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=3']);
-            if ~status
-                gui_notify('unable to connect to http://lab.debivort.org',handles.disp_note);
-            end
+            urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=3']);
         end
-        
 
         
         switch expmt.Name
@@ -1042,10 +1033,7 @@ else
     end
     
     if isfield(handles,'deviceID')
-        [~,status]=urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=2']);
-        if ~status
-            gui_notify('unable to connect to http://lab.debivort.org',handles.disp_note);
-        end
+        urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=2']);
     end
     
     % re-enable control set to off during experiment
@@ -3365,10 +3353,7 @@ function gui_fig_CloseRequestFcn(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 if isfield(handles,'deviceID')
-    [~,status]=urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=0']);
-    if ~status
-        gui_notify('unable to connect to http://lab.debivort.org',handles.disp_note);
-    end
+    urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=0']);
 end
 
 % Hint: delete(hObject) closes the figure

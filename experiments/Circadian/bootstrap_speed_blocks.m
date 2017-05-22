@@ -36,13 +36,15 @@ draw_sz = round(target/avg);
 
 bs_speeds = NaN(nReps,nf);
 
+% create waitbar object
+h = waitbar(0,['iteration 0 out of ' num2str(nReps)]);
+h.Name = 'Bootstrap resampling speed data';
+
 %%
 disp(['resampling data with ' num2str(nReps) ' replicates'])
 disp('may a take a while with if number of replications is > 1000')
 tic
 for j = 1:nReps
-    
-    disp(j)
     
     % draw IDs
     ids = randi([1 length(blocks)],draw_sz,1);
@@ -83,11 +85,19 @@ for j = 1:nReps
     tmp_speed(target+1:end)=[];
     tmp_speed = reshape(tmp_speed,target/nf,nf);
     bs_speeds(j,:) = nanmean(tmp_speed);
+    
+    if ishghandle(h)
+        waitbar(j/nReps,h,['iteration ' num2str(j) ' out of ' num2str(nReps)]);
+    end
 
     clearvars ids bouts tmp_speed lin_ind
     
 end
 toc
+
+if ishghandle(h)
+    close(h);
+end
     
 
 %%

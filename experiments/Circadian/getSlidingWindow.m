@@ -26,6 +26,10 @@ end
 
 %%
 
+% create waitbar object
+h = waitbar(0,['iteration 0 out of ' num2str(expmt.nTracks)]);
+h.Name = ['Sliding ' f ' window'];
+
 first_idx = round(length(expmt.(f).data)/win_sz)+1;
 r = floor(win_sz/2);
 idx = r+1:stp_sz:length(expmt.(f).data);
@@ -34,11 +38,17 @@ idx = r+1:stp_sz:length(expmt.(f).data);
 % perform the operation
 win_dat = NaN(length(idx),expmt.nTracks);
 for i = 1:expmt.nTracks
-    disp(['sliding window ' num2str(i) ' out of ' num2str(expmt.nTracks)]);
+    
+    if ishghandle(h);
+        waitbar(i/expmt.nTracks,h,['iteration ' num2str(i) ' out of ' num2str(expmt.nTracks)]);
+    end
+    
     win_dat(:,i) = arrayfun(@(k) slide_win(expmt.(f).data(:,i),k,r,fh), idx);
 end
 
-
+if ishghandle(h)
+    close(h);
+end
 
 % assign outputs
 for i = 1:nargout

@@ -117,7 +117,7 @@ title('Circadian activity trace');
 expmt.Circadian.bins = 0:23;
 expmt.Circadian.n = NaN(24,expmt.nTracks);
 expmt.Circadian.idx = false(24,size(win_dat,1));
-expmt.Circadian.bin_spd = NaN(24,expmt.nTracks);
+expmt.Circadian.avg_spd = NaN(24,expmt.nTracks);
 
 % find the range of indices of windat that encompass each hour time bin
 % from tmp_tStamps
@@ -156,10 +156,8 @@ end
 % store normalized speed
 norm_speed = win_dat - repmat(mu,1,expmt.nTracks);
 for i=1:24
-    expmt.Circadian.norm_spd(i,:) = nanmean(norm_speed(expmt.Circadian.idx(i,:),:));
+    expmt.Circadian.norm_spd(i,:) = nanmean(win_dat(expmt.Circadian.idx(i,:),:));
 end
-
-expmt.Circadian.avg = nanmean(win_dat);
 
 
 %%

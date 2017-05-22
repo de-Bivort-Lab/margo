@@ -37,7 +37,7 @@ for i=1:length(dirs)
     if ~any(strcmp(dirs(i).name,ignore))
         
         subdir = [fDir '\' dirs(i).name];
-        subpaths = getHiddenMatDir(subdir);
+        subpaths = getHiddenMatDir(subdir,'ext',target_ext);
         
         if ~isempty(subpaths)
             fPaths = [fPaths subpaths];
