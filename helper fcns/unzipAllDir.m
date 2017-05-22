@@ -13,7 +13,7 @@ end
 
 if ~exist('fDir','var')
     [fDir] = uigetdir('C:\Users\debivort\Documents\MATLAB\Decathlon Raw Data',...
-    'Select directory containing expmt structs to be analyzed');
+    'Select directory containing raw data .zip files');
 end
 
 fPaths = getHiddenMatDir(fDir,'ext','.zip');

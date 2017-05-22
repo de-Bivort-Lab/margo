@@ -67,15 +67,17 @@ for i = 1:length(expmt.fields)
         % read .bin file
         expmt.(f).fID = fopen(path,'r');
         
-        % if .bin file isn't found, search for .zip file and unzip
+        % if .bin file isn't found, search for .zip file
+        [fPaths] = getHiddenMatDir(expmt.fdir,'exit','.zip');
+        
+        if ~isempty(fPaths)
+            unzipAllDir('Dir',fPaths)
+        
         if expmt.(f).fID == -1
-            [fPaths] = getHiddenMatDir(expmt.fdir,'exit','.zip');
-            if ~isempty(fPaths)
-                unzipAllDir('Dir',expmt.fdir);
-            end
+            expmt.(f).path = [expmt.fdir expmt.fLabel '_' f '.bin'];
+            expmt.(f).fID = fopen(expmt.(f).path,'r');
         end
         
-        % if .bin file still isn't found, try updating data path
         if expmt.(f).fID == -1
             expmt.(f).path = [expmt.fdir expmt.fLabel '_' f '.bin'];
             expmt.(f).fID = fopen(expmt.(f).path,'r');
