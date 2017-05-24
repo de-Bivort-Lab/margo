@@ -71,14 +71,19 @@ if exist([handles.gui_dir 'profiles\deviceID.txt'],'file')
     handles.deviceID=char(fread(fID))';
     fclose(fID);
     [~,status]=urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=2']);
-    
-    if ~stat
+    if ~status
+        gui_notify('unable to connect to http://lab.debivort.org',handles.disp_note);
+    end
     
 end
 addpath(genpath(handles.gui_dir));
 handles.display_menu.UserData = 1;     
 
 gui_notify('welcome to autotracker',handles.disp_note);
+
+if exist('status','var') && ~status
+    gui_notify('unable to connect to http://lab.debivort.org',handles.disp_note);
+end
 
 % open in main display window
 root = get(0);
@@ -1006,7 +1011,8 @@ else
             case 9
                 expmt = run_circadian(expmt,handles);
                 if isfield(expmt,'date')
-                    analyze_circadian(expmt,'Handles',handles);
+                    args={'Decimate';{'Centroid';'Time';'Light';'Motor';};'DecFac';5};
+                    analyze_circadian(expmt,'Handles',handles,args{:});
                 else
                     keep_gui_state = true;
                 end
@@ -1016,8 +1022,12 @@ else
     catch ME
         
         if isfield(handles,'deviceID')
-            urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=3']);
+            [~,status]=urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=3']);
+            if ~status
+                gui_notify('unable to connect to http://lab.debivort.org',handles.disp_note);
+            end
         end
+        
 
         
         switch expmt.Name
@@ -1033,7 +1043,10 @@ else
     end
     
     if isfield(handles,'deviceID')
-        urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=2']);
+        [~,status]=urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=2']);
+        if ~status
+            gui_notify('unable to connect to http://lab.debivort.org',handles.disp_note);
+        end
     end
     
     % re-enable control set to off during experiment
@@ -2077,6 +2090,7 @@ expmt.parameters.area_min = handles.gui_fig.UserData.area_min;
 expmt.parameters.area_max = handles.gui_fig.UserData.area_max;
 expmt.parameters.ROI_mode = handles.gui_fig.UserData.ROI_mode;
 expmt.parameters.sort_mode = handles.gui_fig.UserData.sort_mode;
+expmt.parameters.ROI_tol = handles.gui_fig.UserData.ROI_t;
              
 % Store expmteriment data struct
 setappdata(handles.gui_fig,'expmt',expmt);
@@ -3353,7 +3367,10 @@ function gui_fig_CloseRequestFcn(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 if isfield(handles,'deviceID')
-    urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=0']);
+    [~,status]=urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=0']);
+    if ~status
+        gui_notify('unable to connect to http://lab.debivort.org',handles.disp_note);
+    end
 end
 
 % Hint: delete(hObject) closes the figure

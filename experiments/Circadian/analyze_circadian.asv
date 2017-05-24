@@ -23,8 +23,8 @@ stp_sz = 100;
 
 % get mean and 95% CI
 [mu,~,ci95,~] = normfit(win_dat');
-expmt.Speed.avg_trace = mu;
-expmt.Speed.ci95_trace = ci95;
+expmt.Circadian.trace.mu = mu;
+expmt.Circadian.trace.ci95 = ci95;
 mu = smooth(mu,20);
 ci95(1,:) = smooth(ci95(1,:),20);
 ci95(2,:) = smooth(ci95(2,:),20);
@@ -48,7 +48,7 @@ hold on
 ph=patch(vx,vy,[0.8 0.8 0.8]);
 uistack(ph,'bottom');
 
-
+expmt.Circadian.trace.t = tmp_tStamps;
 
 %% Create time labels and light patches
 hr = str2double(expmt.date(12:13));
@@ -77,6 +77,9 @@ for i = 1:length(tickLabels)
     end
 end
 set(gca,'XTick',tTick,'XtickLabel',tickLabels);
+
+expmt.Circadian.trace.tTick = tTick;
+expmt.Circadian.trace.tickLabels = tickLabels;
 
 % create graded light-dark patches
 tmp_Light = expmt.Light.data;
@@ -117,7 +120,7 @@ title('Circadian activity trace');
 expmt.Circadian.bins = 0:23;
 expmt.Circadian.n = NaN(24,expmt.nTracks);
 expmt.Circadian.idx = false(24,size(win_dat,1));
-expmt.Circadian.avg_spd = NaN(24,expmt.nTracks);
+expmt.Circadian.bin_spd = NaN(24,expmt.nTracks);
 
 % find the range of indices of windat that encompass each hour time bin
 % from tmp_tStamps
@@ -156,8 +159,10 @@ end
 % store normalized speed
 norm_speed = win_dat - repmat(mu,1,expmt.nTracks);
 for i=1:24
-    expmt.Circadian.norm_spd(i,:) = nanmean(win_dat(expmt.Circadian.idx(i,:),:));
+    expmt.Circadian.norm_spd(i,:) = nanmean(norm_speed(expmt.Circadian.idx(i,:),:));
 end
+
+expmt.Circadian.avg = nanmean(win_dat);
 
 
 %%

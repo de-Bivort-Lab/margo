@@ -30,13 +30,13 @@ end
 
 opto_index = NaN(nReps,nf);
 
-disp(['resampling data with ' num2str(nReps) ' replicates'])
-disp('may a take a while with if number of replications is > 1000')
+wh = waitbar(0,['iteration 0 out of ' num2str(nReps)]);
+wh.Name = 'Bootstrap resampling optomotor data, please wait...';
 
 for j = 1:nReps
     
-    if mod(j,100)==0
-        disp(['iteration ' num2str(j) ' out of ' num2str(nReps)]);
+    if ishghandle(wh)
+        waitbar(j/nReps,wh,['iteration ' num2str(j) ' out of ' num2str(nReps)]);
     end
     
     n = expmt.(field).n(randi([1 nf],nf,1));
@@ -63,6 +63,9 @@ for j = 1:nReps
     
 end
     
+if ishghandle(wh)
+    close(wh);
+end
 
 %%
 

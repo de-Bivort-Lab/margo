@@ -391,20 +391,15 @@ while ishghandle(hObject) && display
 end
 
 % assign values to expmt struct
-expmt.parameters.speed_thresh = gui_handles.gui_fig.UserData.speed_thresh;
-expmt.parameters.distance_thresh = gui_handles.gui_fig.UserData.distance_thresh;
-expmt.parameters.vignette_sigma = gui_handles.gui_fig.UserData.vignette_sigma;
-expmt.parameters.vignette_weight = gui_handles.gui_fig.UserData.vignette_weight;
-expmt.parameters.area_min = gui_handles.gui_fig.UserData.area_min;
-expmt.parameters.area_max = gui_handles.gui_fig.UserData.area_max;
-expmt.parameters.ROI_mode = gui_handles.gui_fig.UserData.ROI_mode;
-expmt.parameters.sort_mode = gui_handles.gui_fig.UserData.sort_mode;
-expmt.parameters.ROI_tol = gui_handles.gui_fig.UserData.ROI_tol;
-expmt.parameters.target_rate = gui_handles.gui_fig.UserData.target_rate;
-
-setappdata(gui_handles.gui_fig,'expmt',expmt);
-
-varargout(1) = {expmt};
+expmt.parameters.speed_thresh = handles.gui_fig.UserData.speed_thresh;
+expmt.parameters.distance_thresh = handles.gui_fig.UserData.distance_thresh;
+expmt.parameters.vignette_sigma = handles.gui_fig.UserData.vignette_sigma;
+expmt.parameters.vignette_weight = handles.gui_fig.UserData.vignette_weight;
+expmt.parameters.area_min = handles.gui_fig.UserData.area_min;
+expmt.parameters.area_max = handles.gui_fig.UserData.area_max;
+expmt.parameters.ROI_mode = handles.gui_fig.UserData.ROI_mode;
+expmt.parameters.sort_mode = handles.gui_fig.UserData.sort_mode;
+expmt.parameters.ROI_tol = handles.gui_fig.UserData.ROI_tol;
 
 % clear objects from display
 rect_handles = findobj(gui_handles.axes_handle,'-depth',3,'Type','rectangle');

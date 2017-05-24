@@ -11,7 +11,6 @@ handles.gui_fig.UserData.area_max = expmt_old.parameters.area_max;
 handles.gui_fig.UserData.ROI_mode = expmt_old.parameters.ROI_mode;
 handles.gui_fig.UserData.sort_mode = expmt_old.parameters.sort_mode;
 handles.gui_fig.UserData.ROI_tol = expmt_old.parameters.ROI_tol;
-handles.gui_fig.UserData.target_rate = expmt_old.parameters.target_rate;
 handles.edit_ref_depth.Value = expmt_old.parameters.ref_depth;
 handles.edit_ref_depth.String = num2str(expmt_old.parameters.ref_depth);
 handles.edit_ref_freq.Value = expmt_old.parameters.ref_freq;
@@ -23,9 +22,8 @@ handles.disp_ROI_thresh.String = num2str(round(expmt_old.parameters.ROI_thresh))
 handles.track_thresh_slider.Value = expmt_old.parameters.track_thresh;
 handles.disp_track_thresh.String = num2str(round(expmt_old.parameters.track_thresh));
 
-if isfield(expmt_old,'fpath')
-    handles.save_path.String = expmt_old.fpath;
-end
+if isfield(expmt_old,'fpath'
+handles.save_path.String = expmt_old.fpath;
 
 % update experiment selection
 if isfield(expmt_old,'Name')

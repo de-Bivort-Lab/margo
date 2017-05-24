@@ -269,8 +269,8 @@ expmt.parameters.area_max = handles.gui_fig.UserData.area_max;
 expmt.parameters.ref_depth = str2double(get(handles.edit_ref_depth,'String'));
 expmt.parameters.ref_freq = str2double(get(handles.edit_ref_freq,'String'));
 expmt.parameters.duration = str2double(get(handles.edit_exp_duration,'String'));
-expmt.parameters.ROI_thresh = num2str(round(handles.ROI_thresh_slider.Value));
-expmt.parameters.track_thresh = num2str(round(handles.track_thresh_slider.Value));
+expmt.parameters.ROI_thresh = round(handles.ROI_thresh_slider.Value);
+expmt.parameters.track_thresh = round(handles.track_thresh_slider.Value);
 expmt.parameters.sort_mode = 'distance';
 expmt.parameters.ROI_mode = 'auto';
 
@@ -281,7 +281,6 @@ expmt.parameters.mm_per_pix = 1;            % set default distance scale 1 mm pe
 expmt.parameters.units = 'pixels';          % set default units to pixels
 expmt.vignette.mode = 'auto';
 expmt.expID = 1;
-
 
 handles.gui_fig.UserData.target_rate = 60;
 expmt.parameters.target_rate = handles.gui_fig.UserData.target_rate;
@@ -1011,7 +1010,8 @@ else
             case 9
                 expmt = run_circadian(expmt,handles);
                 if isfield(expmt,'date')
-                    analyze_circadian(expmt,'Handles',handles);
+                    args={'Decimate';{'Centroid';'Time';'Light';'Motor';};'DecFac';5};
+                    analyze_circadian(expmt,'Handles',handles,args{:});
                 else
                     keep_gui_state = true;
                 end
@@ -2080,18 +2080,12 @@ function advanced_tracking_menu_Callback(hObject, eventdata, handles)
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 
-advancedTrackingParam_subgui(expmt,handles);
-expmt.parameters.speed_thresh = handles.gui_fig.UserData.speed_thresh;
-expmt.parameters.distance_thresh = handles.gui_fig.UserData.distance_thresh;
-expmt.parameters.vignette_sigma = handles.gui_fig.UserData.vignette_sigma;
-expmt.parameters.vignette_weight = handles.gui_fig.UserData.vignette_weight;
-expmt.parameters.area_min = handles.gui_fig.UserData.area_min;
-expmt.parameters.area_max = handles.gui_fig.UserData.area_max;
-expmt.parameters.ROI_mode = handles.gui_fig.UserData.ROI_mode;
-expmt.parameters.sort_mode = handles.gui_fig.UserData.sort_mode;
-             
+expmt = advancedTrackingParam_subgui(expmt,handles);
+
 % Store expmteriment data struct
 setappdata(handles.gui_fig,'expmt',expmt);
+
+
 
 
 % --------------------------------------------------------------------
