@@ -70,7 +70,11 @@ if exist([handles.gui_dir 'profiles\deviceID.txt'],'file')
     fID = fopen([handles.gui_dir 'profiles\deviceID.txt']);
     handles.deviceID=char(fread(fID))';
     fclose(fID);
+    try
     [~,status]=urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=2']);
+    catch
+        status = false;
+    end
     if ~status
         gui_notify('unable to connect to http://lab.debivort.org',handles.disp_note);
     end
@@ -1021,7 +1025,11 @@ else
     catch ME
         
         if isfield(handles,'deviceID')
+            try
             [~,status]=urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=3']);
+            catch
+                status = false;
+            end
             if ~status
                 gui_notify('unable to connect to http://lab.debivort.org',handles.disp_note);
             end
@@ -1042,7 +1050,11 @@ else
     end
     
     if isfield(handles,'deviceID')
+        try
         [~,status]=urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=2']);
+        catch
+            status = false;
+        end
         if ~status
             gui_notify('unable to connect to http://lab.debivort.org',handles.disp_note);
         end
@@ -3359,7 +3371,11 @@ function gui_fig_CloseRequestFcn(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 if isfield(handles,'deviceID')
+    try
     [~,status]=urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=0']);
+    catch
+        status = false;
+    end
     if ~status
         gui_notify('unable to connect to http://lab.debivort.org',handles.disp_note);
     end

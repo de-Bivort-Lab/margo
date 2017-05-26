@@ -179,12 +179,14 @@ if nDays==1
     win_dat = win_dat(p,:);
     
     expmt.Circadian.id_trace.data = win_dat;
-    expmt.Circadian.id_trace.t = tmp_tStamps;
+    expmt.Circaidan.id_trace.t = tmp_tStamps;
     if max(diff(tmp_tStamps)) > mean(diff(tmp_tStamps))*2
-        [~,expmt.Circadian.id_trace.break] = max(diff(tmp_tStamps));
-    end
+        expmt.Circaidan.id_trace.t = tmp_tStamps
     
 end
+    
+
+
 
 
 

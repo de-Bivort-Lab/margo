@@ -9,6 +9,7 @@ function [varargout] = autoDataProcess(expmt,varargin)
 
 meta.save = true;
 meta.raw = false;
+meta.bootstrap = true;
 
 for i = 1:length(varargin)
     
@@ -38,6 +39,9 @@ for i = 1:length(varargin)
                 meta.decsz = sum(meta.decmask);
             case 'Raw'
                 meta.raw = true;
+            case 'Bootstrap'
+                i=i+1;
+                meta.bootstrap = varargin{i};
         end
     end
 end
@@ -171,7 +175,7 @@ if ~exist(expmt.figdir,'dir') && meta.save
     end
 end
 
-if isfield(trackProps,'speed')
+if isfield(trackProps,'speed') && meta.bootstrap
     
     % chunk speed data into individual movement bouts
     block_indices = blockActivity(trackProps.speed);
