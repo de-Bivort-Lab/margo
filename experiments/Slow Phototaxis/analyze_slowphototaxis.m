@@ -160,7 +160,9 @@ c=histc(locc(tTotal>min_active_period&active),bins)./sum(tTotal>min_active_perio
 c(end)=[];
 plot(c,'Color',[1 0 1],'Linewidth',2);
 set(gca,'Xtick',0:2:length(c),'XtickLabel',0:0.1:1);
-axis([0 length(c) 0 max(c)+0.05]);
+if ~isnan(max(c))
+    axis([0 length(c) 0 max(c)+0.05]);
+end
 n_light=sum(tTotal>min_active_period&active);
 
 if ~isfield(expmt.parameters,'blank_duration') || ...
@@ -172,7 +174,9 @@ if ~isfield(expmt.parameters,'blank_duration') || ...
     hold on
     plot(c,'Color',[0 0 1],'Linewidth',2);
     set(gca,'Xtick',0:2:length(c),'XtickLabel',0:0.1:1);
-    axis([0 length(c) 0 max(c)+0.05]);
+    if ~isnan(max(c))
+        axis([0 length(c) 0 max(c)+0.05]);
+    end
     title('Light Occupancy Histogram');
     n_blank=sum(btTotal>min_active_period&active);
     hold off
