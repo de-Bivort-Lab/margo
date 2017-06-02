@@ -2,7 +2,8 @@ function [trackDat,expmt] = autoInitialize(trackDat,expmt,gui_handles)
 
 if isfield(gui_handles,'deviceID')
     try
-    minstr = num2str(round(expmt.parameters.duration * 60));    
+    minstr = num2str(round(expmt.parameters.duration * 60));
+    minstr = [repmat('0',1,4-length(minstr)) minstr];
     [~,status]=urlread(['http://lab.debivort.org/mu.php?id=' gui_handles.deviceID '&st=1' minstr]);
     catch
         status = false;
