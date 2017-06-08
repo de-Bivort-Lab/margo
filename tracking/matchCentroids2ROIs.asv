@@ -193,8 +193,15 @@ update_centroid = logical(zeros(size(trackDat.Centroid,1),1));
                 c=permute(c,[3 2 1]);
 
                 % Use dot product to calculate pairwise distance between all coordinates
+                if any(size(c) ~= size(tD))
+                    disp('break');
+                end
+                try
                 g=sqrt(dot((c-tD),(tD-c),2));
                 g=abs(g);
+                catch
+                    disp('break')
+                end
 
                 % this time find closest ROI center for each remaining centroid
                 [primary_distance,j]=min(g,[],3);           
