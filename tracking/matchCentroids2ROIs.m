@@ -193,6 +193,9 @@ update_centroid = logical(zeros(size(trackDat.Centroid,1),1));
                 c=permute(c,[3 2 1]);
 
                 % Use dot product to calculate pairwise distance between all coordinates
+                if any(size(c) ~= size(tD))
+                    disp('break');
+                end
                 g=sqrt(dot((c-tD),(tD-c),2));
                 g=abs(g);
 
