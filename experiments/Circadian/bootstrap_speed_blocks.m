@@ -57,7 +57,7 @@ for j = 1:nReps
     while frame_num < target
         
         d = target-frame_num;
-        sz = round(d/avg*1.2);
+        sz = ceil(d/avg*1.2);
         
         % draw IDs
         tmp_ids = randi([1 length(blocks)],sz,1);

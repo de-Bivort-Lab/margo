@@ -12,7 +12,7 @@ for i = 1:length(varargin)
         switch arg
             case 'Dir'
                 i=i+1;
-                dir = varargin{i};
+                Dir = varargin{i};
         end
     end
 end
