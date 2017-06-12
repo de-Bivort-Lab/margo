@@ -92,3 +92,8 @@ expmt = getVideoInput(expmt,gui_handles);
 if strcmp(gui_handles.record_video_menu.Checked,'on')
     [trackDat,expmt] = initializeVidRecording(trackDat,expmt,gui_handles);
 end
+
+%% reset the handles state of the gui
+
+set(gui_handles.on_objs,'Enable','on');
+set(gui_handles.off_objs,'Enable','off');

@@ -465,10 +465,6 @@ if ~isempty(expmt.camInfo)
         colormap('gray');
         set(gca,'Xtick',[],'Ytick',[],'XLabel',[],'YLabel',[]);
         
-                % reset the enable states of objects in the gui
-        set(on_objs,'Enable','on');
-        set(off_objs,'Enable','off');
-        
         % set downstream UI panel enable status
         handles.tracking_uipanel.ForegroundColor = [0 0 0];
         set(findall(handles.tracking_uipanel, '-property', 'enable'), 'enable', 'on');
@@ -519,6 +515,10 @@ if ~isempty(expmt.camInfo)
         gui_notify(note, handles.disp_note);
         note = ['resolution: ' num2str(res(1)) ' x ' num2str(res(2))];
         gui_notify(note, handles.disp_note);
+        
+        % reset the enable states of objects in the gui
+        set(on_objs,'Enable','on');
+        set(off_objs,'Enable','off');
         
         handles.Cam_preview_togglebutton.Enable = 'on';
         
@@ -926,10 +926,6 @@ function run_pushbutton_Callback(hObject, eventdata, handles)
 
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
-
-% query the enable states of objects in the gui
-handles.on_objs = findobj('enable','on');
-handles.off_objs = findobj('enable','off');
 
 keep_gui_state = false;
 

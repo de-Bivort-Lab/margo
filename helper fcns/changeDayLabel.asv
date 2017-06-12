@@ -53,8 +53,8 @@ for i = 1:length(newDayLabels)
     day_idx = day_idx(day_idx>dir_start(1) & day_idx<dir_start(2))+3;
     nDigits = floor(log10(newDayLabels(i)));
     [old_dir,~,~] = fileparts(fPaths{i});
-    fPaths{i}(day_idx:dir_start(2)-1)=[];
-    fPaths(i)={[fPaths{i}(1:day_idx-1) num2str(newDayLabels(i)) fPaths{i}(day_idx:end)]};
+    fPaths{i}(day_idx:dir_start(2))
+    fPaths{i}(day_idx:day_idx+nDigits)=num2str(newDayLabels(i));
     [new_dir,~,~] = fileparts(fPaths{i});
     [status,~]=movefile(old_dir,new_dir);
     
