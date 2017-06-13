@@ -1036,6 +1036,10 @@ else
                 else
                     keep_gui_state = true;
                 end
+                
+            case 10
+                expmt = run_arenablocks(expmt,handles);
+                disp('wait here');
 
         end
     
