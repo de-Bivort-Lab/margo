@@ -1,4 +1,4 @@
-function varargout = run_optomotor(expmt,gui_handles,varargin)
+function [expmt] = run_optomotor(expmt,gui_handles,varargin)
 %
 % This is a blank experimental template to serve as a framework for new
 % custom experiments. The function takes the master experiment struct
@@ -8,12 +8,21 @@ function varargout = run_optomotor(expmt,gui_handles,varargin)
 
 %% Parse variable inputs
 
+initialize = true;              % go through initialization steps by default
+finish = true;                  % auto-process data by default
+
 for i = 1:length(varargin)
     
     arg = varargin{i};
     
     if ischar(arg)
         switch arg
+            case 'Initialize'
+                i=i+1;
+                initialize = varargin{i};
+            case 'Finish'
+                i=i+1;
+                finish = varargin{i};
             case 'Trackdat'
                 i=i+1;
                 trackDat = varargin{i};     % manually pass in trackDat rather than initializing
@@ -33,21 +42,27 @@ imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');   % image hand
 
 %% Experimental Setup
 
-% Initialize experiment parameters
-ref_stack = repmat(expmt.ref, 1, 1, gui_handles.edit_ref_depth.Value);  % initialize the reference stack
-nROIs = size(expmt.ROI.centers,1);                                      % number of ROIs
+if initialize
 
-% Initialize tracking variables
-trackDat.fields={'Centroid';'Orientation';'Time';...
-    'Speed';'StimStatus';'Texture';'SpatialFreq';...
-    'AngularVel';'Contrast'};  % properties of the tracked objects to be recorded
+    % Initialize experiment parameters
+    ref_stack = repmat(expmt.ref, 1, 1, gui_handles.edit_ref_depth.Value);  % initialize the reference stack
+    nROIs = size(expmt.ROI.centers,1);                                      % number of ROIs
 
-% initialize labels, files, and cam/video
-[trackDat,expmt] = autoInitialize(trackDat,expmt,gui_handles);
+    % Initialize tracking variables
+    trackDat.fields={'Centroid';'Orientation';'Time';...
+        'Speed';'StimStatus';'Texture';'SpatialFreq';...
+        'AngularVel';'Contrast'};  % properties of the tracked objects to be recorded
+
+    % initialize labels, files, and cam/video
+    [trackDat,expmt] = autoInitialize(trackDat,expmt,gui_handles);
+
+    % start timer
+    tic;
+    
+end
 
 % lastFrame = false until last frame of the last video file is reached
-trackDat.lastFrame = false;
-
+lastFrame = false;
 
 %% Initialize the psychtoolbox window and query projector properties
 bg_color=[0 0 0];          
@@ -175,11 +190,12 @@ switch expmt.parameters.stim_mode
         expmt.sweep.t = 0;
 end
 
-
 %% Main Experimental Loop
 
 % start timer
+tic
 tPrev = toc;
+shg
 
 % initialize centroid markers
 clean_gui(gui_handles.axes_handle);
@@ -192,7 +208,7 @@ hold off
 
 % run experimental loop until duration is exceeded or last frame
 % of the last video file is reached
-while ~trackDat.lastFrame
+while trackDat.t < gui_handles.edit_exp_duration.Value * 3600 && ~lastFrame
     
     % update time stamps and frame rate
     [trackDat, tPrev] = updateTime(trackDat, tPrev, expmt, gui_handles);
@@ -205,9 +221,9 @@ while ~trackDat.lastFrame
         
         % stop expmt when last frame of last video is reached
         if isfield(expmt.video,'fID')
-            trackDat.lastFrame = feof(expmt.video.fID);
+            lastFrame = feof(expmt.video.fID);
         elseif ~hasFrame(expmt.video.vid) && expmt.video.ct == expmt.video.nVids
-            trackDat.lastFrame = true;
+            lastFrame = true;
         end
     end
 
@@ -266,24 +282,9 @@ while ~trackDat.lastFrame
 end
 
 
-%% post-experiment wrap-up
 
-% close the psychtoolbox window
-sca;
-
-if finish
-    
-    % % auto process data and save master struct
-    expmt = autoFinish(trackDat, expmt, gui_handles);
-
-end
-
-for i=1:nargout
-    switch i
-        case 1, varargout(i) = expmt;
-        case 2, varargout(i) = trackDat;
-    end
-end
+% wrap up experiment and save master struct
+expmt = autoFinish(trackDat, expmt, gui_handles);
 
 
 function updateText(h,pos,val)

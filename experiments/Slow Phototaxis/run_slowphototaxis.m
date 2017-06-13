@@ -1,10 +1,26 @@
-function [expmt] = run_slowphototaxis(expmt,gui_handles)
+function varargout = run_slowphototaxis(expmt,gui_handles)
 %
 % This is a blank experimental template to serve as a framework for new
 % custom experiments. The function takes the master experiment struct
 % (expmt) and the handles to the gui (gui_handles) as inputs and outputs
 % the data assigned to out. In this example, object centroid, pixel area,
 % and the time of each frame are output to file.
+
+
+%% Parse variable inputs
+
+for i = 1:length(varargin)
+    
+    arg = varargin{i};
+    
+    if ischar(arg)
+        switch arg
+            case 'Trackdat'
+                i=i+1;
+                trackDat = varargin{i};     % manually pass in trackDat rather than initializing
+        end
+    end
+end
 
 %% Initialization: Get handles and set default preferences
 
@@ -13,26 +29,13 @@ gui_notify(['executing ' mfilename '.m'],gui_handles.disp_note);
 % clear memory
 clearvars -except gui_handles expmt
 
-% set MATLAB to highest priority via windows cmd line
-cmd_str = 'wmic process where name="MATLAB.exe" CALL setpriority 128';
-[~,~] = system(cmd_str);
-
 % get handles
 gui_fig = gui_handles.gui_fig;                            % gui figure handle
 imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');   % image handle
 
-% clear any objects drawn to gui window
-clean_gui(gui_handles.axes_handle);
-
-% set colormap and enable display control
-colormap('gray');
-set(gui_handles.display_menu.Children,'Checked','off')
-set(gui_handles.display_menu.Children,'Enable','on')
-gui_handles.display_raw_menu.Checked = 'on';
-gui_handles.display_menu.UserData = 1;
-
 
 %% Experimental Setup
+
 
 % Initialize experiment parameters
 ref_stack = repmat(expmt.ref, 1, 1, gui_handles.edit_ref_depth.Value);  % initialize the reference stack
@@ -43,9 +46,10 @@ trackDat.fields={'Centroid';'Orientation';'Time';'StimAngle';'Texture'};  % prop
 
 % initialize labels, files, and cam/video
 [trackDat,expmt] = autoInitialize(trackDat,expmt,gui_handles);
-
+    
 % lastFrame = false until last frame of the last video file is reached
-lastFrame = false;
+trackDat.lastFrame = false;
+
 
 %% Initialize the psychtoolbox window and query projector properties
 bg_color=[0 0 0];          
@@ -136,11 +140,11 @@ expmt.stim.lightTex = Screen('MakeTexture', expmt.scrProp.window, light);      %
 expmt.stim.darkTex = Screen('MakeTexture', expmt.scrProp.window, dark);        % texture for all dark
 
 expmt.stim.t = 0;
-expmt.stim.ct = 0;                                                    % Counter for number of looming stim displayed each stimulation period
-trackDat.StimAngle = zeros(nROIs,1);                                    % Initialize stimulus starting angle to 0
+expmt.stim.ct = 0;                          % Counter for number of looming stim displayed each stimulation period
+trackDat.StimAngle = zeros(nROIs,1);        % Initialize stimulus starting angle to 0
 expmt.stim.prev_ori=NaN(nROIs,1);
-expmt.stim.dir = boolean(ones(nROIs,1));                            % Direction of rotation for the light
-trackDat.Texture = boolean(1);                                    % active texture (dark or light)
+expmt.stim.dir = boolean(ones(nROIs,1));    % Direction of rotation for the light
+trackDat.Texture = boolean(1);              % active texture (dark or light)
 expmt.stim.corners = scor;
 expmt.stim.centers = scen;
 expmt.projector.Fx = Fx;
@@ -149,7 +153,6 @@ expmt.projector.Fy = Fy;
 %% Main Experimental Loop
 
 % start timer
-tic
 tPrev = toc;
 
 % initialize centroid markers
@@ -165,7 +168,7 @@ in_light = false(nROIs,1);
 
 % run experimental loop until duration is exceeded or last frame
 % of the last video file is reached
-while trackDat.t < gui_handles.edit_exp_duration.Value * 3600 && ~lastFrame
+while ~trackDat.lastFrame
     
     % update time stamps and frame rate
     [trackDat, tPrev] = updateTime(trackDat, tPrev, expmt, gui_handles);
@@ -178,9 +181,9 @@ while trackDat.t < gui_handles.edit_exp_duration.Value * 3600 && ~lastFrame
         
         % stop expmt when last frame of last video is reached
         if isfield(expmt.video,'fID')
-            lastFrame = feof(expmt.video.fID);
+            trackDat.lastFrame = feof(expmt.video.fID);
         elseif ~hasFrame(expmt.video.vid) && expmt.video.ct == expmt.video.nVids
-            lastFrame = true;
+            trackDat.lastFrame = true;
         end
     end
 
@@ -242,9 +245,24 @@ while trackDat.t < gui_handles.edit_exp_duration.Value * 3600 && ~lastFrame
     
 end
 
+%% post-experiment wrap-up
 
-% wrap up experiment and save master struct
-expmt = autoFinish(trackDat, expmt, gui_handles);
+% close the psychtoolbox window
+sca;
+
+if finish
+    
+    % % auto process data and save master struct
+    expmt = autoFinish(trackDat, expmt, gui_handles);
+
+end
+
+for i=1:nargout
+    switch i
+        case 1, varargout(i) = expmt;
+        case 2, varargout(i) = trackDat;
+    end
+end
 
 
 

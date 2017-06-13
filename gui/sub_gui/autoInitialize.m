@@ -1,5 +1,9 @@
 function [trackDat,expmt] = autoInitialize(trackDat,expmt,gui_handles)
 
+if ~expmt.Initialize
+    return
+end
+
 if isfield(gui_handles,'deviceID')
     try
     minstr = num2str(round(expmt.parameters.duration * 60));
@@ -97,3 +101,6 @@ end
 
 set(gui_handles.on_objs,'Enable','on');
 set(gui_handles.off_objs,'Enable','off');
+
+% start the timer for the experiment
+tic;

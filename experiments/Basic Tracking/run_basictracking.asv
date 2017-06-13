@@ -1,4 +1,4 @@
-function varargout = run_basictracking(expmt,gui_handles,varargin)
+function [expmt] = run_basictracking(expmt,gui_handles,varargin)
 %
 % This is a blank experimental template to serve as a framework for new
 % custom experiments. The function takes the master experiment struct
@@ -8,15 +8,24 @@ function varargout = run_basictracking(expmt,gui_handles,varargin)
 
 %% Parse variable inputs
 
+initialize = true;              % go through initialization steps by default
+finish = true;                  % auto-process data by default
+
 for i = 1:length(varargin)
     
     arg = varargin{i};
     
     if ischar(arg)
         switch arg
+            case 'Initialize'
+                i=i+1;
+                initialize = varargin{i};
+            case 'Finish'
+                i=i+1;
+                finish = varargin{i};
             case 'Trackdat'
                 i=i+1;
-                trackDat = varargin{i};     % manually pass in trackDat rather than initializing
+                trackDat = varargin{i};     
         end
     end
 end
@@ -34,18 +43,25 @@ imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');   % image hand
 
 
 %% Experimental Setup
+
+if initialize
     
-% Initialize reference stack
-ref_stack = repmat(expmt.ref, 1, 1, gui_handles.edit_ref_depth.Value);
+    % Initialize reference stack
+    ref_stack = repmat(expmt.ref, 1, 1, gui_handles.edit_ref_depth.Value);
 
-% properties of the tracked objects to be recorded
-trackDat.fields={'Centroid';'Time'};                 
+    % properties of the tracked objects to be recorded
+    trackDat.fields={'Centroid';'Time'};                 
 
-% initialize labels, files, and cam/video
-[trackDat,expmt] = autoInitialize(trackDat,expmt,gui_handles);
+    % initialize labels, files, and cam/video
+    [trackDat,expmt] = autoInitialize(trackDat,expmt,gui_handles);
+    
+    % start timer
+    tic;
+    
+end
 
 % lastFrame = false until last frame of the last video file is reached
-trackDat.lastFrame = false;
+lastFrame = false;
 
 
 %% Main Experimental Loop
@@ -61,7 +77,7 @@ hold off
 
 % run experimental loop until duration is exceeded or last frame
 % of the last video file is reached
-while ~trackDat.lastFrame
+while trackDat.t < gui_handles.edit_exp_duration.Value * 3600 && ~lastFrame
     
     % update time stamps and frame rate
     [trackDat, tPrev] = updateTime(trackDat, tPrev, expmt, gui_handles);
@@ -78,9 +94,9 @@ while ~trackDat.lastFrame
         
         % stop expmt when last frame of last video is reached
         if isfield(expmt.video,'fID')
-            trackDat.lastFrame = feof(expmt.video.fID);
+            lastFrame = feof(expmt.video.fID);
         elseif ~hasFrame(expmt.video.vid) && expmt.video.ct == expmt.video.nVids
-            trackDat.lastFrame = true;
+            lastFrame = true;
         end
         
     end
@@ -137,19 +153,10 @@ while ~trackDat.lastFrame
 end
 
 
-%% post-experiment wrap-up
-
 if finish
-    
-    % % auto process data and save master struct
+
+    % wrap up experiment and save master struct
     expmt = autoFinish(trackDat, expmt, gui_handles);
 
-end
-
-for i=1:nargout
-    switch i
-        case 1, varargout(i) = expmt;
-        case 2, varargout(i) = trackDat;
-    end
 end
 

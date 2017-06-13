@@ -1,5 +1,14 @@
 function [trackDat,tPrev] = updateTime(trackDat, tPrev, expmt, gui_handles, varargin)
     
+
+    % check last frame against block duration if running in block mode
+    % otherwise, check against the experiment duration
+    if isfield(expmt,'block_duration')
+        trackDat.lastFrame = trackDat.t < expmt.block_duration * 3600;
+    else
+        trackDat.lastFrame = trackDat.t < gui_handles.edit_exp_duration.Value * 3600;
+    end
+    
     no_plot = false;
     if ~isempty(varargin)
         no_plot = logical(varargin{1});
@@ -39,7 +48,7 @@ function [trackDat,tPrev] = updateTime(trackDat, tPrev, expmt, gui_handles, vara
         
     end
     
-        % update frame rate in the gui
+    % update frame rate in the gui
     gui_handles.edit_frame_rate.String = num2str(round((1/ifi)*10)/10);
     
 

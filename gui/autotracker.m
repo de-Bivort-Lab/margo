@@ -285,6 +285,8 @@ expmt.parameters.mm_per_pix = 1;            % set default distance scale 1 mm pe
 expmt.parameters.units = 'pixels';          % set default units to pixels
 expmt.vignette.mode = 'auto';
 expmt.expID = 1;
+expmt.Initialize = true;
+expmt.Finish = true;
 
 handles.gui_fig.UserData.target_rate = 60;
 expmt.parameters.target_rate = handles.gui_fig.UserData.target_rate;
