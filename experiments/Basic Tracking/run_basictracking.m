@@ -148,8 +148,8 @@ end
 
 for i=1:nargout
     switch i
-        case 1, varargout(i) = expmt;
-        case 2, varargout(i) = trackDat;
+        case 1, varargout(i) = {expmt};
+        case 2, varargout(i) = {trackDat};
     end
 end
 

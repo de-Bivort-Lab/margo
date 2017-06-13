@@ -28,6 +28,9 @@ basic = expmt;
 opto = expmt;
 photo = expmt;
 
+% set basic tracking to full illumination
+basic.light.white = uint8(255);
+
 % set duration of each experiment block in hrs
 rep_dur = 0.5;     
 nReps = ceil(gui_handles.edit_exp_duration.Value/rep_dur);
@@ -128,9 +131,9 @@ photo = autoFinish(trackDat_photo, photo, gui_handles);
 
 for i=1:nargout
     switch i
-        case 1, varargout(i) = basic;
-        case 2, varargout(i) = opto;
-        case 3, varargout(i) = photo;
+        case 1, varargout(i) = {basic};
+        case 2, varargout(i) = {opto};
+        case 3, varargout(i) = {photo};
     end
 end
 
