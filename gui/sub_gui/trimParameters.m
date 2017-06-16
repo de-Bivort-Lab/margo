@@ -15,3 +15,4 @@ out_parameters.mm_per_pix = in_parameters.mm_per_pix;
 out_parameters.units = in_parameters.units;
 out_parameters.ROI_mode = in_parameters.ROI_mode;
 out_parameters.sort_mode = in_parameters.sort_mode;
+out_parameters.ROI_tol = in_parameters.ROL_tol;
