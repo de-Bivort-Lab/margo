@@ -45,7 +45,7 @@ end
 
 
 % --- Executes just before autotracker is made visible.
-function autotracker_OpeningFcn(hObject, eventdata, handles, varargin)
+function autotracker_OpeningFcn(hObject, ~, handles, varargin)
 % This function has no output args, see OutputFcn.
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -159,7 +159,7 @@ expmt = [];
 % initialize array indicating expIDs for experiments with an associated
 % parameter subgui. NOTE: any custom experiments with an experiment
 % parameters subgui must be added to this list.
-handles.parameter_subgui = [3 4 9];
+handles.parameter_subgui = [3 4 9 10];
 
 % popuplate saved profile list and create menu items
 % Get existing profile list
@@ -277,6 +277,7 @@ expmt.parameters.ROI_thresh = round(handles.ROI_thresh_slider.Value);
 expmt.parameters.track_thresh = round(handles.track_thresh_slider.Value);
 expmt.parameters.sort_mode = 'distance';
 expmt.parameters.ROI_mode = 'auto';
+expmt.parameters.ROI_tol = 2.5;
 
 handles.edit_speed_thresh.String = num2str(handles.gui_fig.UserData.speed_thresh);
 handles.edit_dist_thresh.String = num2str(handles.gui_fig.UserData.distance_thresh);
@@ -311,7 +312,7 @@ guidata(hObject,handles);
 % uiwait(handles.gui_fig);
 
 % --- Outputs from this function are returned to the command line.
-function varargout = autotracker_OutputFcn(hObject, eventdata, handles) 
+function varargout = autotracker_OutputFcn(hObject, ~, handles) 
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -332,7 +333,7 @@ varargout{1} = handles.output;
 
 
 % --- Executes on selection change in cam_select_popupmenu.
-function cam_select_popupmenu_Callback(hObject, eventdata, handles)
+function cam_select_popupmenu_Callback(hObject, ~, handles)
 % hObject    handle to cam_select_popupmenu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -384,7 +385,7 @@ end
 
 
 % --- Executes on selection change in cam_mode_popupmenu.
-function cam_mode_popupmenu_Callback(hObject, eventdata, handles)
+function cam_mode_popupmenu_Callback(hObject, ~, handles)
 % hObject    handle to cam_mode_popupmenu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -414,7 +415,7 @@ end
 
 
 % --- Executes on button press in Cam_confirm_pushbutton.
-function Cam_confirm_pushbutton_Callback(hObject, eventdata, handles)
+function Cam_confirm_pushbutton_Callback(hObject, ~, handles)
 % hObject    handle to Cam_confirm_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -541,7 +542,7 @@ guidata(hObject,handles);
 
 
 % --- Executes on button press in Cam_preview_togglebutton.
-function Cam_preview_togglebutton_Callback(hObject, eventdata, handles)
+function Cam_preview_togglebutton_Callback(hObject, ~, handles)
 % hObject    handle to Cam_preview_togglebutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -646,7 +647,7 @@ end
 
 
 
-function edit_IR_intensity_Callback(hObject, eventdata, handles)
+function edit_IR_intensity_Callback(hObject, ~, handles)
 % hObject    handle to edit_IR_intensity (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -678,7 +679,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-function edit_White_intensity_Callback(hObject, eventdata, handles)
+function edit_White_intensity_Callback(hObject, ~, handles)
 % hObject    handle to edit_White_intensity (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -714,7 +715,7 @@ end
 
 
 % --- Executes on button press in save_path_button1.
-function save_path_button1_Callback(hObject, eventdata, handles)
+function save_path_button1_Callback(hObject, ~, handles)
 % hObject    handle to save_path_button1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -777,7 +778,7 @@ end
 
 
 % --- Executes during object creation, after setting all properties.
-function labels_uitable_CreateFcn(hObject, eventdata, handles)
+function labels_uitable_CreateFcn(hObject, ~, handles)
 % hObject    handle to labels_uitable (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -799,7 +800,7 @@ guidata(hObject,handles);
 
 
 % --- Executes when entered data in editable cell(s) in labels_uitable.
-function labels_uitable_CellEditCallback(hObject, eventdata, handles)
+function labels_uitable_CellEditCallback(hObject, ~, handles)
 % hObject    handle to labels_uitable (see GCBO)
 % eventdata  structure with the following fields (see UITABLE)
 %	Indices: row and column indices of the cell(s) edited
@@ -823,7 +824,7 @@ guidata(hObject,handles);
 
 
 
-function edit_ref_depth_Callback(hObject, eventdata, handles)
+function edit_ref_depth_Callback(hObject, ~, handles)
 % hObject    handle to edit_ref_depth (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -854,7 +855,7 @@ end
 
 
 
-function edit_ref_freq_Callback(hObject, eventdata, handles)
+function edit_ref_freq_Callback(hObject, ~, handles)
 % hObject    handle to edit_ref_freq (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -887,7 +888,7 @@ end
 
 
 
-function edit_exp_duration_Callback(hObject, eventdata, handles)
+function edit_exp_duration_Callback(hObject, ~, handles)
 % hObject    handle to edit_exp_duration (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -921,7 +922,7 @@ end
 
 
 % --- Executes on button press in run_pushbutton.
-function run_pushbutton_Callback(hObject, eventdata, handles)
+function run_pushbutton_Callback(hObject, ~, handles)
 % hObject    handle to run_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1123,7 +1124,7 @@ setappdata(handles.gui_fig,'expmt',expmt);
 
 
 % --- Executes on slider movement.
-function ROI_thresh_slider_Callback(hObject, eventdata, handles)
+function ROI_thresh_slider_Callback(hObject, ~, handles)
 % hObject    handle to ROI_thresh_slider (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1152,7 +1153,7 @@ end
 
 
 % --- Executes on button press in accept_ROI_thresh_pushbutton.
-function accept_ROI_thresh_pushbutton_Callback(hObject, eventdata, handles)
+function accept_ROI_thresh_pushbutton_Callback(hObject, ~, handles) %#ok<*DEFNU>
 % hObject    handle to accept_ROI_thresh_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1189,7 +1190,7 @@ end
 
 
 % --- Executes on selection change in exp_select_popupmenu.
-function exp_select_popupmenu_Callback(hObject, eventdata, handles)
+function exp_select_popupmenu_Callback(hObject, ~, handles)
 % hObject    handle to exp_select_popupmenu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1198,10 +1199,10 @@ function exp_select_popupmenu_Callback(hObject, eventdata, handles)
 expmt = getappdata(handles.gui_fig,'expmt');
 
 if expmt.expID ~= handles.exp_select_popupmenu.Value
-    expmt.expID = get(handles.exp_select_popupmenu,'Value');    % index of the experiment in exp list
-    names = get(handles.exp_select_popupmenu,'string');         % name of the experiment
-    expmt.Name = names{expmt.expID};                            % store name in master struct
-    expmt.parameters = trimParameters(expmt.parameters, handles);                 % remove all experiment specific parameters
+    expmt.expID = get(handles.exp_select_popupmenu,'Value');        % index of the experiment in exp list
+    names = get(handles.exp_select_popupmenu,'string');             % name of the experiment
+    expmt.Name = names{expmt.expID};                                % store name in master struct
+    expmt.parameters = trimParameters(expmt.parameters, handles);   % remove all experiment specific parameters
 end
 
 % enable Experiment Parameters pushbutton if expID has an associated subgui
@@ -1260,7 +1261,7 @@ end
 
 
 % --- Executes on button press in exp_parameter_pushbutton.
-function exp_parameter_pushbutton_Callback(hObject, eventdata, handles)
+function exp_parameter_pushbutton_Callback(hObject, ~, handles)
 % hObject    handle to exp_parameter_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1295,6 +1296,32 @@ else
                     expmt.parameters = tmp_param;
                 end
                 
+        case 10
+            
+                % arena block expmt parameters
+                tmp_param = arenablock_parameter_gui(expmt);
+                if ~isempty(tmp_param)
+                    expmt = tmp_param;
+                 
+                
+                    % also query optomotor and slowphototaxis parameters
+                    % if those experiments are selected as well
+
+                    if isfield(expmt,'block') && any(strcmp(expmt.block.fields,'Optomotor'))
+                        tmp_param = optomotor_parameter_gui(expmt);
+                        if ~isempty(tmp_param)
+                            expmt.opto_parameters = tmp_param.parameters;
+                        end  
+                    end
+
+                    if isfield(expmt,'block') && any(strcmp(expmt.block.fields,'Slow Phototaxis'))
+                        tmp_param = slowphototaxis_parameter_gui(expmt);
+                        if ~isempty(tmp_param)
+                            expmt.photo_parameters = tmp_param.parameters;
+                        end
+                    end
+                
+                end
     end
 end
 
@@ -1308,7 +1335,7 @@ guidata(hObject,handles);
 
 
 % --- Executes on button press in refresh_COM_pushbutton.
-function refresh_COM_pushbutton_Callback(hObject, eventdata, handles)
+function refresh_COM_pushbutton_Callback(hObject, ~, handles)
 % hObject    handle to refresh_COM_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1335,7 +1362,7 @@ setappdata(handles.gui_fig,'expmt',expmt);
 
 
 % --- Executes on button press in enter_labels_pushbutton.
-function enter_labels_pushbutton_Callback(hObject, eventdata, handles)
+function enter_labels_pushbutton_Callback(hObject, ~, handles)
 % hObject    handle to enter_labels_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1371,7 +1398,7 @@ guidata(hObject,handles);
 
 
 % --- Executes on slider movement.
-function track_thresh_slider_Callback(hObject, eventdata, handles)
+function track_thresh_slider_Callback(hObject, ~, handles)
 % hObject    handle to track_thresh_slider (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1407,7 +1434,7 @@ end
 
 
 % --- Executes on button press in accept_track_thresh_pushbutton.
-function accept_track_thresh_pushbutton_Callback(hObject, eventdata, handles)
+function accept_track_thresh_pushbutton_Callback(hObject, ~, handles)
 % hObject    handle to accept_track_thresh_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1476,7 +1503,7 @@ function reg_test_pushbutton_Callback(~, ~, ~)
 
 
 % --- Executes on selection change in aux_COM_popupmenu.
-function aux_COM_popupmenu_Callback(hObject, eventdata, handles)
+function aux_COM_popupmenu_Callback(hObject, ~, handles)
 % hObject    handle to aux_COM_popupmenu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1512,7 +1539,7 @@ end
 
 
 % --- Executes on button press in refresh_aux_COM_pushbutton.
-function refresh_aux_COM_pushbutton_Callback(hObject, eventdata, handles)
+function refresh_aux_COM_pushbutton_Callback(hObject, ~, handles)
 % hObject    handle to refresh_aux_COM_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1543,7 +1570,7 @@ guidata(hObject,handles);
 
 
 % --- Executes on selection change in param_prof_popupmenu.
-function param_prof_popupmenu_Callback(hObject, eventdata, handles)
+function param_prof_popupmenu_Callback(hObject, ~, handles)
 % hObject    handle to param_prof_popupmenu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1602,7 +1629,7 @@ end
 
 
 % --- Executes on button press in save_params_pushbutton.
-function save_params_pushbutton_Callback(hObject, eventdata, handles)
+function save_params_pushbutton_Callback(hObject, ~, handles)
 % hObject    handle to save_params_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1652,7 +1679,7 @@ function ROI_thresh_slider_DeleteFcn(~,~,~)
 
 
 % --- Executes on button press in reference_pushbutton.
-function reference_pushbutton_Callback(hObject, eventdata, handles)
+function reference_pushbutton_Callback(hObject, ~, handles)
 % hObject    handle to reference_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1675,7 +1702,7 @@ guidata(hObject,handles);
 
 
 % --- Executes on button press in sample_noise_pushbutton.
-function sample_noise_pushbutton_Callback(hObject, eventdata, handles)
+function sample_noise_pushbutton_Callback(hObject, ~, handles)
 % hObject    handle to sample_noise_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1726,7 +1753,7 @@ guidata(hObject,handles);
 
 
 % --- Executes on button press in auto_detect_ROIs_pushbutton.
-function auto_detect_ROIs_pushbutton_Callback(hObject, eventdata, handles)
+function auto_detect_ROIs_pushbutton_Callback(hObject, ~, handles)
 % hObject    handle to auto_detect_ROIs_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1836,7 +1863,7 @@ function display_menu_Callback(~,~,~)
 
 
 % --------------------------------------------------------------------
-function cam_settings_menu_Callback(hObject, eventdata, handles)
+function cam_settings_menu_Callback(hObject, ~, handles)
 % hObject    handle to cam_settings_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1871,7 +1898,7 @@ function file_menu_Callback(~,~,~)
 
 
 % --------------------------------------------------------------------
-function display_difference_menu_Callback(hObject, eventdata, handles)
+function display_difference_menu_Callback(hObject, ~, handles)
 % hObject    handle to display_difference_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1891,7 +1918,7 @@ guidata(hObject,handles);
 
 
 % --------------------------------------------------------------------
-function display_raw_menu_Callback(hObject, eventdata, handles)
+function display_raw_menu_Callback(hObject, ~, handles)
 % hObject    handle to display_raw_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1911,7 +1938,7 @@ guidata(hObject,handles);
 
 
 % --------------------------------------------------------------------
-function display_threshold_menu_Callback(hObject, eventdata, handles)
+function display_threshold_menu_Callback(hObject, ~, handles)
 % hObject    handle to display_threshold_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1930,7 +1957,7 @@ end
 guidata(hObject,handles);
 
 % --------------------------------------------------------------------
-function display_reference_menu_Callback(hObject, eventdata, handles)
+function display_reference_menu_Callback(hObject, ~, handles)
 % hObject    handle to display_reference_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1950,7 +1977,7 @@ guidata(hObject,handles);
 
 
 % --------------------------------------------------------------------
-function display_none_menu_Callback(hObject, eventdata, handles)
+function display_none_menu_Callback(hObject, ~, handles)
 % hObject    handle to display_none_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1970,7 +1997,7 @@ guidata(hObject,handles);
 
 
 % --------------------------------------------------------------------
-function reg_proj_menu_Callback(hObject, eventdata, handles)
+function reg_proj_menu_Callback(hObject, ~, handles)
 % hObject    handle to reg_proj_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -2026,7 +2053,7 @@ guidata(hObject, handles);
 
 
 % --------------------------------------------------------------------
-function reg_params_menu_Callback(hObject, eventdata, handles)
+function reg_params_menu_Callback(hObject, ~, handles)
 
 
 % import expmteriment data struct
@@ -2049,7 +2076,7 @@ setappdata(handles.gui_fig,'expmt',expmt);
 
 
 % --------------------------------------------------------------------
-function reg_error_menu_Callback(hObject, eventdata, handles)
+function reg_error_menu_Callback(hObject, ~, handles)
 % hObject    handle to reg_error_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -2105,7 +2132,7 @@ function tracking_menu_Callback(~,~,~)
 
 
 % --------------------------------------------------------------------
-function advanced_tracking_menu_Callback(hObject, eventdata, handles)
+function advanced_tracking_menu_Callback(hObject, ~, handles)
 % hObject    handle to advanced_tracking_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -2122,7 +2149,7 @@ setappdata(handles.gui_fig,'expmt',expmt);
 
 
 % --------------------------------------------------------------------
-function distance_scale_menu_Callback(hObject, eventdata, handles)
+function distance_scale_menu_Callback(hObject, ~, handles)
 % hObject    handle to distance_scale_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -2193,7 +2220,7 @@ function Untitled_8_Callback(~,~,~)
 
 
 % --- Executes when gui_fig is resized.
-function gui_fig_SizeChangedFcn(hObject, eventdata, handles)
+function gui_fig_SizeChangedFcn(hObject, ~, handles)
 % hObject    handle to gui_fig (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -2281,7 +2308,7 @@ function saved_presets_menu_Callback(~,~,~)
 
 
 % --- Executes on button press in vid_preview_togglebutton.
-function vid_preview_togglebutton_Callback(hObject, eventdata, handles)
+function vid_preview_togglebutton_Callback(hObject, ~, handles)
 % hObject    handle to vid_preview_togglebutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -2390,7 +2417,7 @@ function pushbutton23_Callback(~,~,~)
 
 
 % --- Executes on selection change in vid_select_popupmenu.
-function vid_select_popupmenu_Callback(hObject, eventdata, handles)
+function vid_select_popupmenu_Callback(hObject, ~, handles)
 % hObject    handle to vid_select_popupmenu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -2447,7 +2474,7 @@ end
 
 
 % --- Executes on button press in video_files_pushbutton.
-function video_files_pushbutton_Callback(hObject, eventdata, handles)
+function video_files_pushbutton_Callback(hObject, ~, handles)
 % hObject    handle to video_files_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -2500,7 +2527,7 @@ function select_source_menu_Callback(~,~,~)
 
 
 % --------------------------------------------------------------------
-function source_camera_menu_Callback(hObject, eventdata, handles)
+function source_camera_menu_Callback(hObject, ~, handles)
 % hObject    handle to source_camera_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -2548,7 +2575,7 @@ setappdata(handles.gui_fig,'expmt',expmt);
 
 
 % --------------------------------------------------------------------
-function source_video_menu_Callback(hObject, eventdata, handles)
+function source_video_menu_Callback(hObject, ~, handles)
 % hObject    handle to source_video_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -2606,7 +2633,7 @@ setappdata(handles.gui_fig,'expmt',expmt);
 
 
 % --------------------------------------------------------------------
-function vignette_correction_menu_Callback(hObject, eventdata, handles)
+function vignette_correction_menu_Callback(hObject, ~, handles)
 
 expmt = getappdata(handles.gui_fig,'expmt');        % get expmt data struct
 clean_gui(handles.axes_handle);                     % clear drawn objects
@@ -2706,7 +2733,7 @@ guidata(gui_fig,hObject.UserData.gui_handles);
 
 
 % --------------------------------------------------------------------
-function save_new_preset_menu_Callback(hObject, eventdata, handles)
+function save_new_preset_menu_Callback(hObject, ~, handles)
 % hObject    handle to save_new_preset_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -2754,7 +2781,7 @@ function aux_com_menu_Callback(~,~,~)
 
 
 % --------------------------------------------------------------------
-function refresh_COM_menu_Callback(hObject, eventdata, handles)
+function refresh_COM_menu_Callback(hObject, ~, handles)
 % hObject    handle to refresh_COM_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -2858,7 +2885,7 @@ setappdata(gui_fig,'expmt',expmt);
 
 
 % --------------------------------------------------------------------
-function refresh_cam_menu_Callback(hObject, eventdata, handles)
+function refresh_cam_menu_Callback(hObject, ~, handles)
 % hObject    handle to refresh_cam_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -2918,7 +2945,7 @@ switch hObject.Checked
 end
 
 
-function edit_dist_thresh_Callback(hObject, eventdata, handles)
+function edit_dist_thresh_Callback(hObject, ~, handles)
 % hObject    handle to edit_dist_thresh (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -2941,7 +2968,7 @@ end
 
 
 
-function edit_speed_thresh_Callback(hObject, eventdata, handles)
+function edit_speed_thresh_Callback(hObject, ~, handles)
 % hObject    handle to edit_speed_thresh (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -2972,7 +2999,7 @@ function view_menu_Callback(~,~,~)
 
 
 % --------------------------------------------------------------------
-function view_roi_bounds_menu_Callback(hObject, eventdata, handles)
+function view_roi_bounds_menu_Callback(hObject, ~, handles)
 % hObject    handle to view_roi_bounds_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -3005,7 +3032,7 @@ switch hObject.Checked
 end
 
 % --------------------------------------------------------------------
-function view_roi_num_menu_Callback(hObject, eventdata, handles)
+function view_roi_num_menu_Callback(hObject, ~, handles)
 % hObject    handle to view_roi_num_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -3041,7 +3068,7 @@ end
 
 
 % --------------------------------------------------------------------
-function view_roi_ori_menu_Callback(hObject, eventdata, handles)
+function view_roi_ori_menu_Callback(hObject, ~, handles)
 % hObject    handle to view_roi_ori_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -3082,7 +3109,7 @@ switch hObject.Checked
 end
 
 % --------------------------------------------------------------------
-function man_edit_roi_menu_Callback(hObject, eventdata, handles)
+function man_edit_roi_menu_Callback(hObject, ~, handles)
 % hObject    handle to man_edit_roi_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -3228,7 +3255,7 @@ hObject.Parent.UserData.click.coords = eventdata.IntersectionPoint;
 
 
 % --- Executes on key press with focus on gui_fig and none of its controls.
-function gui_fig_KeyPressFcn(hObject, eventdata, handles)
+function gui_fig_KeyPressFcn(hObject, ~, handles)
 % hObject    handle to gui_fig (see GCBO)
 % eventdata  structure with the following fields (see MATLAB.UI.FIGURE)
 %	Key: name of the key that was pressed, in lower case
@@ -3255,7 +3282,7 @@ function gui_fig_WindowKeyPressFcn(~,~,~)
 
 
 % --- Executes during object creation, after setting all properties.
-function pause_togglebutton_CreateFcn(hObject, eventdata, handles)
+function pause_togglebutton_CreateFcn(hObject, ~, handles)
 % hObject    handle to pause_togglebutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -3287,7 +3314,7 @@ guidata(hObject,handles);
 
 
 % --- Executes on button press in stop_pushbutton.
-function stop_pushbutton_Callback(hObject, eventdata, handles)
+function stop_pushbutton_Callback(hObject, ~, handles)
 % hObject    handle to stop_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -3303,7 +3330,7 @@ guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function run_pushbutton_CreateFcn(hObject, eventdata, handles)
+function run_pushbutton_CreateFcn(hObject, ~, handles)
 % hObject    handle to run_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -3335,7 +3362,7 @@ guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function stop_pushbutton_CreateFcn(hObject, eventdata, handles)
+function stop_pushbutton_CreateFcn(hObject, ~, handles)
 % hObject    handle to stop_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -3367,7 +3394,7 @@ guidata(hObject,handles);
 
 
 % --------------------------------------------------------------------
-function unlock_controls_menu_Callback(hObject, eventdata, handles)
+function unlock_controls_menu_Callback(hObject, ~, handles)
 % hObject    handle to unlock_controls_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -3377,7 +3404,7 @@ guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function gui_fig_CreateFcn(hObject, eventdata, handles)
+function gui_fig_CreateFcn(hObject, ~, handles)
 % hObject    handle to gui_fig (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -3386,7 +3413,7 @@ function gui_fig_CreateFcn(hObject, eventdata, handles)
 
 
 % --- Executes when user attempts to close gui_fig.
-function gui_fig_CloseRequestFcn(hObject, eventdata, handles)
+function gui_fig_CloseRequestFcn(hObject, ~, handles)
 % hObject    handle to gui_fig (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)

@@ -31,6 +31,10 @@ pause(2);
 
 %% Query cam resolution and collect reference image
 
+% move mouse cursor
+robot = java.awt.Robot;
+robot.mouseMove(1, 1); 
+
 ref=peekdata(expmt.camInfo.vid,1);
 if size(ref,3)>1
     ref=ref(:,:,2);
@@ -87,6 +91,10 @@ hold off
 
 %% Calculate display delay
 
+% move mouse cursor
+robot = java.awt.Robot;
+robot.mouseMove(1, 1);    
+
 % cam midpoint                             
 mid = expmt.camInfo.vid.VideoResolution./2;
 
@@ -133,6 +141,10 @@ Screen('Flip',scrProp.window);
 delay = t*1.5;
 
 %% Registration loop
+
+% move mouse cursor
+robot = java.awt.Robot;
+robot.mouseMove(1, 1); 
 
 % Initialize both x and y to zero and raster the projector
 x=0;

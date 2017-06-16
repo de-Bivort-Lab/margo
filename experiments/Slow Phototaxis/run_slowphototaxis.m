@@ -1,4 +1,4 @@
-function varargout = run_slowphototaxis(expmt,gui_handles)
+function varargout = run_slowphototaxis(expmt,gui_handles,varargin)
 %
 % This is a blank experimental template to serve as a framework for new
 % custom experiments. The function takes the master experiment struct
@@ -27,7 +27,7 @@ end
 gui_notify(['executing ' mfilename '.m'],gui_handles.disp_note);
 
 % clear memory
-clearvars -except gui_handles expmt
+clearvars -except gui_handles expmt trackDat
 
 % get handles
 gui_fig = gui_handles.gui_fig;                            % gui figure handle
@@ -35,7 +35,6 @@ imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');   % image hand
 
 
 %% Experimental Setup
-
 
 % Initialize experiment parameters
 ref_stack = repmat(expmt.ref, 1, 1, gui_handles.edit_ref_depth.Value);  % initialize the reference stack
@@ -152,6 +151,10 @@ expmt.projector.Fy = Fy;
 
 %% Main Experimental Loop
 
+% make sure the mouse cursor is at screen edge
+robot = java.awt.Robot;
+robot.mouseMove(1, 1);
+
 % start timer
 tPrev = toc;
 
@@ -250,7 +253,7 @@ end
 % close the psychtoolbox window
 sca;
 
-if finish
+if expmt.Finish
     
     % % auto process data and save master struct
     expmt = autoFinish(trackDat, expmt, gui_handles);

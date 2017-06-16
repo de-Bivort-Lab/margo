@@ -26,7 +26,7 @@ end
 gui_notify(['executing ' mfilename '.m'],gui_handles.disp_note);
 
 % clear memory
-clearvars -except gui_handles expmt
+clearvars -except gui_handles expmt trackDat
 
 % get handles
 gui_fig = gui_handles.gui_fig;                            % gui figure handle
@@ -139,7 +139,7 @@ end
 
 %% post-experiment wrap-up
 
-if finish
+if expmt.Finish
     
     % % auto process data and save master struct
     expmt = autoFinish(trackDat, expmt, gui_handles);
