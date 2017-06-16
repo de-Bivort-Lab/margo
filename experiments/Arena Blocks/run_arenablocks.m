@@ -57,6 +57,7 @@ nExp = length(exp_names);
 % initialize the experiment master structs for each experiment
 expmt.Finish = false;
 expmt.Initialize = true;
+expmt.block.t = 0;
 
 % assign expmt specific parameters
 rep_dur = 0;
@@ -86,7 +87,6 @@ rep_dur = rep_dur/60;   % convert from minutes to hours
 % set duration of each experiment block in hrs
 nReps = ceil(gui_handles.edit_exp_duration.Value/rep_dur);
 gui_handles.edit_exp_duration.Value = rep_dur * nReps;
-expmt.block.t = 0;
 
 % randomize experiment blocks
 perm = perms(1:nExp);                           % query all permutations of 1:nExp
