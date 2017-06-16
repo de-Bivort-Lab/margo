@@ -196,9 +196,10 @@ while t < gui_handles.edit_exp_duration.Value * 3600
     end   
 end
 
-catch
+catch ME
     sca;
     disp('whoops');
+    rethrow(ME);
 end
 
 %% Post-experiment processing and clean-up
