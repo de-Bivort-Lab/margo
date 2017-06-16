@@ -1039,8 +1039,13 @@ else
                 end
                 
             case 10
-                expmt = run_arenablocks(expmt,handles);
-                disp('wait here');
+                [circle,opto,photo] = run_arenablocks(expmt,handles);
+                analyze_arenacircling(circle,handles);
+                clearvars circle
+                analyze_optomotor(opto,handles);
+                clearvars opto
+                analyze_slowphototaxis(photo,handles);
+                clearvars photo
 
         end
     
