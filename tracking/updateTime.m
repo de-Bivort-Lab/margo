@@ -3,10 +3,17 @@ function [trackDat,tPrev] = updateTime(trackDat, tPrev, expmt, gui_handles, vara
 
     % check last frame against block duration if running in block mode
     % otherwise, check against the experiment duration
-    if isfield(expmt,'block_duration')
-        trackDat.lastFrame = trackDat.t < expmt.block_duration * 3600;
+    if isfield(expmt,'block')
+        switch expmt.Name
+            case 'Arena Circling'
+                trackDat.lastFrame = (trackDat.t - expmt.block.t) > expmt.block.arena_duration * 60;
+            case 'Optomotor'
+                trackDat.lastFrame = (trackDat.t - expmt.block.t) > expmt.block.opto_duration * 60;
+            case 'Slow Phototaxis'
+                trackDat.lastFrame = (trackDat.t - expmt.block.t) > expmt.block.photo_duration * 60;
+        end
     else
-        trackDat.lastFrame = trackDat.t < gui_handles.edit_exp_duration.Value * 3600;
+        trackDat.lastFrame = trackDat.t > gui_handles.edit_exp_duration.Value * 3600;
     end
     
     no_plot = false;

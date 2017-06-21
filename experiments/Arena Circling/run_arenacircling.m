@@ -1,4 +1,4 @@
-function [expmt] = run_arenacircling(expmt,gui_handles)
+function varargout = run_arenacircling(expmt,gui_handles,varargin)
 %
 % This is a blank experimental template to serve as a framework for new
 % custom experiments. The function takes the master experiment struct
@@ -6,51 +6,51 @@ function [expmt] = run_arenacircling(expmt,gui_handles)
 % the data assigned to out. In this example, object centroid, pixel area,
 % and the time of each frame are output to file.
 
+%% Parse variable inputs
+
+for i = 1:length(varargin)
+    
+    arg = varargin{i};
+    
+    if ischar(arg)
+        switch arg
+            case 'Trackdat'
+                i=i+1;
+                trackDat = varargin{i};     % manually pass in trackDat rather than initializing
+        end
+    end
+end
+
 %% Initialization: Get handles and set default preferences
 
 gui_notify(['executing ' mfilename '.m'],gui_handles.disp_note);
 
 % clear memory
-clearvars -except gui_handles expmt
-
-% set MATLAB to highest priority via windows cmd line
-cmd_str = 'wmic process where name="MATLAB.exe" CALL setpriority 128';
-[~,~] = system(cmd_str);
+clearvars -except gui_handles expmt trackDat
 
 % get handles
 gui_fig = gui_handles.gui_fig;                            % gui figure handle
 imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');   % image handle
 
-% clear any objects drawn to gui window
-clean_gui(gui_handles.axes_handle);
-
-% set colormap and enable display control
-colormap('gray');
-set(gui_handles.display_menu.Children,'Checked','off')
-set(gui_handles.display_menu.Children,'Enable','on')
-gui_handles.display_raw_menu.Checked = 'on';
-gui_handles.display_menu.UserData = 1;
-
 
 %% Experimental Setup
+    
+% Initialize reference stack
+ref_stack = repmat(expmt.ref, 1, 1, gui_handles.edit_ref_depth.Value);
 
-% Initialize experiment parameters
-ref_stack = repmat(expmt.ref, 1, 1, gui_handles.edit_ref_depth.Value);  % initialize the reference stack
-
-% Initialize tracking variables
-trackDat.fields={'Centroid';'Time'};                 % properties of the tracked objects to be recorded
+% properties of the tracked objects to be recorded
+trackDat.fields={'Centroid';'Time'};                 
 
 % initialize labels, files, and cam/video
 [trackDat,expmt] = autoInitialize(trackDat,expmt,gui_handles);
 
 % lastFrame = false until last frame of the last video file is reached
-lastFrame = false;
+trackDat.lastFrame = false;
 
 
 %% Main Experimental Loop
 
-% start timer
-tic
+% initialize previous frame time stamp
 tPrev = toc;
 
 % initialize centroid markers
@@ -61,23 +61,28 @@ hold off
 
 % run experimental loop until duration is exceeded or last frame
 % of the last video file is reached
-while trackDat.t < gui_handles.edit_exp_duration.Value * 3600 && ~lastFrame
+while ~trackDat.lastFrame
     
     % update time stamps and frame rate
     [trackDat, tPrev] = updateTime(trackDat, tPrev, expmt, gui_handles);
 
     % Take single frame
     if strcmp(expmt.source,'camera')
+        
+        % grab frame from camera
         trackDat.im = peekdata(expmt.camInfo.vid,1);
+        
     else
+        % get next frame from video file
         [trackDat.im, expmt.video] = nextFrame(expmt.video,gui_handles);
         
         % stop expmt when last frame of last video is reached
         if isfield(expmt.video,'fID')
-            lastFrame = feof(expmt.video.fID);
+            trackDat.lastFrame = feof(expmt.video.fID);
         elseif ~hasFrame(expmt.video.vid) && expmt.video.ct == expmt.video.nVids
-            lastFrame = true;
+            trackDat.lastFrame = true;
         end
+        
     end
 
     % ensure that image is mono
@@ -85,12 +90,13 @@ while trackDat.t < gui_handles.edit_exp_duration.Value * 3600 && ~lastFrame
         trackDat.im=trackDat.im(:,:,2);
     end
 
-    % track, sort to ROIs, and output optional fields to sorted fields,
-    % and sample the number of pixels above the image threshold
+    % track, sort to ROIs, output optional fields set during intialization
+    % and compare noise to the noise distribution measured during sampling
     trackDat = autoTrack(trackDat,expmt,gui_handles);
 
 
-    % output data to binary files
+
+    % output data tracked fields to binary files
     for i = 1:length(trackDat.fields)
         precision = class(trackDat.(trackDat.fields{i}));
         fwrite(expmt.(trackDat.fields{i}).fID,trackDat.(trackDat.fields{i}),precision);
@@ -99,17 +105,19 @@ while trackDat.t < gui_handles.edit_exp_duration.Value * 3600 && ~lastFrame
     % update ref at the reference frequency or reset if noise thresh is exceeded
     [trackDat, ref_stack, expmt] = updateRef(trackDat, ref_stack, expmt, gui_handles);
 
+    % display update
     if gui_handles.display_menu.UserData ~= 5
-        % update the display
+        
+        % set image data
         updateDisplay(trackDat, expmt, imh, gui_handles);
 
         % update centroid mark position
         hMark.XData = trackDat.Centroid(:,1);
         hMark.YData = trackDat.Centroid(:,2);
     end
-
-    % update the gui
-    drawnow
+    
+    % force immediate screen drawing and callback evaluation
+    drawnow limitrate                 
     
     % listen for gui pause/unpause
     while gui_handles.pause_togglebutton.Value || gui_handles.stop_pushbutton.UserData.Value
@@ -122,10 +130,25 @@ while trackDat.t < gui_handles.edit_exp_duration.Value * 3600 && ~lastFrame
     % optional: save vid data to file if record video menu item is checked
     if ~isfield(expmt,'VideoData') && strcmp(gui_handles.record_video_menu.Checked,'on')
         [trackDat,expmt] = initializeVidRecording(trackDat,expmt,gui_handles);
+    elseif isfield(expmt,'VideoData')
+        writeVideo(expmt.VideoData.obj,trackDat.im);
     end
     
 end
 
-% wrap up experiment and save master struct
-expmt = autoFinish(trackDat, expmt, gui_handles);
 
+%% post-experiment wrap-up
+
+if expmt.Finish
+    
+    % % auto process data and save master struct
+    expmt = autoFinish(trackDat, expmt, gui_handles);
+
+end
+
+for i=1:nargout
+    switch i
+        case 1, varargout(i) = {expmt};
+        case 2, varargout(i) = {trackDat};
+    end
+end
