@@ -2,8 +2,7 @@ function handedness = getHandedness(trackProps,varargin)
 
 %% Set default values and parse inputs
 
-bw = 2*pi/25;                                   % bin width
-bins = 0:bw:2*pi;                          % handedness bins
+bins = linspace(0-(pi/25),2*pi+(pi/25),26);
 speedthresh = 0.8;
 nf = size(trackProps.speed,2);
 empty = single(NaN(size(trackProps.speed)));
@@ -56,7 +55,7 @@ for j=1:nf
 
     % save to expmt data struct
     handedness.angle_histogram(:,j) = h;
-    handedness.mu(j) = -sin(sum(h .* (bins' + bw/2)));
+    handedness.mu(j) = -sin(sum(h .* bins(1:length(bins))'));
     handedness.include(:,j) = include(:,j);
     
 end
