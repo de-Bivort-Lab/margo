@@ -40,14 +40,12 @@ for j = 1:expmt.nTracks
     
     trackProps.speed(trackProps.speed(:,j) > 12, j) = NaN;
     
-    % restrict frames for handedness measures to set criteria
-    handedness = getHandedness(trackProps);
-    
     clearvars mu h inx iny
     
 end
 
-expmt.handedness = handedness;
+% restrict frames for handedness measures to set criteria
+expmt.handedness = getHandedness(trackProps);
 
 if ~isfield(expmt,'Speed') && isfield(expmt,'tStamps')
     expmt.Speed = trackProps.speed;

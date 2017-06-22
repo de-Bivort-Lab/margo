@@ -146,7 +146,8 @@ end
 
 %% Generate plots
 
-min_active_period = 0.65;        % Minimum time spent off the boundary divider (hours)
+% Minimum time spent off the boundary divider (hours)
+min_active_period = 0.2 * nansum(expmt.Time.data(expmt.Texture.data))/3600;        
 active = nanmean(trackProps.speed) > 0.1;
 tTotal = nansum(cell2mat(expmt.Light.tInc));
 btTotal = nansum(cell2mat(expmt.Blank.tInc));
