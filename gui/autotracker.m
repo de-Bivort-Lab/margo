@@ -1103,8 +1103,10 @@ else
         gui_notify(note,handles.disp_note);
         
         % remove tracked fields from master expmt for next run
-        for i = 1:length(expmt.fields)
-            expmt = rmfield(expmt,expmt.fields{i});
+        if isfield(expmt,'fields')
+            for i = 1:length(expmt.fields)
+                expmt = rmfield(expmt,expmt.fields{i});
+            end
         end
 
         % set downstream UI panel enable status
