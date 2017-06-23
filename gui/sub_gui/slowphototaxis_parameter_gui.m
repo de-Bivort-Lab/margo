@@ -1,26 +1,26 @@
 function varargout = slowphototaxis_parameter_gui(varargin)
-% OPTOMOTOR_PARAMETER_GUI MATLAB code for optomotor_parameter_gui.fig
-%      OPTOMOTOR_PARAMETER_GUI, by itself, creates a new OPTOMOTOR_PARAMETER_GUI or raises the existing
+% slowphototaxis_PARAMETER_GUI MATLAB code for slowphototaxis_parameter_gui.fig
+%      slowphototaxis_PARAMETER_GUI, by itself, creates a new slowphototaxis_PARAMETER_GUI or raises the existing
 %      singleton*.
 %
-%      H = OPTOMOTOR_PARAMETER_GUI returns the handle to a new OPTOMOTOR_PARAMETER_GUI or the handle to
+%      H = slowphototaxis_PARAMETER_GUI returns the handle to a new slowphototaxis_PARAMETER_GUI or the handle to
 %      the existing singleton*.
 %
-%      OPTOMOTOR_PARAMETER_GUI('CALLBACK',hObject,eventData,handles,...) calls the local
-%      function named CALLBACK in OPTOMOTOR_PARAMETER_GUI.M with the given input arguments.
+%      slowphototaxis_PARAMETER_GUI('CALLBACK',hObject,eventData,handles,...) calls the local
+%      function named CALLBACK in slowphototaxis_PARAMETER_GUI.M with the given input arguments.
 %
-%      OPTOMOTOR_PARAMETER_GUI('Property','Value',...) creates a new OPTOMOTOR_PARAMETER_GUI or raises the
+%      slowphototaxis_PARAMETER_GUI('Property','Value',...) creates a new slowphototaxis_PARAMETER_GUI or raises the
 %      existing singleton*.  Starting from the left, property value pairs are
-%      applied to the GUI before optomotor_parameter_gui_OpeningFcn gets called.  An
+%      applied to the GUI before slowphototaxis_parameter_gui_OpeningFcn gets called.  An
 %      unrecognized property name or invalid value makes property application
-%      stop.  All inputs are passed to optomotor_parameter_gui_OpeningFcn via varargin.
+%      stop.  All inputs are passed to slowphototaxis_parameter_gui_OpeningFcn via varargin.
 %
 %      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
 %      instance to run (singleton)".
 %
 % See also: GUIDE, GUIDATA, GUIHANDLES
 
-% Edit the above text to modify the response to help optomotor_parameter_gui
+% Edit the above text to modify the response to help slowphototaxis_parameter_gui
 
 % Last Modified by GUIDE v2.5 04-May-2017 12:10:23
 
@@ -28,8 +28,8 @@ function varargout = slowphototaxis_parameter_gui(varargin)
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
                    'gui_Singleton',  gui_Singleton, ...
-                   'gui_OpeningFcn', @optomotor_parameter_gui_OpeningFcn, ...
-                   'gui_OutputFcn',  @optomotor_parameter_gui_OutputFcn, ...
+                   'gui_OpeningFcn', @slowphototaxis_parameter_gui_OpeningFcn, ...
+                   'gui_OutputFcn',  @slowphototaxis_parameter_gui_OutputFcn, ...
                    'gui_LayoutFcn',  [] , ...
                    'gui_Callback',   []);
 if nargin && ischar(varargin{1})
@@ -44,16 +44,21 @@ end
 % End initialization code - DO NOT EDIT
 
 
-% --- Executes just before optomotor_parameter_gui is made visible.
-function optomotor_parameter_gui_OpeningFcn(hObject, eventdata, handles, varargin)
+% --- Executes just before slowphototaxis_parameter_gui is made visible.
+function slowphototaxis_parameter_gui_OpeningFcn(hObject, eventdata, handles, varargin)
 % This function has no output args, see OutputFcn.
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-% varargin   command line arguments to optomotor_parameter_gui (see VARARGIN)
+% varargin   command line arguments to slowphototaxis_parameter_gui (see VARARGIN)
 
-    expmt = varargin{1};
-    parameters = expmt.parameters;    
+    expmt = varargin{1};    
+    
+    if isfield(expmt,'photo_parameters')
+       parameters = expmt.photo_parameters;
+    else
+       parameters = expmt.parameters;
+    end
     
     % Clear the workspace
     sca;
@@ -81,7 +86,7 @@ function optomotor_parameter_gui_OpeningFcn(hObject, eventdata, handles, varargi
         set(handles.edit_stim_duration,'string',parameters.stim_duration);     
     end
     
-    if isfield(parameters,'stim_duration')
+    if isfield(parameters,'blank_duration')
         set(handles.edit_blank_duration,'string',parameters.blank_duration);     
     end
 
@@ -93,7 +98,7 @@ function optomotor_parameter_gui_OpeningFcn(hObject, eventdata, handles, varargi
         set(handles.edit_stim_contrast,'string',parameters.stim_contrast);
     end
     
-    % Choose default command line output for optomotor_parameter_gui
+    % Choose default command line output for slowphototaxis_parameter_gui
     handles.output.parameters.stim_duration=str2num(get(handles.edit_stim_duration,'string'));
     handles.output.parameters.divider_size=str2num(get(handles.edit_stim_divider_size,'string'));
     handles.output.parameters.stim_contrast=str2num(get(handles.edit_stim_contrast,'string'));
@@ -103,12 +108,12 @@ function optomotor_parameter_gui_OpeningFcn(hObject, eventdata, handles, varargi
 % Update handles structure
 guidata(hObject, handles);
 
-% UIWAIT makes optomotor_parameter_gui wait for user response (see UIRESUME)
+% UIWAIT makes slowphototaxis_parameter_gui wait for user response (see UIRESUME)
 uiwait(handles.figure1);
 
 
 % --- Outputs from this function are returned to the command line.
-function varargout = optomotor_parameter_gui_OutputFcn(hObject, eventdata, handles) 
+function varargout = slowphototaxis_parameter_gui_OutputFcn(hObject, eventdata, handles) 
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB

@@ -56,7 +56,12 @@ function optomotor_parameter_gui_OpeningFcn(hObject, eventdata, handles, varargi
 
 
     expmt = varargin{1};
-    parameters = expmt.parameters;
+    
+    if isfield(expmt,'opto_parameters')
+       parameters = expmt.opto_parameters;
+    else
+       parameters = expmt.parameters;
+    end
      
     % Clear the workspace
     sca;
