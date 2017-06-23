@@ -102,6 +102,14 @@ function slowphototaxis_parameter_gui_OpeningFcn(hObject, eventdata, handles, va
     handles.output.parameters.stim_duration=str2num(get(handles.edit_stim_duration,'string'));
     handles.output.parameters.divider_size=str2num(get(handles.edit_stim_divider_size,'string'));
     handles.output.parameters.stim_contrast=str2num(get(handles.edit_stim_contrast,'string'));
+    
+    handles.figure1.Units = 'points';
+    light_uipanel = findobj('Tag','light_uipanel');
+    gui_fig = findobj('Name','autotracker');
+    handles.figure1.Position(1) = gui_fig.Position(1) + ...
+        sum(light_uipanel.Position([1 3]));
+    handles.figure1.Position(2) = gui_fig.Position(2) + ...
+        sum(light_uipanel.Position([2 4])) - handles.figure1.Position(4) - 25;
 
 
 

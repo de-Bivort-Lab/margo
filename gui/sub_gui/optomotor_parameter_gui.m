@@ -154,7 +154,7 @@ function optomotor_parameter_gui_OpeningFcn(hObject, eventdata, handles, varargi
     light_uipanel = findobj('Tag','light_uipanel');
     gui_fig = findobj('Name','autotracker');
     handles.figure1.Position(1) = gui_fig.Position(1) + ...
-        sum(light_uipanel.Position([1 3])) - handles.figure1.Position(3);
+        sum(light_uipanel.Position([1 3]));
     handles.figure1.Position(2) = gui_fig.Position(2) + ...
         sum(light_uipanel.Position([2 4])) - handles.figure1.Position(4) - 25;
     
