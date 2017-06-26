@@ -199,6 +199,7 @@ end
 catch ME
     sca;
     disp('whoops');
+    [~,status]=urlread(['http://lab.debivort.org/mu.php?id=' gui_handles.deviceID '&st=3']);
     rethrow(ME);
 end
 

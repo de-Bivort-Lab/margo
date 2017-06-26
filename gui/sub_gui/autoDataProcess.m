@@ -91,7 +91,10 @@ for i = 1:length(expmt.fields)
             expmt.(f).data = fread(expmt.(f).fID,prcn);
             expmt.(f).data = reshape(expmt.(f).data,dim(1),dim(2),expmt.nFrames);
             expmt.(f).data = permute(expmt.(f).data,[3 2 1]);
-            expmt.drop_ct = expmt.drop_ct ./ expmt.nFrames;
+            
+            if isfield(expmt,'drop_ct')
+                expmt.drop_ct = expmt.drop_ct ./ expmt.nFrames;
+            end
             
 
 

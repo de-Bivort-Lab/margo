@@ -27,6 +27,12 @@ if isfield(expmt_old,'fpath')
     handles.save_path.String = expmt_old.fpath;
 end
 
+if isfield(expmt_old,'Initialize')
+    expmt.Initialize = expmt_old.Initialize;
+else
+    expmt.Initialize = true;
+end
+
 % update experiment selection
 if isfield(expmt_old,'Name')
     exp_names = handles.exp_select_popupmenu.String;
