@@ -1039,13 +1039,22 @@ else
                 end
                 
             case 10
+                
                 [circle,opto,photo] = run_arenablocks(expmt,handles);
-                analyze_arenacircling(circle,handles);
-                clearvars circle
-                analyze_optomotor(opto,handles);
-                clearvars opto
-                analyze_slowphototaxis(photo,handles);
-                clearvars photo
+                if isfield(circle,'date')
+                    analyze_arenacircling(circle,handles);
+                    clearvars circle
+                end
+                
+                if isfield(opto,'date')
+                    analyze_optomotor(opto,handles);
+                    clearvars opto
+                end
+                
+                if isfield(photo,'date')
+                    analyze_slowphototaxis(photo,handles);
+                    clearvars photo
+                end
 
         end
     

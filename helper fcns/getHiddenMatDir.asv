@@ -3,7 +3,7 @@ function [fPaths] = getHiddenMatDir(fDir,varargin)
 % This function recursively digs up all .mat files in subdirectories of fDir
 
 target_ext = '.mat';
-opts={};
+args={};
 
 for i=1:length(varargin)
     
@@ -16,13 +16,11 @@ for i=1:length(varargin)
             case 'keyword'
                 i=i+1;
                 key = varargin{i};          % restricts files to those with keyword in the name
-                opts = [opts{:},{'keyword',key}];
         end
     end
 end
 
-% pack input options into cell
-opts = [opts{:} {'ext',target_ext}];
+% pack input arguments into cell
 
 % get directory info and restrict contents to subdirectories
 dir_info = dir(fDir);
@@ -50,7 +48,7 @@ for i=1:length(dirs)
     if ~any(strcmp(dirs(i).name,ignore))
         
         subdir = [fDir '\' dirs(i).name];
-        subpaths = getHiddenMatDir(subdir,opts{:});
+        subpaths = getHiddenMatDir(subdir,'ext',target_ext);
         
         if ~isempty(subpaths)
             fPaths = [fPaths subpaths];
