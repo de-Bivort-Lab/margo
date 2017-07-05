@@ -28,9 +28,9 @@ if isfield(expmt_old,'fpath')
 end
 
 if isfield(expmt_old,'Initialize')
-    expmt.Initialize = expmt_old.Initialize;
+    expmt_old.Initialize = expmt_old.Initialize;
 else
-    expmt.Initialize = true;
+    expmt_old.Initialize = true;
 end
 
 % update experiment selection
