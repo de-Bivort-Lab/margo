@@ -102,6 +102,7 @@ function slowphototaxis_parameter_gui_OpeningFcn(hObject, eventdata, handles, va
     handles.output.parameters.stim_duration=str2num(get(handles.edit_stim_duration,'string'));
     handles.output.parameters.divider_size=str2num(get(handles.edit_stim_divider_size,'string'));
     handles.output.parameters.stim_contrast=str2num(get(handles.edit_stim_contrast,'string'));
+    handles.output.parameters.blank_duration=str2num(get(handles.edit_blank_duration,'string'))
     
     handles.figure1.Units = 'points';
     light_uipanel = findobj('Tag','light_uipanel');
