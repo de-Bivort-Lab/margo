@@ -1,4 +1,4 @@
-function analyze_multiFile(funstr,varargin)
+function analyze_multiFile(varargin)
 
     % This script reprocesses the expmt data structs from a user-selected set
     % of files with the function specified by funstr. 
@@ -24,8 +24,6 @@ function analyze_multiFile(funstr,varargin)
 
     %% reprocess data
     
-    fh = str2func(funstr);
-    
     if ~iscell(fPaths)
         fPaths = {fPaths};
     end
@@ -34,6 +32,6 @@ function analyze_multiFile(funstr,varargin)
         disp(['processing file ' num2str(i) ' of ' num2str(length(fPaths))]);
         load(fPaths{i});
         varargin(dir_idx)=fDir(i);
-        expmt = feval(fh,expmt,varargin{:});
+        expmt = autoAnalyze(expmt,varargin{:});
         clearvars expmt
     end
