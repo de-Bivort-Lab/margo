@@ -150,6 +150,7 @@ function optomotor_parameter_gui_OpeningFcn(hObject, eventdata, handles, varargi
     handles.output.parameters.num_cycles=str2num(get(handles.edit_num_cycles,'string'));
     handles.output.parameters.mask_r=str2num(get(handles.edit_mask_r,'string'));
     handles.output.parameters.contrast=str2num(get(handles.edit_contrast,'string'));
+    handles.output.parameters.stim_mode=handles.stim_mode_popupmenu.String{handles.stim_mode_popupmenu.Value};
     
     light_uipanel = findobj('Tag','light_uipanel');
     gui_fig = findobj('Name','autotracker');
