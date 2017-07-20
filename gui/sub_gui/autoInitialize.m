@@ -18,6 +18,10 @@ set(gui_handles.display_menu.Children,'Enable','on')
 gui_handles.display_raw_menu.Checked = 'on';
 gui_handles.display_menu.UserData = 1;
 
+if ~isvalid(expmt.camInfo.vid)
+    expmt = getVideoInput(expmt,gui_handles);
+end
+
 if ~expmt.Initialize
     return
 end
