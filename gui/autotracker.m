@@ -193,7 +193,8 @@ cam_file = [cam_dir 'cam_params.mat'];
 
 if exist(cam_dir,'dir')==7 && exist(cam_file,'file')==2
     
-    expmt.camInfo.calibration = load(cam_file);
+    load(cam_file);
+    expmt.camInfo.calibration = cameraParams;
     
 end
 % Initialize teensy for motor and light board control
@@ -3473,10 +3474,10 @@ function cam_calibrate_menu_Callback(hObject, eventdata, handles)
 switch hObject.Checked
     case 'on'
         hObject.Checked = 'off';
-        hObject.Value = false;
+        hObject.UserData = false;
     case 'off'
         hObject.Checked = 'on';
-        hObject.Value = true;
+        hObject.UserData = true;
 end
 
 guidata(hObject,handles);

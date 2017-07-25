@@ -39,9 +39,15 @@ pause(2);
 robot = java.awt.Robot;
 robot.mouseMove(1, 1); 
 
+% Image spot with cam
 ref=peekdata(expmt.camInfo.vid,1);
 if size(ref,3)>1
     ref=ref(:,:,2);
+end
+
+% adjust image for lens distortion if camera calibration parameters exist
+if isfield(expmt.camInfo,'calibration') && expmt.camInfo.calibrate
+    [ref,~] = undistortImage(ref,expmt.camInfo.calibration);
 end
 
 % Save the camera resolution that the registration was performed at

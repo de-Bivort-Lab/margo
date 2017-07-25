@@ -36,18 +36,6 @@ expmt = getVideoInput(expmt,gui_handles);
 
 %% Assign parameters and placeholders
 
-% Initialize reference with single image
-if strcmp(expmt.source,'camera')
-    expmt.ref = peekdata(expmt.camInfo.vid,1);
-else
-    [expmt.ref, expmt.video] = nextFrame(expmt.video,gui_handles);
-end
-
-if size(expmt.ref,3)>2
-    expmt.ref=expmt.ref(:,:,2);                         
-end
-pause(0.1);
-
 % Reference vars
 nROIs = size(expmt.ROI.corners, 1);  % total number of ROIs
 ref_cen=zeros(nROIs, 2, 10);         % placeholder for cen. coords where references are taken
@@ -70,7 +58,12 @@ gui_fig.UserData.distance_thresh=round(sqrt(w^2+h^2)/2*0.9*10)/10 * expmt.parame
 gui_handles.edit_dist_thresh.String = num2str(gui_fig.UserData.distance_thresh);
 
 % set min distance from previous ref locations before acquiring new ref for any given object
-min_dist = gui_fig.UserData.distance_thresh * 0.2;    
+min_dist = gui_fig.UserData.distance_thresh * 0.2;  
+
+% Initialize reference with single image
+[trackDat,expmt] = autoFrame(trackDat,expmt,gui_handles);
+expmt.ref = trackDat.im;
+pause(0.1);
 
 
 %% initialize display objects
