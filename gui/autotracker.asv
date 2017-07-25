@@ -188,12 +188,11 @@ end
 expmt.source = 'camera';                    % set the source mode to camera by default
 [expmt.camInfo,handles.cam_list] = refresh_cam_list(handles);  % query available cameras and camera info
 
-cam_dir = [handles.gui_dir '\hardware\camera_calibration\'];
-cam_file = [cam_dir 'cam_params.mat'];
-
-if exist(cam_dir,'dir')==7 && exist(cam_file,'file')==2
+cam_dir = 
+if exist([handles.gui_dir '\hardware\camera_calibration\'],'dir')==7 &&
+    exist([handles.gui_dir '\hardware\camera_calibration\cam_params.mat'],'file')==2
     
-    expmt.camInfo.calibration = load(cam_file);
+    expmt.camInfo.calibration = load
     
 end
 % Initialize teensy for motor and light board control
