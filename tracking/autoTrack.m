@@ -31,10 +31,6 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
 %% Track objects
 
     trackDat.ct = trackDat.ct + 1;
-    
-    if isfield(expmt.camInfo,'calibration')
-        
-    end
 
     % calculate difference image and current for vignetting
     if ~strcmp(class(expmt.ref),class(expmt.vignette.im)) || ~strcmp(class(trackDat.im),class(expmt.vignette.im))...

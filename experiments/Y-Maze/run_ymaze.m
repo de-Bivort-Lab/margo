@@ -90,28 +90,13 @@ hold off
 
 % run experimental loop until duration is exceeded or last frame
 % of the last video file is reached
-while trackDat.t < gui_handles.edit_exp_duration.Value * 3600 && ~lastFrame
+while ~trackDat.lastFrame
     
     % update time stamps and frame rate
     [trackDat, tPrev] = updateTime(trackDat, tPrev, expmt, gui_handles);
 
-    % Take single frame
-    if strcmp(expmt.source,'camera')
-        trackDat.im = peekdata(expmt.camInfo.vid,1);
-    else
-        [trackDat.im, expmt.video] = nextFrame(expmt.video,gui_handles);
-        
-        % stop expmt when last frame of last video is reached
-        if isfield(expmt.video,'fID')
-            lastFrame = feof(expmt.video.fID);
-        elseif ~hasFrame(expmt.video.vid) && expmt.video.ct == expmt.video.nVids
-            lastFrame = true;
-        end
-    end
-    
-    if lastFrame
-        break
-    end
+    % query next frame and optionally correct lens distortion
+    [trackDat,expmt] = autoFrame(trackDat,expmt,gui_handles);
 
     % ensure that image is mono
     if size(trackDat.im,3)>1

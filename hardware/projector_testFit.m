@@ -173,6 +173,12 @@ for i=1:x_stp
         if size(im,3)>1
             im=im(:,:,2);
         end
+        
+        % adjust image for lens distortion if camera calibration parameters exist
+        if isfield(expmt.camInfo,'calibration') && expmt.camInfo.calibrate
+            [im,~] = undistortImage(im,expmt.camInfo.calibration);
+        end
+        
         im=im-ref;
         
         % Extract centroid of spot

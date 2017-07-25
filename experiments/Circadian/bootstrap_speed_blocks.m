@@ -21,6 +21,8 @@ trackProps.speed = trackProps.speed(:,active);
 blocks = blocks(active);
 nBouts = cell2mat(cellfun(@size,blocks','UniformOutput',false));
 nBouts = nBouts(:,1);
+blocks(nBouts==0) = [];
+nBouts(nBouts==0)=[];
 
 % get bout lengths
 bout_length = NaN(max(nBouts),nf);

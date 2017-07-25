@@ -9,7 +9,7 @@ nf = size(trackProps.speed,2);
 empty = single(NaN(size(trackProps.speed)));
 
 handedness = struct('include',~isnan(empty),'mu',NaN(1,nf),'angle_histogram',NaN(length(bins),nf),...
-    'circum_vel',empty,'bins',bins);
+    'circum_vel',empty,'bins',bins,'bin_width',bw);
 
 
 for i = 1:length(varargin)

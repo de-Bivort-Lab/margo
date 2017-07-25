@@ -35,8 +35,6 @@ for i = 1:length(varargin)
             case 'DecFac'
                 i=i+1;
                 meta.decfac = varargin{i};
-                meta.decmask = mod(1:expmt.nFrames,meta.decfac)==1;
-                meta.decsz = sum(meta.decmask);
             case 'Raw'
                 meta.raw = true;
             case 'Bootstrap'
@@ -54,7 +52,66 @@ end
 
 expmt.nTracks = size(expmt.ROI.centers,1);
 
-% read in data files sequentially and store in data struct
+
+%% calculate decimation factor if relevant
+
+if isfield(meta,'decimate')
+    
+    % get subfields
+    path = expmt.Time.path;
+    dim = expmt.Time.dim;
+    prcn = expmt.Time.precision;
+    prcn = [prcn '=>' prcn];
+
+    % read .bin file
+    expmt.Time.fID = fopen(path,'r');
+    
+    % if .bin file isn't found, search for .zip file and unzip
+    if expmt.Time.fID == -1
+        [fPaths] = getHiddenMatDir(expmt.fdir,'exit','.zip');
+        if ~isempty(fPaths)
+            unzipAllDir('Dir',expmt.fdir);
+        end
+    end
+
+    % if .bin file still isn't found, try updating data path
+    if expmt.Time.fID == -1
+            
+            dinfo = dir(expmt.fdir);
+            fnames = {dinfo.name};
+            newpath = ~cellfun(@isempty,strfind(fnames,'Time'));
+            expmt.Time.path = [expmt.fdir '\' dinfo(newpath).name];
+            expmt.Time.fID = fopen(expmt.Time.path,'r');
+        
+    end
+        
+    expmt.Time.data = fread(expmt.Time.fID,[expmt.Time.dim(1) expmt.nFrames],prcn);                        
+    expmt.Time.data = expmt.Time.data';
+    expmt.FrameRate = 1/nanmedian(expmt.Time.data);
+    meta.decfac = round(expmt.FrameRate/meta.decfac);
+    
+    % cancel decimation if decimation factor is less than 2
+    % since it will not actually decimate the data
+    if meta.decfac < 2
+        meta = rmfield(meta,'decfac');
+        meta = rmfield(meta,'decimate');
+    end
+    
+    % create decimation mask
+    if isfield(meta,'decimate')
+        
+        meta.decmask = mod(1:expmt.nFrames,meta.decfac)==1;
+        meta.decsz = sum(meta.decmask);
+        
+    end
+    
+    fclose(expmt.Time.fID);
+    
+end
+    
+
+%% read in data files sequentially and store in data struct
+
 for i = 1:length(expmt.fields)
     
  
@@ -81,8 +138,14 @@ for i = 1:length(expmt.fields)
         
         % if .bin file still isn't found, try updating data path
         if expmt.(f).fID == -1
-            expmt.(f).path = [expmt.fdir expmt.fLabel '_' f '.bin'];
+            
+            dinfo = dir(expmt.fdir);
+            fnames = {dinfo.name};
+            newpath = ~cellfun(@isempty,strfind(fnames,f));
+            expmt.(f).path = [expmt.fdir '\' dinfo(newpath).name];
             expmt.(f).fID = fopen(expmt.(f).path,'r');
+            expmt.(f).fID = fopen(expmt.(f).path,'r');
+            
         end
 
 

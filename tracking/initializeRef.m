@@ -108,17 +108,8 @@ while trackDat.t < expmt.parameters.duration*3600 &&...
     % update time stamps and frame rate
     [trackDat, tPrev] = updateTime(trackDat, tPrev, expmt, gui_handles);
 
-    % Take single frame
-    if strcmp(expmt.source,'camera')
-        trackDat.im = peekdata(expmt.camInfo.vid,1);
-    else
-        [trackDat.im, expmt.video] = nextFrame(expmt.video,gui_handles);
-    end
-    
-    % extract green channel if format is RGB
-    if size(trackDat.im,3)>1
-        trackDat.im = trackDat.im(:,:,2);
-    end
+    % query next frame and optionally correct lens distortion
+    [trackDat,expmt] = autoFrame(trackDat,expmt,gui_handles);
 
     % track objects and sort to ROIs
     [trackDat] = autoTrack(trackDat,expmt,gui_handles);

@@ -247,13 +247,13 @@ if isfield(meta,'plot') && meta.plot
 end
 
 f=figure(); 
-[r,p]=corrcoef([expmt.handedness_Blank.mu' expmt.handedness_Light.mu'],'rows','pairwise');
-sh=scatter(expmt.handedness_Blank.mu,expmt.handedness_Light.mu,...
+[r,p]=corrcoef([expmt.handedness_First.mu' expmt.handedness_Second.mu'],'rows','pairwise');
+sh=scatter(expmt.handedness_First.mu,expmt.handedness_Second.mu,...
     'MarkerEdgeColor',[0 0 0],'MarkerFaceColor',[0.5 0.5 0.5]);
 sh.Parent.XLim = [-1 1];
 sh.Parent.YLim = [-1 1];
-xlabel('stimulus OFF \mu');
-ylabel('stimulus ON \mu');
+xlabel('stimulus first half \mu');
+ylabel('stimulus second half \mu');
 dim = [.65 .78 .1 .1];
 str = ['r = ' num2str(round(r(2,1)*100)/100) ', p = ' num2str(round(p(2,1)*10000)/10000)...
     ' (n=' num2str(expmt.nTracks) ')'];

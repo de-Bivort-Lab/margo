@@ -230,17 +230,8 @@ while ishghandle(hObject) && display
     if (isfield(expmt.camInfo,'vid') && strcmp(expmt.camInfo.vid.Running,'on')) ||...
             isfield(expmt,'video')
 
-        % Take single frame
-        if strcmp(expmt.source,'camera')
-            trackDat.im = peekdata(expmt.camInfo.vid,1);
-        else
-            [trackDat.im, expmt.video] = nextFrame(expmt.video,gui_handles);
-        end
-
-        % extract green channel if format is RGB
-        if size(trackDat.im,3)>1
-            trackDat.im = trackDat.im(:,:,2);
-        end            
+        % query next frame and optionally correct lens distortion
+        [trackDat,expmt] = autoFrame(trackDat,expmt,gui_handles);         
     end
     
     % check if parameter visualization aids are toggled

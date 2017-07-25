@@ -22,7 +22,7 @@ function varargout = autotracker(varargin)
 
 % Edit the above text to modify the response to help autotracker
 
-% Last Modified by GUIDE v2.5 15-May-2017 13:36:18
+% Last Modified by GUIDE v2.5 25-Jul-2017 16:35:36
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -3455,3 +3455,28 @@ end
 
 % Hint: delete(hObject) closes the figure
 delete(hObject);
+
+
+% --------------------------------------------------------------------
+function cam_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to cam_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function cam_calibrate_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to cam_calibrate_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+switch hObject.Checked
+    case 'on'
+        hObject.Checked = 'off';
+        hObject.Value = false;
+    case 'off'
+        hObject.Checked = 'on';
+        hObject.Value = true;
+end
+
+guidata(hObject,handles);

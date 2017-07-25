@@ -201,24 +201,8 @@ while ~trackDat.lastFrame
     % update time stamps and frame rate
     [trackDat, tPrev] = updateTime(trackDat, tPrev, expmt, gui_handles);
 
-    % Take single frame
-    if strcmp(expmt.source,'camera')
-        trackDat.im = peekdata(expmt.camInfo.vid,1);
-    else
-        [trackDat.im, expmt.video] = nextFrame(expmt.video,gui_handles);
-        
-        % stop expmt when last frame of last video is reached
-        if isfield(expmt.video,'fID')
-            trackDat.lastFrame = feof(expmt.video.fID);
-        elseif ~hasFrame(expmt.video.vid) && expmt.video.ct == expmt.video.nVids
-            trackDat.lastFrame = true;
-        end
-    end
-
-    % ensure that image is mono
-    if size(trackDat.im,3)>1
-        trackDat.im=trackDat.im(:,:,2);
-    end
+    % query next frame and optionally correct lens distortion
+    [trackDat,expmt] = autoFrame(trackDat,expmt,gui_handles);
 
     % track, sort to ROIs, and output optional fields to sorted fields,
     % and sample the number of pixels above the image threshold

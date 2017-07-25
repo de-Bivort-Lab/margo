@@ -66,18 +66,8 @@ while stop~=1;
     stop=get(gui_handles.accept_ROI_thresh_pushbutton,'value');
     pause(0.1);
 
-    % Take single frame
-    switch expmt.source
-        case 'camera'
-            trackDat.im = peekdata(expmt.camInfo.vid,1);
-        case 'video'
-            [trackDat.im, expmt.video] = nextFrame(expmt.video,gui_handles);
-    end
-    
-    % Extract green channel if image is RGB
-    if size(trackDat.im,3) > 1
-        trackDat.im=trackDat.im(:,:,2);
-    end
+    % query next frame and optionally correct lens distortion
+    [trackDat,expmt] = autoFrame(trackDat,expmt,gui_handles);
 
     % Update threshold value
     ROI_thresh=get(gui_handles.ROI_thresh_slider,'value');

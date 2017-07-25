@@ -51,42 +51,34 @@ tPrev = toc;
 
 while trackDat.ct < pixDistSize;
 
-        % update time stamps and frame rate
-        [trackDat, tPrev] = updateTime(trackDat, tPrev, expmt, gui_handles,1);
-        gui_handles.edit_time_remaining.String = num2str(pixDistSize - trackDat.ct);
+    % update time stamps and frame rate
+    [trackDat, tPrev] = updateTime(trackDat, tPrev, expmt, gui_handles,1);
+    gui_handles.edit_time_remaining.String = num2str(pixDistSize - trackDat.ct);
 
-        % Take single frame
-        if strcmp(expmt.source,'camera')
-            trackDat.im = peekdata(expmt.camInfo.vid,1);
-        else
-            [trackDat.im, expmt.video] = nextFrame(expmt.video,gui_handles);
-        end
-        
-        if size(trackDat.im,3)>1
-            trackDat.im=trackDat.im(:,:,2);
-        end
-        
-        % track objects and sort to ROIs
-        [trackDat] = autoTrack(trackDat,expmt,gui_handles);
-        
-        %Update display if display tracking is ON
-        if gui_handles.display_menu.UserData ~= 5
-            
-            % update the display
-            updateDisplay(trackDat, expmt, imh, gui_handles);
+    % query next frame and optionally correct lens distortion
+    [trackDat,expmt] = autoFrame(trackDat,expmt,gui_handles);
 
-           % Draw last known centroid for each ROI and update ref. number indicator
-           hCirc.XData = trackDat.Centroid(:,1);
-           hCirc.YData = trackDat.Centroid(:,2);
-           
-        end
-        drawnow limitrate
+    % track objects and sort to ROIs
+    [trackDat] = autoTrack(trackDat,expmt,gui_handles);
+
+    %Update display if display tracking is ON
+    if gui_handles.display_menu.UserData ~= 5
+
+        % update the display
+        updateDisplay(trackDat, expmt, imh, gui_handles);
+
+       % Draw last known centroid for each ROI and update ref. number indicator
+       hCirc.XData = trackDat.Centroid(:,1);
+       hCirc.YData = trackDat.Centroid(:,2);
+
+    end
+    drawnow limitrate
 
 
-       % Create distribution for num pixels above imageThresh
-       % Image statistics used later during acquisition to detect noise
-       diffim = (expmt.ref - expmt.vignette.im) - (trackDat.im - expmt.vignette.im);
-       pixelDist(mod(trackDat.ct,pixDistSize)+1) = nansum(nansum(diffim > gui_handles.track_thresh_slider.Value));
+   % Create distribution for num pixels above imageThresh
+   % Image statistics used later during acquisition to detect noise
+   diffim = (expmt.ref - expmt.vignette.im) - (trackDat.im - expmt.vignette.im);
+   pixelDist(mod(trackDat.ct,pixDistSize)+1) = nansum(nansum(diffim > gui_handles.track_thresh_slider.Value));
    
 end
 
