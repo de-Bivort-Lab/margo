@@ -33,6 +33,12 @@ else
     expmt_old.Initialize = true;
 end
 
+if isfield(expmt_old,'Finish')
+    expmt_old.Finish = expmt_old.Finish;
+else
+    expmt_old.Finish = true;
+end
+
 % update experiment selection
 if isfield(expmt_old,'Name')
     exp_names = handles.exp_select_popupmenu.String;
