@@ -3471,13 +3471,18 @@ function cam_calibrate_menu_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+expmt = getappdata(handles.gui_fig,'expmt');
+
 switch hObject.Checked
     case 'on'
         hObject.Checked = 'off';
         hObject.UserData = false;
+        expmt.camInfo.calibrate = false;
     case 'off'
         hObject.Checked = 'on';
         hObject.UserData = true;
+        expmt.camInfo.calibrate = true;
 end
 
+setappdata(handles.gui_fig,'expmt',expmt);
 guidata(hObject,handles);

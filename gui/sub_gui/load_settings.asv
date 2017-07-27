@@ -129,12 +129,6 @@ if isfield(expmt_old.vignette,'im')
 end
 
 if isfield(expmt_old.camInfo,'calibrate') && expmt_old.camInfo.calibrate
-    handles.cam_calibrate_menu.UserData = true;
-    handles.cam_calibrate_menu.Checked = 'on';
-else
-    handles.cam_calibrate_menu.UserData = false;
-    handles.cam_calibrate_menu.Checked = 'off';
-end
 
 %% update gui enable states
 
