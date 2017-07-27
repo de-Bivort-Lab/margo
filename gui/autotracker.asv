@@ -943,9 +943,6 @@ expmt = getappdata(handles.gui_fig,'expmt');
 handles.on_objs = findobj('enable','on');
 handles.off_objs = findobj('enable','off');
 
-% disable play button to prevent multiple button presses
-handles.run_pushbutton.Enable = 'off';
-
 keep_gui_state = false;
 
 % check labels
@@ -1143,13 +1140,6 @@ else
             handles.ROI_thresh_label.Enable = 'on';
             handles.disp_ROI_thresh.Enable = 'on';
         end
-        
-    elseif keep_gui_state
-        
-        % restore gui to prior state
-        set(handles.on_objs,'Enable','on');
-        set(handles.off_objs,'Enable','off');
-        
     end
         
 end
@@ -2198,17 +2188,7 @@ if (isfield(expmt.camInfo,'vid') && strcmp(expmt.camInfo.vid.Running,'on')) ||..
 
     % query next frame and optionally correct lens distortion
     trackDat = [];
-    [trackDat,expmt] = autoFrame(trackDat,expmt,handles);
-    
-elseif (isfield(expmt.camInfo,'vid') && strcmp(expmt.camInfo.vid.Running,'off'))
-
-    % restart camera
-    start(expmt.camInfo.vid);
-    
-    % query next frame and optionally correct lens distortion
-    trackDat = [];
-    [trackDat,expmt] = autoFrame(trackDat,expmt,handles); 
-    
+    [trackDat,expmt] = autoFrame(trackDat,expmt,gui_handles);         
 end
 
 tmp=setDistanceScale_subgui(handles,expmt.parameters);

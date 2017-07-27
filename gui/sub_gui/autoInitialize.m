@@ -3,8 +3,11 @@ function [trackDat,expmt] = autoInitialize(trackDat,expmt,gui_handles)
 
 %% house-keeping intialization - executes even with initialization flag set OFF
 
-% Initialize infrared and white illuminators
+% reset the handles state of the gui
+%set(gui_handles.on_objs,'Enable','on');
+%set(gui_handles.off_objs,'Enable','off');
 
+% Initialize infrared and white illuminators
 expmt.COM = writeInfraredWhitePanel(expmt.COM,1,expmt.light.infrared);
 expmt.COM = writeInfraredWhitePanel(expmt.COM,0,expmt.light.white);
 
@@ -111,10 +114,7 @@ if strcmp(gui_handles.record_video_menu.Checked,'on')
     [trackDat,expmt] = initializeVidRecording(trackDat,expmt,gui_handles);
 end
 
-%% reset the handles state of the gui
 
-set(gui_handles.on_objs,'Enable','on');
-set(gui_handles.off_objs,'Enable','off');
 
 % start the timer for the experiment
 tic;

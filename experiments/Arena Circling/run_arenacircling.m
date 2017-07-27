@@ -101,6 +101,14 @@ while ~trackDat.lastFrame
     while gui_handles.pause_togglebutton.Value || gui_handles.stop_pushbutton.UserData.Value
         [expmt,tPrev,exit] = updatePauseStop(trackDat,expmt,gui_handles);
         if exit
+            
+            for i=1:nargout
+                switch i
+                    case 1, varargout(i) = {expmt};
+                    case 2, varargout(i) = {trackDat};
+                end
+            end
+            
             return
         end
     end
