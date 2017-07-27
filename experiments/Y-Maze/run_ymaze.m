@@ -41,7 +41,7 @@ trackDat.fields={'Centroid';'Time';'Turns'};                % properties of the 
 [trackDat,expmt] = autoInitialize(trackDat,expmt,gui_handles);
 
 % lastFrame = false until last frame of the last video file is reached
-lastFrame = false;
+trackDat.lastFrame = false;
 
 %% Y-maze specific parameters
 
