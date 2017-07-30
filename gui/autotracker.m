@@ -190,6 +190,7 @@ expmt.source = 'camera';                    % set the source mode to camera by d
 
 cam_dir = [handles.gui_dir '\hardware\camera_calibration\'];
 cam_file = [cam_dir 'cam_params.mat'];
+handles.cam_calibrate_menu.UserData = false;
 
 if exist(cam_dir,'dir')==7 && exist(cam_file,'file')==2
     
