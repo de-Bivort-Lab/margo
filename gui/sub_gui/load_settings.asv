@@ -1,4 +1,4 @@
-function expmt_old = load_settings(expmt_old, expmt_new, handles)
+function expmt_new = load_settings(expmt_old, expmt_new, handles)
 
 % update tracking parameters and related gui objects
 handles.gui_fig.UserData.speed_thresh = expmt_old.parameters.speed_thresh;
@@ -140,16 +140,6 @@ if isfield(expmt_old.camInfo,'calibrate') && expmt_old.camInfo.calibrate
 else
     handles.cam_calibrate_menu.UserData = false;
     handles.cam_calibrate_menu.Checked = 'off';
-end
-
-cam_dir = [handles.gui_dir '\hardware\camera_calibration\'];
-cam_file = [cam_dir 'cam_params.mat'];
-
-if exist(cam_dir,'dir')==7 && exist(cam_file,'file')==2
-    
-    load(cam_file);
-    expmt_old.camInfo.calibration = cameraParams;
-    
 end
 
 %% update gui enable states
