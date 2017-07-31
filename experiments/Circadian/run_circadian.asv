@@ -55,9 +55,9 @@ if expmt.parameters.lights_ON(1)<=t(1) && expmt.parameters.lights_OFF(1)>=t(1)
     
     hour_match = expmt.parameters.lights_ON(1) == t(1);
     after_light_min = t(2) >= expmt.parameters.lights_ON(2);
-    turn_ON = ~hour_match | (hour_match & after_light_min);
+    turn_ON = 
     
-    if turn_ON
+    if expmt.parameters.lights_ON(2)<=t(2)
         trackDat.Light = uint8(expmt.light.white);
         writeInfraredWhitePanel(expmt.COM,0,trackDat.Light);
         trackDat.light.stat=1;
