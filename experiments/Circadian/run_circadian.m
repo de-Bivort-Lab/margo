@@ -29,9 +29,6 @@ trackDat.fields={'Centroid';'Time';'Light';'Motor'};                 % propertie
 % initialize labels, files, and cam/video
 [trackDat,expmt] = autoInitialize(trackDat,expmt,gui_handles);
 
-% lastFrame = false until last frame of the last video file is reached
-lastFrame = false;
-
 %% Circadian specific parameters
 
 %Initialize vibration parameters
