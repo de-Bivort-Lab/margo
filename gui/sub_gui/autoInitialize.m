@@ -56,6 +56,7 @@ trackDat.t_ref = 0;                                         % time elapsed since
 trackDat.ref_ct = 0;                                        % num references taken
 trackDat.px_dist = zeros(10,1);                             % distribution of pixels over threshold  
 trackDat.pix_dev = zeros(10,1);                             % stdev of pixels over threshold
+trackDat.lastFrame = false;
 
 %% Initialize labels, file paths, and files for tracked fields
 
