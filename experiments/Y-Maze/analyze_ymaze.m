@@ -16,13 +16,13 @@ clearvars -except expmt trackProps meta
 
 turn_idx = ~isnan(expmt.Turns.data);
 
-for i=1:expmt.nTracks;
-    col = find(turn_idx(i,:),1);
-    expmt.Turns.data(i,col)=NaN;
+for i=1:expmt.nTracks
+    col = find(turn_idx(:,i),1);
+    expmt.Turns.data(col,i)=NaN;
 end
 
 %% Calculate turn probability
-expmt.Turns.n = sum(turn_idx,2)-1;
+expmt.Turns.n = sum(turn_idx)-1;
 expmt.Turns.seqence = NaN(max(expmt.Turns.n),expmt.nTracks);
 
 %{
@@ -34,7 +34,7 @@ opposite orientation of a maze. In the output, tSeq, Right turns = 1, Left
 turns = 0.
 %}
 for i=1:expmt.nTracks
-    tSeq = expmt.Turns.data(i,~isnan(expmt.Turns.data(i,:)));
+    tSeq = expmt.Turns.data(~isnan(expmt.Turns.data(:,i)),i);
     tSeq=diff(tSeq);
     if expmt.ROI.orientation(i)
         expmt.Turns.seqence(1:length(tSeq),i)=tSeq==1|tSeq==-2;
@@ -55,6 +55,48 @@ clearvars -except expmt meta
 
 %% Generate plots
 
+% Histogram plot
+inc=0.05;
+bins=-inc/2:inc:1+inc/2;   % Bins centered from 0 to 1 
+
+c=histc(expmt.Turns.rBias(expmt.Turns.n>40),bins); % turn histogram
+mad(expmt.Turns.rBias(expmt.Turns.n>40))           % MAD of right turn prob
+c=c./(sum(c));
+c(end)=[];
+
+f=figure();
+plot(c,'Linewidth',2);
+
+set(gca,'Xtick',(1:2:length(c)),'XtickLabel',0:inc*2:1);
+axis([1 length(bins)-1 0 max(c)+0.05]);
+xlabel('Right Turn Probability');
+title('Y-maze Handedness Histogram');
+
+% Generate legend labels
+if isfield(expmt,'Strain')
+    strain=expmt.Strain;
+else
+    strain = '';
+end
+if isfield(expmt,'Treatment')
+    treatment=expmt.Treatment;
+else
+    treatment = '';
+end
+
+legendLabel(1)={[strain ' ' treatment ...
+    ' (u=' num2str(mean(expmt.Turns.rBias(expmt.Turns.n>40)),2)...
+    ', n=' num2str(sum(expmt.Turns.n>40)) ')']};
+legend(legendLabel);
+
+fname = [expmt.figdir expmt.date '_hist_handedness'];
+if ~isempty(expmt.figdir) && meta.save
+    hgsave(f,fname);
+    close(f);
+end
+
+
+% Raw Centroid Plots
 if isfield(meta,'plot') && meta.plot
     if isfield(meta,'handles')
         gui_notify('generating plots',meta.handles.disp_note)
