@@ -1326,7 +1326,7 @@ else
                 end
 
              
-        case 4 || 11                      
+        case 4                       
 
                 tmp_param = slowphototaxis_parameter_gui(expmt);
                 if ~isempty(tmp_param)
