@@ -89,7 +89,7 @@ expmt.StimCen.data(:,1,:) = trackProps.r .* cos(cen_theta);
 expmt.StimCen.data(:,2,:) = trackProps.r .* sin(cen_theta);
 
 %% Bootstrap data to measure overdispersion
-%{
+
 nReps = 1000;
 [expmt.Light.bs,f] = bootstrap_slowphototaxis(expmt,nReps,'Light');
 fname = [expmt.figdir expmt.date '_light_bs'];
@@ -190,7 +190,6 @@ expmt.Light.avg_occ = locc;
 expmt.Blank.avg_occ = bocc;
 expmt.Light.active = tTotal>min_active_period&active;
 expmt.Blank.active = btTotal>min_active_period&active;
-%}
 
 %% Extract handedness from lights ON and lights OFF periods
 
@@ -199,12 +198,12 @@ first_half = false(size(trackProps.speed));
 first_half(1:round(length(first_half)/2),:) = true;
 inc = first_half & trackProps.speed >0.8;
 expmt.handedness_First = getHandedness(trackProps,'Include',inc);
-%inc = repmat(~expmt.Texture.data,1,expmt.nTracks) & trackProps.speed >0.8;
-%expmt.handedness_Blank = getHandedness(trackProps,'Include',inc);
+inc = repmat(~expmt.Texture.data,1,expmt.nTracks) & trackProps.speed >0.8;
+expmt.handedness_Blank = getHandedness(trackProps,'Include',inc);
  inc = ~first_half & trackProps.speed >0.8;
 expmt.handedness_Second = getHandedness(trackProps,'Include',inc);
-%inc = repmat(expmt.Texture.data,1,expmt.nTracks) & trackProps.speed >0.8;
-%expmt.handedness_Light = getHandedness(trackProps,'Include',inc);
+inc = repmat(expmt.Texture.data,1,expmt.nTracks) & trackProps.speed >0.8;
+expmt.handedness_Light = getHandedness(trackProps,'Include',inc);
 
 if isfield(meta,'plot') && meta.plot
     if isfield(meta,'handles')

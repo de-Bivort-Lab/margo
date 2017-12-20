@@ -159,7 +159,7 @@ expmt = [];
 % initialize array indicating expIDs for experiments with an associated
 % parameter subgui. NOTE: any custom experiments with an experiment
 % parameters subgui must be added to this list.
-handles.parameter_subgui = [3 4 9 10];
+handles.parameter_subgui = [3 4 9 10 11];
 
 % popuplate saved profile list and create menu items
 % Get existing profile list
@@ -1326,7 +1326,7 @@ else
                 end
 
              
-        case 4 || 11                      
+        case 4                     
 
                 tmp_param = slowphototaxis_parameter_gui(expmt);
                 if ~isempty(tmp_param)
@@ -1366,6 +1366,13 @@ else
                     end
                 
                 end
+
+            case 11                     
+
+            tmp_param = slowphototaxis_parameter_gui(expmt);
+            if ~isempty(tmp_param)
+                expmt = tmp_param;
+            end
     end
 end
 
