@@ -23,7 +23,8 @@ end
 
 %% Calculate turn probability
 expmt.Turns.n = sum(turn_idx)-1;
-expmt.Turns.seqence = NaN(max(expmt.Turns.n),expmt.nTracks);
+expmt.Turns.sequence = NaN(max(expmt.Turns.n),expmt.nTracks);
+expmt.Turns.t = NaN(max(expmt.Turns.n),expmt.nTracks);
 
 %{
 Start by converting arm number turn sequence into compressed right turn
@@ -33,18 +34,47 @@ right turns would be 1-3=-2, 3-2=1, and 2-1=1. The opposite is true for the
 opposite orientation of a maze. In the output, tSeq, Right turns = 1, Left
 turns = 0.
 %}
+
+
+tElapsed = cumsum(expmt.Time.data);
+
 for i=1:expmt.nTracks
-    tSeq = expmt.Turns.data(~isnan(expmt.Turns.data(:,i)),i);
-    tSeq=diff(tSeq);
+    
+    idx = ~isnan(expmt.Turns.data(:,i));        % get turn indices
+    expmt.Turns.t(1:length(tElapsed(idx)),i) = tElapsed(idx);         % record timestamps of turns
+    
+    % calculate turn sequence
+    tSeq = expmt.Turns.data(idx,i);
+    tSeq=diff(tSeq);  
     if expmt.ROI.orientation(i)
-        expmt.Turns.seqence(1:length(tSeq),i)=tSeq==1|tSeq==-2;
+        expmt.Turns.sequence(1:length(tSeq),i)=tSeq==1|tSeq==-2;
     elseif ~expmt.ROI.orientation(i)
-        expmt.Turns.seqence(1:length(tSeq),i)=tSeq==-1|tSeq==2;
+        expmt.Turns.sequence(1:length(tSeq),i)=tSeq==-1|tSeq==2;
     end
+    
 end
 
 % Calculate right turn probability from tSeq
 expmt.Turns.rBias = nansum(expmt.Turns.seqence)./nansum(~isnan(expmt.Turns.seqence));
+
+% Calculate clumpiness and switchiness
+expmt.Turns.switchiness = NaN(expmt.nTracks,1);
+expmt.Turns.clumpiness = NaN(expmt.nTracks,1);
+for i = 1:expmt.nTracks
+    
+    idx = ~isnan(expmt.Turns.sequence(:,i));
+    s = expmt.Turns.sequence(idx,i);
+    r = expmt.Turns.rBias(i);
+    n = expmt.Turns.n(i);
+    t = expmt.Turns.t(idx,i);
+    iti = (t(2:end) - t(1:end-1));
+    
+    expmt.Turns.switchiness(i) = sum((s(1:end-1)+s(2:end))==1)/(2*r*(1-r)*n);
+    expmt.Turns.clumpiness(i) = std(iti) / mean(iti);
+    
+end
+
+expmt.Turns.active = expmt.Turns.n > 39;
 
 if isfield(meta,'handles')
     gui_notify('processing complete',meta.handles.disp_note)

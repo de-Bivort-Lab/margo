@@ -23,7 +23,9 @@ end
 
 %% Calculate turn probability
 expmt.Turns.n = sum(turn_idx)-1;
-expmt.Turns.seqence = NaN(max(expmt.Turns.n),expmt.nTracks);
+expmt.Turns.sequence = NaN(max(expmt.Turns.n),expmt.nTracks);
+expmt.Turns.t = NaN(max(expmt.Turns.n),expmt.nTracks);
+expmt.LightChoice.sequence = NaN(max(expmt.Turns.n),expmt.nTracks);
 
 %{
 Start by converting arm number turn sequence into compressed right turn
@@ -33,18 +35,50 @@ right turns would be 1-3=-2, 3-2=1, and 2-1=1. The opposite is true for the
 opposite orientation of a maze. In the output, tSeq, Right turns = 1, Left
 turns = 0.
 %}
+
+
+tElapsed = cumsum(expmt.Time.data);
+
 for i=1:expmt.nTracks
-    tSeq = expmt.Turns.data(~isnan(expmt.Turns.data(:,i)),i);
-    tSeq=diff(tSeq);
+    
+    idx = ~isnan(expmt.Turns.data(:,i));        % get turn indices
+    expmt.Turns.t(1:length(tElapsed(idx)),i) = tElapsed(idx);         % record timestamps of turns
+    
+    % calculate turn sequence
+    tSeq = expmt.Turns.data(idx,i);
+    lSeq = expmt.LightChoice.data(idx,i);
+    tSeq=diff(tSeq);  
     if expmt.ROI.orientation(i)
-        expmt.Turns.seqence(1:length(tSeq),i)=tSeq==1|tSeq==-2;
+        expmt.Turns.sequence(1:length(tSeq),i)=tSeq==1|tSeq==-2;
     elseif ~expmt.ROI.orientation(i)
-        expmt.Turns.seqence(1:length(tSeq),i)=tSeq==-1|tSeq==2;
+        expmt.Turns.sequence(1:length(tSeq),i)=tSeq==-1|tSeq==2;
     end
+    
+    expmt.LightChoice.sequence(1:length(lSeq),i) = lSeq;
+    
 end
 
 % Calculate right turn probability from tSeq
-expmt.Turns.rBias = nansum(expmt.Turns.seqence)./nansum(~isnan(expmt.Turns.seqence));
+expmt.Turns.rBias = nansum(expmt.Turns.sequence)./nansum(~isnan(expmt.Turns.sequence));
+
+% Calculate clumpiness and switchiness
+expmt.Turns.switchiness = NaN(expmt.nTracks,1);
+expmt.Turns.clumpiness = NaN(expmt.nTracks,1);
+for i = 1:expmt.nTracks
+    
+    idx = ~isnan(expmt.Turns.sequence(:,i));
+    s = expmt.Turns.sequence(idx,i);
+    r = expmt.Turns.rBias(i);
+    n = expmt.Turns.n(i);
+    t = expmt.Turns.t(idx,i);
+    iti = (t(2:end) - t(1:end-1));
+    
+    expmt.Turns.switchiness(i) = sum((s(1:end-1)+s(2:end))==1)/(2*r*(1-r)*n);
+    expmt.Turns.clumpiness(i) = std(iti) / mean(iti);
+    
+end
+
+expmt.Turns.active = expmt.Turns.n > 39;
 
 if isfield(meta,'handles')
     gui_notify('processing complete',meta.handles.disp_note);
@@ -55,7 +89,23 @@ end
 
 expmt.LightChoice.n = sum(~isnan(expmt.LightChoice.data));
 expmt.LightChoice.pBias = sum(expmt.LightChoice.data==1)./expmt.LightChoice.n;
-expmt.LightChoice.active = expmt.LightChoice.n > 40;
+expmt.LightChoice.active = expmt.LightChoice.n > 39;
+expmt.LightChoice.switchiness = NaN(expmt.nTracks,1);
+
+for i = 1:expmt.nTracks
+    
+    idx = ~isnan(expmt.Turns.sequence(:,i));
+    s = expmt.LightChoice.sequence(idx,i);
+    r = expmt.LightChoice.pBias(i);
+    n = expmt.LightChoice.n(i);
+    t = expmt.Turns.t(idx,i);
+    iti = (t(2:end) - t(1:end-1));
+    
+    expmt.LightChoice.switchiness(i) = sum((s(1:end-1)+s(2:end))==1)/(2*r*(1-r)*n);
+    
+end
+
+expmt.LightChoice.active = expmt.LightChoice.n > 39;
 
 % bootstrap resample data
 [expmt.LightChoice.bs, f] = bootstrap_ledymaze(expmt,200);
@@ -72,8 +122,8 @@ end
 inc=0.05;
 bins=-inc/2:inc:1+inc/2;   % Bins centered from 0 to 1 
 
-c=histc(expmt.Turns.rBias(expmt.Turns.n>40),bins); % turn histogram
-mad(expmt.Turns.rBias(expmt.Turns.n>40))           % MAD of right turn prob
+c=histc(expmt.Turns.rBias(expmt.Turns.active),bins); % turn histogram
+mad(expmt.Turns.rBias(expmt.Turns.active))           % MAD of right turn prob
 c=c./(sum(c));
 c(end)=[];
 
@@ -81,8 +131,8 @@ f=figure();
 plot(c,'Linewidth',2);
 
 hold on
-c=histc(expmt.LightChoice.pBias(expmt.Turns.n>40),bins); % histogram
-mad(expmt.LightChoice.pBias(expmt.Turns.n>40))           % MAD of light choice prob
+c=histc(expmt.LightChoice.pBias(expmt.Turns.active),bins); % histogram
+mad(expmt.LightChoice.pBias(expmt.Turns.active))           % MAD of light choice prob
 c=c./(sum(c));
 c(end)=[];
 plot(c,'Linewidth',2);
@@ -102,11 +152,11 @@ else
 end
 
 legendLabel(1)={['Turn Choice: ' strain ' ' treatment ...
-    ' (u=' num2str(mean(expmt.Turns.rBias(expmt.Turns.n>40)))...
-    ', n=' num2str(sum(expmt.Turns.n>40)) ')']};
+    ' (u=' num2str(mean(expmt.Turns.rBias(expmt.Turns.active)))...
+    ', n=' num2str(sum(expmt.Turns.active)) ')']};
 legendLabel(2)={['Light Choice: ' strain ' ' treatment ...
-    ' (u=' num2str(mean(expmt.LightChoice.pBias(expmt.Turns.n>40)))...
-    ', n=' num2str(sum(expmt.Turns.n>40)) ')']};
+    ' (u=' num2str(mean(expmt.LightChoice.pBias(expmt.Turns.active)))...
+    ', n=' num2str(sum(expmt.Turns.active)) ')']};
 legend(legendLabel);
 
 title('Phototaxis and Right Turn Histogram');

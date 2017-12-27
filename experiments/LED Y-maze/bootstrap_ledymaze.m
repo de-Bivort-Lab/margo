@@ -5,7 +5,7 @@ if isfield(expmt.LightChoice,'active')
     nf = sum(expmt.LightChoice.active);
     a = expmt.LightChoice.active;
 else
-    a = expmt.LightChoice.n > 40;
+    a = expmt.LightChoice.n > 39;
     nf = sum(a);
 end
 

@@ -8,12 +8,12 @@ function expmt = autoAnalyze(expmt,varargin)
 switch expmt.Name
     
     case 'Basic Tracking'
-        expmt = analyze_basictracking(expmt,varargin{:});
+        expmt = analyze_arenacircling(expmt,varargin{:});
         
     case 'Arena Circling'
         expmt = analyze_arenacircling(expmt,varargin{:});
         
-    case 'Ymaze'
+    case 'Y-maze'
         expmt = analyze_ymaze(expmt,varargin{:});
         
     case 'LED Y-maze'

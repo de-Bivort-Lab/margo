@@ -9,7 +9,7 @@ function [varargout]=bootstrap_speed_blocks(expmt,trackProps,blocks,nReps)
 %   4. Repeat steps 1-3 to create a bootstrapped score for each animal in
 %      the experiment to create a distribution of scores to measure both 
 %      mean and dispersion.
-%   5. Repeat steps 1-4 nReps time to assess the likeliness of the data by
+%   5. Repeat steps 1-4 nReps times to assess the likeliness of the data by
 %      random chance.
 
 %% bootstrap sample data
@@ -45,7 +45,6 @@ h.Name = 'Bootstrap resampling speed data';
 %%
 disp(['resampling data with ' num2str(nReps) ' replicates'])
 disp('may a take a while with if number of replications is > 1000')
-tic
 for j = 1:nReps
     
     % draw IDs
@@ -95,7 +94,6 @@ for j = 1:nReps
     clearvars ids bouts tmp_speed lin_ind
     
 end
-toc
 
 if ishghandle(h)
     close(h);
@@ -105,7 +103,7 @@ end
 %%
 
 bs.obs = log(nanmean(trackProps.speed));
-
+bs.include = active;
 bs.sim = log(bs_speeds);
 
 % create histogram of occupancy scores

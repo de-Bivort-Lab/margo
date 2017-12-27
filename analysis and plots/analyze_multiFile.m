@@ -44,11 +44,18 @@ end
     if ~iscell(fPaths)
         fPaths = {fPaths};
     end
-
+    
+    hwb = waitbar(0,'loading files');
+    
     for i=1:length(fPaths)
+        
+        hwb = waitbar(i/length(fPaths),hwb,['processing file ' num2str(i) ' of ' num2str(length(fPaths))]);
+        
         disp(['processing file ' num2str(i) ' of ' num2str(length(fPaths))]);
         load(fPaths{i});
         varargin(dir_idx)=fDir(i);
         expmt = autoAnalyze(expmt,varargin{:});
-        clearvars -except varargin fPaths dir_idx fDir
+        clearvars -except varargin fPaths dir_idx fDir hwb
     end
+    
+    delete(hwb);

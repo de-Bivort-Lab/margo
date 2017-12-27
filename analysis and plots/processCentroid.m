@@ -16,6 +16,9 @@ for j = 1:expmt.nTracks
     % get x and y coordinates of the centroid and normalize to upper left ROI corner
     inx = expmt.Centroid.data(:,1,j)-expmt.ROI.centers(j,1);
     iny = expmt.Centroid.data(:,2,j)-expmt.ROI.centers(j,2);
+    trackProps.speed(:,j) = zeros(size(inx,1),1);
+    trackProps.speed(2:end,j) = sqrt(diff(inx).^2+diff(iny).^2);   
+    trackProps.speed(trackProps.speed(:,j) > 12, j) = NaN;
     center=0;
     
     % calculate the radial distance from the ROI center
@@ -31,14 +34,6 @@ for j = 1:expmt.nTracks
     trackProps.turning(trackProps.turning(:,j)<-pi*e,j) = ...
         trackProps.turning(trackProps.turning(:,j)<-pi*e,j) + 2*pi;
     
-    trackProps.speed(:,j) = zeros(size(inx,1),1);
-%     if isfield(expmt,'tStamps')
-%         trackProps.speed(2:end,j) = sqrt(diff(inx).^2+diff(iny).^2) ./ diff(expmt.tStamps);
-%     else
-        trackProps.speed(2:end,j) = sqrt(diff(inx).^2+diff(iny).^2);
-%     end
-    
-    trackProps.speed(trackProps.speed(:,j) > 12, j) = NaN;
     
     clearvars mu h inx iny
     

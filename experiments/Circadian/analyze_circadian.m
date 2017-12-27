@@ -20,7 +20,9 @@ clearvars trackProps
 
 win_sz = 500;
 stp_sz = 100;
+
 [win_dat,win_idx] = getSlidingWindow(expmt,'Speed',win_sz,stp_sz);
+
 
 % get mean and 95% CI
 [mu,~,ci95,~] = normfit(win_dat');
@@ -53,9 +55,9 @@ expmt.Circadian.trace.t = tmp_tStamps;
 
 %% Create time labels and light patches
 hr = str2double(expmt.date(12:13));
-min = str2double(expmt.date(15:16));
+minute = str2double(expmt.date(15:16));
 sec = str2double(expmt.date(18:19));
-tStart = hr*3600 + min*60 + sec;
+tStart = hr*3600 + minute*60 + sec;
 tEnd = sum(expmt.Time.data);
 
 % find nearest hour
@@ -127,28 +129,28 @@ expmt.Circadian.bin_spd = NaN(24,expmt.nTracks);
 % from tmp_tStamps
 for i = 1:length(tickLabels)
     
-    idx = str2double(tickLabels{i}(1:find(tickLabels{i}==':')-1));
-    if idx == 0
-        idx = 24;
+    win_idx = str2double(tickLabels{i}(1:find(tickLabels{i}==':')-1));
+    if win_idx == 0
+        win_idx = 24;
     end
     
     switch i
         case 1
             filter = tmp_tStamps <= tTick(i);
-            expmt.Circadian.idx(idx,:) = expmt.Circadian.idx(idx,:) | filter';
+            expmt.Circadian.idx(win_idx,:) = expmt.Circadian.idx(win_idx,:) | filter';
         case length(tickLabels)
             filter = tmp_tStamps > tTick(i-1) & tmp_tStamps <= tTick(i);
-            expmt.Circadian.idx(idx,:) = expmt.Circadian.idx(idx,:) | filter';
+            expmt.Circadian.idx(win_idx,:) = expmt.Circadian.idx(win_idx,:) | filter';
             
-            idx = idx+1;
-            if idx > 24
-                idx=1;
+            win_idx = win_idx+1;
+            if win_idx > 24
+                win_idx=1;
             end
             filter = tmp_tStamps > tTick(i);
-            expmt.Circadian.idx(idx,:) = expmt.Circadian.idx(idx,:) | filter';
+            expmt.Circadian.idx(win_idx,:) = expmt.Circadian.idx(win_idx,:) | filter';
         otherwise
             filter = tmp_tStamps > tTick(i-1) & tmp_tStamps <= tTick(i);
-            expmt.Circadian.idx(idx,:) = expmt.Circadian.idx(idx,:) | filter';
+            expmt.Circadian.idx(win_idx,:) = expmt.Circadian.idx(win_idx,:) | filter';
     end
 end
 
@@ -186,6 +188,42 @@ if nDays==1
     
 end
 
+%% find time stamps for motor activity
+
+tStamps = cumsum(expmt.Time.data)+tStart;
+tPulse = sum(expmt.parameters.lights_OFF([1 2]).*[3600 60]) + expmt.parameters.ramp_time*60;
+tPulse = tPulse:3600/expmt.parameters.pulse_per_hour:tStamps(end);
+[~,win_idx] = min(abs(repmat(tStamps,1,length(tPulse)) - repmat(tPulse,length(tStamps),1)));
+tPulse(expmt.Light.data(win_idx)>10)=[];
+win_idx(expmt.Light.data(win_idx)>10)=[];
+tInitiate = tPulse;
+tPulse = tPulse - 30*60;
+tStop = tPulse + 30*60*2;
+
+% get indices of window starts and stops
+[~,win_start] = min(abs(repmat(tStamps,1,length(tPulse)) - repmat(tPulse,length(tStamps),1)));
+[~,win_stop] = min(abs(repmat(tStamps,1,length(tStop)) - repmat(tStop,length(tStamps),1)));
+expmt.Circadian.motor.idx = [win_start' win_stop'];
+win_sz = max(win_stop-win_start);
+expmt.Circadian.motor.bouts = NaN(win_sz,expmt.nTracks,length(win_start));
+
+% collect bouts in window
+for i = 1:length(win_start)
+    
+    ns=win_stop(i)-win_start(i)+1;
+    expmt.Circadian.motor.bouts(:,:,i) = interp1(1:ns,...
+        expmt.Speed.data(win_start(i):win_stop(i),:),linspace(1,ns,win_sz));
+    
+end
+
+% get indices of motor pulse for trace plot
+tStamps = expmt.Circadian.trace.t + tStart;
+hold on
+ah = gca;
+for i=1:length(tPulse)
+    plot([tInitiate(i) tInitiate(i)]-tStart,ah.YLim,'k--','Linewidth',1.5);
+end
+hold off
 
 
 %%

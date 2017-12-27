@@ -16,7 +16,7 @@ for i = 1:length(varargin)
     arg = varargin{i};
     
     if ischar(arg)
-    	switch arg
+        switch arg
             case 'Plot'
                 i=i+1;
                 meta.plot = varargin{i};
@@ -232,6 +232,10 @@ expmt.DecFrames = size(expmt.Centroid.data,1);
 % handedness for each track. Resulting handedness scores are stored in
 % the master data struct.
 [expmt,trackProps] = processCentroid(expmt);
+trackProps.turning(trackProps.speed<0.1) = NaN;
+expmt.handedness.index = nansum(trackProps.turning)./nansum(abs(trackProps.turning));
+expmt.Speed.avg = nanmean(trackProps.speed);
+expmt.Speed.active = expmt.Speed.avg > 0.01;
 
 expmt.figdir = [expmt.fdir 'figures_' expmt.date '\'];
 if ~exist(expmt.figdir,'dir') && meta.save
