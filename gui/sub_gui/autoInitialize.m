@@ -58,6 +58,9 @@ trackDat.px_dist = zeros(10,1);                             % distribution of pi
 trackDat.pix_dev = zeros(10,1);                             % stdev of pixels over threshold
 trackDat.lastFrame = false;
 
+cam_center = fliplr(size(expmt.ref)./2);
+expmt.ROI.cam_dist
+
 %% Initialize labels, file paths, and files for tracked fields
 
 expmt.date = datestr(clock,'mm-dd-yyyy-HH-MM-SS_');         % get date string
