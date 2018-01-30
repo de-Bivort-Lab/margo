@@ -58,8 +58,9 @@ trackDat.px_dist = zeros(10,1);                             % distribution of pi
 trackDat.pix_dev = zeros(10,1);                             % stdev of pixels over threshold
 trackDat.lastFrame = false;
 
-cam_center = fliplr(size(expmt.ref)./2);
-expmt.ROI.cam_dist
+cam_center = repmat(fliplr(size(expmt.ref)./2),size(expmt.ROI.centers));
+expmt.ROI.cam_dist = sqrt((expmt.ROI.centers(:,1)-cam_center(:,1)).^2 + ...
+    (expmt.ROI.centers(:,2)-cam_center(:,2)).^2);
 
 %% Initialize labels, file paths, and files for tracked fields
 
