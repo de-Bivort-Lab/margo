@@ -172,8 +172,6 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
         if record
             area(update) = [props(permutation).Area];
         end
-        if strcmp('Circadian',expmt.Name)
-        end
         trackDat.Area = area .* (expmt.parameters.mm_per_pix^2);
     end
 
