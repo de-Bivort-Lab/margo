@@ -85,7 +85,7 @@ end
 
 % assign current values for hardware settings
 expmt_old.COM = expmt_new.COM;
-if isfield(exmpt_new,'AUX_COM')
+if isfield(expmt_new,'AUX_COM')
     expmt_old.AUX_COM = expmt_new.AUX_COM;
 end
 
