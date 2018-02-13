@@ -21,7 +21,7 @@ set(gui_handles.display_menu.Children,'Enable','on')
 gui_handles.display_raw_menu.Checked = 'on';
 gui_handles.display_menu.UserData = 1;
 
-if ~isvalid(expmt.camInfo.vid)
+if strcmp(expmt.source,'camera') && ~isvalid(expmt.camInfo.vid)
     expmt = getVideoInput(expmt,gui_handles);
 end
 
@@ -115,8 +115,10 @@ save([expmt.fdir expmt.fLabel '.mat'],'expmt');
 expmt = getVideoInput(expmt,gui_handles);
 
 % initialize video recording if enabled
-if strcmp(gui_handles.record_video_menu.Checked,'on')
+if strcmp(expmt.source,'camera') && strcmp(gui_handles.record_video_menu.Checked,'on')
     [trackDat,expmt] = initializeVidRecording(trackDat,expmt,gui_handles);
+else
+   gui_handles.record_video_menu.Checked = 'off'; 
 end
 
 

@@ -93,7 +93,8 @@ hold off
 % Time stamp placeholders
 trackDat.t = 0;
 tic
-tPrev = toc - gui_handles.edit_exp_duration.Value*3600 + 60;
+%tPrev = toc - gui_handles.edit_exp_duration.Value*3600 + 60;
+tPrev=toc;
 
 while trackDat.t < expmt.parameters.duration*3600 &&...
         ~gui_handles.accept_track_thresh_pushbutton.Value

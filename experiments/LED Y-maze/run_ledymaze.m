@@ -110,7 +110,7 @@ trackDat.pLED = [1 24 2 23 3 22 4 21 5 20 6 ...
                203  200  202  201];  
 
 % Flicker lights ON/OFF to indicate board is working
-trackDat.targetPWM = 4095;      % Sets the max PWM for LEDs
+trackDat.targetPWM = 1500;      % Sets the max PWM for LEDs
 for i=1:6
     trackDat.LEDs = ones(nROIs,3).*mod(i,2);              
     decWriteLEDs(serial_obj,trackDat);
