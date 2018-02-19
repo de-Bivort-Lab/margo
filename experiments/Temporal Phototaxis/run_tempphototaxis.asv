@@ -123,8 +123,8 @@ src_edge_length = stmsz;
 stmsz=sqrt(stmsz^2+stmsz^2);
 
 % Initialize the stimulus image
-light = initialize_photo_stim(ceil(stmsz),ceil(stmsz),expmt.parameters.divider_size,expmt.parameters.stim_contrast);
-dark = ones(size(light)); %on 171018 @ 9:19 PM I rockwell MADE A CHANGE. originally this was dark = zeros(size(light)); I wanted to test if having a white light is better
+light = ones(ceil(stmsz));
+dark = zeros(ceil(stmsz));
 imcenter = [size(light,1)/2+0.5 size(light,2)/2+0.5];
 
 % Initialize source rect and scaling factors
@@ -137,13 +137,15 @@ stim_ct=0;
 
 expmt.stim.lightTex = Screen('MakeTexture', expmt.scrProp.window, light);      % texture for half-light half-dark
 expmt.stim.darkTex = Screen('MakeTexture', expmt.scrProp.window, dark);        % texture for all dark
+expmt.parameters.div_thresh = (mean(expmt.ROI.bounds(:,[3 4]),2) .* expmt.parameters.divider_size * 0.5)';
 
 expmt.stim.t = 0;
 expmt.stim.ct = 0;                          % Counter for number of looming stim displayed each stimulation period
-trackDat.StimAngle = zeros(nROIs,1);        % Initialize stimulus starting angle to 0
+trackDat.StimAngle = round(rand(nROIs,1).*360);        % Initialize random stimulus starting angle
 expmt.stim.prev_ori=NaN(nROIs,1);
 expmt.stim.dir = boolean(ones(nROIs,1));    % Direction of rotation for the light
 trackDat.Texture = boolean(1);              % active texture (dark or light)
+trackDat.light_status = false(nROIs,1);
 expmt.stim.corners = scor;
 expmt.stim.centers = scen;
 expmt.projector.Fx = Fx;
@@ -184,7 +186,7 @@ while ~trackDat.lastFrame
     trackDat = autoTrack(trackDat,expmt,gui_handles);
 
     % update the stimuli
-    [trackDat, expmt] = updatePhotoStim(trackDat, expmt);
+    [trackDat, expmt] = updateTemporalPhotoStim(trackDat, expmt);
     
     % output data to binary files
     for i = 1:length(trackDat.fields)
@@ -204,12 +206,7 @@ while ~trackDat.lastFrame
         hMark.XData = trackDat.Centroid(:,1);
         hMark.YData = trackDat.Centroid(:,2);
         
-        % get light status
-        pcen(:,1) = expmt.projector.Fx(trackDat.Centroid(:,1),trackDat.Centroid(:,2));
-        pcen(:,2) = expmt.projector.Fy(trackDat.Centroid(:,1),trackDat.Centroid(:,2));
-        old_light = in_light;
-        [~,in_light] = parseShadeLight(trackDat.StimAngle,pcen(:,1),pcen(:,2),expmt.stim.centers,1);
-        changed = old_light ~= in_light;
+
         cen = num2cell(trackDat.Centroid,2);
         arrayfun(@update_stat_display, cen, in_light, changed, hLightStat');
     end

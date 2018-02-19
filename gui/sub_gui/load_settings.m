@@ -85,6 +85,9 @@ end
 
 % assign current values for hardware settings
 expmt_old.COM = expmt_new.COM;
+if isfield(expmt_new,'AUX_COM')
+    expmt_old.AUX_COM = expmt_new.AUX_COM;
+end
 
 if ~isempty(expmt_new.camInfo.DeviceInfo)
     if strcmp(expmt_old.camInfo.DeviceInfo.DeviceName,expmt_new.camInfo.DeviceInfo.DeviceName)

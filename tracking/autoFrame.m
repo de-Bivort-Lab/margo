@@ -32,6 +32,8 @@ end
 
 
 % adjust image for lens distortion if camera calibration parameters exist
-if isfield(expmt.camInfo,'calibration') && gui_handles.cam_calibrate_menu.UserData
+if strcmp(expmt.source,'camera') && ...
+        isfield(expmt.camInfo,'calibration') && ...
+        gui_handles.cam_calibrate_menu.UserData
     [trackDat.im,~] = undistortImage(trackDat.im,expmt.camInfo.calibration);
 end

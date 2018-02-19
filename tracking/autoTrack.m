@@ -15,11 +15,11 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
     in_fields(remove) = [];
     
     % add centroid and area to the input regionprops fields if not provided
-    if ~any(strmatch('Centroid',in_fields))
+    if ~any(strcmp('Centroid',in_fields))
         in_fields = [in_fields; {'Centroid'}];
     end
 
-    if ~any(strmatch('Area',in_fields))
+    if ~any(strcmp('Area',in_fields))
         in_fields = [in_fields; {'Area'}];
     end
     
@@ -78,7 +78,7 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
             
             if isempty(expmt.parameters.dilate_element)
                 expmt.parameters.dilate_element = ...
-                    strel('disk',5);
+                    strel('disk',6);
             end
             
             % dilate and erode with same element to connect components
@@ -89,10 +89,10 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
             props=regionprops(eim, in_fields);
 
             % threshold blobs by area
-            above_min = [props.Area]  .* (expmt.parameters.mm_per_pix^2) > ...
-                gui_handles.gui_fig.UserData.area_min;
             below_max = [props.Area] .* (expmt.parameters.mm_per_pix^2) <...
                 gui_handles.gui_fig.UserData.area_max;
+            above_min = [props.Area]  .* (expmt.parameters.mm_per_pix^2) > ...
+                    gui_handles.gui_fig.UserData.area_min;
             props(~(above_min & below_max)) = [];
             
             % find new centroid estimates
@@ -159,7 +159,7 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
 % structure if listed in expmt.fields. 
 % return NaNs if record = false
 
-    if any(strmatch('Speed',out_fields));
+    if any(strcmp('Speed',out_fields))
         if record
             trackDat.Speed = speed;
         else
@@ -167,7 +167,7 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
         end
     end
 
-    if any(strmatch('Area',out_fields));
+    if any(strcmp('Area',out_fields))
         area = NaN(size(trackDat.Centroid,1),1);
         if record
             area(update) = [props(permutation).Area];
@@ -175,7 +175,7 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
         trackDat.Area = area .* (expmt.parameters.mm_per_pix^2);
     end
 
-    if any(strmatch('Orientation',out_fields));
+    if any(strcmp('Orientation',out_fields))
         orientation = NaN(size(trackDat.Centroid,1),1);
         if record
             orientation(update) = [props(permutation).Orientation];
@@ -183,15 +183,15 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
         trackDat.Orientation = orientation;
     end
 
-    if any(strmatch('Time',out_fields));
+    if any(strcmp('Time',out_fields))
         trackDat.Time = trackDat.ifi;
     end
 
-    if any(strmatch('VideoData',out_fields));
+    if any(strcmp('VideoData',out_fields))
         trackDat.VideoData = trackDat.im;
     end
 
-    if any(strmatch('VideoIndex',out_fields));
+    if any(strcmp('VideoIndex',out_fields))
         trackDat.VideoIndex = trackDat.ct;
     end
     

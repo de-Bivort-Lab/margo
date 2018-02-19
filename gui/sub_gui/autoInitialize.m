@@ -21,7 +21,7 @@ set(gui_handles.display_menu.Children,'Enable','on')
 gui_handles.display_raw_menu.Checked = 'on';
 gui_handles.display_menu.UserData = 1;
 
-if ~isvalid(expmt.camInfo.vid)
+if strcmp(expmt.source,'camera') && ~isvalid(expmt.camInfo.vid)
     expmt = getVideoInput(expmt,gui_handles);
 end
 
@@ -57,6 +57,10 @@ trackDat.ref_ct = 0;                                        % num references tak
 trackDat.px_dist = zeros(10,1);                             % distribution of pixels over threshold  
 trackDat.pix_dev = zeros(10,1);                             % stdev of pixels over threshold
 trackDat.lastFrame = false;
+
+cam_center = repmat(fliplr(size(expmt.ref)./2),size(expmt.ROI.centers));
+expmt.ROI.cam_dist = sqrt((expmt.ROI.centers(:,1)-cam_center(:,1)).^2 + ...
+    (expmt.ROI.centers(:,2)-cam_center(:,2)).^2);
 
 %% Initialize labels, file paths, and files for tracked fields
 
@@ -111,8 +115,10 @@ save([expmt.fdir expmt.fLabel '.mat'],'expmt');
 expmt = getVideoInput(expmt,gui_handles);
 
 % initialize video recording if enabled
-if strcmp(gui_handles.record_video_menu.Checked,'on')
+if strcmp(expmt.source,'camera') && strcmp(gui_handles.record_video_menu.Checked,'on')
     [trackDat,expmt] = initializeVidRecording(trackDat,expmt,gui_handles);
+else
+   gui_handles.record_video_menu.Checked = 'off'; 
 end
 
 
