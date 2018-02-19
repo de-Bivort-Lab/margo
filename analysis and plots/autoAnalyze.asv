@@ -23,7 +23,6 @@ switch expmt.Name
         expmt = analyze_slowphototaxis(expmt,varargin{:});
         
     case 'Temporal Phototaxis'
-        expmt = analyze_tempphototaxis(expmt,varargin{:});
         
     case 'Optomotor'
         expmt = analyze_optomotor(expmt,varargin{:});
