@@ -13,16 +13,64 @@ function expmt = analyze_circadian(expmt,varargin)
 clearvars -except expmt trackProps meta
 
 expmt.Speed.data = trackProps.speed;
-clearvars trackProps
+
+
+%% get individual area thresholds for separating frames at the ceiling and floor of the well
+
+if isfield(expmt,'Area') && isfield(expmt.Area,'data') && ~isfield(expmt.Area,'thresh')
+    
+    % find threshold for each individual
+    moving = expmt.Speed.data > 0.8;
+    expmt.Arena.data(~moving) = NaN;
+    a = num2cell(expmt.Area.data,1);
+    disp('finding area thresholds');
+    [ints,means,sigmas] = cellfun(@fitBimodalHist,a,'UniformOutput',false);
+    expmt.Area.thresh = NaN(expmt.nTracks,1);
+    expmt.Area.thresh(~cellfun(@isempty,ints)) = [ints{:}];
+    expmt.Area.modeMeans = NaN(expmt.nTracks,2);
+    expmt.Area.modeMeans(~cellfun(@isempty,means),:) = [means{:}]';
+    expmt.Area.modeSigmas = NaN(expmt.nTracks,2);
+    expmt.Area.modeSigmas(~cellfun(@isempty,sigmas),:) = [sigmas{:}]';
+    
+    % parse data into arena ceiling and floor frames
+    ints(cellfun(@isempty,ints))={NaN};
+    expmt.Area.ceiling = cellfun(@(x,y) x>y, a,ints,'UniformOutput',false);
+    expmt.Area.ceiling = cat(2,expmt.Area.ceiling{:});
+    expmt.Area.floor = cellfun(@(x,y) x<y, a,ints,'UniformOutput',false);
+    expmt.Area.floor = cat(2,expmt.Area.floor{:});
+    
+    % get gravity index
+    expmt.Gravity.index = (sum(expmt.Area.ceiling)-sum(expmt.Area.floor))./...
+        (sum(expmt.Area.ceiling)+sum(expmt.Area.floor));
+    
+    % parse handedness data into ceiling and floor
+    expmt.handedness_ceiling = getHandedness(trackProps,'Include',expmt.Area.ceiling);
+    expmt.handedness_floor = getHandedness(trackProps,'Include',expmt.Area.floor);
+    
+    % bin circumferential velocity into histogram
+    bw = 2*pi/25;                                   % bin width
+    bins = 0:bw:2*pi;                               % handedness bins
+    tmpcv = expmt.handedness.circum_vel;
+    tmpcv(expmt.Area.ceiling) = -tmpcv(expmt.Area.ceiling);
+    h = histc(tmpcv,bins);
+    %h = histc(handedness.circum_vel(:,j),bins);
+    h = h./repmat(sum(h),size(h,1),1);
+
+    % save to expmt data struct
+    expmt.Gravity.angle_histogram = h;
+    expmt.Gravity.mu = -sin(sum(h .* repmat((bins' + bw/2),1,size(h,2))));   
+    
+end
+    
 
 %% extract sliding activity window and create plot
 
 
+if meta.slide
+    
 win_sz = 500;
 stp_sz = 100;
-
 [win_dat,win_idx] = getSlidingWindow(expmt,'Speed',win_sz,stp_sz);
-
 
 % get mean and 95% CI
 [mu,~,ci95,~] = normfit(win_dat');
@@ -55,9 +103,9 @@ expmt.Circadian.trace.t = tmp_tStamps;
 
 %% Create time labels and light patches
 hr = str2double(expmt.date(12:13));
-minute = str2double(expmt.date(15:16));
+min = str2double(expmt.date(15:16));
 sec = str2double(expmt.date(18:19));
-tStart = hr*3600 + minute*60 + sec;
+tStart = hr*3600 + min*60 + sec;
 tEnd = sum(expmt.Time.data);
 
 % find nearest hour
@@ -129,28 +177,28 @@ expmt.Circadian.bin_spd = NaN(24,expmt.nTracks);
 % from tmp_tStamps
 for i = 1:length(tickLabels)
     
-    win_idx = str2double(tickLabels{i}(1:find(tickLabels{i}==':')-1));
-    if win_idx == 0
-        win_idx = 24;
+    idx = str2double(tickLabels{i}(1:find(tickLabels{i}==':')-1));
+    if idx == 0
+        idx = 24;
     end
     
     switch i
         case 1
             filter = tmp_tStamps <= tTick(i);
-            expmt.Circadian.idx(win_idx,:) = expmt.Circadian.idx(win_idx,:) | filter';
+            expmt.Circadian.idx(idx,:) = expmt.Circadian.idx(idx,:) | filter';
         case length(tickLabels)
             filter = tmp_tStamps > tTick(i-1) & tmp_tStamps <= tTick(i);
-            expmt.Circadian.idx(win_idx,:) = expmt.Circadian.idx(win_idx,:) | filter';
+            expmt.Circadian.idx(idx,:) = expmt.Circadian.idx(idx,:) | filter';
             
-            win_idx = win_idx+1;
-            if win_idx > 24
-                win_idx=1;
+            idx = idx+1;
+            if idx > 24
+                idx=1;
             end
             filter = tmp_tStamps > tTick(i);
-            expmt.Circadian.idx(win_idx,:) = expmt.Circadian.idx(win_idx,:) | filter';
+            expmt.Circadian.idx(idx,:) = expmt.Circadian.idx(idx,:) | filter';
         otherwise
             filter = tmp_tStamps > tTick(i-1) & tmp_tStamps <= tTick(i);
-            expmt.Circadian.idx(win_idx,:) = expmt.Circadian.idx(win_idx,:) | filter';
+            expmt.Circadian.idx(idx,:) = expmt.Circadian.idx(idx,:) | filter';
     end
 end
 
@@ -188,46 +236,6 @@ if nDays==1
     
 end
 
-%% find time stamps for motor activity
-
-tStamps = cumsum(expmt.Time.data)+tStart;
-tPulse = sum(expmt.parameters.lights_OFF([1 2]).*[3600 60]) + expmt.parameters.ramp_time*60;
-tPulse = tPulse:3600/expmt.parameters.pulse_per_hour:tStamps(end);
-[~,win_idx] = min(abs(repmat(tStamps,1,length(tPulse)) - repmat(tPulse,length(tStamps),1)));
-tPulse(expmt.Light.data(win_idx)>10)=[];
-win_idx(expmt.Light.data(win_idx)>10)=[];
-tInitiate = tPulse;
-tPulse = tPulse - 30*60;
-tStop = tPulse + 30*60*2;
-
-% get indices of window starts and stops
-[~,win_start] = min(abs(repmat(tStamps,1,length(tPulse)) - repmat(tPulse,length(tStamps),1)));
-[~,win_stop] = min(abs(repmat(tStamps,1,length(tStop)) - repmat(tStop,length(tStamps),1)));
-expmt.Circadian.motor.idx = [win_start' win_stop'];
-win_sz = max(win_stop-win_start);
-expmt.Circadian.motor.bouts = NaN(win_sz,expmt.nTracks,length(win_start));
-
-% collect bouts in window
-for i = 1:length(win_start)
-    
-    ns=win_stop(i)-win_start(i)+1;
-    expmt.Circadian.motor.bouts(:,:,i) = interp1(1:ns,...
-        expmt.Speed.data(win_start(i):win_stop(i),:),linspace(1,ns,win_sz));
-    
-end
-
-% get indices of motor pulse for trace plot
-tStamps = expmt.Circadian.trace.t + tStart;
-hold on
-ah = gca;
-for i=1:length(tPulse)
-    plot([tInitiate(i) tInitiate(i)]-tStart,ah.YLim,'k--','Linewidth',1.5);
-end
-hold off
-
-
-%%
-
 % save fig
 fname = [expmt.figdir expmt.date '_activity trace'];
 if ~isempty(expmt.figdir) && meta.save
@@ -235,7 +243,7 @@ if ~isempty(expmt.figdir) && meta.save
     close(f);
 end
         
-
+end
 
 %% Generate plots
 
