@@ -21,7 +21,7 @@ if isfield(expmt,'Area') && isfield(expmt.Area,'data') && ~isfield(expmt.Area,'t
     
     % find threshold for each individual
     moving = expmt.Speed.data > 0.8;
-    expmt.Arena.data(~moving) = NaN;
+    expmt.Area.data(~moving) = NaN;
     a = num2cell(expmt.Area.data,1);
     disp('finding area thresholds');
     [ints,means,sigmas] = cellfun(@fitBimodalHist,a,'UniformOutput',false);

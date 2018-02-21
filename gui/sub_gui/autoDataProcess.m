@@ -10,6 +10,7 @@ function [varargout] = autoDataProcess(expmt,varargin)
 meta.save = true;
 meta.raw = false;
 meta.bootstrap = true;
+meta.slide = true;
 
 for i = 1:length(varargin)
     
@@ -40,6 +41,9 @@ for i = 1:length(varargin)
             case 'Bootstrap'
                 i=i+1;
                 meta.bootstrap = varargin{i};
+            case 'Slide'
+                i=i+1;
+                meta.slide = varargin{i};
         end
     end
 end

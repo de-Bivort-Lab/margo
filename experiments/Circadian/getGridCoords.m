@@ -1,11 +1,4 @@
-function [centers]=find96WellPlate(xPlate,yPlate)
-
-% initialize variables
-wellLeftStart=0;
-wellRightEnd=1;
-wellYCorrection=0.97;
-nRow = 8;
-nCol = 12;
+function [centers]=getGridCoords(xPlate,yPlate,nRow,nCol)
 
 %Get vertices coordinates
 uR=[xPlate(1) yPlate(1)];

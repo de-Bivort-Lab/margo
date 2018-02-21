@@ -13,6 +13,10 @@ colormap('gray')
 
 gui_notify('running ROI detection',gui_handles.disp_note);
 gui_handles.auto_detect_ROIs_pushbutton.Enable = 'off';
+gui_handles.grid_ROI_uipanel.Position(1) = gui_handles.exp_uipanel.Position(1);
+gui_handles.grid_ROI_uipanel.Position(2) = gui_handles.exp_uipanel.Position(2);
+gui_handles.grid_ROI_uipanel.Visible = 'on';
+hAdd = gui_handles.add_ROI_pushbutton;
 
 %% Define parameters - adjust parameters here to fix tracking and ROI segmentation errors
 
@@ -58,8 +62,8 @@ hText(1) = text(0,0,'1','Color','b');
 
 % get drawn rectangle from user outlining well plate boundary
 roi = getrect();
-nRow = 8;
-nCol = 12;
+nRow = hAdd.UserData.grid(1).nRows;
+nCol = hAdd.UserData.grid(1).nCols;
 
 % get coordinates of vertices from rectangle bounds
 polyPos = NaN(4,2);                                 
@@ -81,7 +85,7 @@ y = y(2:length(y)-1);
 
 % sort coordinates from top left to bottom right
 centers(:,2) = sort(repmat(y,nCol,1));
-[centers] = find96WellPlate(polyPos(:,1),polyPos(:,2));
+[centers] = getGridCoords(polyPos(:,1),polyPos(:,2),nRow,nCol);
 r = median(diff(centers(:,1)))/2;
 bounds = centerRect(centers,r);
 
@@ -118,7 +122,9 @@ while ~gui_handles.accept_ROI_thresh_pushbutton.Value
     
     % get ui rectangle position and infer well centers and radii
     pos = getPosition(hPoly);
-    centers = find96WellPlate(pos(:,1),pos(:,2));
+    nRow = hAdd.UserData.grid(1).nRows;
+    nCol = hAdd.UserData.grid(1).nCols;
+    centers = getGridCoords(pos(:,1),pos(:,2),nRow,nCol);
     r = median(abs(diff(centers(:,1))))/2;
     
     % update circle positions in the axes
