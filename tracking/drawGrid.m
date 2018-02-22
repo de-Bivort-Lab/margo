@@ -1,4 +1,4 @@
-function [gui_handles,hCirc]=drawGrid(grid_idx,gui_handles)
+function [gui_handles,hPatch]=drawGrid(grid_idx,gui_handles)
 
 % get drawn rectangle from user outlining well plate boundary
 roi = getrect();
@@ -36,4 +36,8 @@ newCirc = cat(1,newCirc{:});
 delete(hTemplate);
 hCirc = newCirc;
 clear handle_parent ref_handle newCirc
+
+figure;
+patch('Faces',1:size(xData,2),'XData',xData,'YData',yData,...
+    'FaceColor','none','EdgeColor','r');
 uistack(hCirc,'down');
