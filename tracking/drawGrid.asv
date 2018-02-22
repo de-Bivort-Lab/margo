@@ -27,6 +27,7 @@ bounds = gui_handles.add_ROI_pushbutton.UserData.grid(1).bounds;
 centers = gui_handles.add_ROI_pushbutton.UserData.grid(1).bounds;
 
 % initialize graphics objects for ROIs
+%{
 hTemplate = rectangle(gui_handles.axes_handle,'Position',bounds(1,:),...
         'EdgeColor',[1 0 0],'Curvature',[1 1],'LineWidth',1.5);
 ref_handle = repmat(hTemplate,length(centers),1);
@@ -36,4 +37,8 @@ newCirc = cat(1,newCirc{:});
 delete(hTemplate);
 hCirc = newCirc;
 clear handle_parent ref_handle newCirc
+%}
+figure;
+patch('Faces',1:size(xData,2),'XData',xData,'YData',yData,...
+    'FaceColor','none','EdgeColor','r');
 uistack(hCirc,'down');
