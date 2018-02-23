@@ -22,7 +22,7 @@ function varargout = autotracker(varargin)
 
 % Edit the above text to modify the response to help autotracker
 
-% Last Modified by GUIDE v2.5 21-Feb-2018 13:46:05
+% Last Modified by GUIDE v2.5 21-Feb-2018 14:39:30
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -478,7 +478,7 @@ if ~isempty(expmt.camInfo)
         colormap('gray');
         set(gca,'Xtick',[],'Ytick',[],'XLabel',[],'YLabel',[]);
         
-                % reset the enable states of objects in the gui
+        % reset the enable states of objects in the gui
         set(on_objs,'Enable','on');
         set(off_objs,'Enable','off');
         
@@ -3542,8 +3542,7 @@ function add_ROI_pushbutton_Callback(hObject, eventdata, handles)
 if hObject.UserData.nGrids < 6
     
     hObject.UserData.nGrids = hObject.UserData.nGrids + 1;
-    handles = add_grid_UI(handles);
-    
+    handles = update_grid_UI(handles,'add');
     
 end
 
@@ -3555,6 +3554,14 @@ function remove_ROI_pushbutton_Callback(hObject, eventdata, handles)
 % hObject    handle to remove_ROI_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+if handles.add_ROI_pushbutton.UserData.nGrids > 1
+    
+    handles = update_grid_UI(handles,'subtract');
+    
+end
+
+guidata(hObject,handles);
 
 
 % --- Executes on selection change in ROI_shape_popupmenu1.
@@ -3579,8 +3586,8 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-hObject.Value = 1;
-guidat
+hObject.UserData = 1;
+guidata(hObject,handles);
 
 
 
@@ -3589,8 +3596,9 @@ function row_num_edit1_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of row_num_edit1 as text
-%        str2double(get(hObject,'String')) returns contents of row_num_edit1 as a double
+n = hObject.Value;
+handles.add_ROI_pushbutton.UserData.grid(n).nRows = str2double(hObject.String);
+guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -3605,20 +3613,25 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
+hObject.Value = 1;
+guidata(hObject,handles);
+
 
 
 function col_num_edit1_Callback(hObject, eventdata, handles)
-% hObject    handle to col_num_edit1 (see GCBO)
+% hObject    handle to row_num_edit1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of col_num_edit1 as text
-%        str2double(get(hObject,'String')) returns contents of col_num_edit1 as a double
+n = hObject.Value;
+handles.add_ROI_pushbutton.UserData.grid(n).nCols = str2double(hObject.String);
+guidata(hObject,handles);
+
 
 
 % --- Executes during object creation, after setting all properties.
 function col_num_edit1_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to col_num_edit1 (see GCBO)
+% hObject    handle to row_num_edit1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -3628,6 +3641,9 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
+hObject.Value = 1;
+guidata(hObject,handles);
+
 
 % --- Executes during object creation, after setting all properties.
 function add_ROI_pushbutton_CreateFcn(hObject, eventdata, handles)
@@ -3636,7 +3652,11 @@ function add_ROI_pushbutton_CreateFcn(hObject, eventdata, handles)
 % handles    empty - handles not created until after all CreateFcns called
 
 hObject.UserData.nGrids = 1;
+hObject.UserData.grid = struct('shape','Circular','nRows',8,'nCols',12,...
+    'hs',[],'hr',[],'hc',[],'hp',[],'centers',[],'bounds',[]);
+hObject.Value = false;
 guidata(hObject,handles);
+
 
 
 % --- Executes during object creation, after setting all properties.
@@ -3645,6 +3665,7 @@ function grid_ROI_uipanel_CreateFcn(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
-hObject.UserData.grids = struct('shape','Circular','nRows',8,'nCols',12,...
-    'hs',[],'hr',[],'hc',[]);
+hObject.Visible = 'off';
 guidata(hObject,handles);
+
+

@@ -27,6 +27,9 @@ switch mode
     ha.UserData.grid(n).hs = copyobj(hs,par);
     ha.UserData.grid(n).hc = copyobj(hc,par);
     ha.UserData.grid(n).hr = copyobj(hr,par);
+    ha.UserData.grid(n).hs.Callback = ha.UserData.grid(n-1).hs.Callback;
+    ha.UserData.grid(n).hc.Callback = ha.UserData.grid(n-1).hc.Callback;
+    ha.UserData.grid(n).hr.Callback = ha.UserData.grid(n-1).hr.Callback;
 
     % set handle value to grid number
     ha.UserData.grid(n).hs.UserData = n;
@@ -40,6 +43,9 @@ switch mode
     delete(ha.UserData.grid(n).hs);
     delete(ha.UserData.grid(n).hr);
     delete(ha.UserData.grid(n).hc);
+    if ~isempty(ha.UserData.grid(n).hp)
+        delete(ha.UserData.grid(n).hp);
+    end
     ha.UserData.grid(n) = [];
     n = n-1;
     ha.UserData.nGrids = n;

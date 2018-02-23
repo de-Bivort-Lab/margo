@@ -478,7 +478,7 @@ if ~isempty(expmt.camInfo)
         colormap('gray');
         set(gca,'Xtick',[],'Ytick',[],'XLabel',[],'YLabel',[]);
         
-                % reset the enable states of objects in the gui
+        % reset the enable states of objects in the gui
         set(on_objs,'Enable','on');
         set(off_objs,'Enable','off');
         
@@ -3654,6 +3654,7 @@ function add_ROI_pushbutton_CreateFcn(hObject, eventdata, handles)
 hObject.UserData.nGrids = 1;
 hObject.UserData.grid = struct('shape','Circular','nRows',8,'nCols',12,...
     'hs',[],'hr',[],'hc',[],'hp',[],'centers',[],'bounds',[]);
+hObject.Value = false;
 guidata(hObject,handles);
 
 

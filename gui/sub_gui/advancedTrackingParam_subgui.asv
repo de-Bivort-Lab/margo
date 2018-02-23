@@ -816,14 +816,7 @@ function roi_mode_popupmenu_Callback(hObject, eventdata, handles)
 gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
 
 gui_fig.UserData.ROI_mode = hObject.String{hObject.Value};
-switch gui_fig.UserData.ROI_mode
-    case 'distance'
-        handles.sort_mode_popupmenu.Enable = 'on';
-    case 'grid'
-        handles.sort_mode_popupmenu.Enable = 'off';
-        activemode = find(strcmp('bounds',handles.sort_mode_popupmenu.String));
-        handles.sort_mode_popupmenu.Value = activemode;
-end
+switch 
 guidata(hObject,handles);
 
 

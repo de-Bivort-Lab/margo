@@ -140,7 +140,7 @@ update_centroid = logical(zeros(size(trackDat.Centroid,1),1));
             update_centroid=~isnan(j);
         
         
-        elseif strcmp(udat.sort_mode,'bounds')
+        elseif strcmp(udat.sort_mode,'bounds') ||
             
             x_bounded = raw_cen(j,1) > expmt.ROI.bounds(:,1) & raw_cen(j,1) < sum(expmt.ROI.bounds(:,[1 3]),2);
             y_bounded = raw_cen(j,2) > expmt.ROI.bounds(:,2) & raw_cen(j,2) < sum(expmt.ROI.bounds(:,[2 4]),2);
