@@ -51,7 +51,7 @@ function autotracker_OpeningFcn(hObject, ~, handles, varargin)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to autotracker (see VARARGIN)
-
+tic
 warning('off','MATLAB:JavaEDTAutoDelegation');
 warning('off','imaq:peekdata:tooManyFramesRequested');
 set(handles.gui_fig,'doublebuffer','off');
@@ -70,8 +70,10 @@ if exist([handles.gui_dir 'profiles\deviceID.txt'],'file')
     fID = fopen([handles.gui_dir 'profiles\deviceID.txt']);
     handles.deviceID=char(fread(fID))';
     fclose(fID);
+    
+    webop = weboptions('Timeout',5);
     try
-    [~,status]=urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=2']);
+    [~,sta]=webread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=2'],webop);
     catch
         status = false;
     end
@@ -79,15 +81,12 @@ if exist([handles.gui_dir 'profiles\deviceID.txt'],'file')
         gui_notify('unable to connect to http://lab.debivort.org',handles.disp_note);
     end
     
+    
 end
 addpath(genpath(handles.gui_dir));
 handles.display_menu.UserData = 1;     
 
 gui_notify('welcome to autotracker',handles.disp_note);
-
-if exist('status','var') && ~status
-    gui_notify('unable to connect to http://lab.debivort.org',handles.disp_note);
-end
 
 % open in main display window
 root = get(0);
@@ -185,6 +184,7 @@ else
 end
 
 % cam setup
+
 expmt.source = 'camera';                    % set the source mode to camera by default
 [expmt.camInfo,handles.cam_list] = refresh_cam_list(handles);  % query available cameras and camera info
 
@@ -198,6 +198,7 @@ if exist(cam_dir,'dir')==7 && exist(cam_file,'file')==2
     expmt.camInfo.calibration = cameraParams;
     
 end
+
 % Initialize teensy for motor and light board control
 
 %Close and delete any open serial objects
@@ -208,6 +209,7 @@ end
 
 % Attempt handshake with light panel teensy
 [expmt.COM,handles.aux_COM_list] = identifyMicrocontrollers;
+
 
 
 % Update GUI menus with port names
@@ -245,6 +247,7 @@ if ~isempty(handles.aux_COM_list)
     expmt.AUX_COM = handles.aux_COM_list(1);
 end
         
+
 % generate controls for new list
 for i = 1:length(handles.aux_COM_list)
     menu_items(i) = uimenu(hParent,'Label',handles.aux_COM_list{i},...

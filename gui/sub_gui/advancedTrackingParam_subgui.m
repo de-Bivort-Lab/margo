@@ -80,7 +80,7 @@ handles.sort_mode_popupmenu.Value = activemode;
 
 % find idx of active mode in menu and set it in gui
 activemode = find(strcmp(gui_fig.UserData.ROI_mode,handles.roi_mode_popupmenu.String));
-if strcmp(activemode,'grid')
+if strcmp(gui_fig.UserData.ROI_mode,'grid')
     handles.sort_mode_popupmenu.Enable = 'off';
 end
 handles.roi_mode_popupmenu.Value = activemode;
@@ -817,7 +817,7 @@ gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
 
 gui_fig.UserData.ROI_mode = hObject.String{hObject.Value};
 switch gui_fig.UserData.ROI_mode
-    case 'distance'
+    case 'auto'
         handles.sort_mode_popupmenu.Enable = 'on';
     case 'grid'
         handles.sort_mode_popupmenu.Enable = 'off';

@@ -24,6 +24,7 @@ vertCoords = cellfun(@(x,y) initializeVectors(x,y,nCol+1),L,R,'UniformOutput',fa
 XData = cat(2,xVecs{:});
 YData = cat(2,yVecs{:});
 
+% output slope and bounds for calculating bounds for each ROI
 if nargout==3
     
     T = NaN(nCol+1,2);
@@ -53,26 +54,37 @@ if nargout==3
     vr=cat(1,vr{:});
     vr=vr(mod(1:size(vr,1),2)==1,:);
     bRow = vr(:,2)-mRow.*vr(:,1);
-    
-    
     vc=cat(1,vc{:});
     vc=vc(mod(1:size(vc,1),2)==1,:);
+    bCol = vc(:,2)-mCol.*vc(:,1);
     
+    gridVec.row = [mRow bRow];
+    gridVec.col = [mCol bCol];
     
+    [m,b] = arrayfun(@(x) getLinearParams(x,gridVec.row,gridVec.col,nCol),...
+        1:nRow*nCol,'UniformOutput',false);
+    gridVec = [cat(1,m{:})
     
-    
-    
-    varargout(1)={vertCoords};
+    varargout(1)={gridVec};
 end
 
 
 function vec = initializeVectors(c1,c2,n)
 
+% c1    - first xy pair
+% c2    - second xy pair
+% n     - num points to generate
+
 vec = NaN(n,2);
 vec(:,1) = linspace(c1(1),c2(1),n);
 vec(:,2) = linspace(c1(2),c2(2),n);
 
+
 function [xData,yData] = getVertices(n,vc,nc)
+
+% n     - ROI number within it's grid (not absolute ROI num)
+% vc    - vertices coordinates
+% nc    - num columns in the grid
 
 row = ceil(n/nc);
 col = mod(n-1,nc)+1;
@@ -80,6 +92,20 @@ xData = [vc{row}(col,1); vc{row+1}(col,1); ...
     vc{row+1}(col+1,1); vc{row}(col+1,1); vc{row}(col,1)];
 yData = [vc{row}(col,2); vc{row+1}(col,2); ...
     vc{row+1}(col+1,2); vc{row}(col+1,2); vc{row}(col,2)];
+
+
+function [slope,intercepts] = getLinearParams(n,rp,cp,nc)
+
+% n     - ROI number within it's grid (not absolute ROI num)
+% rp    - row vector slope and intercepts
+% cp    - col vector slope and intercepts
+% nc    - num columns in the grid
+
+row = ceil(n/nc);
+col = mod(n-1,nc)+1;
+slope = [rp(row,1) cp(col,1) rp(row+1,1) cp(col+1,1)];
+intercepts = [rp(row,2) cp(col,2) rp(row+1,2) cp(col+1,2)];
+
 
 
 

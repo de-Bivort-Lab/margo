@@ -12,7 +12,9 @@ serialInfo = instrhwinfo('serial');
 ports=serialInfo.AvailableSerialPorts;
 panelNum=[];
 
+if ~isempty(instrfindall)
 for i=1:size(ports,1)
+
     s = serial(ports{i});    % Create Serial Object
     set(s,'BaudRate',9600);         % Set baud rate
     fopen(s);                       % Open the port
@@ -33,6 +35,7 @@ for i=1:size(ports,1)
     
     fclose(s);
     delete(s);
+end
 end
 
 if ~isempty(panelNum)

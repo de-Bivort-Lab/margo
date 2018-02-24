@@ -105,7 +105,10 @@ update_centroid = logical(zeros(size(trackDat.Centroid,1),1));
     % For the centroids j, calculate speed and distance to ROI center for thresholding
     if size(raw_cen,1)>0 
         
-        if strcmp(udat.sort_mode,'distance')
+        switch udat.sort_mode
+            
+          case 'distance'
+                
             % Calculate distance to known landmark such as the ROI center
             secondary_distance=abs(sqrt(dot(raw_cen(j,:)'-expmt.ROI.centers',expmt.ROI.centers'-raw_cen(j,:)')))';
 
@@ -140,10 +143,55 @@ update_centroid = logical(zeros(size(trackDat.Centroid,1),1));
             update_centroid=~isnan(j);
         
         
-        elseif strcmp(udat.sort_mode,'bounds')
+          case 'bounds'  
+              
+             % find candidate ROIs for each centroid
+             ROI_num = arrayfun(@(x) ...
+                 gridAssignROI(x,expmt.ROI.vec),num2cell(raw_cen,2),'UniformOutput',false);
+
+             
+             % remove centroids out of bounds of any ROI
+             filt = cellfun(@isempty,ROI_num);
+             raw_cen(filt,:)=[];
+             ROI_num(filt)=[];
+             
+             
+             % check for centroids with more than one ROI assigned
+             dupROIs = cellfun(@length,ROI_num)>1;
+             if any(dupROIs)
+                 
+                 % find ROI with nearest last centroid to each raw_cen                
+                 ROI_num(dupROIs) = cellfun(@(x,y) closestCentroid(x,y,trackDat.Centroid),...
+                     num2cell(raw_cen(dupROIs,:),2),ROI_num(dupROIs),'UniformOutput',false);
+                 
+             end   
+              
+             % find ROIs with more than one centroid assignment
+             ROI_num = cat(2,ROI_num{:});    
+             hasDupCen = find(histc(ROI_num,1:length(expmt.ROI.row))>1);
+             if ~isempty(hasDupCen)
+                dupCenIdx = arrayfun(@(x) find(ismember(ROI_num,x)),...
+                    hasDupCen,'UniformOutput',false);
+                [~,discard] = cellfun(@(x,y) closestCentroid(x,y,raw_cen),...
+                    num2cell(trackDat.Centroid(hasDupCen,:),2),dupCenIdx','UniformOutput',false);
+                ROI_num(cat(2,discard{:}))=[];
+             end
+             
+             [~,sorting_permutation] = sort(ROI_num);
+             update_centroid = ismember(1:length(expmt.ROI.row),RO
+             
+             
+              %{
+            switch udat.ROI_mode    
+                case 'grid'
+                   disp('break'); 
+                   
+                case 'auto'
+                    bounds = expmt.ROI.bounds;
+            end
             
-            x_bounded = raw_cen(j,1) > expmt.ROI.bounds(:,1) & raw_cen(j,1) < sum(expmt.ROI.bounds(:,[1 3]),2);
-            y_bounded = raw_cen(j,2) > expmt.ROI.bounds(:,2) & raw_cen(j,2) < sum(expmt.ROI.bounds(:,[2 4]),2);
+            x_bounded = raw_cen(j,1) > bounds(:,1) & raw_cen(j,1) < sum(bounds(:,[1 3]),2);
+            y_bounded = raw_cen(j,2) > bounds(:,2) & raw_cen(j,2) < sum(bounds(:,[2 4]),2);
             in_bounds = x_bounded & y_bounded;
             j(~in_bounds) = NaN;
             
@@ -176,7 +224,7 @@ update_centroid = logical(zeros(size(trackDat.Centroid,1),1));
             
             if any(unassigned)
 
-                
+               %{ 
                 % record which raw centroids are already sorted
                 assigned = ~unassigned;
                 
@@ -193,15 +241,8 @@ update_centroid = logical(zeros(size(trackDat.Centroid,1),1));
                 c=permute(c,[3 2 1]);
 
                 % Use dot product to calculate pairwise distance between all coordinates
-                if any(size(c) ~= size(tD))
-                    disp('break');
-                end
-                try
                 g=sqrt(dot((c-tD),(tD-c),2));
                 g=abs(g);
-                catch
-                    disp('break')
-                end
 
                 % this time find closest ROI center for each remaining centroid
                 [primary_distance,j]=min(g,[],3);           
@@ -213,10 +254,10 @@ update_centroid = logical(zeros(size(trackDat.Centroid,1),1));
                 j(ismember(j,find(update_centroid))) = [];  
                 
                 % check to see if the remaining coordinates are inside the matched ROI
-                x_bounded = raw_cen(unassigned,1) > expmt.ROI.bounds(j,1) &...
-                    raw_cen(unassigned,1) < sum(expmt.ROI.bounds(j,[1 3]),2);
-                y_bounded = raw_cen(unassigned,2) > expmt.ROI.bounds(j,2) &...
-                    raw_cen(unassigned,2) < sum(expmt.ROI.bounds(j,[2 4]),2);
+                x_bounded = raw_cen(unassigned,1) > bounds(j,1) &...
+                    raw_cen(unassigned,1) < sum(bounds(j,[1 3]),2);
+                y_bounded = raw_cen(unassigned,2) > bounds(j,2) &...
+                    raw_cen(unassigned,2) < sum(bounds(j,[2 4]),2);
                 in_bounds = x_bounded & y_bounded;
                 j(~in_bounds) = NaN;
 
@@ -249,10 +290,12 @@ update_centroid = logical(zeros(size(trackDat.Centroid,1),1));
                 new_Cen_list = [Cen_list;find(new_assigned)];
                 [~,p] = sort(new_ROI_list);
                 sorting_permutation = new_Cen_list(p);
-                update_centroid = ismember(1:size(expmt.ROI.centers,1),new_ROI_list)';               
+                update_centroid = ismember(1:size(expmt.ROI.centers,1),new_ROI_list)'; 
+              %}
                 
                 
             end
+              %}
         
         end
 
@@ -268,28 +311,52 @@ update_centroid = logical(zeros(size(trackDat.Centroid,1),1));
         
 
 end
-%{
-function vars=parseinputvars(invars)
 
-    switch length(invars)
-        
-        case 2
-            % Single sorting mode with no distance thresholding
-            vars.cenDat=invars{1};                          % Raw centroid invars
-            vars.sort_coords_primary=invars{2};             % Coordinate basis to sort invars to
-            vars.sort_num = 'single sort';                        % Specifies only one round of sorting
-            vars.thresh_mode_dist=0;                        % No centroids excluded by distance
-        case 4
-            % Double sorting mode with no distance thresholding
-            vars.cenDat=invars{1};                          % Raw centroid invars
-            vars.sort_coords_primary=invars{2};             % Primary coordinate basis to sort invars to
-            expmt = invars{3};
-            vars.sort_coords_secondary=expmt.ROI.centers;   % Secondary coordinate basis to sort invars to
-            vars.mmpx = expmt.parameters.mm_per_pix;      % mm/pix conversion factor
-            vars.dist_thresh = invars{4}.gui_fig.UserData.distance_thresh;  % threshold for max dist from roi center
-            vars.sort_mode = invars{4}.gui_fig.UserData.sort_mode;
-            vars.sort_num = 'double sort';                        % Specifies two rounds of sorting
-    end
+
+function ROI_num = gridAssignROI(cen,gv)
+
+    % get the bounds for each ROI at
+    % current x and y position
+    cen=cen{1};
+    xL = cen(1) > (cen(2)-gv(:,1,2))./gv(:,1,1);
+    xR = cen(1) < (cen(2)-gv(:,3,2))./gv(:,3,1);
+    yT = cen(2) > gv(:,2,1).*cen(1) + gv(:,2,2);
+    yB = cen(2) < gv(:,4,1).*cen(1) + gv(:,4,2);
+    
+    % identify matching ROI, if any
+    in_bounds = xL & xR & yT & yB;
+    ROI_num = find(in_bounds);       
+
 end
-    %}    
 
+function boundsAssignROI(cen,b)
+
+
+end
+
+
+function [candidate_idx,no_match] = closestCentroid(target_cen,candidate_idx,candidate_cen)
+    
+% find the candidate centroid closest to the target centroid
+
+% restrict the list of candidates to the indices in candidate idx
+candidate_cen = candidate_cen(candidate_idx,:);
+
+% find index for candidate with minimum distance to target
+[~,j] = min(sqrt((target_cen(1)-candidate_cen(:,1)).^2 +...
+    (target_cen(2)-candidate_cen(:,2)).^2));
+no_match = candidate_idx(candidate_idx~=candidate_idx(j));
+candidate_idx = candidate_idx(j);
+
+end
+
+function rois = findSingleAssignment(rois,cen_ct)                 
+    
+% for each centroid with duplicate assignments, 
+% check if any assigned ROI has another centroid
+% assigned. If so, assign the centroid to that ROI.
+
+cen_ct = cen_ct(rois);
+rois = rois(cen_ct==1);
+
+end

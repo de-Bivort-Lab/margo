@@ -33,10 +33,6 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
     trackDat.ct = trackDat.ct + 1;
 
     % calculate difference image and current for vignetting
-    if ~strcmp(class(expmt.ref),class(expmt.vignette.im)) || ~strcmp(class(trackDat.im),class(expmt.vignette.im))...
-            || ~strcmp(class((expmt.ref - expmt.vignette.im)),class((trackDat.im - expmt.vignette.im)))
-        disp('break');
-    end
     diffim = (expmt.ref - expmt.vignette.im) - (trackDat.im - expmt.vignette.im);
     
     % get current image threshold and use it to extract region properties     
@@ -109,7 +105,7 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
         end
 
         % Match centroids to last known centroid positions
-        [permutation,update] = ...
+        [permutation,update,raw_cen] = ...
             matchCentroids2ROIs(raw_cen,trackDat,expmt,gui_handles);
 
         % Apply speed threshold to centroid tracking
