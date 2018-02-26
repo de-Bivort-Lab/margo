@@ -143,11 +143,11 @@ handles.fig_size = handles.gui_fig.Position;
 
 % disable all panels except cam/video and lighting
 handles.exp_uipanel.ForegroundColor = [.5   .5  .5];
-set(findall(handles.exp_uipanel, '-property', 'enable'), 'enable', 'off');
+set(findall(handles.exp_uipanel, '-property', 'Enable'), 'Enable', 'off');
 handles.tracking_uipanel.ForegroundColor = [.5   .5  .5];
-set(findall(handles.tracking_uipanel, '-property', 'enable'), 'enable', 'off');
+set(findall(handles.tracking_uipanel, '-property', 'Enable'), 'Enable', 'off');
 handles.run_uipanel.ForegroundColor = [.5   .5  .5];
-set(findall(handles.run_uipanel, '-property', 'enable'), 'enable', 'off');
+set(findall(handles.run_uipanel, '-property', 'Enable'), 'Enable', 'off');
 
 % Choose default command line output for autotracker
 handles.output = hObject;
@@ -441,12 +441,12 @@ expmt = getappdata(handles.gui_fig,'expmt');
 if ~isempty(expmt.camInfo)
     if ~isempty(expmt.camInfo.DeviceInfo)
         
-        % query the enable states of objects in the gui
-        on_objs = findobj('enable','on');
-        off_objs = findobj('enable','off');
+        % query the Enable states of objects in the gui
+        on_objs = findobj('Enable','on');
+        off_objs = findobj('Enable','off');
         
         % disable all gui features during camera initialization
-        set(findall(handles.gui_fig, '-property', 'enable'), 'enable', 'off');
+        set(findall(handles.gui_fig, '-property', 'Enable'), 'Enable', 'off');
         
         handles.Cam_preview_togglebutton.Enable = 'off';
         
@@ -483,13 +483,13 @@ if ~isempty(expmt.camInfo)
         colormap('gray');
         set(gca,'Xtick',[],'Ytick',[],'XLabel',[],'YLabel',[]);
         
-        % reset the enable states of objects in the gui
+        % reset the Enable states of objects in the gui
         set(on_objs,'Enable','on');
         set(off_objs,'Enable','off');
         
-        % set downstream UI panel enable status
+        % set downstream UI panel Enable status
         handles.tracking_uipanel.ForegroundColor = [0 0 0];
-        set(findall(handles.tracking_uipanel, '-property', 'enable'), 'enable', 'on');
+        set(findall(handles.tracking_uipanel, '-property', 'Enable'), 'Enable', 'on');
         handles.distance_scale_menu.Enable = 'on';
         handles.vignette_correction_menu.Enable = 'on';
         
@@ -753,9 +753,9 @@ end
 expmt.fpath = fpath;
 set(handles.save_path,'string',fpath);
 
-% if experiment parameters are set, enable experiment run panel
+% if experiment parameters are set, Enable experiment run panel
 if expmt.expID > 1 && ~isempty(handles.save_path.String)
-    set(findall(handles.run_uipanel, '-property', 'enable'),'enable','on');
+    set(findall(handles.run_uipanel, '-property', 'Enable'),'Enable','on');
 end
 
 
@@ -945,9 +945,9 @@ function run_pushbutton_Callback(hObject, ~, handles)
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 
-% query the enable states of objects in the gui
-handles.on_objs = findobj('enable','on');
-handles.off_objs = findobj('enable','off');
+% query the Enable states of objects in the gui
+handles.on_objs = findobj('Enable','on');
+handles.off_objs = findobj('Enable','off');
 
 % disable play button to prevent multiple button presses
 handles.run_pushbutton.Enable = 'off';
@@ -1122,7 +1122,7 @@ else
         end
     end
     
-    % re-enable control set to off during experiment
+    % re-Enable control set to off during experiment
     handles = toggleSubguis(handles,'on');
     
     % remove saved rois, images, and noise statistics from prev experiment
@@ -1144,11 +1144,11 @@ else
             end
         end
 
-        % set downstream UI panel enable status
+        % set downstream UI panel Enable status
         handles.tracking_uipanel.ForegroundColor = [0 0 0];
-        set(findall(handles.tracking_uipanel, '-property', 'enable'), 'enable', 'off');
-        set(findall(handles.exp_uipanel, '-property', 'enable'), 'enable', 'off');
-        set(findall(handles.run_uipanel, '-property', 'enable'), 'enable', 'off');
+        set(findall(handles.tracking_uipanel, '-property', 'Enable'), 'Enable', 'off');
+        set(findall(handles.exp_uipanel, '-property', 'Enable'), 'Enable', 'off');
+        set(findall(handles.run_uipanel, '-property', 'Enable'), 'Enable', 'off');
         
         if isfield(expmt,'camInfo') && isfield(expmt.camInfo,'vid') && isvalid(expmt.camInfo.vid)
             handles.auto_detect_ROIs_pushbutton.Enable = 'on';
@@ -1254,16 +1254,16 @@ if expmt.expID ~= handles.exp_select_popupmenu.Value
     expmt.parameters = trimParameters(expmt.parameters, handles);   % remove all experiment specific parameters
 end
 
-% enable Experiment Parameters pushbutton if expID has an associated subgui
+% Enable Experiment Parameters pushbutton if expID has an associated subgui
 if ismember(expmt.expID,handles.parameter_subgui)
     handles.exp_parameter_pushbutton.Enable = 'on';
 else
     handles.exp_parameter_pushbutton.Enable = 'off';
 end
 
-% if experiment parameters are set, enable experiment run panel
+% if experiment parameters are set, Enable experiment run panel
 if expmt.expID > 1 && ~isempty(handles.save_path.String)
-    set(findall(handles.run_uipanel, '-property', 'enable'),'enable','on');
+    set(findall(handles.run_uipanel, '-property', 'Enable'),'Enable','on');
 end
 
 % Store expmteriment data struct
@@ -1745,7 +1745,7 @@ expmt = getappdata(handles.gui_fig,'expmt');
 
 if isfield(expmt,'ROI')
     expmt = initializeRef(handles,expmt);
-    handles.sample_noise_pushbutton.Enable = 'on';          % enable downstream control
+    handles.sample_noise_pushbutton.Enable = 'on';          % Enable downstream control
 else
     errordlg('Either ROI detection has not been run or no ROIs were detected.')
 end
@@ -1770,9 +1770,9 @@ if isfield(expmt,'ref')
     
     expmt = sampleNoise(handles,expmt);
     
-    % enable downstream controls
+    % Enable downstream controls
     handles.exp_uipanel.ForegroundColor = [0 0 0];
-    ctls = findall(handles.exp_uipanel, '-property', 'enable'); % get control handles
+    ctls = findall(handles.exp_uipanel, '-property', 'Enable'); % get control handles
     
     
     for i = 1:length(ctls)
@@ -1788,15 +1788,15 @@ if isfield(expmt,'ref')
     ctls(del) = [];
     
     % set controls in list to on
-    set(ctls, 'enable', 'on');
+    set(ctls, 'Enable', 'on');
     
     if ismember(expmt.expID,handles.parameter_subgui)
         handles.exp_parameter_pushbutton.Enable = 'on';
     end
     
-    % if experiment parameters are set, enable experiment run panel
+    % if experiment parameters are set, Enable experiment run panel
     if expmt.expID > 1 && ~isempty(handles.save_path.String)
-        set(findall(handles.run_uipanel, '-property', 'enable'),'enable','on');
+        set(findall(handles.run_uipanel, '-property', 'Enable'),'Enable','on');
     end
     
 else
@@ -1827,7 +1827,7 @@ if strcmp(expmt.source,'camera') && isfield(expmt.camInfo,'vid')
         % run automatic ROI detections
         expmt = autoROIs(handles, expmt);
 
-        % enable downstream ui controls
+        % Enable downstream ui controls
         handles.track_thresh_slider.Enable = 'on';
         handles.accept_track_thresh_pushbutton.Enable = 'on';
         handles.reference_pushbutton.Enable = 'on';
@@ -1839,7 +1839,7 @@ if strcmp(expmt.source,'camera') && isfield(expmt.camInfo,'vid')
             
         expmt = gridROIs(handles,expmt);
         
-        % enable downstream ui controls
+        % Enable downstream ui controls
         handles.track_thresh_slider.Enable = 'on';
         handles.accept_track_thresh_pushbutton.Enable = 'on';
         handles.reference_pushbutton.Enable = 'on';
@@ -1863,7 +1863,7 @@ if strcmp(expmt.source,'video') && isfield(expmt,'video')
         % run automatic ROI detections
         expmt = autoROIs(handles,expmt);
 
-        % enable downstream UI controls
+        % Enable downstream UI controls
         handles.track_thresh_slider.Enable = 'on';
         handles.accept_track_thresh_pushbutton.Enable = 'on';
         handles.reference_pushbutton.Enable = 'on';
@@ -1875,7 +1875,7 @@ if strcmp(expmt.source,'video') && isfield(expmt,'video')
             
         expmt = gridROIs(handles,expmt);
         
-        % enable downstream ui controls
+        % Enable downstream ui controls
         handles.track_thresh_slider.Enable = 'on';
         handles.accept_track_thresh_pushbutton.Enable = 'on';
         handles.reference_pushbutton.Enable = 'on';
@@ -2568,9 +2568,9 @@ if ~isempty(tmp_video)
     handles.edit_time_remaining.String = num2str(expmt.video.nFrames);
     handles.gui_fig.UserData.target_rate = tmp_video.vid.FrameRate;
     
-    % set downstream UI panel enable status
+    % set downstream UI panel Enable status
     handles.tracking_uipanel.ForegroundColor = [0 0 0];
-    set(findall(handles.tracking_uipanel, '-property', 'enable'), 'enable', 'on');
+    set(findall(handles.tracking_uipanel, '-property', 'Enable'), 'Enable', 'on');
     handles.distance_scale_menu.Enable = 'on';
     handles.vignette_correction_menu.Enable = 'on';
     handles.vid_select_popupmenu.Enable = 'on';
@@ -2614,11 +2614,11 @@ expmt = getappdata(handles.gui_fig,'expmt');
 if strcmp(expmt.source,'video')
     % disable all panels except cam/video and lighting
     handles.exp_uipanel.ForegroundColor = [.5   .5  .5];
-    set(findall(handles.exp_uipanel, '-property', 'enable'), 'enable', 'off');
+    set(findall(handles.exp_uipanel, '-property', 'Enable'), 'Enable', 'off');
     handles.tracking_uipanel.ForegroundColor = [.5   .5  .5];
-    set(findall(handles.tracking_uipanel, '-property', 'enable'), 'enable', 'off');
+    set(findall(handles.tracking_uipanel, '-property', 'Enable'), 'Enable', 'off');
     handles.run_uipanel.ForegroundColor = [.5   .5  .5];
-    set(findall(handles.run_uipanel, '-property', 'enable'), 'enable', 'off');
+    set(findall(handles.run_uipanel, '-property', 'Enable'), 'Enable', 'off');
     handles.time_remaining_text.String = 'time remaining';
     handles.edit_time_remaining.String = '00:00:00';
     handles.vignette_correction_menu.Enable = 'off';
@@ -2661,11 +2661,11 @@ expmt = getappdata(handles.gui_fig,'expmt');
 if strcmp(expmt.source,'camera')
     % disable all panels except cam/video and lighting
     handles.exp_uipanel.ForegroundColor = [.5   .5  .5];
-    set(findall(handles.exp_uipanel, '-property', 'enable'), 'enable', 'off');
+    set(findall(handles.exp_uipanel, '-property', 'Enable'), 'Enable', 'off');
     handles.tracking_uipanel.ForegroundColor = [.5   .5  .5];
-    set(findall(handles.tracking_uipanel, '-property', 'enable'), 'enable', 'off');
+    set(findall(handles.tracking_uipanel, '-property', 'Enable'), 'Enable', 'off');
     handles.run_uipanel.ForegroundColor = [.5   .5  .5];
-    set(findall(handles.run_uipanel, '-property', 'enable'), 'enable', 'off');
+    set(findall(handles.run_uipanel, '-property', 'Enable'), 'Enable', 'off');
     handles.time_remaining_text.String = 'frames remaining';
     handles.edit_time_remaining.String = '-';
     handles.vignette_correction_menu.Enable = 'off';
@@ -3194,9 +3194,9 @@ expmt = getappdata(handles.gui_fig,'expmt');
 clean_gui(handles.axes_handle);
 handles.hImage = findobj(handles.axes_handle,'-depth',3,'Type','Image');
 
-has_enable = findall(handles.gui_fig, '-property', 'enable');
-enable_states = get(has_enable,'enable');
-set(has_enable,'enable','off');
+has_Enable = findall(handles.gui_fig, '-property', 'Enable');
+Enable_states = get(has_Enable,'Enable');
+set(has_Enable,'Enable','off');
 
 axh = handles.axes_handle;
 instructions = {'Right-click in an existing ROI to delete it'...
@@ -3311,9 +3311,9 @@ if isfield(expmt,'ROI')
 
 end
 
-% re-enable objects that were enabled before selecting manual edit
-for i = 1:length(has_enable)
-    has_enable(i).Enable = enable_states{i};
+% re-Enable objects that were Enabled before selecting manual edit
+for i = 1:length(has_Enable)
+    has_Enable(i).Enable = Enable_states{i};
 end
 
 % clear drawn objects from the axes
@@ -3474,7 +3474,7 @@ function unlock_controls_menu_Callback(hObject, ~, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-set(findall(handles.gui_fig,'-property','enable'),'enable','on');
+set(findall(handles.gui_fig,'-property','Enable'),'Enable','on');
 guidata(hObject,handles);
 
 

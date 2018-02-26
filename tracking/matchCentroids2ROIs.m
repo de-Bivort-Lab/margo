@@ -175,6 +175,7 @@ update_centroid = logical(zeros(size(trackDat.Centroid,1),1));
                 [~,discard] = cellfun(@(x,y) closestCentroid(x,y,raw_cen),...
                     num2cell(trackDat.Centroid(hasDupCen,:),2),dupCenIdx','UniformOutput',false);
                 ROI_num(cat(2,discard{:}))=[];
+                raw_cen((cat(2,discard{:})),:)=[];
              end
              
              % assign outputs for sorting data
