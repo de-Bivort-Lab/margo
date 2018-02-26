@@ -321,10 +321,10 @@ function ROI_num = gridAssignROI(cen,gv)
     % get the bounds for each ROI at
     % current x and y position
     cen=cen{1};
-    xL = cen(1) > (cen(2)-gv(:,1,2))./gv(:,1,1);
-    xR = cen(1) < (cen(2)-gv(:,3,2))./gv(:,3,1);
-    yT = cen(2) > gv(:,2,1).*cen(1) + gv(:,2,2);
-    yB = cen(2) < gv(:,4,1).*cen(1) + gv(:,4,2);
+    xL = cen(1) > gv(:,2,1).*cen(2) + gv(:,2,2);
+    xR = cen(1) < gv(:,4,1).*cen(2) + gv(:,4,2);
+    yT = cen(2) > gv(:,1,1).*cen(1) + gv(:,1,2);
+    yB = cen(2) < gv(:,3,1).*cen(1) + gv(:,3,2);
     
     % identify matching ROI, if any
     in_bounds = xL & xR & yT & yB;

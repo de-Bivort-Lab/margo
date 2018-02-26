@@ -48,7 +48,7 @@ if nargout==3
     
     % slope
     mRow = dr(:,2)./dr(:,1);
-    mCol = dc(:,2)./dc(:,1);
+    mCol = dc(:,1)./dc(:,2);
     
     % intercepts
     vr=cat(1,vr{:});
@@ -56,7 +56,7 @@ if nargout==3
     bRow = vr(:,2)-mRow.*vr(:,1);
     vc=cat(1,vc{:});
     vc=vc(mod(1:size(vc,1),2)==1,:);
-    bCol = vc(:,2)-mCol.*vc(:,1);
+    bCol = vc(:,1)-mCol.*vc(:,2);
     
     gridVec.row = [mRow bRow];
     gridVec.col = [mCol bCol];

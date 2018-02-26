@@ -24,7 +24,7 @@ active_disp = gui_handles.display_menu.UserData;
                 gui_handles.display_menu.UserData = 1;
                 gui_handles.display_menu.Children(5).Checked= 'on';
                 gui_handles.display_menu.Children(4).Checked= 'off';
-                gui_handles.display_menu.Children(4).enable = 'off';
+                gui_handles.display_menu.Children(4).Enable = 'off';
             end
 
         % threshold image
@@ -40,7 +40,7 @@ active_disp = gui_handles.display_menu.UserData;
                 gui_handles.display_menu.UserData = 1;
                 gui_handles.display_menu.Children(5).Checked= 'on';
                 gui_handles.display_menu.Children(3).Checked= 'off';
-                gui_handles.display_menu.Children(3).enable = 'off';
+                gui_handles.display_menu.Children(3).Enable = 'off';
             end
 
         % reference image
@@ -54,6 +54,6 @@ active_disp = gui_handles.display_menu.UserData;
                 gui_handles.display_menu.UserData = 1;
                 gui_handles.display_menu.Children(5).Checked= 'on';
                 gui_handles.display_menu.Children(2).Checked= 'off';
-                gui_handles.display_menu.Children(2).enable = 'off';
+                gui_handles.display_menu.Children(2).Enable = 'off';
             end
     end

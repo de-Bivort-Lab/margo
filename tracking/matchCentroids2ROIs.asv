@@ -177,8 +177,9 @@ update_centroid = logical(zeros(size(trackDat.Centroid,1),1));
                 ROI_num(cat(2,discard{:}))=[];
              end
              
+             % assign outputs for sorting data
              [~,sorting_permutation] = sort(ROI_num);
-             update_centroid = ismember(1:length(expmt.ROI.row),RO
+             update_centroid = ismember(1:length(expmt.ROI.row),ROI_num);
              
              
               %{
@@ -301,12 +302,14 @@ update_centroid = logical(zeros(size(trackDat.Centroid,1),1));
 
 
     end
-    
-    out{1} = sorting_permutation;
-    out{2} = squeeze(update_centroid);
+   
     
     for i=1:nargout
-        varargout{i}=out{i};
+        switch i
+            case 1, varargout(i) = {sorting_permutation};
+            case 2, varargout(i) = {squeeze(update_centroid)};
+            case 3, varargout(i) = {raw_cen};
+        end
     end
         
 
@@ -318,10 +321,10 @@ function ROI_num = gridAssignROI(cen,gv)
     % get the bounds for each ROI at
     % current x and y position
     cen=cen{1};
-    xL = cen(1) > (cen(2)-gv(:,1,2))./gv(:,1,1);
-    xR = cen(1) < (cen(2)-gv(:,3,2))./gv(:,3,1);
-    yT = cen(2) > gv(:,2,1).*cen(1) + gv(:,2,2);
-    yB = cen(2) < gv(:,4,1).*cen(1) + gv(:,4,2);
+    xL = cen(1) > (cen(2)-gv(:,2,2))./gv(:,2,1);
+    xR = cen(1) < (cen(2)-gv(:,4,2))./gv(:,4,1);
+    yT = cen(2) > (cen(2)-gv(:,2,2))./gv(:,2,1);
+    yB = cen(2) < gv(:,3,1).*cen(1) + gv(:,3,2);
     
     % identify matching ROI, if any
     in_bounds = xL & xR & yT & yB;
