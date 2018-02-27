@@ -59,16 +59,12 @@ switch active_disp
 end
 
 
-if isfield(gui_handles.gui_fig.UserData,'cenText') && ...
-        ishghandle(gui_handles.gui_fig.UserData.cenText(1)) &&...
-        strcmp(gui_handles.gui_fig.UserData.cenText(1).Visible,'on')
-    
-    arrayfun(@updateText,gui_handles.gui_fig.UserData.cenText,...
-        num2cell(trackDat.Centroid,2));
+if ishghandle(gui_handles.cenText(1)) && any(strcmp(gui_handles.cenText(1).Visible,'on'))
+    arrayfun(@updateText,gui_handles.cenText,num2cell(trackDat.Centroid))
 end
 
 
-function updateText(h,pos)
+function updateText(h,pos,col)
 
 h.Position = pos{:};
 

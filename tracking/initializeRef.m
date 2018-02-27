@@ -37,14 +37,16 @@ expmt = getVideoInput(expmt,gui_handles);
 %% Assign parameters and placeholders
 
 % Reference vars
-nROIs = size(expmt.ROI.corners, 1);  % total number of ROIs
-ref_cen=zeros(nROIs, 2, 10);         % placeholder for cen. coords where references are taken
-nRefs=zeros(nROIs, 1);               % Reference number placeholder
-rois = round(expmt.ROI.corners);     % temporarily round ROI coords for indexing
+nROIs = size(expmt.ROI.corners, 1);                     % total number of ROIs
+ref_cen=zeros(nROIs, 2, expmt.parameters.ref_depth);    % placeholder for cen. coords where references are taken
+nRefs=zeros(nROIs, 1);                        % Reference number placeholder
+rois = round(expmt.ROI.corners);            % temporarily round ROI coords for indexing
+
+
 
 % tracking vars
-trackDat.fields={'Centroid';'Area'};            % Define fields for regionprops
-trackDat.Centroid=expmt.ROI.centers;             % placeholder for most recent non-NaN centroids
+trackDat.fields={'Centroid';'Area'};        % Define fields for regionprops
+trackDat.Centroid=expmt.ROI.centers;                    % placeholder for most recent non-NaN centroids
 trackDat.tStamp=zeros(nROIs,1);
 trackDat.ct = 0;
 
@@ -87,11 +89,12 @@ for i = 1:nROIs
         'Color','m','FontSmoothing','off');%,'hittest','off');
 end
 %}
-lblstr = arrayfun(@num2str,1:nROIs,'UniformOutput',false);
+color = zeros(nROIs,3);
+color(:,1) = 1;
+hCirc = scatter(expmt.ROI.corners(:,1),expmt.ROI.corners(:,2),...
+    'o','filled','LineWidth',2);
+hCirc.CData = color;
 
-hText = text(expmt.ROI.centers(:,1),expmt.ROI.centers(:,2),lblstr,...
-        'Color','m','FontSmoothing','off');
-txtcol = NaN(nROIs,3);
 hold off
 
 
@@ -115,9 +118,10 @@ while trackDat.t < expmt.parameters.duration*3600 &&...
     % track objects and sort to ROIs
     [trackDat] = autoTrack(trackDat,expmt,gui_handles);
 
-    % Average in new ref for each fly > min_dist from previous reference locations
-    for i=1:nROIs
 
+    % Average in new ref for each fly > min_dist from previous reference locations
+    
+    for i=1:nROIs
         % Calculate distance to previous locations where references were taken
         tCen = repmat(trackDat.Centroid(i,:),size(ref_cen,3),1);
         d = abs(sqrt(dot((tCen-squeeze(ref_cen(i,:,:))'),(squeeze(ref_cen(i,:,:))'-tCen),2)));
@@ -127,23 +131,22 @@ while trackDat.t < expmt.parameters.duration*3600 &&...
         if ~any(d < min_dist) && ~any(isnan(trackDat.Centroid(i,:)))
 
             nRefs(i)=sum(sum(ref_cen(i,:,:)>0));                                % update nrefs
-            ref_cen(i,:,mod(nRefs(i)+1,10))=trackDat.Centroid(i,:);
+            ref_cen(i,:,mod(nRefs(i),expmt.parameters.ref_depth)+1)...
+                =trackDat.Centroid(i,:);
             newRef=trackDat.im(rois(i,2):rois(i,4),rois(i,1):rois(i,3));        % grab new ref from im
             oldRef=expmt.ref(rois(i,2):rois(i,4),rois(i,1):rois(i,3));          % save prev ref
             nRefs(i)=sum(sum(ref_cen(i,:,:)>0));                                % Update num Refs
             averagedRef=newRef.*(1/nRefs(i))+oldRef.*(1-(1/nRefs(i)));          % Weight new reference by 1/nRefs
             expmt.ref(rois(i,2):rois(i,4),rois(i,1):rois(i,3)) = averagedRef;
-            
+
             % Update color indicator
-            
+
             hsv_color = [1-color_scale*nRefs(i)/size(ref_cen,3) 1 1];
-            txtcol = hsv2rgb(hsv_color); 
-            %hText(i).Color = hsv2rgb(hsv_color);
-            %hCirc(i).Color = hsv2rgb(hsv_color);
-            %hCirc(i).MarkerFaceColor = hsv2rgb(hsv_color);
+            color(i,:) = hsv2rgb(hsv_color); 
 
         end
     end
+    %}
     
     % Update display
     if gui_handles.display_menu.UserData ~= 5
@@ -152,8 +155,7 @@ while trackDat.t < expmt.parameters.duration*3600 &&...
         updateDisplay(trackDat, expmt, imh, gui_handles);
        
        % Draw last known centroid for each ROI and update ref. number indicator
-       tcen = num2cell(trackDat.Centroid,2);
-       cellfun(@(x,y) updateText(hText,x,y),tcen,txtcol);
+       hCirc.CData = color;
        
     end
     
@@ -180,8 +182,3 @@ gui_handles.display_menu.UserData = 1;
 if strcmp(expmt.source,'camera')
     updateTimeString(0, gui_handles.edit_time_remaining);
 end
-
-function updateText(h,pos,col)
-
-h.Position = pos{:};
-h.Color = col;

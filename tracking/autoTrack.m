@@ -178,6 +178,14 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
         end
         trackDat.Orientation = orientation;
     end
+    
+    if any(strcmp('PixelIdxList',out_fields))
+        pxList = cell(size(trackDat.Centroid,1),1);
+        if record
+            pxList(update) = {props(permutation).PixelIdxList};
+        end
+        trackDat.PixelIdxList = pxList;
+    end
 
     if any(strcmp('Time',out_fields))
         trackDat.Time = trackDat.ifi;

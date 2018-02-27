@@ -3715,7 +3715,7 @@ if isfield(handles.gui_fig.UserData,'cenText') && ishghandle(handles.gui_fig.Use
     
 else
 
-    expmt = getappdata(handles.gui_fig,'expmt');
+    
     lblstr = arrayfun(@num2str,1:length(expmt.ROI.centers(:,1)),'UniformOutput',false);
     handles.gui_fig.UserData.cenText = text(expmt.ROI.centers(:,1),expmt.ROI.centers(:,2),lblstr,...
         'Color','m','FontSmoothing','off','HorizontalAlignment','center','Visible','off');
