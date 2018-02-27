@@ -11,6 +11,7 @@ meta.save = true;
 meta.raw = false;
 meta.bootstrap = true;
 meta.slide = true;
+meta.regress = false;
 
 for i = 1:length(varargin)
     
@@ -44,6 +45,9 @@ for i = 1:length(varargin)
             case 'Slide'
                 i=i+1;
                 meta.slide = varargin{i};
+            case 'Regress'
+                i=i+1;
+                meta.regress = varargin{i};
         end
     end
 end
@@ -238,7 +242,11 @@ expmt.DecFrames = size(expmt.Centroid.data,1);
 [expmt,trackProps] = processCentroid(expmt);
 trackProps.turning(trackProps.speed<0.1) = NaN;
 expmt.handedness.index = nansum(trackProps.turning)./nansum(abs(trackProps.turning));
-expmt.Speed.avg = nanmean(trackProps.speed);
+expmt.Speed.data = trackProps.speed;
+if meta.regress
+    expmt = modelLensDistortion(expmt);
+end
+expmt.Speed.avg = nanmean(expmt.Speed.data);
 expmt.Speed.active = expmt.Speed.avg > 0.01;
 
 expmt.figdir = [expmt.fdir 'figures_' expmt.date '\'];

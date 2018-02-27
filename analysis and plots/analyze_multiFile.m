@@ -24,8 +24,7 @@ for i=1:length(varargin)
     if any(strcmp(varargin{i},'Dir')) && strcmp(varargin{i+1},'getdir')
 
         % Get paths to data files
-        [fDir] = uigetdir('C:\Users\debivort\Documents\MATLAB\Decathlon Raw Data',...
-            'Select directory containing expmt structs to be analyzed');
+        [fDir] = autoDir;
 
         fPaths = getHiddenMatDir(fDir,keyarg{:});
         dir_idx = i+1;
