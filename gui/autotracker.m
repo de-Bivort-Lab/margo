@@ -3085,7 +3085,7 @@ switch hObject.Checked
     
     case 'off'
 
-        if isfield(expmt,'ROI')
+        if isfield(expmt,'ROI') && strcmp(handles.gui_fig.UserData.ROI_mode,'auto')
             hObject.Checked = 'on';
             hold on
             for i =1:length(expmt.ROI.centers)
@@ -3093,6 +3093,19 @@ switch hObject.Checked
                     rectangle(handles.axes_handle,'Position',expmt.ROI.bounds(i,:),'EdgeColor','r');
             end
             hold off
+        elseif isfield(expmt,'ROI') && strcmp(handles.gui_fig.UserData.ROI_mode,'grid')
+            hObject.Checked = 'on';
+            g = handles.add_ROI_pushbutton.UserData.grid;
+            xdat=[];
+            ydat=[];
+            for i=1:length(g)                
+                xdat = [xdat g(i).XData];
+                ydat = [ydat g(i).YData];
+            end
+            handles.view_menu.UserData.hBounds = patch('Faces',1:size(xdat,2),...
+                'XData',xdat,'YData',ydat,'FaceColor','none','EdgeColor','r',...
+                'Parent',handles.axes_handle);
+            uistack(handles.view_menu.UserData.hBounds,'down');
         else
             gui_notify('ROIs are not set and cannot be displayed',handles.disp_note);
         end
@@ -3658,7 +3671,7 @@ function add_ROI_pushbutton_CreateFcn(hObject, eventdata, handles)
 
 hObject.UserData.nGrids = 1;
 hObject.UserData.grid = struct('shape','Circular','nRows',8,'nCols',12,...
-    'hs',[],'hr',[],'hc',[],'hp',[],'centers',[],'bounds',[]);
+    'hs',[],'hr',[],'hc',[],'hp',[],'centers',[],'bounds',[],'XData',[],'YData',[]);
 hObject.Value = false;
 guidata(hObject,handles);
 

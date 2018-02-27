@@ -168,7 +168,9 @@ for i=1:nGrids
     % save vectors for tracking
     nRow = hAdd.UserData.grid(i).nRows;
     nCol = hAdd.UserData.grid(i).nCols;
-    pos = getPosition(gui_handles.add_ROI_pushbutton.UserData.grid(i).hp);
+    hAdd.UserData.grid(i).XData = hPatch(i).XData;
+    hAdd.UserData.grid(i).YData = hPatch(i).YData;
+    pos = getPosition(hAdd.UserData.grid(i).hp);
     [~,~,gv] = getGridVertices(pos(:,1),pos(:,2),nRow,nCol);
     gridVec = [gridVec;gv];
 
