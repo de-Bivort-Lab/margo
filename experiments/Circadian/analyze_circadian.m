@@ -12,8 +12,6 @@ function expmt = analyze_circadian(expmt,varargin)
 
 clearvars -except expmt trackProps meta
 
-expmt.Speed.data = trackProps.speed;
-
 
 %% get individual area thresholds for separating frames at the ceiling and floor of the well
 

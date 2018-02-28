@@ -246,10 +246,6 @@ expmt.Speed.data = trackProps.speed;
 
 if ~isfield(expmt.ROI,'cam_dist')
     cc = [size(expmt.ref,2)/2 size(expmt.ref,1)/2];
-    expmt.ROI.cam_dist = sqrt((expmt.ROI.centers(:,1)-cc(1)).^2 + ...
-        (expmt.ROI.centers(:,2)-cc(2)).^2);
-end
-
 if meta.regress
     expmt = modelLensDistortion(expmt);
 end
