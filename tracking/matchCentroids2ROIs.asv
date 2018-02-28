@@ -96,7 +96,7 @@ g=abs(g);
 
 % Returns minimum distance to each previous centroid and the indces (j)
 % Of the temp centroid with that distance
-[~,j]=min(g);
+[primary_distance,j]=min(g);
 
 % Initialize empty placeholders for permutation and inclusion vectors
 sorting_permutation=[];

@@ -52,12 +52,14 @@ trackDat.ct = 0;
 
 
 % Set maximum allowable distance to center of ROI as the long axis of the ROI
-widths=(expmt.ROI.bounds(:,3));
-heights=(expmt.ROI.bounds(:,4));
-w=median(widths);
-h=median(heights);
-gui_fig.UserData.distance_thresh=round(sqrt(w^2+h^2)/2*0.9*10)/10 * expmt.parameters.mm_per_pix;
-gui_handles.edit_dist_thresh.String = num2str(gui_fig.UserData.distance_thresh);
+if gui_fig.UserData.distance_thresh == 20
+    widths=(expmt.ROI.bounds(:,3));
+    heights=(expmt.ROI.bounds(:,4));
+    w=median(widths);
+    h=median(heights);
+    gui_fig.UserData.distance_thresh=round(sqrt(w^2+h^2)/2*0.9*10)/10 * expmt.parameters.mm_per_pix;
+    gui_handles.edit_dist_thresh.String = num2str(gui_fig.UserData.distance_thresh);
+end
 
 % set min distance from previous ref locations before acquiring new ref for any given object
 min_dist = gui_fig.UserData.distance_thresh * 0.2;  
