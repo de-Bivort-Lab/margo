@@ -12,7 +12,7 @@ serialInfo = instrhwinfo('serial');
 ports=serialInfo.AvailableSerialPorts;
 panelNum=[];
 
-if ~isempty(instrfindall)
+if ~isempty(ports)
 for i=1:size(ports,1)
 
     s = serial(ports{i});    % Create Serial Object
