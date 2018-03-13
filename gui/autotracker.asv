@@ -1038,7 +1038,7 @@ else
                 end
                 
                 
-            case 'Basic Tracking'
+            case 8
                 expmt = run_basictracking(expmt,handles);     % Run expmt
                 if isfield(expmt,'date')
                     analyze_basictracking(expmt,'Handles',handles);
@@ -1047,7 +1047,7 @@ else
                 end
                 
 
-            case 'Circadian'
+            case 9
                 expmt = run_circadian(expmt,handles);
                 if isfield(expmt,'date')
                     args={'Decimate';{'Centroid';'Time';'Light';'Motor';};'DecFac';5};
@@ -1056,7 +1056,7 @@ else
                     keep_gui_state = true;
                 end
                 
-            case 'Arena Blocks'
+            case 10
                 
                 [circle,opto,photo] = run_arenablocks(expmt,handles);
                 if isfield(circle,'date')
@@ -1074,7 +1074,7 @@ else
                     clearvars photo
                 end
             
-            case 'Temporal Phototaxis'
+            case 11
                 
                 expmt = run_tempphototaxis(expmt,handles);
                 if isfield(expmt,'date')
@@ -1163,7 +1163,6 @@ else
         % restore gui to prior state
         set(handles.on_objs,'Enable','on');
         set(handles.off_objs,'Enable','off');
-        expmt.Initialize = true;
         
     end
         

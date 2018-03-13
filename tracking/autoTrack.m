@@ -132,7 +132,7 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
 
         % Use permutation vector to sort raw centroid data and update
         % vector to specify which centroids are reliable and should be updated
-        trackDat.Centroid(update,:) = raw_cen(permutation,:);
+        trackDat.Centroid(update,:) = single(raw_cen(permutation,:));
         trackDat.tStamp(update) = trackDat.t;
         
         % update centroid drop count for objects not updated this frame
@@ -202,7 +202,7 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
 %% update the expmt file with output precision and dimensions
 
 % if first frame
-if trackDat.ct == 1
+if trackDat.ct == 1 && ~expmt.Initialize
     
     % record the dimensions of data in each recorded field
     for i = 1:length(trackDat.fields)

@@ -59,10 +59,11 @@ clearvars hRect hText
 
 hRect(1) = rectangle('Position',[0 0 0 0],'EdgeColor','r');
 hText(1) = text(0,0,'1','Color','b');
+tic
 
-while stop~=1;
+while stop~=1
     
-    tic
+    
     stop=get(gui_handles.accept_ROI_thresh_pushbutton,'value');
     pause(0.1);
 
@@ -75,7 +76,7 @@ while stop~=1;
     switch expmt.vignette.mode
         case 'manual'
             % subtract the vignette correction off of the raw image
-            if isfield(expmt.vignette,'im');
+            if isfield(expmt.vignette,'im')
                 trackDat.im = trackDat.im - expmt.vignette.im;
             else
                 gauss = buildGaussianKernel(size(trackDat.im,2),...
@@ -153,7 +154,7 @@ while stop~=1;
     hText(idel) = [];
     hold off
     %}
-    %drawnow limitrate
+    drawnow limitrate
 
 
     % Report frames per sec to GUI

@@ -89,7 +89,7 @@ if ~isfield(expmt,'nFrames')
         
     end
         
-    expmt.Time.data = fread(expmt.Time.fID,'double'); 
+    expmt.Time.data = fread(expmt.Time.fID,'single'); 
     expmt.nFrames = length(expmt.Time.data);
     
 end
@@ -185,7 +185,6 @@ for i = 1:length(expmt.fields)
             fnames = {dinfo.name};
             newpath = ~cellfun(@isempty,strfind(fnames,f));
             expmt.(f).path = [expmt.fdir '\' dinfo(newpath).name];
-            expmt.(f).fID = fopen(expmt.(f).path,'r');
             expmt.(f).fID = fopen(expmt.(f).path,'r');
             
         end
