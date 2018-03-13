@@ -1,5 +1,11 @@
 function [gui_handles,hPatch]=drawGrid(grid_idx,gui_handles)
 
+axh = gui_handles.axes_handle;
+instructions = {'- click and drag to place new grid -'...
+    '- reposition grid corners after placement if necessary -'};
+th = text(axh,axh.XLim(2)*0.5,axh.YLim(2)*0.05,instructions,...
+    'color','m','HorizontalAlignment','center');
+
 % query the enable states of objects in the gui
 on_objs = findobj('enable','on');
 off_objs = findobj('enable','off');
@@ -31,3 +37,4 @@ hPatch = patch('Faces',1:size(xData,2),'XData',xData,'YData',yData,...
 uistack(hPatch,'down');
 
 set(on_objs,'Enable','on');
+delete(th);

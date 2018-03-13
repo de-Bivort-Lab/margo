@@ -1,4 +1,11 @@
 function handles = add_grid_UI(handles)
+    
+axh = handles.axes_handle;
+instructions = {''...
+    'Left-click to switch tool to draw tool, then left-click and drag to define new ROI' ...
+    'Press any key to accept changes and exit'};
+text(axh,axh.XLim(2)*0.5,axh.YLim(2)*0.05,instructions,...
+    'color','m','HorizontalAlignment','center');
 
 
 % get handles to first ROI grid controls as reference

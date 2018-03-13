@@ -83,7 +83,6 @@ trackDat.tStamp = zeros(size(hPatch.XData,2),1);
 
 while ~gui_handles.accept_ROI_thresh_pushbutton.Value
     
-    tic
 
     % query next frame and optionally correct lens distortion
     [trackDat,expmt] = autoFrame(trackDat,expmt,gui_handles);
@@ -140,7 +139,8 @@ while ~gui_handles.accept_ROI_thresh_pushbutton.Value
     drawnow limitrate
 
     % Report frames per sec to GUI
-    set(gui_handles.edit_frame_rate,'String',num2str(round(1/toc)));
+    set(gui_handles.edit_frame_rate,'String',num2str(round(1/(toc-tPrev))));
+    tPrev = toc;
     
 end
 

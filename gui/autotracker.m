@@ -162,7 +162,8 @@ expmt = [];
 % initialize array indicating expIDs for experiments with an associated
 % parameter subgui. NOTE: any custom experiments with an experiment
 % parameters subgui must be added to this list.
-handles.parameter_subgui = [3 4 9 10 11];
+handles.parameter_subgui = {'Circadian';'Optomotor';'Slow Phototaxis';...
+    'Temporal Phototaxis';'Arena Blocks'};
 
 % popuplate saved profile list and create menu items
 % Get existing profile list
