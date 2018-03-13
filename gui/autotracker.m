@@ -567,6 +567,10 @@ expmt = getappdata(handles.gui_fig,'expmt');
 clean_gui(handles.axes_handle);
 
 handles.hImage = findobj(handles.axes_handle,'-depth',3,'Type','image');   % image handle
+if length(handles.hImage)>1
+    delete(handles.hImage(2:end));
+    handles.hImage = handles.hImage(1);
+end
 
 switch get(hObject,'value')
     case 1
@@ -610,7 +614,7 @@ switch get(hObject,'value')
                     trackDat.im = trackDat.im(:,:,2);
                 end
                 
-                handles.hImage = image(handles.axes_handle,trackDat.im);
+                handles.hImage = image('Parent',handles.axes_handle,'CData',trackDat.im);
                 colormap(handles.axes_handle,'gray');
                 
             end
@@ -622,9 +626,9 @@ switch get(hObject,'value')
             stoppreview(expmt.camInfo.vid);
             
             if size(handles.hImage.CData,3) > 1
-                handles.hImage = imagesc(handles.axes_handle,handles.hImage.CData(:,:,2));
+                handles.hImage = imagesc('Parent',handles.axes_handle,'CData',handles.hImage.CData(:,:,2));
             else
-                handles.hImage = imagesc(handles.axes_handle,handles.hImage.CData);
+                handles.hImage = imagesc('Parent',handles.axes_handle,'CData',handles.hImage.CData);
             end
             set(hObject,'string','Start preview','BackgroundColor',[1 1 1]);
             set(handles.axes_handle,'Xtick',[],'Ytick',[],'XtickLabel',[],'YtickLabel',[]);
