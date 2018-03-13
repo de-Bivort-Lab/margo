@@ -8,15 +8,8 @@ function expmt = autoFinish(trackDat, expmt, gui_handles)
                     gui_handles.edit_time_remaining.String = '-';
             end
 
-            % record the dimensions of data in each recorded field
-            for i = 1:length(trackDat.fields)
-                expmt.(trackDat.fields{i}).dim = size(trackDat.(trackDat.fields{i}));
-                expmt.(trackDat.fields{i}).precision = class(trackDat.(trackDat.fields{i}));
-            end
-
             % store number of dropped frames for each object in master data struct
             expmt.drop_ct = trackDat.drop_ct;
-            expmt.fields = trackDat.fields;
             expmt.nFrames = trackDat.ct;
             
             % close .avi file if one exists

@@ -92,6 +92,15 @@ if ~isfield(expmt,'nFrames')
     expmt.Time.data = fread(expmt.Time.fID,'double'); 
     expmt.nFrames = length(expmt.Time.data);
     
+    if ~isfield(expmt,'fields')
+        f = fieldnames(expmt);
+        for i=1:length(f)
+            if isstruct(expmt.(f{i})) && isfield(f{i},'path')
+                
+            end
+        end
+    end
+    
 end
 
 
