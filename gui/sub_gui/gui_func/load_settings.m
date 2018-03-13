@@ -145,7 +145,7 @@ else
     handles.cam_calibrate_menu.Checked = 'off';
 end
 
-cam_dir = [handles.gui_dir '\hardware\camera_calibration\'];
+cam_dir = [handles.gui_dir '/hardware/camera_calibration/'];
 cam_file = [cam_dir 'cam_params.mat'];
 
 if exist(cam_dir,'dir')==7 && exist(cam_file,'file')==2

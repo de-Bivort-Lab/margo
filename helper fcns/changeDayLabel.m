@@ -20,7 +20,7 @@ end
 %% prompt user for directory if none is specified
 
 % Get paths to data files
-[fDir] = uigetdir('C:\Users\debivort\Documents\MATLAB\Decathlon Raw Data',...
+[fDir] = uigetdir('C:/Users/debivort/Documents/MATLAB/Decathlon Raw Data',...
     'Select directory containing expmt files and folders to be renamed');
 
 fPaths = getHiddenMatDir(fDir);
@@ -28,7 +28,7 @@ dir_idx = i+1;
 fDir=cell(size(fPaths));
 for j=1:length(fPaths)
     [tmp_dir,~,~]=fileparts(fPaths{j});
-    fDir(j) = {[tmp_dir '\']};
+    fDir(j) = {[tmp_dir '/']};
 end
 
 
@@ -48,7 +48,7 @@ for i = 1:length(newDayLabels)
     end
     
     % rename directory
-    dir_start = find(fPaths{i}=='\',2,'last');
+    dir_start = find(fPaths{i}=='/',2,'last');
     day_idx = strfind(fPaths{i},'Day');
     day_idx = day_idx(day_idx>dir_start(1) & day_idx<dir_start(2))+3;
     nDigits = floor(log10(newDayLabels(i)));
@@ -67,7 +67,7 @@ for i = 1:length(newDayLabels)
     % update file directory if necessary
     if ~strcmp(expmt.fdir,fPaths{i})
         [d,f,e]=fileparts(fPaths{i});
-        expmt.fdir = [d '\'];
+        expmt.fdir = [d '/'];
     end
     
     in_dir = dir(expmt.fdir);
@@ -79,7 +79,7 @@ for i = 1:length(newDayLabels)
                 day_idx = strfind(f,'Day')+3;
                 new_label = f;
                 new_label(day_idx:day_idx+nDigits) = num2str(newDayLabels(i));
-                [status,~]=movefile([expmt.fdir '\' f e],[expmt.fdir '\' new_label e]);
+                [status,~]=movefile([expmt.fdir '/' f e],[expmt.fdir '/' new_label e]);
             end
         end
         

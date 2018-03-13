@@ -31,7 +31,7 @@ for i=1:length(varargin)
         fDir=cell(size(fPaths));
         for j=1:length(fPaths)
             [tmp_dir,~,~]=fileparts(fPaths{j});
-            fDir(j) = {[tmp_dir '\']};
+            fDir(j) = {[tmp_dir '/']};
         end
 
     end

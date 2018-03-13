@@ -54,8 +54,8 @@ for j = 1:length(fPaths)
     % rename directory and file
     [old_dir,old_name,~] = fileparts(fPaths{j});
     new_dir = old_dir;
-    new_dir(find(old_dir=='\',1,'last')+1:end)=[];
-    new_dir = [new_dir expmt.fLabel '\'];
+    new_dir(find(old_dir=='/',1,'last')+1:end)=[];
+    new_dir = [new_dir expmt.fLabel '/'];
     new_path = [new_dir expmt.fLabel];
     [status,~]=movefile(old_dir,new_dir);
     [status,~]=movefile([new_dir old_name '.mat'],[new_path '.mat']);

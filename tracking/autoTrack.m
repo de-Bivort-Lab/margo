@@ -198,22 +198,7 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
     if any(strcmp('VideoIndex',out_fields))
         trackDat.VideoIndex = trackDat.ct;
     end
-    
-%% update the expmt file with output precision and dimensions
 
-% if first frame
-if trackDat.ct == 1 && ~expmt.Initialize
-    
-    % record the dimensions of data in each recorded field
-    for i = 1:length(trackDat.fields)
-        expmt.(trackDat.fields{i}).dim = size(trackDat.(trackDat.fields{i}));
-        expmt.(trackDat.fields{i}).precision = class(trackDat.(trackDat.fields{i}));
-    end
-    
-    expmt.fields = trackDat.fields;
-    save([expmt.fdir expmt.fLabel '.mat'],'expmt');
-    
-end
 
 
     

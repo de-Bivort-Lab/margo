@@ -9,7 +9,7 @@ function [varargout] = autoDataProcess(expmt,varargin)
 
 meta.save = true;
 meta.raw = false;
-meta.bootstrap = true;
+meta.bootstrap = false;
 meta.slide = true;
 meta.regress = false;
 

@@ -12,7 +12,7 @@ for i=1:length(varargin)
 end
 
 if ~exist('fDir','var')
-    [fDir] = uigetdir('C:\Users\debivort\Documents\MATLAB\Decathlon Raw Data',...
+    [fDir] = uigetdir('C:/Users/debivort/Documents/MATLAB/Decathlon Raw Data',...
     'Select directory containing raw data .zip files');
 end
 
@@ -23,7 +23,7 @@ wh.Name = 'unzipping files, please wait...';
 
 for i = 1:length(fPaths)
     
-    tmpdir = find(fPaths{i}=='\');
+    tmpdir = find(fPaths{i}=='/');
     tmpdir = fPaths{i}(1:tmpdir(end));
     
     if ishghandle(wh)

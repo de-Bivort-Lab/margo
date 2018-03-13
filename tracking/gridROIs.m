@@ -180,7 +180,7 @@ for i=1:nGrids
 
     ROI_coords = [ROI_coords; x(1,:)' y(1,:)' x(3,:)' y(3,:)'];
     bounds = [bounds; x(1,:)' y(1,:)' x(3,:)'-x(1,:)' y(3,:)'-y(1,:)'];
-    mazeOri = [mazeOri; false(nRow*nCol,1)];
+    mazeOri = logical([mazeOri; false(nRow*nCol,1)]);
     grid = [grid; repmat(i,nRow*nCol,1)];
     colIdx = repmat(1:nCol,nRow,1)';
     c = [c; colIdx(:)];

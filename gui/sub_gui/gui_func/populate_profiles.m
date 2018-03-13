@@ -2,8 +2,8 @@ function populate_profiles(handles)
 
 % Get existing profile list
 gui_dir = which('autotrackergui');
-gui_dir = gui_dir(1:strfind(gui_dir,'\gui\'));
-load_path =[gui_dir 'profiles\'];
+gui_dir = gui_dir(1:strfind(gui_dir,'/gui/'));
+load_path =[gui_dir 'profiles/'];
 tmp_profiles = ls(load_path);
 profiles = cell(size(tmp_profiles,1),1);
 remove = [];

@@ -1,6 +1,6 @@
 function fDir = autoDir
 
-startDir = 'D:\Decathlon Raw Data';
+startDir = 'D:/Decathlon Raw Data';
 
 if ~exist(startDir,'dir')==7
     

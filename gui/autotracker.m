@@ -59,7 +59,9 @@ set(handles.gui_fig,'doublebuffer','off');
 
 % get gui directory and ensure all dependencies are added to path
 handles.gui_dir = which('autotracker');
-handles.gui_dir = handles.gui_dir(1:strfind(handles.gui_dir,'/gui/'));
+[par_dir,~,~] = fileparts(handles.gui_dir);
+[par_dir,~,~] = fileparts(par_dir);
+handles.gui_dir = [par_dir '/'];
 if ~exist([handles.gui_dir 'profiles/'],'dir')
     mkdir([handles.gui_dir 'profiles/']);
 end
@@ -1104,6 +1106,7 @@ else
             case 'Optomotor', sca;
         end
         
+        gui_notify('error encountered - experiment ending early');
         keep_gui_state = true;
         title = 'Error encountered - experiment ending early';
         getReport(ME);

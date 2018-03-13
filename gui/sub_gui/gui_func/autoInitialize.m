@@ -32,10 +32,13 @@ end
 %% update de-bivort monitor server
 
 if isfield(gui_handles,'deviceID')
+    
+    webop = weboptions('Timeout',0.65);
+    status=true;
     try
-    minstr = num2str(round(expmt.parameters.duration * 60));
-    minstr = [repmat('0',1,4-length(minstr)) minstr];
-    [~,status]=urlread(['http://lab.debivort.org/mu.php?id=' gui_handles.deviceID '&st=1' minstr]);
+        minstr = num2str(round(expmt.parameters.duration * 60));
+        minstr = [repmat('0',1,4-length(minstr)) minstr];
+        webread(['http://lab.debivort.org/mu.php?id=' gui_handles.deviceID '&st=1' minstr],webop);
     catch
         status = false;
     end
@@ -125,4 +128,4 @@ expmt.Initialize = false;
 
 % start the timer for the experiment
 tic;
-disp('initialized');
+gui_notify('tracking initialized',gui_handles.disp_note);

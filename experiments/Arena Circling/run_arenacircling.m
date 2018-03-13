@@ -75,10 +75,7 @@ while ~trackDat.lastFrame
 
 
     % output data tracked fields to binary files
-    for i = 1:length(trackDat.fields)
-        precision = class(trackDat.(trackDat.fields{i}));
-        fwrite(expmt.(trackDat.fields{i}).fID,trackDat.(trackDat.fields{i}),precision);
-    end
+    [trackDat,expmt] = autoWriteData(trackDat, expmt, gui_handles);
 
     % update ref at the reference frequency or reset if noise thresh is exceeded
     [trackDat, ref_stack, expmt] = updateRef(trackDat, ref_stack, expmt, gui_handles);
@@ -112,13 +109,7 @@ while ~trackDat.lastFrame
             return
         end
     end
-        
-    % optional: save vid data to file if record video menu item is checked
-    if ~isfield(expmt,'VideoData') && strcmp(gui_handles.record_video_menu.Checked,'on')
-        [trackDat,expmt] = initializeVidRecording(trackDat,expmt,gui_handles);
-    elseif isfield(expmt,'VideoData')
-        writeVideo(expmt.VideoData.obj,trackDat.im);
-    end
+     
     
 end
 

@@ -82,8 +82,9 @@ tPrev = toc;
 clean_gui(gui_handles.axes_handle);
 hold on
 hMark = plot(trackDat.Centroid(:,1),trackDat.Centroid(:,2),'ro');
+cen = double(trackDat.Centroid);
 for i = 1:nROIs
-    hNTurns(i) = text(trackDat.Centroid(i,1)-5,trackDat.Centroid(i,2)+10,'',...
+    hNTurns(i) = text(cen(i,1)-5,cen(i,2)+10,'',...
     'Color',[1 0 0]);
 end
 hold off
@@ -116,10 +117,7 @@ while ~trackDat.lastFrame
     nTurns(trackDat.changed_arm) = nTurns(trackDat.changed_arm)+1;
 
     % output data to binary files
-    for i = 1:length(trackDat.fields)
-        precision = class(trackDat.(trackDat.fields{i}));
-        fwrite(expmt.(trackDat.fields{i}).fID,trackDat.(trackDat.fields{i}),precision);
-    end
+    [trackDat,expmt] = autoWriteData(trackDat, expmt, gui_handles);
 
     % update ref at the reference frequency or reset if noise thresh is exceeded
     [trackDat, ref_stack, expmt] = updateRef(trackDat, ref_stack, expmt, gui_handles);
@@ -132,7 +130,7 @@ while ~trackDat.lastFrame
         hMark.XData = trackDat.Centroid(:,1);
         hMark.YData = trackDat.Centroid(:,2);
         
-        cen = num2cell(trackDat.Centroid,2);
+        cen = num2cell(double(trackDat.Centroid),2);
         arrayfun(@update_turn_display, cen, nTurns, trackDat.changed_arm, hNTurns');
         
     end
@@ -147,11 +145,7 @@ while ~trackDat.lastFrame
             return
         end
     end
-        
-    % optional: save vid data to file if record video menu item is checked
-    if ~isfield(expmt,'VideoData') && strcmp(gui_handles.record_video_menu.Checked,'on')
-        [trackDat,expmt] = initializeVidRecording(trackDat,expmt,gui_handles);
-    end
+
     
 end
 
