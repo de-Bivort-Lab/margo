@@ -28,15 +28,15 @@ for i = 1:expmt.nTracks
     %Plot fly trace
     if exist('f','var')
         
-        xTrace = expmt.Centroid.data(expmt.(f).include(:,i),1,i) - expmt.ROI.corners(i,1);
-        yTrace = expmt.Centroid.data(expmt.(f).include(:,i),2,i) - expmt.ROI.corners(i,2);
+        xTrace = expmt.Centroid.data(expmt.(f).include(:,i),1,i) - expmt.ROI.centers(i,1);
+        yTrace = expmt.Centroid.data(expmt.(f).include(:,i),2,i) - expmt.ROI.centers(i,2);
         mu = -sin(expmt.(f).circum_vel(expmt.(f).include(:,i),i));
         z=zeros(sum(expmt.(f).include(:,i)),1);
         
     else
         
-        xTrace = expmt.Centroid.data(expmt.handedness.include(:,i),1,i) - expmt.ROI.corners(i,1);
-        yTrace = expmt.Centroid.data(expmt.handedness.include(:,i),2,i) - expmt.ROI.corners(i,2);
+        xTrace = expmt.Centroid.data(expmt.handedness.include(:,i),1,i) - expmt.ROI.centers(i,1);
+        yTrace = expmt.Centroid.data(expmt.handedness.include(:,i),2,i) - expmt.ROI.centers(i,2);
         mu = -sin(expmt.handedness.circum_vel(expmt.handedness.include(:,i),i));
         z=zeros(sum(expmt.handedness.include(:,i)),1);
         
@@ -49,7 +49,8 @@ for i = 1:expmt.nTracks
     
     % scale the axes
     if ~isempty(xTrace)
-        axis([0,max(xTrace),0,max(yTrace)]);
+        bb = [min(xTrace),max(xTrace),min(yTrace),max(yTrace)];
+        axis(bb);
     end
     
     clearvars xTrace yTrace mu z
