@@ -59,16 +59,16 @@ set(handles.gui_fig,'doublebuffer','off');
 
 % get gui directory and ensure all dependencies are added to path
 handles.gui_dir = which('autotracker');
-handles.gui_dir = handles.gui_dir(1:strfind(handles.gui_dir,'\gui\'));
-if ~exist([handles.gui_dir 'profiles\'],'dir')
-    mkdir([handles.gui_dir 'profiles\']);
+handles.gui_dir = handles.gui_dir(1:strfind(handles.gui_dir,'/gui/'));
+if ~exist([handles.gui_dir 'profiles/'],'dir')
+    mkdir([handles.gui_dir 'profiles/']);
 end
-if ~exist([handles.gui_dir 'hardware\projector_fit\'],'dir')
-    mkdir([handles.gui_dir 'hardware\projector_fit\']);
+if ~exist([handles.gui_dir 'hardware/projector_fit/'],'dir')
+    mkdir([handles.gui_dir 'hardware/projector_fit/']);
 end
 
-if exist([handles.gui_dir 'profiles\deviceID.txt'],'file')
-    fID = fopen([handles.gui_dir 'profiles\deviceID.txt']);
+if exist([handles.gui_dir 'profiles/deviceID.txt'],'file')
+    fID = fopen([handles.gui_dir 'profiles/deviceID.txt']);
     handles.deviceID=char(fread(fID))';
     fclose(fID);
     
@@ -164,7 +164,7 @@ handles.parameter_subgui = [3 4 9 10 11];
 
 % popuplate saved profile list and create menu items
 % Get existing profile list
-load_path =[handles.gui_dir 'profiles\'];
+load_path =[handles.gui_dir 'profiles/'];
 tmp_profiles = ls(load_path);
 profiles = cell(size(tmp_profiles,1),1);
 remove = [];
@@ -190,7 +190,7 @@ end
 expmt.source = 'camera';                    % set the source mode to camera by default
 [expmt.camInfo,handles.cam_list] = refresh_cam_list(handles);  % query available cameras and camera info
 
-cam_dir = [handles.gui_dir '\hardware\camera_calibration\'];
+cam_dir = [handles.gui_dir '/hardware/camera_calibration/'];
 cam_file = [cam_dir 'cam_params.mat'];
 handles.cam_calibrate_menu.UserData = false;
 
@@ -311,7 +311,7 @@ setappdata(handles.gui_fig,'expmt',expmt);
 
 % generate menu items for saved profiles and config their callbacks
 hParent = findobj('Tag','saved_presets_menu');
-save_path = [handles.gui_dir 'profiles\'];
+save_path = [handles.gui_dir 'profiles/'];
 for i = 1:length(profiles)
     menu_items(i) = uimenu(hParent,'Label',profiles{i},...
         'Callback',@saved_preset_Callback);
@@ -741,8 +741,8 @@ function save_path_button1_Callback(hObject, ~, handles)
 
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
-mat_dir = handles.gui_dir(1:strfind(handles.gui_dir,'MATLAB\')+6);
-default_path = [mat_dir 'autotracker_data\'];
+mat_dir = handles.gui_dir(1:strfind(handles.gui_dir,'MATLAB/')+6);
+default_path = [mat_dir 'autotracker_data/'];
 if exist(default_path,'dir') ~= 7
     mkdir(default_path);
     msg_title = 'New Data Path';
@@ -1661,8 +1661,8 @@ end
 
 % Get existing profile list
 gui_dir = which('autotrackergui');
-gui_dir = gui_dir(1:strfind(gui_dir,'\gui\'));
-load_path =[gui_dir 'profiles\'];
+gui_dir = gui_dir(1:strfind(gui_dir,'/gui/'));
+load_path =[gui_dir 'profiles/'];
 tmp_profiles = ls(load_path);
 profiles = cell(size(tmp_profiles,1)+1,1);
 profiles(1) = {'Select saved settings'};
@@ -1695,7 +1695,7 @@ function save_params_pushbutton_Callback(hObject, ~, handles)
 expmt = getappdata(handles.gui_fig,'expmt');  %#ok<NASGU>
 
 % set profile save path
-save_path = [handles.gui_dir 'profiles\'];
+save_path = [handles.gui_dir 'profiles/'];
 
 [FileName,PathName] = uiputfile('*.mat','Enter name for new profile',save_path);
 
@@ -2142,7 +2142,7 @@ function reg_error_menu_Callback(hObject, ~, handles)
 
 expmt = getappdata(handles.gui_fig,'expmt');
 
-if exist([handles.gui_dir 'hardware\projector_fit\']) == 7 && isfield(expmt,'reg_params')
+if exist([handles.gui_dir 'hardware/projector_fit/']) == 7 && isfield(expmt,'reg_params')
     
     % Turn infrared and white background illumination off during registration
     expmt.COM = writeInfraredWhitePanel(expmt.COM,1,0);
@@ -2828,7 +2828,7 @@ if isfield(expmt.camInfo,'src')
 end
 
 % set profile save path
-save_path = [handles.gui_dir 'profiles\'];
+save_path = [handles.gui_dir 'profiles/'];
 
 [FileName,PathName] = uiputfile('*.mat','Enter name for new profile',save_path);
 

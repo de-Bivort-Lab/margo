@@ -3,7 +3,7 @@ function parameters = loadSavedParameters(gui_handles,profile)
 % This function loads parameters and gui selections from a saved
 % profile for rapid experimental setup.
 
-load_path =[gui_handles.gui_dir 'profiles\'];
+load_path =[gui_handles.gui_dir 'profiles/'];
 
 load(strcat(load_path,profile,'.mat'),'-mat','exp');
 parameters = exp;

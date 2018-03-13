@@ -32,13 +32,13 @@ fPaths = {};
 
 for i=1:length(files)
     
-    [path,name,ext]=fileparts([fDir '\' files(i).name]);
+    [path,name,ext]=fileparts([fDir '/' files(i).name]);
     
     if strcmp(ext,target_ext) && exist('key','var') && ~isempty(strfind(name,key))
-        path = [path '\' name ext];
+        path = [path '/' name ext];
         fPaths = [fPaths {path}];
     elseif strcmp(ext,target_ext) && ~exist('key','var')
-        path = [path '\' name ext];
+        path = [path '/' name ext];
         fPaths = [fPaths {path}];
     end
     
@@ -49,7 +49,7 @@ for i=1:length(dirs)
     
     if ~any(strcmp(dirs(i).name,ignore))
         
-        subdir = [fDir '\' dirs(i).name];
+        subdir = [fDir '/' dirs(i).name];
         subpaths = getHiddenMatDir(subdir,opts{:});
         
         if ~isempty(subpaths)

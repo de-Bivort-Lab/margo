@@ -8,7 +8,7 @@ function expmt = autoAnalyze(expmt,varargin)
 switch expmt.Name
     
     case 'Basic Tracking'
-        expmt = analyze_arenacircling(expmt,varargin{:});
+        expmt = analyze_basictracking(expmt,varargin{:});
         
     case 'Arena Circling'
         expmt = analyze_arenacircling(expmt,varargin{:});

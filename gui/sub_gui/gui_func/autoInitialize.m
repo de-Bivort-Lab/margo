@@ -91,7 +91,7 @@ for i = 1:length(lab_fields)
 end
 
 % make a new directory for the files
-expmt.fdir = [expmt.fpath '\' expmt.fLabel '\'];
+expmt.fdir = [expmt.fpath '/' expmt.fLabel '/'];
 mkdir(expmt.fdir);
 
 % generate file ID for files to write

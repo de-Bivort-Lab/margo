@@ -84,7 +84,7 @@ if ~isfield(expmt,'nFrames')
             dinfo = dir(expmt.fdir);
             fnames = {dinfo.name};
             newpath = ~cellfun(@isempty,strfind(fnames,'Time'));
-            expmt.Time.path = [expmt.fdir '\' dinfo(newpath).name];
+            expmt.Time.path = [expmt.fdir '/' dinfo(newpath).name];
             expmt.Time.fID = fopen(expmt.Time.path,'r');
         
     end
@@ -122,7 +122,7 @@ if isfield(meta,'decimate')
             dinfo = dir(expmt.fdir);
             fnames = {dinfo.name};
             newpath = ~cellfun(@isempty,strfind(fnames,'Time'));
-            expmt.Time.path = [expmt.fdir '\' dinfo(newpath).name];
+            expmt.Time.path = [expmt.fdir '/' dinfo(newpath).name];
             expmt.Time.fID = fopen(expmt.Time.path,'r');
         
     end
@@ -184,7 +184,7 @@ for i = 1:length(expmt.fields)
             dinfo = dir(expmt.fdir);
             fnames = {dinfo.name};
             newpath = ~cellfun(@isempty,strfind(fnames,f));
-            expmt.(f).path = [expmt.fdir '\' dinfo(newpath).name];
+            expmt.(f).path = [expmt.fdir '/' dinfo(newpath).name];
             expmt.(f).fID = fopen(expmt.(f).path,'r');
             
         end
@@ -289,7 +289,7 @@ end
 expmt.Speed.avg = nanmean(expmt.Speed.data);
 expmt.Speed.active = expmt.Speed.avg > 0.1;
 
-expmt.figdir = [expmt.fdir 'figures_' expmt.date '\'];
+expmt.figdir = [expmt.fdir 'figures_' expmt.date '/'];
 if ~exist(expmt.figdir,'dir') && meta.save
     [mkst,~]=mkdir(expmt.figdir);
     if ~mkst
