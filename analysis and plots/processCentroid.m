@@ -1,48 +1,124 @@
-function [expmt,trackProps] = processCentroid(expmt)
+function [expmt] = processCentroid(expmt,opt)
 
-    % initialize tracking properties struct
-    nFrames = size(expmt.Centroid.data,1);
-    empty = single(NaN(nFrames, expmt.nTracks));
-    trackProps = struct('r',empty,'theta',empty,'direction',empty,...
-        'turning',empty,'speed',empty,'center',empty(1,:));
+
+if isempty(opt.raw) && ~opt.handedness
+    return
+end
+
+% initialize tracking properties struct
+nFrames = expmt.nFrames;
+
+% initialize raw data files if necessary
+if ~isempty(opt.raw)
+    rawdir = [expmt.fDir '/raw_data/' expmt.fLabel '_'];
+    for i=1:length(opt.raw)
+        % get new path
+        path = [rawdir opt.raw{i} '.bin'];
         
-    e=1 + 1E-5;
-    
-    clearvars empty
+        % delete any existing contents
+        expmt.(opt.raw{i}).fID = fopen(path,'w');
+        fclose(expmt.(opt.raw{i}).fID);
+        
+        % intialize new raw file
+        expmt.(opt.raw{i}).fID = fopen(path,'a');
+        expmt.(opt.raw{i}).precision = 'single';
+        expmt.(opt.raw{i}).dim = [expmt.nTracks expmt.nFrames];
+        expmt.(opt.raw{i}).path = path;
+    end
+end
+        
 
-    % calculate track properties
-for j = 1:expmt.nTracks
+% query available memory to determine how many batches to process data in
+msz = memory;
+msz = msz.MaxPossibleArrayBytes;
+switch expmt.Centroid.precision
+    case 'double'
+        cen_prcn = 8;
+    case 'single'
+        cen_prcn = 4;
+end
+bytes_per = 16;
+rsz = expmt.nTracks * expmt.nFrames * (cen_prcn*2 + bytes_per);
+nBatch = ceil(rsz/msz * 0.5);
+bsz = ceil(expmt.nFrames/nBatch);
+spd = NaN(expmt.nTracks,nBatch);
     
-    % get x and y coordinates of the centroid and normalize to upper left ROI corner
-    inx = expmt.Centroid.data(:,1,j)-expmt.ROI.centers(j,1);
-    iny = expmt.Centroid.data(:,2,j)-expmt.ROI.centers(j,2);
-    trackProps.speed(:,j) = zeros(size(inx,1),1);
-    trackProps.speed(2:end,j) = sqrt(diff(inx).^2+diff(iny).^2);   
-    trackProps.speed(trackProps.speed(:,j) > 12, j) = NaN;
-    center=0;
+% calculate track properties
+for j = 1:nBatch
     
-    % calculate the radial distance from the ROI center
-    trackProps.r(:,j) = sqrt((inx).^2+(iny).^2);
-    trackProps.theta(:,j) = atan2(iny,inx);
-    trackProps.direction(:,j) = zeros(size(inx,1),1);
-    trackProps.turning(:,j) = zeros(size(inx,1),1);
-    trackProps.center(j) = center;
-    trackProps.direction(2:end,j) = atan2(diff(iny),diff(inx));
-    trackProps.turning(2:end,j) = diff(trackProps.direction(:,j));
-    trackProps.turning(trackProps.turning(:,j)>pi*e,j) =...
-        trackProps.turning(trackProps.turning(:,j)>pi*e,j) - 2*pi;
-    trackProps.turning(trackProps.turning(:,j)<-pi*e,j) = ...
-        trackProps.turning(trackProps.turning(:,j)<-pi*e,j) + 2*pi;
+    % read next batch from mapped raw data
+    if j==nBatch
+        inx = squeeze(expmt.Centroid.map.Data.raw(:,1,(j-1)*bsz+1:end)) - ...
+            repmat(expmt.ROI.centers(:,1),1,nFrames-(j-1)*bsz);
+        iny = squeeze(expmt.Centroid.map.Data.raw(:,2,(j-1)*bsz+1:end)) - ...
+            repmat(expmt.ROI.centers(:,2),1,nFrames-(j-1)*bsz);
+    else
+        inx = squeeze(expmt.Centroid.map.Data.raw(:,1,(j-1)*bsz+1:j*bsz)) - ...
+            repmat(expmt.ROI.centers(:,1),1,bsz);
+        iny = squeeze(expmt.Centroid.map.Data.raw(:,2,(j-1)*bsz+1:j*bsz)) - ...
+            repmat(expmt.ROI.centers(:,2),1,bsz);
+    end
     
+    % get x and y coordinates of the centroid and normalize to upper left ROI corner        
+    trackProps.Speed = single(sqrt(diff(inx,1,2).^2+diff(iny,1,2).^2));   
+    trackProps.Speed(trackProps.Speed(:,j) > 12, j) = NaN;
+    spd(:,j) = nanmean(trackProps.Speed);
+
     
-    clearvars mu h inx iny
+    if opt.handedness
+        trackProps.Theta = single(atan2(iny,inx));
+        trackProps.Direction = single(atan2(diff(iny,1,2),diff(inx,1,2)));
+        clearvars inx iny
+        tmp(j) = getHandedness(trackProps);
+    end    
+    
+    for i = 1:length(opt.raw)
+        f = opt.raw{i};
+        fwrite(expmt.(f).fID,trackProps.(f),expmt.(f).precision);
+    end
+    
+    clear trackProps inx iny
     
 end
 
-% restrict frames for handedness measures to set criteria
-expmt.handedness = getHandedness(trackProps);
+% record mean speed
+expmt.Speed.avg = nanmean(spd);
 
-if ~isfield(expmt,'Speed') && isfield(expmt,'tStamps')
-    expmt.Speed = trackProps.speed;
+% close raw data and initialize new memmap for raw data
+for i = 1:length(opt.raw)
+    f = opt.raw{i};
+    fclose(expmt.(f).fID);
+    prcn = expmt.(f).precision;
+    dim = expmt.(f).dim;
+    expmt.(f).map = memmapfile(expmt.(f).path, 'Format',{prcn,dim,'raw'});
 end
+
+
+% concatenate handedness data
+if nBatch>1 && opt.handedness
+    weight = NaN(expmt.nTracks,nBatch);
+    for i = 1:nBatch
+        weight(:,i) = sum(tmp(i).include,2);
+    end
+    weight = weight ./ repmat(sum(weight,2),1,nBatch);
+    
+    for i = 1:nBatch
+        tmp(i).angle_histogram = tmp(i).angle_histogram .* ...
+            repmat(weight(:,i)',length(tmp(i).bins),1);
+    end
+    
+    handedness = tmp(1);
+    for i = 2:nBatch
+        handedness.angle_histogram =  handedness.angle_histogram + ...
+            tmp(i).angle_histogram ;
+        handedness.include = [handedness.include tmp(i).include];
+    end
+    handedness.mu = -sin(sum(handedness.angle_histogram .*...
+        repmat((handedness.bins' + handedness.bin_width/2),1,expmt.nTracks)))';
+    
+end
+    
+    
+
+
 

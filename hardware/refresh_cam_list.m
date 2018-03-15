@@ -51,7 +51,8 @@ if ~isempty(c.InstalledAdaptors)
 
 else
     camInfo=[];
+    cam_list = {};
     set(handles.cam_select_popupmenu,'String','No camera adaptors installed');
-    set(handles.cam_mode_popupmenu,'String','');
+    set(handles.cam_mode_popupmenu,'String','No camera detected');
 end
 

@@ -71,6 +71,7 @@ expmt.nTracks = size(expmt.ROI.centers,1);
 expmt = getRawData(expmt,options);
 
 %% extract centroid features
+
 [expmt,trackProps] = processCentroid(expmt,options);
 
 % record distance from camera center
@@ -80,7 +81,7 @@ if ~isfield(expmt.ROI,'cam_dist')
         (expmt.ROI.centers(:,2)-cc(2)).^2);
 end
 
-% regress out lens distance distortion with linear model
+% regress out le
 if options.regress
     if exist(options.handles,'var')
         gui_notify('modeling lens distortion, may take a few minutes',...

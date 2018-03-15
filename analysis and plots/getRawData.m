@@ -72,7 +72,9 @@ for i = 1:length(expmt.fields)
  
     % get subfields
     path = expmt.(f).path;
-    dim = [expmt.(f).dim expmt.nFrames];
+    dim = expmt.(f).dim;
+    dim(find(dim==1,1,'last'))=[];
+    dim = [dim expmt.nFrames];
     prcn = expmt.(f).precision;
     
     % initialize the memmap

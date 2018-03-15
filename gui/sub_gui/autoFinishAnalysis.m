@@ -1,4 +1,4 @@
-function autoFinishAnalysis(expmt,meta)
+function autoFinishAnalysis(expmt,options)
 
 
 %% Clean up the workspace
@@ -10,10 +10,10 @@ if isfield(expmt.camInfo,'vid')
 end
 
 % re-save updated expmt data struct to file
-if meta.save
+if options.save
     save([expmt.fdir expmt.fLabel '.mat'],'expmt');
-    if isfield(meta,'handles')
-        gui_notify('processed data saved to file',meta.handles.disp_note)
+    if isfield(options,'handles')
+        gui_notify('processed data saved to file',options.handles.disp_note)
     end
 end
 
@@ -24,8 +24,8 @@ for i = 1:length(open_IDs)
     fclose(open_IDs(i));
 end
 
-if isfield(meta,'handles')
-    gui_notify('zipping raw data',meta.handles.disp_note)
+if isfield(options,'handles')
+    gui_notify('zipping raw data',options.handles.disp_note)
 else
     disp('zipping raw data... may take a few minutes');
 end
