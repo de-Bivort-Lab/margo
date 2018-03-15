@@ -8,7 +8,7 @@ function expmt = analyze_circadian(expmt,varargin)
 
 %% Parse inputs, read data from hard disk, format in master struct, process centroid data
 
-[expmt,trackProps,meta] = autoDataProcess(expmt,varargin{:});
+[expmt,meta] = autoDataProcess(expmt,varargin{:});
 
 clearvars -except expmt trackProps meta
 

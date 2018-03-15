@@ -71,7 +71,7 @@ expmt.nTracks = size(expmt.ROI.centers,1);
 expmt = getRawData(expmt,options);
 
 %% extract centroid features
-[expmt,trackProps] = processCentroid(expmt,options);
+[expmt] = processCentroid(expmt,options);
 
 % record distance from camera center
 if ~isfield(expmt.ROI,'cam_dist')
@@ -83,7 +83,7 @@ end
 % regress out lens distance distortion with linear model
 if options.regress
     if exist(options.handles,'var')
-        gui_notify('modeling lens distortion, may take a few minutes',...
+        gui_notify('modeling lens distortion',...
             options.handles.disp_note)
     end
     expmt = modelLensDistortion(expmt);
@@ -97,13 +97,19 @@ if ~exist(expmt.figdir,'dir') && options.save
     end
 end
 
-if isfield(trackProps,'speed') && options.bootstrap
+if isfield(expmt,'Speed') && isfield(expmt.Speed,'map') ...
+        && options.bootstrap
+    
+    if exist(options.handles,'var')
+        gui_notify('resampling speed data, may take a few minutes',...
+            options.handles.disp_note)
+    end
     
     % chunk speed data into individual movement bouts
-    block_indices = blockActivity(trackProps.speed);
+    block_indices = blockActivity(expmt.Speed.map.Data.raw);
     
     % bootstrap resample speed data to generate null distribution
-    [expmt.Speed.bs,f]=bootstrap_speed_blocks(expmt,trackProps,block_indices,100);
+    [expmt.Speed.bs,f]=bootstrap_speed_blocks(expmt,block_indices,100);
     
     % save bootstrap figure to file
     fname = [expmt.figdir expmt.date '_bs_logspeed'];
@@ -122,8 +128,7 @@ end
 for i=1:nargout
     switch i
         case 1, varargout{i} = expmt;
-        case 2, varargout{i} = trackProps;
-        case 3, varargout{i} = options;
+        case 2, varargout{i} = options;
     end
 end
 

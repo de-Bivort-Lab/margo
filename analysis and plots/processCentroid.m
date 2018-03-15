@@ -10,7 +10,7 @@ nFrames = expmt.nFrames;
 
 % initialize raw data files if necessary
 if ~isempty(opt.raw)
-    rawdir = [expmt.fDir '/raw_data/' expmt.fLabel '_'];
+    rawdir = [expmt.fdir 'raw_data/' expmt.fLabel '_'];
     for i=1:length(opt.raw)
         % get new path
         path = [rawdir opt.raw{i} '.bin'];
@@ -60,9 +60,10 @@ for j = 1:nBatch
     end
     
     % get x and y coordinates of the centroid and normalize to upper left ROI corner        
-    trackProps.Speed = single(sqrt(diff(inx,1,2).^2+diff(iny,1,2).^2));   
+    trackProps.Speed = single([zeros(expmt.nTracks,1) ...
+        sqrt(diff(inx,1,2).^2+diff(iny,1,2).^2)]);   
     trackProps.Speed(trackProps.Speed(:,j) > 12, j) = NaN;
-    spd(:,j) = nanmean(trackProps.Speed);
+    spd(:,j) = nanmean(trackProps.Speed,2);
 
     
     if opt.handedness
@@ -82,7 +83,7 @@ for j = 1:nBatch
 end
 
 % record mean speed
-expmt.Speed.avg = nanmean(spd);
+expmt.Speed.avg = nanmean(spd,2);
 
 % close raw data and initialize new memmap for raw data
 for i = 1:length(opt.raw)

@@ -1,6 +1,6 @@
 function block_indices = blockActivity(speed)
 
-moving = speed > 0.8;
+moving = speed > 0.01;
 transitions = int8([zeros(size(moving,1),1) diff(moving,1,2)]);
 
 % get activity bout stops

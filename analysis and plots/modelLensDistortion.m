@@ -9,7 +9,7 @@ switch expmt.Centroid.precision
     case 'single'
         cen_prcn = 4;
 end
-rsz = expmt.nTracks * expmt.nFrames * cen_prcn *16;
+rsz = expmt.nTracks * expmt.nFrames * cen_prcn * 8;
 
 if rsz > msz
     warning(['file size too large to read into memory' ...
@@ -42,6 +42,7 @@ if isfield(expmt,'Gravity') && isfield(expmt.Gravity,'index')
         
 end
 
+clear spd_table cam_dist lm
 
 
 
