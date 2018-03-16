@@ -26,7 +26,7 @@ for i=1:length(varargin)
         % Get paths to data files
         [fDir] = autoDir;
 
-        fPaths = getHiddenMatDir(fDir,keyarg{:});
+        fPaths = getHiddenMatDir(fDir,'ext','.mat',keyarg{:});
         dir_idx = i+1;
         fDir=cell(size(fPaths));
         for j=1:length(fPaths)

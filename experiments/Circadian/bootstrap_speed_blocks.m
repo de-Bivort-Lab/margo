@@ -102,7 +102,7 @@ end
 
 %%
 
-bs.obs = log(nanmean(trackProps.speed));
+bs.obs = log(nanmean(expmt.Speed.map.Data.raw));
 bs.include = active;
 bs.sim = log(bs_speeds);
 

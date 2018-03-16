@@ -10,6 +10,9 @@ gmm.Sigma = [NaN;NaN];
 
 if length(data) > opt.MaxIter
     
+    if size(data,1) < size(data,2)
+        data = data';
+    end
     gmm = fitgmdist(data,2,'Options',opt);
 
     intersections = gaussIntersect(gmm.mu(1),gmm.mu(2),gmm.Sigma(1),gmm.Sigma(1));

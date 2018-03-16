@@ -82,7 +82,7 @@ end
 
 % regress out lens distance distortion with linear model
 if options.regress
-    if exist(options.handles,'var')
+    if isfield(options,'handles')
         gui_notify('modeling lens distortion',...
             options.handles.disp_note)
     end
@@ -100,7 +100,7 @@ end
 if isfield(expmt,'Speed') && isfield(expmt.Speed,'map') ...
         && options.bootstrap
     
-    if exist(options.handles,'var')
+    if isfield(options,'handles')
         gui_notify('resampling speed data, may take a few minutes',...
             options.handles.disp_note)
     end

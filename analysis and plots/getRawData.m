@@ -85,9 +85,6 @@ for i = 1:length(expmt.fields)
             
         % otherwise create a memmap
         otherwise
-            if isfield(expmt.(f),'map')
-                clear(expmt.(f).map);
-            end
             expmt.(f).map = memmapfile(expmt.(f).path, 'Format',{prcn,dim,'raw'});
             
     end

@@ -8,7 +8,7 @@ expmt.(field).fID = fopen(path,'r');
 
 % if .bin file isn't found, search for .zip file and unzip
 if expmt.(field).fID == -1
-    [fPaths] = getHiddenMatDir(expmt.fdir,'exit','.zip');
+    [fPaths] = getHiddenMatDir(expmt.fdir,'ext','.zip');
     if ~isempty(fPaths)
         unzipAllDir('Dir',expmt.fdir);
         expmt.(field).fID = fopen(path,'r');

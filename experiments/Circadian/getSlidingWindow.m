@@ -30,20 +30,21 @@ end
 h = waitbar(0,['iteration 0 out of ' num2str(expmt.nTracks)]);
 h.Name = ['Sliding ' f ' window'];
 
-first_idx = round(length(expmt.(f).data)/win_sz)+1;
+first_idx = round(length(expmt.(f).map.Data.raw)/win_sz)+1;
 r = floor(win_sz/2);
-idx = r+1:stp_sz:length(expmt.(f).data);
+idx = r+1:stp_sz:length(expmt.(f).map.Data.raw);
 
 
 % perform the operation
 win_dat = NaN(length(idx),expmt.nTracks);
 for i = 1:expmt.nTracks
     
-    if ishghandle(h);
-        waitbar(i/expmt.nTracks,h,['iteration ' num2str(i) ' out of ' num2str(expmt.nTracks)]);
+    if ishghandle(h)
+        waitbar(i/expmt.nTracks,h,['iteration '...
+            num2str(i) ' out of ' num2str(expmt.nTracks)]);
     end
     
-    win_dat(:,i) = arrayfun(@(k) slide_win(expmt.(f).data(:,i),k,r,fh), idx);
+    win_dat(:,i) = arrayfun(@(k) slide_win(expmt.(f).map.Data.raw(i,:),k,r,fh), idx);
 end
 
 if ishghandle(h)
@@ -64,7 +65,7 @@ end
 
 function out = slide_win(dat,idx,r,fh)
 
-    out = feval(fh,dat(idx-r:idx+1,:));
+    out = feval(fh,dat(:,idx-r:idx+1));
 
 
 
