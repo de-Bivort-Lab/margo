@@ -1,0 +1,10 @@
+function gui_notify(msg,text_handle)
+
+if iscell(msg)
+tmp_msg = ['(' datestr(clock,'HH:MM:SS mm/dd/yyyy') ')  ' tmp_msg];
+msg_list = text_handle.String;
+if ~iscell(msg_list)
+    msg_list = {msg_list};
+end
+msg_list = [{msg};msg_list];
+text_handle.String = msg_list;

@@ -57,7 +57,7 @@ disp(['load(',char(39),strcat(expmt.fdir,expmt.fLabel,'.mat'),char(39),');'])
 %% Set MATLAB priority to Above Normal via Windows Comman
 OS = computer;
 switch OS
-    case PCWIN64
+    case 'PCWIN64'
         cmd_str = 'wmic process where name="MATLAB.exe" CALL setpriority 32768';
         [~,~] = system(cmd_str);
 end

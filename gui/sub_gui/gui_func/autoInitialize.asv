@@ -31,14 +31,7 @@ end
 
 %% estimate num data entries
 
-nDataPoints = expmt.parameters.duration * ...
-    expmt.parameters.target_rate * 3600 * expmt.nTracks;
-if nDataPoints > 1E7
-    msg = {'WARNING: high estimated number of data points';...
-        ['ROIs x Target Rate x Duration = ' num2str(nDataPoints,2)];...
-        'consider lowering acquisition rate to reduce file size'};
-    gui_notify(msg,gui_handles.disp_note);
-end
+
 
 %% update de-bivort monitor server
 

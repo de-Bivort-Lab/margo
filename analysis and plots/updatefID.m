@@ -18,12 +18,12 @@ end
 % if .bin file still isn't found, try updating data path
 if expmt.(field).fID == -1
     
-    rawdir = [expmt.fdir '/raw_data/'];
+    rawdir = [expmt.fdir 'raw_data/'];
     if exist(rawdir,'dir')
         dinfo = dir(rawdir);
         fnames = {dinfo.name};
         newpath = ~cellfun(@isempty,strfind(fnames,field));
-        expmt.(field).path = [dinfo(newpath).folder '/' dinfo(newpath).name];
+        expmt.(field).path = [rawdir dinfo(newpath).name];
         expmt.(field).fID = fopen(expmt.(field).path,'r');
     else    
         dinfo = dir(expmt.fdir);

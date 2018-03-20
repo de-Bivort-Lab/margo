@@ -102,7 +102,7 @@ end
 
 %%
 
-bs.obs = log(nanmean(expmt.Speed.map.Data.raw));
+bs.obs = log(nanmean(expmt.Speed.map.Data.raw,2));
 bs.include = active;
 bs.sim = log(bs_speeds);
 
@@ -130,7 +130,7 @@ plot(bs.bins,bs.avg,'b','LineWidth',2);
 datbins = linspace(min(bs.obs(:)),max(bs.obs(:)),length(bs.bins));
 % plot observed data
 c = histc(bs.obs,datbins) ./ sum(sum(histc(bs.obs,datbins)));
-c = [0 c 0];
+c = [0 c' 0];
 datbins = [range(1) datbins range(2)];
 plot(datbins,c,'r','LineWidth',2);
 set(gca,'XLim',range,'YLim',[0 max(bs.avg)]);

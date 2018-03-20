@@ -994,7 +994,7 @@ else
             case 'Optomotor'
                 expmt = run_optomotor(expmt,handles);
                 if isfield(expmt,'date')
-                    expmt = analyze_optomotor(expmt,'Handles',handles);
+                    expmt = analyze_optomotor(expmt,'Handles',handles,'Raw',{'Speed'});
                 else
                     keep_gui_state = true;
                 end
@@ -1003,7 +1003,7 @@ else
             case 'Slow Phototaxis'
                 expmt = run_slowphototaxis(expmt,handles);
                 if isfield(expmt,'date')
-                    analyze_slowphototaxis(expmt,'Handles',handles);
+                    analyze_slowphototaxis(expmt,'Handles',handles,'Raw',{'Speed'});
                 else
                     keep_gui_state = true;
                 end
@@ -1016,7 +1016,7 @@ else
                 else
                     expmt = run_ledymaze(expmt,handles);
                     if isfield(expmt,'date')
-                        expmt = analyze_ledymaze(expmt,'Handles',handles);
+                        expmt = analyze_ledymaze(expmt,'Handles',handles,'Raw',{'Speed'});
                     else
                         keep_gui_state = true;
                     end
@@ -1026,7 +1026,7 @@ else
             case 'Arena Circling'
                 expmt = run_arenacircling(expmt,handles);
                 if isfield(expmt,'date')
-                    analyze_arenacircling(expmt,'Handles',handles);
+                    analyze_arenacircling(expmt,'Handles',handles,'Raw',{'Speed'});
                 else
                     keep_gui_state = true;
                 end
@@ -1035,7 +1035,7 @@ else
             case 'Y-maze'
                 expmt = run_ymaze(expmt,handles);
                 if isfield(expmt,'date')
-                    analyze_ymaze(expmt,'Handles',handles);
+                    analyze_ymaze(expmt,'Handles',handles,'Raw',{'Speed'});
                 else
                     keep_gui_state = true;
                 end
@@ -1053,8 +1053,7 @@ else
             case 'Circadian'
                 expmt = run_circadian(expmt,handles);
                 if isfield(expmt,'date')
-                    args={'Decimate';{'Centroid';'Time';'Light';'Motor';};'DecFac';5};
-                    analyze_circadian(expmt,'Handles',handles,args{:});
+                    analyze_circadian(expmt,'Handles',handles,'Raw',{'Speed'});
                 else
                     keep_gui_state = true;
                 end
@@ -1063,17 +1062,17 @@ else
                 
                 [circle,opto,photo] = run_arenablocks(expmt,handles);
                 if isfield(circle,'date')
-                    analyze_arenacircling(circle,handles);
+                    analyze_arenacircling(circle,handles,'Raw',{'Speed'});
                     clearvars circle
                 end
                 
                 if isfield(opto,'date')
-                    analyze_optomotor(opto,handles);
+                    analyze_optomotor(opto,handles,'Raw',{'Speed'});
                     clearvars opto
                 end
                 
                 if isfield(photo,'date')
-                    analyze_slowphototaxis(photo,handles);
+                    analyze_slowphototaxis(photo,handles,'Raw',{'Speed'});
                     clearvars photo
                 end
             
@@ -1081,7 +1080,7 @@ else
                 
                 expmt = run_tempphototaxis(expmt,handles);
                 if isfield(expmt,'date')
-                    analyze_tempphototaxis(expmt,'Handles',handles);
+                    analyze_tempphototaxis(expmt,'Handles',handles,'Raw',{'Speed'});
                 else
                     keep_gui_state = true;
                 end
@@ -1105,6 +1104,7 @@ else
         switch expmt.Name
             case 'Slow Phototaxis', sca;
             case 'Optomotor', sca;
+            case 'Temporal Phototaxis', sca;
         end
         
         gui_notify('error encountered - experiment ending early');
