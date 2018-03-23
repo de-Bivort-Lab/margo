@@ -8,7 +8,7 @@ for i=2:length(msg)
     msg(i) = {[repmat(' ',1,38) msg{i}]};
 end
 else
-    msg = {msg};
+    msg = {['(' datestr(clock,'HH:MM:SS mm/dd/yyyy') ')  ' msg]};
 end
 
 msg_list = text_handle.String;

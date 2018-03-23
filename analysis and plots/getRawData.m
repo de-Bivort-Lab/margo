@@ -91,4 +91,3 @@ for i = 1:length(expmt.fields)
     
 end
 
-expmt.DecFrames = size(expmt.Centroid.data,1);

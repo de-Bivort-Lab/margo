@@ -1343,14 +1343,14 @@ else
                     expmt = tmp_param;
                 end
                 
-        case 'Circadian'
+        case 'Circadian
             
                 tmp_param = circadian_parameter_subgui(expmt,handles);
                 if ~isempty(tmp_param)
                     expmt.parameters = tmp_param;
                 end
                 
-        case 'Arena Blocks'
+        case 10
             
                 % arena block expmt parameters
                 tmp_param = arenablock_parameter_gui(expmt);
@@ -1377,7 +1377,7 @@ else
                 
                 end
 
-            case 'Temporal Phototaxis'                  
+            case 11                     
 
             tmp_param = slowphototaxis_parameter_gui(expmt);
             if ~isempty(tmp_param)
