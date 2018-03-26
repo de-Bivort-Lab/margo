@@ -17,11 +17,12 @@ function [trackDat, expmt] = updatePhotoStim(trackDat, expmt)
             
             % convert current fly position to stimulus coords
             proj_centroid = NaN(size(expmt.ROI.corners,1),2);
-            proj_centroid(:,1) = expmt.projector.Fx(trackDat.Centroid(:,1),trackDat.Centroid(:,2));
-            proj_centroid(:,2) = expmt.projector.Fy(trackDat.Centroid(:,1),trackDat.Centroid(:,2));
+            c = double(trackDat.Centroid);
+            proj_centroid(:,1) = expmt.projector.Fx(c(:,1),c(:,2));
+            proj_centroid(:,2) = expmt.projector.Fy(c(:,1),c(:,2));
             
             % Find the angle between stim_centers and proj_cen and the horizontal axis.
-            trackDat.StimAngle = atan2(proj_centroid(:,2) - expmt.stim.centers(:,2), proj_centroid(:,1)-expmt.stim.centers(:,1)).*180./pi;
+            trackDat.StimAngle = single(atan2(proj_centroid(:,2) - expmt.stim.centers(:,2), proj_centroid(:,1)-expmt.stim.centers(:,1)).*180./pi);
             
             % Rotate stim image and generate stim texture
             expmt.stim.dir = rand(size(expmt.ROI.corners,1),1) > 0.5;

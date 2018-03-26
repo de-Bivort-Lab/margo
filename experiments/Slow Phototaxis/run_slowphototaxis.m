@@ -140,7 +140,7 @@ expmt.stim.darkTex = Screen('MakeTexture', expmt.scrProp.window, dark);        %
 
 expmt.stim.t = 0;
 expmt.stim.ct = 0;                          % Counter for number of looming stim displayed each stimulation period
-trackDat.StimAngle = zeros(nROIs,1);        % Initialize stimulus starting angle to 0
+trackDat.StimAngle = single(zeros(nROIs,1));        % Initialize stimulus starting angle to 0
 expmt.stim.prev_ori=NaN(nROIs,1);
 expmt.stim.dir = boolean(ones(nROIs,1));    % Direction of rotation for the light
 trackDat.Texture = boolean(1);              % active texture (dark or light)
@@ -162,10 +162,8 @@ tPrev = toc;
 clean_gui(gui_handles.axes_handle);
 hold on
 hMark = plot(trackDat.Centroid(:,1),trackDat.Centroid(:,2),'ro');
-for i = 1:nROIs
-    hLightStat(i) = text(trackDat.Centroid(i,1)-5,trackDat.Centroid(i,2)+10,'',...
-    'Color',[1 0 0]);
-end
+dcen=double(trackDat.Centroid);
+hLightStat = text(dcen(:,1)-5,dcen(:,2)+10,'','Color',[1 0 0]);
 hold off
 in_light = false(nROIs,1);
 
@@ -202,13 +200,14 @@ while ~trackDat.lastFrame
         hMark.YData = trackDat.Centroid(:,2);
         
         % get light status
-        pcen(:,1) = expmt.projector.Fx(trackDat.Centroid(:,1),trackDat.Centroid(:,2));
-        pcen(:,2) = expmt.projector.Fy(trackDat.Centroid(:,1),trackDat.Centroid(:,2));
+        dcen = double(trackDat.Centroid);
+        pcen(:,1) = expmt.projector.Fx(dcen(:,1),dcen(:,2));
+        pcen(:,2) = expmt.projector.Fy(dcen(:,1),dcen(:,2));
         old_light = in_light;
         [~,in_light] = parseShadeLight(trackDat.StimAngle,pcen(:,1),pcen(:,2),expmt.stim.centers,1);
         changed = old_light ~= in_light;
-        cen = num2cell(trackDat.Centroid,2);
-        arrayfun(@update_stat_display, cen, in_light, changed, hLightStat');
+        cen = num2cell(dcen,2);
+        arrayfun(@update_stat_display, cen, in_light, changed, hLightStat);
     end
 
     % update the gui
@@ -255,7 +254,6 @@ end
 
 
 function update_stat_display(c, n, ch, h)
-
 
 h.Position = [c{1}(1)-5,c{1}(2)+15];
 if ch

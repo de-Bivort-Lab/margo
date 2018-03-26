@@ -744,7 +744,7 @@ function save_path_button1_Callback(hObject, ~, handles)
 
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
-mat_dir = handles.gui_dir(1:strfind(handles.gui_dir,'MATLAB/')+6);
+mat_dir = handles.gui_dir(1:strfind(handles.gui_dir,'MATLAB')+6);
 default_path = [mat_dir 'autotracker_data/'];
 if exist(default_path,'dir') ~= 7
     mkdir(default_path);
@@ -1170,6 +1170,8 @@ else
         expmt.Initialize = true;
         
     end
+    
+    fIDs = fopen('all');
         
 end
 
@@ -1343,14 +1345,14 @@ else
                     expmt = tmp_param;
                 end
                 
-        case 'Circadian
+        case 'Circadian'
             
                 tmp_param = circadian_parameter_subgui(expmt,handles);
                 if ~isempty(tmp_param)
                     expmt.parameters = tmp_param;
                 end
                 
-        case 10
+        case 'Arena Blocks'
             
                 % arena block expmt parameters
                 tmp_param = arenablock_parameter_gui(expmt);
@@ -1377,7 +1379,7 @@ else
                 
                 end
 
-            case 11                     
+            case 'Temporal Phototaxis'                  
 
             tmp_param = slowphototaxis_parameter_gui(expmt);
             if ~isempty(tmp_param)

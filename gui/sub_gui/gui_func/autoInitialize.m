@@ -113,7 +113,7 @@ mkdir(expmt.rawdir);
 % generate file ID for files to write
 for i = 1:length(trackDat.fields)                           
     expmt.(trackDat.fields{i}).path = ...                   % initialize path for new file    
-        [expmt.fdir expmt.fLabel '_' trackDat.fields{i} '.bin'];
+        [expmt.rawdir expmt.fLabel '_' trackDat.fields{i} '.bin'];
     expmt.(trackDat.fields{i}).fID = ...
         fopen(expmt.(trackDat.fields{i}).path,'w');         % open fileID with write permission
 end

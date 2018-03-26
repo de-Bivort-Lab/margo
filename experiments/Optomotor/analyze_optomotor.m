@@ -8,9 +8,9 @@ function expmt = analyze_optomotor(expmt,varargin)
 
 %% Parse inputs, read data from hard disk, format in master struct, process centroid data
 
-[expmt,trackProps,meta] = autoDataProcess(expmt,varargin{:});
+[expmt,trackProps,options] = autoDataProcess(expmt,varargin{:});
 
-clearvars -except expmt trackProps meta
+clearvars -except expmt options
 
 %% Analyze stimulus response
 
@@ -37,7 +37,7 @@ nReps = 1000;
 [expmt.Optomotor.bootstrap,~,f]=bootstrap_optomotor(expmt,nReps,'Optomotor');
 
 fname = [expmt.figdir expmt.date '_bs_opto'];
-if ~isempty(expmt.figdir) && meta.save
+if ~isempty(expmt.figdir) && options.save
     hgsave(f,fname);
     close(f);
 end
@@ -47,7 +47,7 @@ f=figure();
 plotOptoTraces(da,active,expmt.parameters);
 
 fname = [expmt.figdir expmt.date '_combined'];
-if ~isempty(expmt.figdir) && meta.save
+if ~isempty(expmt.figdir) && options.save
     hgsave(f,fname);
     close(f);
 end
@@ -108,7 +108,7 @@ if isfield(expmt,'sweep')
     legend({'95%CI' 'index'})
     
     fname = [expmt.figdir expmt.date '_con_swp'];
-    if ~isempty(expmt.figdir) && meta.save
+    if ~isempty(expmt.figdir) && options.save
         hgsave(f,fname);
         close(f);
     end
@@ -171,7 +171,7 @@ if isfield(expmt,'sweep')
     set(gca,'Xtick',1:length(avg_trace),'XtickLabel',expmt.sweep.ang_vel);    
 
     fname = [expmt.figdir expmt.date '_angv_swp'];
-    if ~isempty(expmt.figdir) && meta.save
+    if ~isempty(expmt.figdir) && options.save
         hgsave(f,fname);
         close(f);
     end
@@ -235,7 +235,7 @@ if isfield(expmt,'sweep')
     set(gca,'Xtick',1:length(avg_trace),'XtickLabel',expmt.sweep.spatial_freq);  
 
     fname = [expmt.figdir expmt.date '_spatf_swp'];
-    if ~isempty(expmt.figdir) && meta.save
+    if ~isempty(expmt.figdir) && options.save
         hgsave(f,fname);
         close(f);
     end
@@ -246,16 +246,16 @@ end
 
 %% Generate plots
 
-if isfield(meta,'plot') && meta.plot
-    if isfield(meta,'handles')
-        gui_notify('generating plots',meta.handles.disp_note)
+if isfield(options,'plot') && options.plot
+    if isfield(options,'handles')
+        gui_notify('generating plots',options.handles.disp_note)
     end
     plotArenaTraces(expmt);
 end
 
-clearvars -except expmt meta
+clearvars -except expmt options
 
 %% Clean up files and wrap up analysis
 
-autoFinishAnalysis(expmt,meta);
+autoFinishAnalysis(expmt,options);
 

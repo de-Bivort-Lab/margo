@@ -38,7 +38,7 @@ set(gca,'Xtick',1:2:length(mu),'XtickLabel',bins(mod(1:length(bins),2)==1),...
     'XLim',[1 length(mu)],'YLim',[0 ceil(max(ci95(:))*100)/100]);
 
 % plot observed data
-c = histc(mean(obs),bins) ./ sum(sum(histc(mean(obs),bins)));
+c = histc(nanmean(obs),bins) ./ sum(sum(histc(nanmean(obs),bins)));
 plot(c,'r','LineWidth',2);
 legend({['bootstrapped (nReps = ' num2str(nReps) ')'];'observed'});
 title([field ' occupancy histogram']);

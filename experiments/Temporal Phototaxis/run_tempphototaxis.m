@@ -165,10 +165,8 @@ tPrev = toc;
 clean_gui(gui_handles.axes_handle);
 hold on
 hMark = plot(trackDat.Centroid(:,1),trackDat.Centroid(:,2),'ro');
-for i = 1:nROIs
-    hLightStat(i) = text(trackDat.Centroid(i,1)-5,trackDat.Centroid(i,2)+10,'',...
-    'Color',[1 0 0]);
-end
+c=double(trackDat.Centroid);
+hLightStat = text(c(:,1)-5,c(:,2)+10,'','Color',[1 0 0]);
 hold off
 in_light = false(nROIs,1);
 
@@ -205,7 +203,7 @@ while ~trackDat.lastFrame
         hMark.YData = trackDat.Centroid(:,2);
         
 
-        cen = num2cell(trackDat.Centroid,2);
+        cen = num2cell(double(trackDat.Centroid),2);
         arrayfun(@update_stat_display, cen, trackDat.LightStatus, trackDat.update, hLightStat');
     end
 

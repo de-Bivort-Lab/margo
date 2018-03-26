@@ -744,7 +744,7 @@ function save_path_button1_Callback(hObject, ~, handles)
 
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
-mat_dir = handles.gui_dir(1:strfind(handles.gui_dir,'MATLAB/')+6);
+mat_dir = handles.gui_dir(1:strfind(handles.gui_dir,'MATLAB')+6);
 default_path = [mat_dir 'autotracker_data/'];
 if exist(default_path,'dir') ~= 7
     mkdir(default_path);
@@ -1169,6 +1169,12 @@ else
         set(handles.off_objs,'Enable','off');
         expmt.Initialize = true;
         
+    end
+    
+    % ensure all open files are closed
+    fIDs = fopen('all');
+    for i=1:length(fIDs)
+        fclose(fIDs(i));
     end
         
 end
