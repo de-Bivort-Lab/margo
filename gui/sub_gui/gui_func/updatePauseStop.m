@@ -45,6 +45,9 @@ if gui_handles.stop_pushbutton.UserData.Value
             end
             
             % delete the experiment directory
+            if isfield(expmt,'rawdir')
+                rmdir(expmt.rawdir);
+            end
             rmdir(expmt.fdir);
             
             df = {'date' 'fLabel'};

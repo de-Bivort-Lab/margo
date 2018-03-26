@@ -32,7 +32,7 @@ end
 %% estimate num data entries
 
 nDataPoints = expmt.parameters.duration * ...
-    expmt.parameters.target_rate * 3600 * expmt.nTracks;
+    expmt.parameters.target_rate * 3600 * length(expmt.ROI.centers);
 if nDataPoints > 1E7
     msg = {'WARNING: high estimated number of data points';...
         ['ROIs x Target Rate x Duration = ' num2str(nDataPoints,2)];...
@@ -108,11 +108,13 @@ end
 % make a new directory for the files
 expmt.fdir = [expmt.fpath '/' expmt.fLabel '/'];
 mkdir(expmt.fdir);
+expmt.rawdir = [expmt.fpath '/' expmt.fLabel '/raw_data/'];
+mkdir(expmt.rawdir);
 
 % generate file ID for files to write
 for i = 1:length(trackDat.fields)                           
     expmt.(trackDat.fields{i}).path = ...                   % initialize path for new file    
-        [expmt.fdir expmt.fLabel '_' trackDat.fields{i} '.bin'];
+        [expmt.rawdir expmt.fLabel '_' trackDat.fields{i} '.bin'];
     expmt.(trackDat.fields{i}).fID = ...
         fopen(expmt.(trackDat.fields{i}).path,'w');         % open fileID with write permission
 end

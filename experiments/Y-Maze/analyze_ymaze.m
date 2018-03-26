@@ -8,9 +8,9 @@ function expmt = analyze_ymaze(expmt,varargin)
 
 %% Parse inputs, read data from hard disk, format in master struct, process centroid data
 
-[expmt,trackProps,meta] = autoDataProcess(expmt,varargin{:});
+[expmt,options] = autoDataProcess(expmt,varargin{:});
 
-clearvars -except expmt trackProps meta
+clearvars -except expmt trackProps options
 
 %% Find index of first turn for each fly and discard to eliminate tracking artifacts
 
@@ -76,11 +76,11 @@ end
 
 expmt.Turns.active = expmt.Turns.n > 39;
 
-if isfield(meta,'handles')
-    gui_notify('processing complete',meta.handles.disp_note)
+if isfield(options,'handles')
+    gui_notify('processing complete',options.handles.disp_note)
 end
 
-clearvars -except expmt meta
+clearvars -except expmt options
 
 
 %% Generate plots
@@ -120,22 +120,22 @@ legendLabel(1)={[strain ' ' treatment ...
 legend(legendLabel);
 
 fname = [expmt.figdir expmt.date '_hist_handedness'];
-if ~isempty(expmt.figdir) && meta.save
+if ~isempty(expmt.figdir) && options.save
     hgsave(f,fname);
     close(f);
 end
 
 
 % Raw Centroid Plots
-if isfield(meta,'plot') && meta.plot
-    if isfield(meta,'handles')
-        gui_notify('generating plots',meta.handles.disp_note)
+if isfield(options,'plot') && options.plot
+    if isfield(options,'handles')
+        gui_notify('generating plots',options.handles.disp_note)
     end
     plotArenaTraces(expmt);
 end
 
-clearvars -except expmt meta
+clearvars -except expmt options
 
 %% Clean up files and wrap up analysis
 
-autoFinishAnalysis(expmt,meta);
+autoFinishAnalysis(expmt,options);

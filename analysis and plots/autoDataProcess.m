@@ -67,8 +67,40 @@ end
 expmt.nTracks = size(expmt.ROI.centers,1);
 
 %% initialize raw data memmap files
-    
+
+% query available memory
+memInfo=memory;
+nGigs = memInfo.MemAvailableAllArrays/1E9;
+if nGigs < 1
+    msg = {['WARNING: low available memory (' num2str(nGigs,2) 'GB)'];...
+    'processing times may be slow'};
+    if isfield(options,'handles')
+        gui_notify(msg,options.handles.disp_note);
+    else
+        disp(msg);
+    end
+end
+
+% initialize memmaps
 expmt = getRawData(expmt,options);
+
+% query centroid file size
+if isfield(expmt.Centroid,'map')
+    sz = numel(expmt.Centroid.map.Data.raw);
+    switch expmt.Centroid.precision
+        case 'double', sz = sz*8;
+        case 'single', sz = sz*4;
+    end
+    if sz > 1E9
+        msg = {['WARNING: large raw data file (' num2str(sz/1E9,2) 'GB)'];...
+            'processing times may be slow'};
+        if isfield(options,'handles')
+            gui_notify(msg,options.handles.disp_note);
+        else
+            disp(msg);
+        end
+    end       
+end
 
 %% extract centroid features
 [expmt] = processCentroid(expmt,options);

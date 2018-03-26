@@ -8,9 +8,9 @@ function expmt = analyze_tempphototaxis(expmt,varargin)
 
 %% Parse inputs, read data from hard disk, format in master struct, process centroid data
 
-[expmt,trackProps,meta] = autoDataProcess(expmt,varargin{:});
+[expmt,options] = autoDataProcess(expmt,varargin{:});
 
-clearvars -except expmt trackProps meta
+clearvars -except expmt options
 
 %% Analyze stimulus response
 
@@ -93,7 +93,7 @@ expmt.StimCen.data(:,2,:) = trackProps.r .* sin(cen_theta);
 nReps = 1000;
 [expmt.Light.bs,f] = bootstrap_slowphototaxis(expmt,nReps,'Light');
 fname = [expmt.figdir expmt.date '_light_bs'];
-if ~isempty(expmt.figdir) && meta.save
+if ~isempty(expmt.figdir) && options.save
     hgsave(f,fname);
     close(f);
 end
@@ -103,7 +103,7 @@ if ~isfield(expmt.parameters,'blank_duration') || ...
     
     [expmt.Blank.bs,f] = bootstrap_slowphototaxis(expmt,nReps,'Blank');
     fname = [expmt.figdir expmt.date '_dark_bs'];
-    if ~isempty(expmt.figdir) && meta.save
+    if ~isempty(expmt.figdir) && options.save
         hgsave(f,fname);
         close(f);
     end
@@ -179,7 +179,7 @@ legend(legendLabel);
 shg
 
 fname = [expmt.figdir expmt.date '_histogram'];
-if ~isempty(expmt.figdir) && meta.save
+if ~isempty(expmt.figdir) && options.save
     hgsave(f,fname);
     close(f);
 end
@@ -206,9 +206,9 @@ expmt.handedness_Second = getHandedness(trackProps,'Include',inc);
 %inc = repmat(expmt.Texture.data,1,expmt.nTracks) & trackProps.speed >0.8;
 %expmt.handedness_Light = getHandedness(trackProps,'Include',inc);
 
-if isfield(meta,'plot') && meta.plot
-    if isfield(meta,'handles')
-        gui_notify('generating plots',meta.handles.disp_note)
+if isfield(options,'plot') && options.plot
+    if isfield(options,'handles')
+        gui_notify('generating plots',options.handles.disp_note)
     end
     plotArenaTraces(expmt,'handedness_Blank');
     plotArenaTraces(expmt,'handedness_Light');
@@ -229,25 +229,25 @@ annotation('textbox',dim,'String',str,'FitBoxToText','on');
 title('slow phototaxis - handedness');
 
 fname = [expmt.figdir expmt.date '_handedness'];
-if ~isempty(expmt.figdir) && meta.save
+if ~isempty(expmt.figdir) && options.save
     hgsave(f,fname);
     close(f);
 end
 
 %% Generate plots
 
-if isfield(meta,'plot') && meta.plot
-    if isfield(meta,'handles')
-        gui_notify('generating plots',meta.handles.disp_note)
+if isfield(options,'plot') && options.plot
+    if isfield(options,'handles')
+        gui_notify('generating plots',options.handles.disp_note)
     end
     plotArenaTraces(expmt);
 end
 
-clearvars -except expmt meta
+clearvars -except expmt options
 
 %% Clean up files and wrap up analysis
 
-autoFinishAnalysis(expmt,meta);
+autoFinishAnalysis(expmt,options);
 
 
 

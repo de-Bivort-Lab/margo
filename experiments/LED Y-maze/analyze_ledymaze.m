@@ -8,9 +8,9 @@ function expmt = analyze_ledymaze(expmt, varargin)
 
 %% Parse inputs, read data from hard disk, format in master struct, process centroid data
 
-[expmt,~,meta] = autoDataProcess(expmt,varargin{:});
+[expmt,options] = autoDataProcess(expmt,varargin{:});
 
-clearvars -except expmt trackProps meta
+clearvars -except expmt options
 
 %% Find index of first turn for each fly and discard to eliminate tracking artifacts
 
@@ -80,8 +80,8 @@ end
 
 expmt.Turns.active = expmt.Turns.n > 39;
 
-if isfield(meta,'handles')
-    gui_notify('processing complete',meta.handles.disp_note);
+if isfield(options,'handles')
+    gui_notify('processing complete',options.handles.disp_note);
 end
 
 
@@ -113,7 +113,7 @@ if isfield(expmt.LightChoice,'active') && any(expmt.LightChoice.active)
 
 
     fname = [expmt.figdir expmt.date '_bs_light'];
-    if ~isempty(expmt.figdir) && meta.save
+    if ~isempty(expmt.figdir) && options.save
         hgsave(f,fname);
         close(f);
     end
@@ -167,15 +167,15 @@ legend(legendLabel);
 title('Phototaxis and Right Turn Histogram');
 
 fname = [expmt.figdir expmt.date '_hist_photo'];
-if ~isempty(expmt.figdir) && meta.save
+if ~isempty(expmt.figdir) && options.save
     hgsave(f,fname);
     close(f);
 end
 
 end
 
-clearvars -except expmt meta
+clearvars -except expmt options
 
 %% Clean up files and wrap up analysis
 
-autoFinishAnalysis(expmt,meta);
+autoFinishAnalysis(expmt,options);

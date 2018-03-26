@@ -68,9 +68,11 @@ for j = 1:nBatch
     
     if opt.handedness
         trackProps.Theta = single(atan2(iny,inx));
-        trackProps.Direction = single(atan2(diff(iny,1,2),diff(inx,1,2)));
+        trackProps.Direction = single([zeros(expmt.nTracks,1) ...
+            atan2(diff(iny,1,2),diff(inx,1,2))]);
         clearvars inx iny
         tmp(j) = getHandedness(trackProps);
+        expmt.handedness = tmp(j);
     end    
     
     for i = 1:length(opt.raw)
@@ -116,6 +118,8 @@ if nBatch>1 && opt.handedness
     end
     handedness.mu = -sin(sum(handedness.angle_histogram .*...
         repmat((handedness.bins' + handedness.bin_width/2),1,expmt.nTracks)))';
+    
+    expmt.handedness = handedness;
     
 end
     

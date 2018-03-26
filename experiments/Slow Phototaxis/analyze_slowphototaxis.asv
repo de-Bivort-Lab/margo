@@ -161,13 +161,13 @@ set(gca,'Xtick',0:2:length(c),'XtickLabel',0:0.1:1);
 if ~isnan(max(c))
     axis([0 length(c) 0 max(c)+0.05]);
 end
-n_light=sum(tTotal>min_active_period&active');
+n_light=sum(tTotal>min_active_period&active);
 
 if ~isfield(expmt.parameters,'blank_duration') || ...
         (isfield(expmt.parameters,'blank_duration') && expmt.parameters.blank_duration > 0)
 % Histogram for blank stimulus with fake lit half
     bins = 0:0.05:1;
-    c=histc(bocc(btTotal>min_active_period&active'),bins)./sum(btTotal>min_active_period&active');
+    c=histc(bocc(btTotal>min_active_period&active),bins)./sum(btTotal>min_active_period&active);
     c(end)=[];
     hold on
     plot(c,'Color',[0 0 1],'Linewidth',2);
@@ -176,13 +176,11 @@ if ~isfield(expmt.parameters,'blank_duration') || ...
         axis([0 length(c) 0 max(c)+0.05]);
     end
     title('Light Occupancy Histogram');
-    n_blank=sum(btTotal>min_active_period&active');
+    n_blank=sum(btTotal>min_active_period&active);
     hold off
 end
 
 % Generate legend labels
-strain='';
-treatment='';
 if isfield(expmt,'Strain')
     strain=expmt.Strain;
 end
@@ -191,9 +189,9 @@ if isfield(expmt,'Treatment')
 end
 
 % light ON label
-light_avg_occ = round(mean(locc(tTotal>min_active_period&active'))*100)/100;
-light_mad_occ = round(mad(locc(tTotal>min_active_period&active'))*100)/100;
-n = sum(tTotal>min_active_period&active');
+light_avg_occ = round(mean(locc(tTotal>min_active_period&active))*100)/100;
+light_mad_occ = round(mad(locc(tTotal>min_active_period&active))*100)/100;
+n = sum(tTotal>min_active_period&active);
 legendLabel(1)={['Stim ON: ' strain ' ' treatment ' (u=' num2str(light_avg_occ)...
     ', MAD=' num2str(light_mad_occ) ', n=' num2str(n) ')']};
 
@@ -201,9 +199,9 @@ if ~isfield(expmt.parameters,'blank_duration') || ...
         (isfield(expmt.parameters,'blank_duration') && expmt.parameters.blank_duration > 0)
     
     % light OFF label
-    blank_avg_occ = round(mean(bocc(btTotal>min_active_period&active'))*100)/100;
-    blank_mad_occ = round(mad(bocc(btTotal>min_active_period&active'))*100)/100;
-    n = sum(btTotal>min_active_period&active');
+    blank_avg_occ = round(mean(bocc(btTotal>min_active_period&active))*100)/100;
+    blank_mad_occ = round(mad(bocc(btTotal>min_active_period&active))*100)/100;
+    n = sum(btTotal>min_active_period&active);
     legendLabel(2)={['Stim OFF: ' strain ' ' treatment ' (u=' num2str(blank_avg_occ)...
         ', MAD=' num2str(blank_mad_occ) ', n=' num2str(n) ')']};
 end
@@ -220,11 +218,11 @@ end
 % Save data to struct
 expmt.Light.avg_occ = locc;
 expmt.Blank.avg_occ = bocc;
-expmt.Light.active = tTotal>min_active_period&active';
-expmt.Blank.active = btTotal>min_active_period&active';
+expmt.Light.active = tTotal>min_active_period&active;
+expmt.Blank.active = btTotal>min_active_period&active;
 
 %% Extract handedness from lights ON and lights OFF periods
-%{
+
 % blank period
 first_half = false(size(trackProps.speed));
 first_half(1:round(length(first_half)/2),:) = true;
@@ -244,7 +242,6 @@ if isfield(options,'plot') && options.plot
     plotArenaTraces(expmt,'handedness_Blank');
     plotArenaTraces(expmt,'handedness_Light');
 end
-
 
 f=figure(); 
 a = expmt.Light.active;
@@ -266,7 +263,6 @@ if ~isempty(expmt.figdir) && options.save
     hgsave(f,fname);
     close(f);
 end
-%}
 
 %% Generate plots
 

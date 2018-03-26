@@ -8,21 +8,21 @@ function expmt = analyze_basictracking(expmt,varargin)
 
 %% Parse inputs, read data from hard disk, format in master struct, process centroid data
 
-[expmt,trackProps,meta] = autoDataProcess(expmt,varargin{:});
+[expmt,options] = autoDataProcess(expmt,varargin{:});
 
-clearvars -except expmt trackProps meta
+clearvars -except expmt options
 
 %% Generate plots
 
-if isfield(meta,'plot') && meta.plot
-    if isfield(meta,'handles')
-        gui_notify('generating plots',meta.handles.disp_note)
+if isfield(options,'plot') && options.plot
+    if isfield(options,'handles')
+        gui_notify('generating plots',options.handles.disp_note)
     end
     plotArenaTraces(expmt);
 end
 
-clearvars -except expmt meta
+clearvars -except expmt options
 
 %% Clean up files and wrap up analysis
 
-autoFinishAnalysis(expmt,meta)
+autoFinishAnalysis(expmt,options)
