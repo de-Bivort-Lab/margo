@@ -61,8 +61,9 @@ end
 
 %% Initialize tracking variables
 
-trackDat.Centroid = single(expmt.ROI.centers);                        % last known centroid of the object in each ROI 
-trackDat.tStamp = single(zeros(size(expmt.ROI.centers(:,1),1),1));  % time stamps of centroid updates
+trackDat.Centroid = single(expmt.ROI.centers);              % last known centroid of the object in each ROI
+trackDat.tStamp = ...
+    single(zeros(size(expmt.ROI.centers(:,1),1),1));        % time stamps of centroid updates
 trackDat.t = 0;                                             % time elapsed, initialize to zero
 trackDat.ct = 0;                                            % frame count
 trackDat.drop_ct = zeros(size(expmt.ROI.centers(:,1),1),1); % number of frames dropped for each obj

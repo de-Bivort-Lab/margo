@@ -2,7 +2,6 @@ function gui_notify(msg,text_handle)
 
 if iscell(msg)
 tmp_msg = ['(' datestr(clock,'HH:MM:SS mm/dd/yyyy') ')  '];
-offset = length(tmp_msg);
 msg(1) = {[tmp_msg msg{1}]};
 for i=2:length(msg)
     msg(i) = {[repmat(' ',1,38) msg{i}]};
