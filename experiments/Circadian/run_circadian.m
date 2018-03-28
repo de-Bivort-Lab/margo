@@ -47,6 +47,8 @@ trackDat.Motor = false;
 % declare image processing options
 expmt.parameters.dilate_element = [];
 
+
+
 %% Determine position in light/dark cycle and initialize white light
 
 t=clock;            % grab current time
