@@ -1107,7 +1107,7 @@ else
             case 'Optomotor', sca;
         end
         
-        gui_notify('error encountered - experiment ending early');
+        gui_notify('error encountered - experiment ending early',handles.disp_note);
         keep_gui_state = true;
         title = 'Error encountered - experiment ending early';
         getReport(ME);
@@ -1327,9 +1327,9 @@ expmt = getappdata(handles.gui_fig,'expmt');
 if expmt.expID<2
     errordlg('Please select an experiment first')
 else
-    switch expmt.expID
+    switch expmt.Name
 
-        case 3
+        case 'Optomotor'
             
                 tmp_param = optomotor_parameter_gui(expmt);
                 if ~isempty(tmp_param)
@@ -1337,21 +1337,21 @@ else
                 end
 
              
-        case 4                     
+        case 'Slow Phototaxis'                     
 
                 tmp_param = slowphototaxis_parameter_gui(expmt);
                 if ~isempty(tmp_param)
                     expmt = tmp_param;
                 end
                 
-        case 9
+        case 'Circadian'
             
                 tmp_param = circadian_parameter_subgui(expmt,handles);
                 if ~isempty(tmp_param)
                     expmt.parameters = tmp_param;
                 end
                 
-        case 10
+        case 'Arena Blocks'
             
                 % arena block expmt parameters
                 tmp_param = arenablock_parameter_gui(expmt);
