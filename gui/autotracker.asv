@@ -59,6 +59,7 @@ set(handles.gui_fig,'doublebuffer','off');
 
 % get gui directory and ensure all dependencies are added to path
 handles.gui_dir = which('autotracker');
+<<<<<<< HEAD
 [par_dir,~,~] = fileparts(handles.gui_dir);
 [par_dir,~,~] = fileparts(par_dir);
 handles.gui_dir = [par_dir '/'];
@@ -71,6 +72,18 @@ end
 
 if exist([handles.gui_dir 'profiles/deviceID.txt'],'file')
     fID = fopen([handles.gui_dir 'profiles/deviceID.txt']);
+=======
+handles.gui_dir = handles.gui_dir(1:strfind(handles.gui_dir,'\gui\'));
+if ~exist([handles.gui_dir 'profiles\'],'dir')
+    mkdir([handles.gui_dir 'profiles\']);
+end
+if ~exist([handles.gui_dir 'hardware\projector_fit\'],'dir')
+    mkdir([handles.gui_dir 'hardware\projector_fit\']);
+end
+
+if exist([handles.gui_dir 'profiles\deviceID.txt'],'file')
+    fID = fopen([handles.gui_dir 'profiles\deviceID.txt']);
+>>>>>>> grid_update
     handles.deviceID=char(fread(fID))';
     fclose(fID);
     
@@ -166,7 +179,11 @@ handles.parameter_subgui = [3 4 9 10 11];
 
 % popuplate saved profile list and create menu items
 % Get existing profile list
+<<<<<<< HEAD
 load_path =[handles.gui_dir 'profiles/'];
+=======
+load_path =[handles.gui_dir 'profiles\'];
+>>>>>>> grid_update
 tmp_profiles = ls(load_path);
 profiles = cell(size(tmp_profiles,1),1);
 remove = [];
@@ -192,7 +209,11 @@ end
 expmt.source = 'camera';                    % set the source mode to camera by default
 [expmt.camInfo,handles.cam_list] = refresh_cam_list(handles);  % query available cameras and camera info
 
+<<<<<<< HEAD
 cam_dir = [handles.gui_dir '/hardware/camera_calibration/'];
+=======
+cam_dir = [handles.gui_dir '\hardware\camera_calibration\'];
+>>>>>>> grid_update
 cam_file = [cam_dir 'cam_params.mat'];
 handles.cam_calibrate_menu.UserData = false;
 
@@ -313,7 +334,11 @@ setappdata(handles.gui_fig,'expmt',expmt);
 
 % generate menu items for saved profiles and config their callbacks
 hParent = findobj('Tag','saved_presets_menu');
+<<<<<<< HEAD
 save_path = [handles.gui_dir 'profiles/'];
+=======
+save_path = [handles.gui_dir 'profiles\'];
+>>>>>>> grid_update
 for i = 1:length(profiles)
     menu_items(i) = uimenu(hParent,'Label',profiles{i},...
         'Callback',@saved_preset_Callback);
@@ -569,6 +594,13 @@ expmt = getappdata(handles.gui_fig,'expmt');
 clean_gui(handles.axes_handle);
 
 handles.hImage = findobj(handles.axes_handle,'-depth',3,'Type','image');   % image handle
+<<<<<<< HEAD
+=======
+if length(handles.hImage)>1
+    delete(handles.hImage(2:end));
+    handles.hImage = handles.hImage(1);
+end
+>>>>>>> grid_update
 
 switch get(hObject,'value')
     case 1
@@ -612,8 +644,12 @@ switch get(hObject,'value')
                     trackDat.im = trackDat.im(:,:,2);
                 end
                 
+<<<<<<< HEAD
                 delete(findobj(handles.axes_handle,'-depth',3,'Type','image'));
                 handles.hImage = imagesc('Parent',handles.axes_handle,'CData',trackDat.im);
+=======
+                handles.hImage = image('Parent',handles.axes_handle,'CData',trackDat.im);
+>>>>>>> grid_update
                 colormap(handles.axes_handle,'gray');
                 
             end
@@ -622,6 +658,7 @@ switch get(hObject,'value')
         end
     case 0
         if ~isempty(expmt.camInfo) && isfield(expmt.camInfo,'vid')
+<<<<<<< HEAD
             stoppreview(expmt.camInfo.vid);           
             
             if size(handles.hImage.CData,3) > 1
@@ -631,12 +668,24 @@ switch get(hObject,'value')
             end          
             delete(handles.hImage);
             handles.hImage = imagesc('Parent',handles.axes_handle,'CData',CData);
+=======
+            stoppreview(expmt.camInfo.vid);
+            
+            if size(handles.hImage.CData,3) > 1
+                handles.hImage = imagesc('Parent',handles.axes_handle,'CData',handles.hImage.CData(:,:,2));
+            else
+                handles.hImage = imagesc('Parent',handles.axes_handle,'CData',handles.hImage.CData);
+            end
+>>>>>>> grid_update
             set(hObject,'string','Start preview','BackgroundColor',[1 1 1]);
             set(handles.axes_handle,'Xtick',[],'Ytick',[],'XtickLabel',[],'YtickLabel',[]);
         end
 end
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> grid_update
 % Store expmteriment data struct
 if exist('handles','var') && isfield(handles,'gui_fig') && ishghandle(handles.gui_fig)
     setappdata(handles.gui_fig,'expmt',expmt);
@@ -743,8 +792,13 @@ function save_path_button1_Callback(hObject, ~, handles)
 
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
+<<<<<<< HEAD
 mat_dir = handles.gui_dir(1:strfind(handles.gui_dir,'MATLAB/')+6);
 default_path = [mat_dir 'autotracker_data/'];
+=======
+mat_dir = handles.gui_dir(1:strfind(handles.gui_dir,'MATLAB\')+6);
+default_path = [mat_dir 'autotracker_data\'];
+>>>>>>> grid_update
 if exist(default_path,'dir') ~= 7
     mkdir(default_path);
     msg_title = 'New Data Path';
@@ -988,9 +1042,19 @@ else
     handles = toggleSubguis(handles,'off');
     
     % Execute the appropriate script for the selected experiment
+<<<<<<< HEAD
         switch expmt.Name              
                 
             case 'Optomotor'
+=======
+        switch expmt.expID
+            
+            case 2
+                projector_escape_response;
+                
+                
+            case 3
+>>>>>>> grid_update
                 expmt = run_optomotor(expmt,handles);
                 if isfield(expmt,'date')
                     expmt = analyze_optomotor(expmt,'Handles',handles);
@@ -999,7 +1063,11 @@ else
                 end
                 
                 
+<<<<<<< HEAD
             case 'Slow Phototaxis'
+=======
+            case 4
+>>>>>>> grid_update
                 expmt = run_slowphototaxis(expmt,handles);
                 if isfield(expmt,'date')
                     analyze_slowphototaxis(expmt,'Handles',handles);
@@ -1008,7 +1076,11 @@ else
                 end
                 
                 
+<<<<<<< HEAD
             case 'LED Y-maze'
+=======
+            case 5
+>>>>>>> grid_update
                 if ~isfield(expmt,'AUX_COM') || isempty(expmt.AUX_COM)
                     errordlg('No aux COM assigned for LED Y-maze');
                     keep_gui_state = true;
@@ -1022,7 +1094,11 @@ else
                 end
                 
                 
+<<<<<<< HEAD
             case 'Arena Circling'
+=======
+            case 6
+>>>>>>> grid_update
                 expmt = run_arenacircling(expmt,handles);
                 if isfield(expmt,'date')
                     analyze_arenacircling(expmt,'Handles',handles);
@@ -1031,7 +1107,11 @@ else
                 end
                 
                 
+<<<<<<< HEAD
             case 'Y-maze'
+=======
+            case 7
+>>>>>>> grid_update
                 expmt = run_ymaze(expmt,handles);
                 if isfield(expmt,'date')
                     analyze_ymaze(expmt,'Handles',handles);
@@ -1040,7 +1120,11 @@ else
                 end
                 
                 
+<<<<<<< HEAD
             case 'Basic Tracking'
+=======
+            case 8
+>>>>>>> grid_update
                 expmt = run_basictracking(expmt,handles);     % Run expmt
                 if isfield(expmt,'date')
                     analyze_basictracking(expmt,'Handles',handles);
@@ -1049,7 +1133,11 @@ else
                 end
                 
 
+<<<<<<< HEAD
             case 'Circadian'
+=======
+            case 9
+>>>>>>> grid_update
                 expmt = run_circadian(expmt,handles);
                 if isfield(expmt,'date')
                     args={'Decimate';{'Centroid';'Time';'Light';'Motor';};'DecFac';5};
@@ -1058,7 +1146,11 @@ else
                     keep_gui_state = true;
                 end
                 
+<<<<<<< HEAD
             case 'Arena Blocks'
+=======
+            case 10
+>>>>>>> grid_update
                 
                 [circle,opto,photo] = run_arenablocks(expmt,handles);
                 if isfield(circle,'date')
@@ -1076,7 +1168,11 @@ else
                     clearvars photo
                 end
             
+<<<<<<< HEAD
             case 'Temporal Phototaxis'
+=======
+            case 11
+>>>>>>> grid_update
                 
                 expmt = run_tempphototaxis(expmt,handles);
                 if isfield(expmt,'date')
@@ -1106,7 +1202,10 @@ else
             case 'Optomotor', sca;
         end
         
+<<<<<<< HEAD
         gui
+=======
+>>>>>>> grid_update
         keep_gui_state = true;
         title = 'Error encountered - experiment ending early';
         getReport(ME);
@@ -1127,6 +1226,10 @@ else
     
     % re-Enable control set to off during experiment
     handles = toggleSubguis(handles,'on');
+<<<<<<< HEAD
+=======
+    expmt.Finish = true;
+>>>>>>> grid_update
     
     % remove saved rois, images, and noise statistics from prev experiment
     if isfield(expmt,'ROI') && ~keep_gui_state
@@ -1166,7 +1269,10 @@ else
         % restore gui to prior state
         set(handles.on_objs,'Enable','on');
         set(handles.off_objs,'Enable','off');
+<<<<<<< HEAD
         expmt.Initialize = true;
+=======
+>>>>>>> grid_update
         
     end
         
@@ -1664,8 +1770,13 @@ end
 
 % Get existing profile list
 gui_dir = which('autotrackergui');
+<<<<<<< HEAD
 gui_dir = gui_dir(1:strfind(gui_dir,'/gui/'));
 load_path =[gui_dir 'profiles/'];
+=======
+gui_dir = gui_dir(1:strfind(gui_dir,'\gui\'));
+load_path =[gui_dir 'profiles\'];
+>>>>>>> grid_update
 tmp_profiles = ls(load_path);
 profiles = cell(size(tmp_profiles,1)+1,1);
 profiles(1) = {'Select saved settings'};
@@ -1698,7 +1809,11 @@ function save_params_pushbutton_Callback(hObject, ~, handles)
 expmt = getappdata(handles.gui_fig,'expmt');  %#ok<NASGU>
 
 % set profile save path
+<<<<<<< HEAD
 save_path = [handles.gui_dir 'profiles/'];
+=======
+save_path = [handles.gui_dir 'profiles\'];
+>>>>>>> grid_update
 
 [FileName,PathName] = uiputfile('*.mat','Enter name for new profile',save_path);
 
@@ -2145,7 +2260,11 @@ function reg_error_menu_Callback(hObject, ~, handles)
 
 expmt = getappdata(handles.gui_fig,'expmt');
 
+<<<<<<< HEAD
 if exist([handles.gui_dir 'hardware/projector_fit/']) == 7 && isfield(expmt,'reg_params')
+=======
+if exist([handles.gui_dir 'hardware\projector_fit\']) == 7 && isfield(expmt,'reg_params')
+>>>>>>> grid_update
     
     % Turn infrared and white background illumination off during registration
     expmt.COM = writeInfraredWhitePanel(expmt.COM,1,0);
@@ -2831,7 +2950,11 @@ if isfield(expmt.camInfo,'src')
 end
 
 % set profile save path
+<<<<<<< HEAD
 save_path = [handles.gui_dir 'profiles/'];
+=======
+save_path = [handles.gui_dir 'profiles\'];
+>>>>>>> grid_update
 
 [FileName,PathName] = uiputfile('*.mat','Enter name for new profile',save_path);
 
@@ -3108,10 +3231,22 @@ switch hObject.Checked
                 xdat = [xdat g(i).XData];
                 ydat = [ydat g(i).YData];
             end
+<<<<<<< HEAD
             handles.view_menu.UserData.hBounds = patch('Faces',1:size(xdat,2),...
                 'XData',xdat,'YData',ydat,'FaceColor','none','EdgeColor','r',...
                 'Parent',handles.axes_handle);
             uistack(handles.view_menu.UserData.hBounds,'down');
+=======
+            if isfield(handles.view_menu.UserData,'hBounds') && ...
+                   isprop(handles.view_menu.UserData.hBounds,'Visible')
+               handles.view_menu.UserData.hBounds.Visible = 'on';
+               uistack(handles.view_menu.UserData.hBounds,'up');
+            else
+                handles.view_menu.UserData.hBounds = patch('Faces',1:size(xdat,2),...
+                    'XData',xdat,'YData',ydat,'FaceColor','none','EdgeColor','r',...
+                    'Parent',handles.axes_handle,'Visible','on');
+            end
+>>>>>>> grid_update
         else
             gui_notify('ROIs are not set and cannot be displayed',handles.disp_note);
         end

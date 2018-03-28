@@ -1053,7 +1053,7 @@ else
             case 'Circadian'
                 expmt = run_circadian(expmt,handles);
                 if isfield(expmt,'date')
-                    args={'Decimate';{'Centroid';'Time';'Light';'Motor';};'DecFac';5};
+                    args={'Decimate';{'Centroid';'Time';'Light';'Motor';'Area'};'DecFac';5};
                     analyze_circadian(expmt,'Handles',handles,args{:});
                 else
                     keep_gui_state = true;
@@ -1128,6 +1128,7 @@ else
     
     % re-Enable control set to off during experiment
     handles = toggleSubguis(handles,'on');
+    expmt.Finish = true;
     
     % remove saved rois, images, and noise statistics from prev experiment
     if isfield(expmt,'ROI') && ~keep_gui_state
@@ -3109,10 +3110,15 @@ switch hObject.Checked
                 xdat = [xdat g(i).XData];
                 ydat = [ydat g(i).YData];
             end
-            handles.view_menu.UserData.hBounds = patch('Faces',1:size(xdat,2),...
-                'XData',xdat,'YData',ydat,'FaceColor','none','EdgeColor','r',...
-                'Parent',handles.axes_handle);
-            uistack(handles.view_menu.UserData.hBounds,'down');
+            if isfield(handles.view_menu.UserData,'hBounds') && ...
+                   isprop(handles.view_menu.UserData.hBounds,'Visible')
+               handles.view_menu.UserData.hBounds.Visible = 'on';
+               uistack(handles.view_menu.UserData.hBounds,'up');
+            else
+                handles.view_menu.UserData.hBounds = patch('Faces',1:size(xdat,2),...
+                    'XData',xdat,'YData',ydat,'FaceColor','none','EdgeColor','r',...
+                    'Parent',handles.axes_handle,'Visible','on');
+            end
         else
             gui_notify('ROIs are not set and cannot be displayed',handles.disp_note);
         end
