@@ -42,6 +42,7 @@ trackDat.pulse.prev = 0;
 trackDat.ramp.stat = false;
 trackDat.ramp.ct = 0;
 trackDat.ramp.t = 0;
+trackDat.Motor = false;
 
 % declare image processing options
 expmt.parameters.dilate_element = [];
