@@ -744,7 +744,7 @@ function save_path_button1_Callback(hObject, ~, handles)
 
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
-mat_dir = handles.gui_dir(1:strfind(handles.gui_dir,'MATLAB')+6);
+mat_dir = handles.gui_dir(1:strfind(handles.gui_dir,'MATLAB/')+6);
 default_path = [mat_dir 'autotracker_data/'];
 if exist(default_path,'dir') ~= 7
     mkdir(default_path);
@@ -1795,6 +1795,7 @@ if isfield(expmt,'ref')
 
     % set controls in list to on
     set(ctls, 'Enable', 'on');
+    
     
     % if experiment parameters are set, Enable experiment run panel
     if expmt.expID > 1 && ~isempty(handles.save_path.String)
