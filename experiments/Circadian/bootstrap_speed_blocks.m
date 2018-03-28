@@ -105,6 +105,7 @@ end
 bs.obs = log(nanmean(trackProps.speed));
 bs.include = active;
 bs.sim = log(bs_speeds);
+bs.sim(bs.sim==-Inf)=NaN;
 
 % create histogram of occupancy scores
 binmin=min(bs.sim(:));

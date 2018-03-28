@@ -48,15 +48,11 @@ expmt.parameters.dilate_element = [];
 
 % run with default parameter values if none are defined
 if ~isfield(expmt.parameters,'lights_ON')
-    gui_notify('experiment parameters not defined - running default',...
-        gui_handles.disp_note);
-    expmt.parameters.lights_ON = [10 0];
-    expmt.parameters.lights_OFF = [22 0];
-    expmt.parameters.ramp_time = 30;
-    expmt.parameters.ramp_param = 0.96;
-    expmt.parameters.pulse_num = 0;
-    expmt.parameters.pulse_per_hour = 0;
-    expmt.parameters.pulse_amp = 0;
+    expmt.parameters.lights_ON
+    expmt.parameters.lights_OFF
+    expmt.parameters.ram
+    expmt.parameters.lights_ON
+    expmt.parameters.lights_ON
 end
 
 

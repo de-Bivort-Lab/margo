@@ -1054,7 +1054,7 @@ else
             case 9
                 expmt = run_circadian(expmt,handles);
                 if isfield(expmt,'date')
-                    args={'Decimate';{'Centroid';'Time';'Light';'Motor';'Area'};'DecFac';5};
+                    args={'Decimate';{'Centroid';'Time';'Light';'Motor';};'DecFac';5};
                     analyze_circadian(expmt,'Handles',handles,args{:});
                 else
                     keep_gui_state = true;

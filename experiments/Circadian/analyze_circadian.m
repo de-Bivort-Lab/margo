@@ -23,6 +23,7 @@ if isfield(expmt,'Area') && isfield(expmt.Area,'data') && ~isfield(expmt.Area,'t
     a = num2cell(expmt.Area.data,1);
     disp('finding area thresholds');
     [ints,means,sigmas] = cellfun(@fitBimodalHist,a,'UniformOutput',false);
+
     expmt.Area.thresh = NaN(expmt.nTracks,1);
     expmt.Area.thresh(~cellfun(@isempty,ints)) = [ints{:}];
     expmt.Area.modeMeans = NaN(expmt.nTracks,2);
