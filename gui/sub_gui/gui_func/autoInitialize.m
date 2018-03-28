@@ -101,6 +101,7 @@ for i = 1:length(trackDat.fields)
     expmt.(trackDat.fields{i}).fID = ...
         fopen(expmt.(trackDat.fields{i}).path,'w');         % open fileID with write permission
 end
+expmt.fields = trackDat.fields;
 
 % save current parameters to .mat file prior to experiment
 params = fieldnames(gui_handles.gui_fig.UserData);
