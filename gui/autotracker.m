@@ -1797,8 +1797,13 @@ if isfield(expmt,'ref')
     set(ctls, 'Enable', 'on');
     
     % if experiment parameters are set, Enable experiment run panel
-    if expmt.expID > 1 && ~isempty(handles.save_path.String)
-        set(findall(handles.run_uipanel, '-property', 'Enable'),'Enable','on');
+    if expmt.expID > 1 
+        if ~isempty(handles.save_path.String)
+            set(findall(handles.run_uipanel, '-property', 'Enable'),'Enable','on');
+        end
+        if isfield(expmt,'Name') && any(strcmp(expmt.Name,handles.parameter_subgui))
+            handles.exp_parameter_pushbutton.Enable = 'on';
+        end
     end
     
 else
