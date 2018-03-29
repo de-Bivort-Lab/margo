@@ -32,7 +32,11 @@ switch active_disp
         if isfield(expmt,'ref') && isfield(expmt.vignette,'im')
             thresh = gui_handles.track_thresh_slider.Value;
             diffim = (expmt.ref-expmt.vignette.im)-(trackDat.im-expmt.vignette.im);
-            im_handle.CData = diffim > thresh;
+            thresh_im = diffim > thresh; 
+            if isfield(expmt.ROI,'mask')
+                thresh_im = thresh_im & expmt.ROI.mask;
+            end
+            im_handle.CData = thresh_im;
             if strcmp(im_handle.CDataMapping,'direct')
                 im_handle.CDataMapping = 'scaled';
             end

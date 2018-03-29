@@ -28,8 +28,7 @@ end
 if size(trackDat.im,3)>1
     trackDat.im=trackDat.im(:,:,2);
 end
-    
-
+ 
 
 % adjust image for lens distortion if camera calibration parameters exist
 if strcmp(expmt.source,'camera') && ...

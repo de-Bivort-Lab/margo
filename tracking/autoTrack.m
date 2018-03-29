@@ -40,6 +40,9 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
     
     % threshold image
     thresh_im = diffim > im_thresh;
+    if isfield(expmt.ROI,'mask')
+        thresh_im = thresh_im & expmt.ROI.mask;
+    end
     
     % check image noise and dump frame if noise is too high
     record = true;
