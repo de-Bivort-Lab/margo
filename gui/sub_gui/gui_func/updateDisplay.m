@@ -16,7 +16,7 @@ switch active_disp
     case 2
         if isfield(expmt,'ref') && isfield(expmt.vignette,'im')
         im_handle.CData = ...
-            (expmt.ref-expmt.vignette.im)-(trackDat.im-expmt.vignette.im);
+            (trackDat.ref.im-expmt.vignette.im)-(trackDat.im-expmt.vignette.im);
             if strcmp(im_handle.CDataMapping,'scaled')
                 im_handle.CDataMapping = 'direct';
             end
@@ -30,13 +30,7 @@ switch active_disp
     % threshold image
     case 3 
         if isfield(expmt,'ref') && isfield(expmt.vignette,'im')
-            thresh = gui_handles.track_thresh_slider.Value;
-            diffim = (expmt.ref-expmt.vignette.im)-(trackDat.im-expmt.vignette.im);
-            thresh_im = diffim > thresh; 
-            if isfield(expmt.ROI,'mask')
-                thresh_im = thresh_im & expmt.ROI.mask;
-            end
-            im_handle.CData = thresh_im;
+            im_handle.CData = trackDat.thresh_im;
             if strcmp(im_handle.CDataMapping,'direct')
                 im_handle.CDataMapping = 'scaled';
             end
@@ -50,7 +44,7 @@ switch active_disp
     % reference image
     case 4
         if isfield(expmt,'ref')
-            im_handle.CData = expmt.ref;
+            im_handle.CData = trackDat.ref.im;
             if strcmp(im_handle.CDataMapping,'direct')
                 im_handle.CDataMapping = 'scaled';
             end

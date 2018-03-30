@@ -73,12 +73,11 @@ while ~trackDat.lastFrame
     % and compare noise to the noise distribution measured during sampling
     trackDat = autoTrack(trackDat,expmt,gui_handles);
 
-
     % output data tracked fields to binary files
     [trackDat,expmt] = autoWriteData(trackDat, expmt, gui_handles);
 
     % update ref at the reference frequency or reset if noise thresh is exceeded
-    [trackDat, ref_stack, expmt] = updateRef(trackDat, ref_stack, expmt, gui_handles);
+    [trackDat, expmt] = updateRef(trackDat, expmt, gui_handles);  
 
     % display update
     if gui_handles.display_menu.UserData ~= 5

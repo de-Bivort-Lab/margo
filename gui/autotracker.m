@@ -1867,7 +1867,10 @@ if strcmp(expmt.source,'camera') && isfield(expmt.camInfo,'vid')
     end
     
     % get an pixel mask for all areas of the image with an ROI
-    expmt = setROImask(expmt);
+    if isfield(expmt.ROI,'centers')
+        expmt.ROI.n = size(expmt.ROI.centers,1);
+        expmt = setROImask(expmt);
+    end
     
 elseif strcmp(expmt.source,'camera')
     errordlg('Confirm camera and camera settings before running ROI detection');

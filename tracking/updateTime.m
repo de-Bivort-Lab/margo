@@ -38,9 +38,12 @@ function [trackDat,tPrev] = updateTime(trackDat, tPrev, expmt, gui_handles, vara
     % update time variables
     trackDat.t = trackDat.t + ifi;
     trackDat.ifi = ifi;
-    if isfield(trackDat,'t_ref')
-        trackDat.t_ref = trackDat.t_ref + ifi;
+    if isfield(trackDat.ref,'t')
+        trackDat.ref.t = trackDat.ref.t + ifi;
     end
+    
+    % check reference update timer
+    trackDat.ref.update = trackDat.ref.t > gui_handles.edit_ref_freq.Value * 60;
     
     if strcmp(expmt.source,'camera') && ~no_plot
         

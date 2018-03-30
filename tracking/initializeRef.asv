@@ -38,9 +38,8 @@ expmt = getVideoInput(expmt,gui_handles);
 
 % Reference vars
 nROIs = size(expmt.ROI.corners, 1);                 % total number of ROIs
-depth = gui_handles.edit_ref_depth.Value;           % number of rolling sub references
-trackDat.ref.cen = ...
-    repmat(expmt.ROI.centers,1,1,depth);            % placeholder for cen. coords where references are taken
+trackDat.ref.cen = repmat(expmt.ROI.centers,1,1, ...
+    expmt.parameters.ref_depth);                    % placeholder for cen. coords where references are taken
 trackDat.ref.ct = zeros(nROIs, 1);                  % Reference number placeholder
 trackDat.ref.t = 0;                                 % reference time stamp
 
@@ -68,7 +67,7 @@ trackDat.ref.thresh = gui_fig.UserData.distance_thresh * 0.2;
 % Initialize reference with single image
 [trackDat,expmt] = autoFrame(trackDat,expmt,gui_handles);
 trackDat.ref.im = trackDat.im;
-trackDat.ref.stack = squeeze(num2cell(repmat(trackDat.ref.im,1,1,depth),[1 2]));
+trackDat.ref.stack = squeeze(num2cell(repmat(trackDat.ref.im,1,1,expmt.parameters.ref_depth),[1 2]));
 pause(0.1);
 
 
@@ -126,21 +125,22 @@ while trackDat.t < expmt.parameters.duration*3600 &&...
         
         % update the display
         updateDisplay(trackDat, expmt, imh, gui_handles);
-                
-        nRefs = depth - ...
-            sum((squeeze(trackDat.ref.cen(:,1,:)) - ...
-            repmat(expmt.ROI.centers(:,1),1,...
-            depth))==0,2);
+        
+        
+        if trackDat.ref.update
+            
+            nRefs = expmt.parameters.ref_depth - ...
+                sum((squeeze(trackDat.ref.cen(:,1,:)) - ...
+                repmat(expmt.ROI.centers(:,1),1,...
+                expmt.parameters.ref_depth))==0,2);
+            
+            % Update color indicator
+            hsv_color = [1-color_scale.*nRefs./size(trackDat.ref.cen,3) 1 1];
+            color = hsv2rgb(hsv_color); 
 
-        % Update color indicator
-        hue = 1-color_scale.*nRefs./depth;
-        hsv_color = ones(numel(hue),3);
-        hsv_color(:,1) = hue;
-        color = hsv2rgb(hsv_color); 
-
-        % Draw last known centroid for each ROI and update ref. number indicator
-        hCirc.CData = color;
-
+            % Draw last known centroid for each ROI and update ref. number indicator
+            hCirc.CData = color;
+        end
        
     end
     

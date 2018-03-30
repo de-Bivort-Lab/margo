@@ -106,7 +106,7 @@ while ~trackDat.lastFrame
 
 
     % update ref at the reference frequency or reset if noise thresh is exceeded
-    [trackDat, ref_stack, expmt] = updateRef(trackDat, ref_stack, expmt, gui_handles);
+    [trackDat, expmt] = updateRef(trackDat, expmt, gui_handles);  
 
     % display update
     if gui_handles.display_menu.UserData ~= 5

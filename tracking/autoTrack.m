@@ -18,7 +18,6 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
     if ~any(strcmp('Centroid',in_fields))
         in_fields = [in_fields; {'Centroid'}];
     end
-
     if ~any(strcmp('Area',in_fields))
         in_fields = [in_fields; {'Area'}];
     end
@@ -33,7 +32,7 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
     trackDat.ct = trackDat.ct + 1;
 
     % calculate difference image and current for vignetting
-    diffim = (expmt.ref - expmt.vignette.im) - (trackDat.im - expmt.vignette.im);
+    diffim = (trackDat.ref.im - expmt.vignette.im) - (trackDat.im - expmt.vignette.im);
     
     % get current image threshold and use it to extract region properties     
     im_thresh = get(gui_handles.track_thresh_slider,'value');
@@ -63,6 +62,7 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
             
             % get region properties
             props=regionprops(thresh_im, in_fields);
+            trackDat.thresh_im = thresh_im;
 
             % threshold blobs by area
             above_min = [props.Area]  .* (expmt.parameters.mm_per_pix^2) > ...
@@ -77,12 +77,13 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
             
             if isempty(expmt.parameters.dilate_element)
                 expmt.parameters.dilate_element = ...
-                    strel('disk',6);
+                    strel('disk',3);
             end
             
             % dilate and erode with same element to connect components
             dim = imdilate(thresh_im,expmt.parameters.dilate_element);
             eim = imerode(dim,expmt.parameters.dilate_element);
+            trackDat.thresh_im = eim;
             
             % get region properties
             props=regionprops(eim, in_fields);
@@ -142,6 +143,8 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
         if isfield(trackDat,'drop_ct')
             trackDat.drop_ct(~update) = trackDat.drop_ct(~update) + 1;
         end
+        
+        trackDat.update = update;
     
     else
         
@@ -187,7 +190,7 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
         if record
             pxList(update) = {props(permutation).PixelIdxList};
         end
-        singletrackDat.PixelIdxList = (pxList);
+        trackDat.PixelIdxList = (pxList);
     end
 
     if any(strcmp('Time',out_fields))

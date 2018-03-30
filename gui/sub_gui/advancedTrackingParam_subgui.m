@@ -174,6 +174,9 @@ end
 
 % initialize tracking variables if any parameter display is ticked
 trackDat.fields={'Centroid';'Area';'Speed'};     % Define fields autoTrack output
+if isfield(expmt,'ref')
+    trackDat.ref = expmt.ref;
+end
 
 if isfield(expmt,'ROI') && isfield(expmt.ROI,'centers')
     trackDat.Centroid = expmt.ROI.centers;     % placeholder for most recent non-NaN centroids

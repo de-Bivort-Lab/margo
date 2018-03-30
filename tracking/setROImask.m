@@ -1,69 +1,86 @@
 function expmt = setROImask(expmt)
 
-
+% create a single mask for all ROIs in the image
 switch expmt.ROI.mode    
     case 'grid'
        
         nGrids = max(unique(expmt.ROI.grid));
         pixList = [];
+        xdat = [];
+        ydat = [];
+        hAdd = findobj('Tag','add_ROI_pushbutton');
 
         for i=1:nGrids
-
-            % get ROI indices for corner ROIs
-            idx = NaN(4,1);
-            idx(1) = find(expmt.ROI.grid==i,1,'first');
-            idx(4) = find(expmt.ROI.grid==i,1,'last');
-            nCol = max(unique(expmt.ROI.col(idx(1):idx(4))));
-            idx(2) = find(expmt.ROI.col(idx(1):idx(4))==nCol,1,'first') - (idx(1)-1);
-            idx(3) = find(expmt.ROI.col(idx(1):idx(4))==1,1,'last') - (idx(1)-1);
-
-            % vertices coordinates
-            c = NaN(4,2);
-            c(:,1) = expmt.ROI.corners(sub2ind(size(expmt.ROI.corners),idx,[1;3;1;3]));
-            c(:,2) = expmt.ROI.corners(sub2ind(size(expmt.ROI.corners),idx,[2;2;4;4]));
-
-            % vectors
-            [~,~,vec]=getGridVertices(c([2,4,3,1],1),c([2,4,3,1],2),1,1);
-            vec = squeeze(vec);
-
-            % get pixel lists for each vector    
-            y = (floor(c(1,2)):ceil(c(3,2)))';      % left line
-            xL = round(vec(2,1).*y + vec(2,2));
-            pixList = [pixList; xL y];
-
-            y = (floor(c(2,2)):ceil(c(4,2)))';      % right line
-            xR = round(vec(4,1).*y + vec(4,2));
-            pixList = [pixList; xR y];
-
-            x = (floor(c(1,1)):ceil(c(2,1)))';      % upper line
-            yT = round(vec(1,1).*x + vec(1,2));
-            pixList = [pixList; x yT];
-
-            x = (floor(c(3,1)):ceil(c(4,1)))';      % bottom line
-            yB = round(vec(3,1).*x + vec(3,2));
-            pixList = [pixList; x yB];
+            
+            % vertices
+            xdat = [xdat hAdd.UserData.grid(i).XData];
+            ydat = [ydat hAdd.UserData.grid(i).YData];
 
         end
+        
+        % get pixel indices for each individual ROI
+        xdat = num2cell(xdat,1);
+        ydat = num2cell(ydat,1);
+        expmt.ROI.pixIdx = cellfun(@(x,y,z) ...
+            getGridROIPixels(x,y,z,size(expmt.ROI.im)), xdat,ydat,...
+            num2cell(expmt.ROI.vec,[2 3])','UniformOutput',false)';  
 
     case 'auto'
         
-       pixList = cellfun(@getROIpixels,num2cell(expmt.ROI.corners,2),...
+       expmt.ROI.pixIdx = cellfun(@(x) getBoundsPixels(x,...
+           size(expmt.ROI.im)),num2cell(expmt.ROI.corners,2),...
            'UniformOutput',false);
-       pixList = cat(1,pixList{:});
+
 end
 
 mask = false(size(expmt.ROI.im));
-mask(sub2ind(size(expmt.ROI.im),pixList(:,2), pixList(:,1)))=true;
-mask = imfill(mask,'holes');
+pii = cat(1,expmt.ROI.pixIdx{:});
+mask(pii)=true;
 
 expmt.ROI.mask = mask;
 
 
-function pL = getROIpixels(corners)
+
+function pL = getBoundsPixels(corners,dim)
 
  corners = [floor(corners(1:2)) ceil(corners(3:4))];
  [x,y] = meshgrid(corners(1):corners(3),corners(2):corners(4));
  pL = [x(:) y(:)];
+ pL = sub2ind(dim,pL(:,2), pL(:,1));
+ 
+ 
+ function pi = getGridROIPixels(x,y,vec,dim)
+
+pi = [];
+     
+% get corners
+c = NaN(4,2);
+c(:,1) = x([1,4,2,3]);
+c(:,2) = y([1,4,2,3]);
+
+% get pixel lists for each vector    
+y = (floor(c(1,2)):ceil(c(3,2)))';      % left line
+xL = round(vec(1,2,1).*y + vec(1,2,2));
+pi = [pi; xL y];
+
+y = (floor(c(2,2)):ceil(c(4,2)))';      % right line
+xR = round(vec(1,4,1).*y + vec(1,4,2));
+pi = [pi; xR y];
+
+x = (floor(c(1,1)):ceil(c(2,1)))';      % upper line
+yT = round(vec(1,1,1).*x + vec(1,1,2));
+pi = [pi; x yT];
+
+x = (floor(c(3,1)):ceil(c(4,1)))';      % bottom line
+yB = round(vec(1,3,1).*x + vec(1,3,2));
+pi = [pi; x yB];
+pi = sub2ind(dim,pi(:,2),pi(:,1));
+
+mask = false(dim);
+mask(pi)=true;
+mask = imfill(mask,'holes');
+pi = regionprops(mask,'PixelIdxList');
+pi = pi.PixelIdxList;
 
 
 

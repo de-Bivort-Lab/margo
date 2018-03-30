@@ -30,6 +30,7 @@ trackDat.fields = {'Centroid';'Area'};     % Define fields for regionprops
 trackDat.tStamp = zeros(size(expmt.ROI.centers(:,1),1),1);
 trackDat.t = 0;
 trackDat.ct = 0;
+trackDat.ref = expmt.ref;
 
 %% Initalize camera and axes
 
@@ -77,7 +78,7 @@ while trackDat.ct < pixDistSize;
 
    % Create distribution for num pixels above imageThresh
    % Image statistics used later during acquisition to detect noise
-   diffim = (expmt.ref - expmt.vignette.im) - (trackDat.im - expmt.vignette.im);
+   diffim = (trackDat.ref.im - expmt.vignette.im) - (trackDat.im - expmt.vignette.im);
    pixelDist(mod(trackDat.ct,pixDistSize)+1) = nansum(nansum(diffim > gui_handles.track_thresh_slider.Value));
    
 end
