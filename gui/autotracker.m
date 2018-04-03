@@ -466,8 +466,11 @@ if ~isempty(expmt.camInfo)
         pause(0.09);
         
         % measure frame rate
-        [handles.gui_fig.UserData.target_rate, expmt.camInfo] = estimateFrameRate(expmt.camInfo);
-        expmt.camInfo.frame_rate = handles.gui_fig.UserData.target_rate;
+        [frame_rate, expmt.camInfo] = estimateFrameRate(expmt.camInfo);
+        expmt.camInfo.frame_rate = frame_rate;
+        if handles.gui_fig.UserData.target_rate == 60
+            handles.gui_fig.UserData.target_rate = frame_rate;
+        end
         
         % adjust aspect ratio of plot to match camera
         colormap('gray');
@@ -531,12 +534,9 @@ if ~isempty(expmt.camInfo)
             gui_notify(note,handles.disp_note);
         end
         
-        % query frame rate
-        [handles.gui_fig.UserData.target_rate, expmt.camInfo] = estimateFrameRate(expmt.camInfo);
-        
         gui_notify('cam settings confirmed',handles.disp_note);
         note = ['frame rate measured at ' ...
-            num2str(round(handles.gui_fig.UserData.target_rate*100)/100) 'fps'];
+            num2str(round(frame_rate*100)/100) 'fps'];
         gui_notify(note, handles.disp_note);
         note = ['resolution: ' num2str(res(1)) ' x ' num2str(res(2))];
         gui_notify(note, handles.disp_note);
@@ -1797,8 +1797,13 @@ if isfield(expmt,'ref')
     set(ctls, 'Enable', 'on');
     
     % if experiment parameters are set, Enable experiment run panel
-    if expmt.expID > 1 && ~isempty(handles.save_path.String)
-        set(findall(handles.run_uipanel, '-property', 'Enable'),'Enable','on');
+    if expmt.expID > 1 
+        if ~isempty(handles.save_path.String)
+            set(findall(handles.run_uipanel, '-property', 'Enable'),'Enable','on');
+        end
+        if isfield(expmt,'Name') && any(strcmp(expmt.Name,handles.parameter_subgui))
+            handles.exp_parameter_pushbutton.Enable = 'on';
+        end
     end
     
 else
