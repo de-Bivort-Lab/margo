@@ -194,11 +194,11 @@ if any(strcmp('PixelIdxList',out_fields))
 end
 
 if any(strcmp('MajorAxisLength',out_fields))
-    maLength = NaN(size(trackDat.Centroid,1),1);
+    b = cell(size(trackDat.Centroid,1),1);
     if record
-        maLength(update) =[props(permutation).MajorAxisLength];
+        pxList(update) = {props(permutation).PixelIdxList};
     end
-    trackDat.MajorAxisLength = single(maLength);
+    trackDat.PixelIdxList = (pxList);
 end
 
 if any(strcmp('Time',out_fields))

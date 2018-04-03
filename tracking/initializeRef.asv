@@ -39,7 +39,8 @@ expmt = getVideoInput(expmt,gui_handles);
 % Reference vars
 nROIs = size(expmt.ROI.corners, 1);                     % total number of ROIs
 depth = gui_handles.edit_ref_depth.Value;               % number of rolling sub references
-trackDat.ref.cen = NaN(nROIs,2,depth);                  % placeholder for cen. coords where references are taken
+trackDat.ref.cen = ...
+    repmat(expmt.ROI.centers,1,1,depth);                % placeholder for cen. coords where references are taken
 trackDat.ref.ct = zeros(nROIs, 1);                      % Reference number placeholder
 trackDat.ref.t = 0;                                     % reference time stamp
 
@@ -119,27 +120,22 @@ while trackDat.t < expmt.parameters.duration*3600 &&...
     
     % update blob length distribution
     if any(isnan(blob_lengths)) && any(~isnan(trackDat.MajorAxisLength))
-        n_remain = sum(isnan(blob_lengths));
+        n_remain = sum(isnan(isnan(blob_lengths)));
         n_available = sum(~isnan(trackDat.MajorAxisLength));
         if n_available <= n_remain
             idx = numel(blob_lengths)-n_remain+1;
-            blob_lengths(idx:idx+n_available-1) =...
+            blob_lengths(idx:idx+n_available) =...
                 trackDat.MajorAxisLength(~isnan(trackDat.MajorAxisLength));
         else
             idx = numel(blob_lengths)-n_remain+1;
             blob_lengths(idx:end) =...
                 trackDat.MajorAxisLength(...
-                find(~isnan(trackDat.MajorAxisLength),n_remain));
+                find(~isnan(trackDat.MajorAxisLength),n_available));
         end
-        if ~any(isnan(blob_lengths))          
-           tmp_thresh = (mean(blob_lengths) + std(blob_lengths)*3)*0.6;
-           if tmp_thresh < trackDat.ref.thresh
-                disp(['current thresh: ' num2str(trackDat.ref.thresh)]);
-                disp(['new thresh: ' num2str(tmp_thresh)]);
-                trackDat.ref.thresh = tmp_thresh;
-           end
-        end
-    end
+        if ~any(isnan(blob_lengths))
+            std_dist = std(blob_lengths);
+            tmp_thresh = std_dist*
+            trackDat.ref.thresh = 
 
     % update ref at the reference frequency
     trackDat.px_dev = 0;
@@ -151,7 +147,10 @@ while trackDat.t < expmt.parameters.duration*3600 &&...
         % update the display
         updateDisplay(trackDat, expmt, imh, gui_handles);
                 
-        nRefs = trackDat.ref.ct;
+        nRefs = depth - ...
+            sum((squeeze(trackDat.ref.cen(:,1,:)) - ...
+            repmat(expmt.ROI.centers(:,1),1,...
+            depth))==0,2);
 
         % Update color indicator
         hue = 1-color_scale.*nRefs./depth;

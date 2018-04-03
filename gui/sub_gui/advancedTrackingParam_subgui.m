@@ -110,6 +110,7 @@ trackDat.ct = 0;
 % get handles to main gui
 expmt = handles.track_fig.UserData.expmt;
 gui_handles = handles.track_fig.UserData.gui_handles;
+clean_gui(gui_handles.axes_handle);
 gui_fig = gui_handles.gui_fig;
 display_menu = findobj('Tag','display_menu');
 display_menu.UserData = 1;

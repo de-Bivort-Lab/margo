@@ -25,13 +25,26 @@ function [trackDat,tPrev] = updateTime(trackDat, tPrev, expmt, gui_handles, vara
     tCurrent = toc;
     ifi = tCurrent - tPrev;
     tPrev=tCurrent;
+    gui_update_t = 0;
 
     %wait if necessary to achieve the target frame rate
     if nargin > 2
         while ifi < 1/gui_handles.gui_fig.UserData.target_rate
             tCurrent = toc;
             ifi = ifi + tCurrent - tPrev;
+            gui_update_t = gui_update_t + tCurrent - tPrev;
             tPrev=tCurrent;
+            
+            % ensure timer is minimally update 1/sec
+            if gui_update_t > 1 && strcmp(expmt.source,'camera') && ~no_plot               
+                % report time remaining to reference timeout to GUI
+                tRemain = round(gui_handles.edit_exp_duration.Value * 3600 - (trackDat.t+ifi));
+                updateTimeString(tRemain, gui_handles.edit_time_remaining);
+                gui_update_t = 0;
+            end
+            
+            % update gui
+            drawnow limitrate
         end
     end    
     

@@ -24,6 +24,13 @@ function [trackDat, expmt] = updateRef(trackDat,expmt,gui_handles)
         else
             gui_notify('noise threshold exceeded, references reset (1x)',gui_handles.disp_note);
         end
+        
+        % Reference vars
+        nROIs = size(expmt.ROI.corners, 1);                     % total number of ROIs
+        depth = gui_handles.edit_ref_depth.Value;               % number of rolling sub references
+        trackDat.ref.cen = NaN(nROIs,2,depth);                  % placeholder for cen. coords where references are taken
+        trackDat.ref.ct = zeros(nROIs, 1);                      % Reference number placeholder
+        trackDat.ref.t = 0;                                     % reference time stamp
                 
            
     % add a reference to the reference stack if time since last reference
@@ -31,9 +38,7 @@ function [trackDat, expmt] = updateRef(trackDat,expmt,gui_handles)
     elseif trackDat.ref.update
        
            % reset timer
-           trackDat.ref.t = 0;
-           trackDat.ref.ct = trackDat.ref.ct + 1;
-           trackDat.ref.ct = mod(trackDat.ref.ct-1,expmt.parameters.ref_depth) + 1;          
+           trackDat.ref.t = 0;   
            [expmt,trackDat] = refUpdateIdx(expmt,trackDat);
 
            trackDat.ref.update = false;

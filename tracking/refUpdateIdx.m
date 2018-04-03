@@ -4,9 +4,14 @@ function [expmt,trackDat] = refUpdateIdx(expmt,trackDat)
 % Calculate distance to previous locations where references were taken
 tcen = repmat(trackDat.Centroid,1,1,expmt.parameters.ref_depth);
 d = abs(sqrt(dot((tcen-trackDat.ref.cen),(trackDat.ref.cen-tcen),2)));
-include = sum(d > trackDat.ref.thresh,3)>1;
+include = sum(d > trackDat.ref.thresh,3)>trackDat.ref.ct-1;
 [~,refIdx]=min(d,[],3);
+refIdx(trackDat.ref.ct<expmt.parameters.ref_depth) = ...
+    trackDat.ref.ct(trackDat.ref.ct<expmt.parameters.ref_depth) + 1;
 refIdx(~include)=0;
+trackDat.ref.ct(include) = trackDat.ref.ct(include)+1;
+trackDat.ref.ct(trackDat.ref.ct>expmt.parameters.ref_depth) = ...
+    expmt.parameters.ref_depth;
 
 % group pixel indices by which sub reference they update
 pixLists = arrayfun(@(x) getPixIdxLists(x,refIdx,expmt.ROI.pixIdx),1:size(d,3),...
