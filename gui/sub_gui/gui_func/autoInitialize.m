@@ -111,7 +111,7 @@ params = fieldnames(gui_handles.gui_fig.UserData);
 for i = 1:length(params)
     expmt.parameters.(params{i}) = gui_handles.gui_fig.UserData.(params{i});
 end
-save([expmt.fdir expmt.fLabel '.mat'],'expmt');
+save([expmt.fdir expmt.fLabel '.mat'],'expmt','-v7.3');
 
 
 %% Setup the camera and/or video object

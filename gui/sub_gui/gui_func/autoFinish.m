@@ -31,7 +31,7 @@ function expmt = autoFinish(trackDat, expmt, gui_handles)
             end
 
             % re-save updated expmt data struct to file
-            save([expmt.fdir expmt.fLabel '.mat'],'expmt');
+            save([expmt.fdir expmt.fLabel '.mat'],'expmt','-v7.3');
             gui_notify(['experiment complete'],gui_handles.disp_note);
             
             if exist('camcopy','var')

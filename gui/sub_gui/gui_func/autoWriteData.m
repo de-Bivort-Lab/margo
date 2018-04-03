@@ -10,7 +10,7 @@ if trackDat.ct == 1 && ~expmt.Initialize
     end
     
     expmt.fields = trackDat.fields;
-    save([expmt.fdir expmt.fLabel '.mat'],'expmt');
+    save([expmt.fdir expmt.fLabel '.mat'],'expmt','-v7.3');
     
 end
 

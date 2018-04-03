@@ -1129,6 +1129,7 @@ else
     % re-Enable control set to off during experiment
     handles = toggleSubguis(handles,'on');
     expmt.Finish = true;
+    expmt.Initialize = true;
     
     % remove saved rois, images, and noise statistics from prev experiment
     if isfield(expmt,'ROI') && ~keep_gui_state
@@ -1168,7 +1169,6 @@ else
         % restore gui to prior state
         set(handles.on_objs,'Enable','on');
         set(handles.off_objs,'Enable','off');
-        expmt.Initialize = true;
         
     end
         
