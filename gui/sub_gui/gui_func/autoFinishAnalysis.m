@@ -11,7 +11,7 @@ end
 
 % re-save updated expmt data struct to file
 if meta.save
-    save([expmt.fdir expmt.fLabel '.mat'],'expmt');
+    save([expmt.fdir expmt.fLabel '.mat'],'expmt','-v7.3');
     if isfield(meta,'handles')
         gui_notify('processed data saved to file',meta.handles.disp_note)
     end
