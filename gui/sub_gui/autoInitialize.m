@@ -100,13 +100,14 @@ for i = 1:length(trackDat.fields)
     expmt.(trackDat.fields{i}).fID = ...
         fopen(expmt.(trackDat.fields{i}).path,'w');         % open fileID with write permission
 end
+expmt.fields = trackDat.fields;
 
 % save current parameters to .mat file prior to experiment
 params = fieldnames(gui_handles.gui_fig.UserData);
 for i = 1:length(params)
     expmt.parameters.(params{i}) = gui_handles.gui_fig.UserData.(params{i});
 end
-save([expmt.fdir expmt.fLabel '.mat'],'expmt');
+save([expmt.fdir expmt.fLabel '.mat'],'expmt','-v7.3');
 
 
 %% Setup the camera and/or video object
@@ -120,7 +121,7 @@ else
    gui_handles.record_video_menu.Checked = 'off'; 
 end
 
-
+expmt.Initialize = false;
 
 % start the timer for the experiment
 tic;

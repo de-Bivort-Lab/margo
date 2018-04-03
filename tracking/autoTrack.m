@@ -161,49 +161,49 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
 % structure if listed in expmt.fields. 
 % return NaNs if record = false
 
-    if any(strcmp('Speed',out_fields))
-        if record
-            trackDat.Speed = single(speed);
-        else
-            trackDat.Speed = single(NaN(size(trackDat.Centroid,1),1)); 
-        end
+if any(strcmp('Speed',out_fields))
+    if record
+        trackDat.Speed = single(speed);
+    else
+        trackDat.Speed = single(NaN(size(trackDat.Centroid,1),1)); 
     end
+end
 
-    if any(strcmp('Area',out_fields))
-        area = NaN(size(trackDat.Centroid,1),1);
-        if record
-            area(update) = [props(permutation).Area];
-        end
-        trackDat.Area = single(area .* (expmt.parameters.mm_per_pix^2));
+if any(strcmp('Area',out_fields))
+    area = NaN(size(trackDat.Centroid,1),1);
+    if record
+        area(update) = [props(permutation).Area];
     end
+    trackDat.Area = single(area .* (expmt.parameters.mm_per_pix^2));
+end
 
-    if any(strcmp('Orientation',out_fields))
-        orientation = NaN(size(trackDat.Centroid,1),1);
-        if record
-            orientation(update) = [props(permutation).Orientation];
-        end
-        trackDat.Orientation = single(orientation);
+if any(strcmp('Orientation',out_fields))
+    orientation = NaN(size(trackDat.Centroid,1),1);
+    if record
+        orientation(update) = [props(permutation).Orientation];
     end
-    
-    if any(strcmp('PixelIdxList',out_fields))
-        pxList = cell(size(trackDat.Centroid,1),1);
-        if record
-            pxList(update) = {props(permutation).PixelIdxList};
-        end
-        trackDat.PixelIdxList = (pxList);
-    end
+    trackDat.Orientation = single(orientation);
+end
 
-    if any(strcmp('Time',out_fields))
-        trackDat.Time = single(trackDat.ifi);
+if any(strcmp('PixelIdxList',out_fields))
+    pxList = cell(size(trackDat.Centroid,1),1);
+    if record
+        pxList(update) = {props(permutation).PixelIdxList};
     end
+    trackDat.PixelIdxList = (pxList);
+end
 
-    if any(strcmp('VideoData',out_fields))
-        trackDat.VideoData = trackDat.im;
-    end
+if any(strcmp('Time',out_fields))
+    trackDat.Time = single(trackDat.ifi);
+end
 
-    if any(strcmp('VideoIndex',out_fields))
-        trackDat.VideoIndex = trackDat.ct;
-    end
+if any(strcmp('VideoData',out_fields))
+    trackDat.VideoData = trackDat.im;
+end
+
+if any(strcmp('VideoIndex',out_fields))
+    trackDat.VideoIndex = trackDat.ct;
+end
 
 
 

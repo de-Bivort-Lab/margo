@@ -1167,10 +1167,12 @@ else
         
         % restore gui to prior state
         set(handles.on_objs,'Enable','on');
-        set(handles.off_objs,'Enable','off');
-        expmt.Initialize = true;
+        set(handles.off_objs,'Enable','off');   
         
     end
+    
+    % reset initialization
+    expmt.Initialize = true;
     
     % ensure all open files are closed
     fIDs = fopen('all');
