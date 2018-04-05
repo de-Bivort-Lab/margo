@@ -10,12 +10,12 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
         'ConvexImage';'Eccentricity';'EquivDiameter';'EulerNumber';'Extent';...
         'Extrema';'FilledArea';'FilledImage';'Image';'MajorAxisLength';...
         'MinorAxisLength';'Orientation';'Perimeter';'PixelIdxList';'PixelList';...
-        'Solidity';'SubarrayIdx';'WeightedCentroid'};
+        'Solidity';'SubarrayIdx'}];
     remove = ~ismember(in_fields,prop_fields);
     in_fields(remove) = [];
     
     % add centroid and area to the input regionprops fields if not provided
-    if ~any(strcmp('Centroid',in_fields)) && ~any(strcmp('WeightedCentroid',in_fields))
+    if ~any(strcmp({'WeightedCentroid';'Centroid'},in_fields))
         in_fields = [in_fields; {'Centroid'}];
     end
     if ~any(strcmp('Area',in_fields))
@@ -87,12 +87,7 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
             gui_handles.gui_fig.UserData.area_max;
         props(~(above_min & below_max)) = [];
 
-        if isfield(props,'Centroid')
-            raw_cen = reshape([props.Centroid],2,length([props.Centroid])/2)';
-        else
-            raw_cen = reshape([props.WeightedCentroid],2,...
-                length([props.WeightedCentroid])/2)';
-        end
+        raw_cen = reshape([props.Centroid],2,length([props.Centroid])/2)';
 
         % Match centroids to last known centroid positions
         [permutation,update,raw_cen] = ...

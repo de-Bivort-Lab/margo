@@ -98,7 +98,7 @@ while stop~=1
             end
             if isfield(expmt.vignette,'im')
                 trackDat.im = trackDat.im - expmt.vignette.im;
-            elseif ~exist(gauss,'var')
+            elseif ~exist('gauss','var')
                 gauss = buildGaussianKernel(size(trackDat.im,2),...
                     size(trackDat.im,1),sigma,kernelWeight);
                 trackDat.im=(uint8(double(trackDat.im).*gauss));

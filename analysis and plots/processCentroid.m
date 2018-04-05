@@ -10,7 +10,7 @@ nFrames = expmt.nFrames;
 
 % initialize raw data files if necessary
 if ~isempty(opt.raw)
-    rawdir = expmt.rawdir;
+    rawdir = [expmt.fdir 'raw_data/'];
     for i=1:length(opt.raw)
         % get new path
         path = [rawdir expmt.fLabel '_' opt.raw{i} '.bin'];

@@ -17,17 +17,9 @@ gui_handles.grid_ROI_uipanel.Position(1) = gui_handles.exp_uipanel.Position(1);
 gui_handles.grid_ROI_uipanel.Position(2) = gui_handles.exp_uipanel.Position(2);
 gui_handles.grid_ROI_uipanel.Visible = 'on';
 hAdd = gui_handles.add_ROI_pushbutton;
-
-%% Define parameters - adjust parameters here to fix tracking and ROI segmentation errors
-
 gui_fig = gui_handles.gui_fig;
 
-% ROI detection parameters 
-sigma=0.47;                                 % Sigma expressed as a fraction of the image height
-kernelWeight=0.34;                          % Scalar weighting of kernel when applied to the image
-
-%% Setup the camera and/or video object
-
+% Setup the camera and/or video object
 expmt = getVideoInput(expmt,gui_handles);
 
 %% Grab image for ROI detection and segment out ROIs
@@ -59,23 +51,39 @@ gui_handles.accept_ROI_thresh_pushbutton.Value = 0;
 %% initialize grids
 
 delete(findobj('Type','Patch'));
+nGrids = gui_handles.add_ROI_pushbutton.UserData.nGrids;
+if nGrids > 0 && ~isempty(hAdd.UserData.grid(1).polypos)
+    % re-initialize interactible polygons
+    for i=1:nGrids
+        xdat = hAdd.UserData.grid(i).XData;
+        ydat = hAdd.UserData.grid(i).YData;
+        hPatch(i) = patch('Faces',1:size(xdat,2),...
+                'XData',xdat,'YData',ydat,'FaceColor','none','EdgeColor','r',...
+                'Parent',gui_handles.axes_handle);
+        hAdd.UserData.grid(i).hp  = impoly(gui_handles.axes_handle, ...
+            hAdd.UserData.grid(i).polypos);
+    end
+else
+    % prompt user to draw new rectangle
+    [gui_handles,hPatch]=drawGrid(1,gui_handles);
+end
+%{
 for i=1:length(gui_handles.add_ROI_pushbutton.UserData.grid)-1
     gui_handles = update_grid_UI(gui_handles,'subtract');
 end
+%}
 
-% prompt user to draw new rectangle
-[gui_handles,hPatch]=drawGrid(1,gui_handles);
-nRow = hAdd.UserData.grid(1).nRows;
-nCol = hAdd.UserData.grid(1).nCols;
-old_dim = {[nRow nCol]};
-old_coords = {getPosition(gui_handles.add_ROI_pushbutton.UserData.grid(1).hp)};
-nGrids = gui_handles.add_ROI_pushbutton.UserData.nGrids;
-
+old_dim = cell(nGrids,1);
+old_coords = cell(nGrids,1);
+for i=1:nGrids
+    nRow = hAdd.UserData.grid(1).nRows;
+    nCol = hAdd.UserData.grid(1).nCols;
+    old_dim(i) = {[nRow nCol]};
+    old_coords(i) = {getPosition(gui_handles.add_ROI_pushbutton.UserData.grid(i).hp)};
+end
 
 % initialize timer
-tic
 trackDat.t=0;
-trackDat.tStamp = zeros(size(hPatch.XData,2),1);
 
 %% initiate positioning loop
 
@@ -169,6 +177,7 @@ for i=1:nGrids
     hAdd.UserData.grid(i).XData = hPatch(i).XData;
     hAdd.UserData.grid(i).YData = hPatch(i).YData;
     pos = getPosition(hAdd.UserData.grid(i).hp);
+    hAdd.UserData.grid(i).polypos = pos;
     [~,~,gv] = getGridVertices(pos(:,1),pos(:,2),nRow,nCol);
     gridVec = [gridVec;gv];
 

@@ -15,28 +15,34 @@ clearvars -except expmt options
 
 %% Generate trace plots
 
-expmt.Speed.avg = nanmean(expmt.Speed.map.Data.raw,2);
-expmt.handedness.active = expmt.Speed.avg > 0.1;
+if options.handedness
+    if isfield(expmt,'Speed') && isfield(expmt.Speed,'map')
+        expmt.Speed.avg = nanmean(expmt.Speed.map.Data.raw,2);
+        expmt.handedness.active = expmt.Speed.avg > 0.1;
+    else
+        expmt.handedness.active = true(expmt.nTracks,1);
+    end
 
-% generate handedness histogram
-f=figure();
-m = expmt.handedness.mu(expmt.handedness.active);
-bins = linspace(-1,1,11);
-c = histc(m,bins);
-c = c./sum(c);
-b = bins + median(diff(bins))/2;
-plot(b,c,'m','Linewidth',2);
-set(gca,'Xtick',linspace(-1,1,11));
-title('handedness histogram');
-xlabel('\mu arena circling score');
-legend(['\mu score (mean=' num2str(nanmean(expmt.handedness.mu),2)...
-    ', n=' num2str(sum(expmt.handedness.active)) ')']);
-axis([-1 1 0 max(c)*1.2]);
+    % generate handedness histogram
+    f=figure();
+    m = expmt.handedness.mu(expmt.handedness.active);
+    bins = linspace(-1,1,11);
+    c = histc(m,bins);
+    c = c./sum(c);
+    b = bins + median(diff(bins))/2;
+    plot(b,c,'m','Linewidth',2);
+    set(gca,'Xtick',linspace(-1,1,11));
+    title('handedness histogram');
+    xlabel('\mu arena circling score');
+    legend(['\mu score (mean=' num2str(nanmean(expmt.handedness.mu),2)...
+        ', n=' num2str(sum(expmt.handedness.active)) ')']);
+    axis([-1 1 0 max(c)*1.2]);
 
-fname = [expmt.figdir expmt.date '_handedness'];
-if ~isempty(expmt.figdir) && options.save
-    hgsave(f,fname);
-    close(f);
+    fname = [expmt.figdir expmt.date '_handedness'];
+    if ~isempty(expmt.figdir) && options.save
+        hgsave(f,fname);
+        close(f);
+    end
 end
 
 

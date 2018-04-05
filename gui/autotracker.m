@@ -277,9 +277,11 @@ handles.gui_fig.UserData.vignette_sigma = 0.47;
 handles.gui_fig.UserData.vignette_weight = 0.35;
 handles.gui_fig.UserData.area_min = 4;
 handles.gui_fig.UserData.area_max = 300;
+handles.gui_fig.UserData.ROI_tol = 2.5;
+handles.gui_fig.UserData.dilate_sz = 0;
 handles.gui_fig.UserData.sort_mode = 'distance';
 handles.gui_fig.UserData.ROI_mode = 'auto';
-handles.gui_fig.UserData.ROI_tol = 2.5;
+
 
 % save values to expmt master struct
 expmt.parameters.speed_thresh = handles.gui_fig.UserData.speed_thresh;
@@ -450,6 +452,7 @@ if ~isempty(expmt.camInfo)
         
         % disable all gui features during camera initialization
         set(findall(handles.gui_fig, '-property', 'Enable'), 'Enable', 'off');
+        handles.disp_note.Enable='on';
         
         handles.Cam_preview_togglebutton.Enable = 'off';
         
@@ -460,6 +463,7 @@ if ~isempty(expmt.camInfo)
         expmt.camInfo = initializeCamera(expmt.camInfo);
         start(expmt.camInfo.vid);
         gui_notify('camera started, measuring frame rate...',handles.disp_note);
+        drawnow
         
         % Store expmteriment data struct
         setappdata(handles.gui_fig,'expmt',expmt);
@@ -1027,7 +1031,8 @@ else
             case 'Arena Circling'
                 expmt = run_arenacircling(expmt,handles);
                 if isfield(expmt,'date')
-                    analyze_arenacircling(expmt,'Handles',handles,'Raw',{'Speed'});
+                    args = {'Handles',handles,'Raw',{'Speed'},'Handedness',true};
+                    analyze_arenacircling(expmt,args{:});
                 else
                     keep_gui_state = true;
                 end
@@ -1036,7 +1041,8 @@ else
             case 'Y-maze'
                 expmt = run_ymaze(expmt,handles);
                 if isfield(expmt,'date')
-                    analyze_ymaze(expmt,'Handles',handles,'Raw',{'Speed'});
+                    args = {'Handles',handles,'Raw',{'Speed'},'Handedness',true};
+                    analyze_ymaze(expmt,args{:});
                 else
                     keep_gui_state = true;
                 end
@@ -1054,7 +1060,8 @@ else
             case 'Circadian'
                 expmt = run_circadian(expmt,handles);
                 if isfield(expmt,'date')
-                    analyze_circadian(expmt,'Handles',handles,'Raw',{'Speed'},'Bootstrap',false);
+                    args = {'Handles',handles,'Raw',{'Speed'},'Bootstrap',false,'Slide',false};
+                    analyze_circadian(expmt,args{:});
                 else
                     keep_gui_state = true;
                 end
@@ -1873,6 +1880,7 @@ if strcmp(expmt.source,'camera') && isfield(expmt.camInfo,'vid')
 
     % disable all gui controls
     set(findall(handles.gui_fig, '-property', 'Enable'), 'Enable', 'off');
+    handles.disp_note.Enable='on';
     gui_notify('initializing ROI masks, may take a few moments',handles.disp_note);
     drawnow
     
@@ -3742,7 +3750,8 @@ function add_ROI_pushbutton_CreateFcn(hObject, eventdata, handles)
 
 hObject.UserData.nGrids = 1;
 hObject.UserData.grid = struct('shape','Circular','nRows',8,'nCols',12,...
-    'hs',[],'hr',[],'hc',[],'hp',[],'centers',[],'bounds',[],'XData',[],'YData',[]);
+    'hs',[],'hr',[],'hc',[],'hp',[],'centers',[],'bounds',[],...
+    'XData',[],'YData',[],'polypos',[]);
 hObject.Value = false;
 guidata(hObject,handles);
 

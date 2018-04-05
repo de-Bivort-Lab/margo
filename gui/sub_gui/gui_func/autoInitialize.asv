@@ -119,11 +119,11 @@ for i = 1:length(trackDat.fields)
     expmt.(trackDat.fields{i}).path = ...                   % initialize path for new file    
         [expmt.rawdir expmt.fLabel '_' trackDat.fields{i} '.bin'];
     if numel(expmt.(trackDat.fields{i}).path) > 260
-        error(['RAW DATA file path exceeds maximum allowed length. '...
-            'Shorten the file path and initialize the experiment again. '...
-            'Note: label information such as strain and treatment are automatically'...
-            'incorporated into the file path and may need to be abbreviated. ']);
-    end        
+        expmt.(trackDat.fields{i}).path = [expmt.rawdir...
+            expmt.date '_' trackDat.fields{i} '.bin'];
+    end
+    if numel(expmt.(trackDat.fields{i}).path) > 260
+        
     expmt.(trackDat.fields{i}).fID = ...
         fopen(expmt.(trackDat.fields{i}).path,'w');         % open fileID with write permission
 end
