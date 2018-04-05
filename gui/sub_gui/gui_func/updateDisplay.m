@@ -30,7 +30,7 @@ switch active_disp
     % threshold image
     case 3 
         if isfield(trackDat,'thresh_im')
-            im_handle.CData = uint8(trackDat.thresh_im.*255);
+            im_handle.CData = trackDat.thresh_im;
             if strcmp(im_handle.CDataMapping,'direct')
                 im_handle.CDataMapping = 'scaled';
             end

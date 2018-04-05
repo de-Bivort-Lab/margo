@@ -1873,6 +1873,8 @@ if strcmp(expmt.source,'camera') && isfield(expmt.camInfo,'vid')
 
     % disable all gui controls
     set(findall(handles.gui_fig, '-property', 'Enable'), 'Enable', 'off');
+    gui_notify('initializing ROI masks, may take a few moments',handles.disp_note);
+    drawnow
     
     % get an pixel mask for all areas of the image with an ROI
     if isfield(expmt.ROI,'centers')
