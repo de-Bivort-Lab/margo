@@ -22,7 +22,7 @@ function varargout = autotracker(varargin)
 
 % Edit the above text to modify the response to help autotracker
 
-% Last Modified by GUIDE v2.5 26-Feb-2018 20:23:21
+% Last Modified by GUIDE v2.5 04-Apr-2018 12:57:05
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -1054,7 +1054,7 @@ else
             case 'Circadian'
                 expmt = run_circadian(expmt,handles);
                 if isfield(expmt,'date')
-                    analyze_circadian(expmt,'Handles',handles,'Raw',{'Speed'});
+                    analyze_circadian(expmt,'Handles',handles,'Raw',{'Speed'},'Bootstrap',false);
                 else
                     keep_gui_state = true;
                 end
@@ -1868,11 +1868,20 @@ if strcmp(expmt.source,'camera') && isfield(expmt.camInfo,'vid')
             
     end
     
+    % query the Enable states of objects in the gui
+    on_objs = findobj('Enable','on');
+
+    % disable all gui controls
+    set(findall(handles.gui_fig, '-property', 'Enable'), 'Enable', 'off');
+    
     % get an pixel mask for all areas of the image with an ROI
     if isfield(expmt.ROI,'centers')
         expmt.ROI.n = size(expmt.ROI.centers,1);
         expmt = setROImask(expmt);
     end
+    
+    % re-enable controls
+    set(on_objs, 'Enable', 'on');
     
 elseif strcmp(expmt.source,'camera')
     errordlg('Confirm camera and camera settings before running ROI detection');
@@ -3131,7 +3140,6 @@ switch hObject.Checked
             handles.view_menu.UserData.hBounds = patch('Faces',1:size(xdat,2),...
                 'XData',xdat,'YData',ydat,'FaceColor','none','EdgeColor','r',...
                 'Parent',handles.axes_handle);
-            uistack(handles.view_menu.UserData.hBounds,'down');
         else
             gui_notify('ROIs are not set and cannot be displayed',handles.disp_note);
         end
@@ -3219,6 +3227,41 @@ switch hObject.Checked
         
         if isfield(handles.view_menu.UserData,'hOri')
             set(handles.view_menu.UserData.hOri,'Visible','off');
+        end
+end
+
+% --------------------------------------------------------------------
+function view_ref_cen_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to view_ref_cen_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+expmt = getappdata(handles.gui_fig,'expmt');
+
+switch hObject.Checked
+    
+    case 'off'
+        hObject.Checked = 'on';
+        if isfield(handles.view_menu.UserData,'hRefCen') &&...
+                ishghandle(handles.view_menu.UserData.hRefCen)
+            delete(handles.view_menu.UserData.hRefCen);
+        end
+        ah = handles.axes_handle;
+        if isfield(expmt,'ref') && isfield(expmt.ref,'cen')
+            x = squeeze(expmt.ref.cen(:,1,:));
+            y = squeeze(expmt.ref.cen(:,2,:));
+            x(isnan(x))=[];
+            y(isnan(y))=[];
+            hold on
+            handles.view_menu.UserData.hRefCen = plot(ah,x,y,'mo','Linewidth',1.5);
+            hold off
+        end
+        
+    case 'on'
+        hObject.Checked = 'off';
+        if isfield(handles.view_menu.UserData,'hRefCen') &&...
+                ishghandle(handles.view_menu.UserData.hRefCen)
+            delete(handles.view_menu.UserData.hRefCen);
         end
 end
 
@@ -3754,3 +3797,6 @@ else
 end
 
 guidata(hObject,handles);
+
+
+

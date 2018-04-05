@@ -75,7 +75,6 @@ nGrids = gui_handles.add_ROI_pushbutton.UserData.nGrids;
 % initialize timer
 tic
 trackDat.t=0;
-tPrev = toc;
 trackDat.tStamp = zeros(size(hPatch.XData,2),1);
 
 %% initiate positioning loop
@@ -83,7 +82,7 @@ trackDat.tStamp = zeros(size(hPatch.XData,2),1);
 
 while ~gui_handles.accept_ROI_thresh_pushbutton.Value
     
-
+    tic
     % query next frame and optionally correct lens distortion
     [trackDat,expmt] = autoFrame(trackDat,expmt,gui_handles);
     
@@ -136,11 +135,10 @@ while ~gui_handles.accept_ROI_thresh_pushbutton.Value
     
     % update the display
     updateDisplay(trackDat, expmt, imh, gui_handles);
-    drawnow limitrate
 
     % Report frames per sec to GUI
-    set(gui_handles.edit_frame_rate,'String',num2str(round(1/(toc-tPrev))));
-    tPrev = toc;
+    set(gui_handles.edit_frame_rate,'String',num2str(round(1/toc)));
+    drawnow limitrate
     
 end
 

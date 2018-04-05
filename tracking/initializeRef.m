@@ -103,7 +103,7 @@ tic
 tPrev=toc;
 
 old_ref_freq = gui_handles.edit_ref_freq.Value;
-gui_handles.edit_ref_freq.Value = 1/60;
+gui_handles.edit_ref_freq.Value = 1/120;
 
 while trackDat.t < expmt.parameters.duration*3600 &&...
         ~gui_handles.accept_track_thresh_pushbutton.Value
@@ -134,10 +134,9 @@ while trackDat.t < expmt.parameters.duration*3600 &&...
         if ~any(isnan(blob_lengths))          
            tmp_thresh = (mean(blob_lengths) + std(blob_lengths)*3)*0.6;
            if tmp_thresh < trackDat.ref.thresh
-                disp(['current thresh: ' num2str(trackDat.ref.thresh)]);
-                disp(['new thresh: ' num2str(tmp_thresh)]);
                 trackDat.ref.thresh = tmp_thresh;
            end
+           trackDat.fields(strcmp(trackDat.fields,'MajorAxisLength'))=[];
         end
     end
 

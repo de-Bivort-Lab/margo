@@ -189,7 +189,7 @@ if options.slide
                 filter = tmp_tStamps > tTick(i-1) & tmp_tStamps <= tTick(i);
         end
         
-        [~,filter] = matchDim(expmt.Circadian.idx(idx,:),filter);
+        filter = matchDim(expmt.Circadian.idx(idx,:),filter);
         disp(sum(filter))
         expmt.Circadian.idx(idx,:) = expmt.Circadian.idx(idx,:) | filter;
         

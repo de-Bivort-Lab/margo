@@ -1,13 +1,16 @@
 function [ROI_bounds,ROI_coords,ROI_widths,ROI_heights,binaryimage] = detect_ROIs(ROI_image,ROI_thresh)
         
         binaryimage = ROI_image > ROI_thresh;                       % Show only the red channel
-        improps = regionprops(binaryimage,'Area','BoundingBox');    % Extract the Area and Bounding Box for binary image
-        improps=improps([improps.Area]>100);                        % Establish lower bound on the area of blobs
+        improps = regionprops(binaryimage,'BoundingBox');    % Extract the Area and Bounding Box for binary image
 
-        blob_count = length(improps);                               % Count blobs in image
-        BoundingBoxes = [improps.BoundingBox];
-        BoundingBoxes = reshape(BoundingBoxes,[4 blob_count])';     % Reshape bounding boxes to 4 x blob_count array
-        ROI_bounds=BoundingBoxes;
+        
+        ROI_bounds = cat(1,improps.BoundingBox);
+        if ~isempty(ROI_bounds)
+            area = prod(ROI_bounds(:,[3 4]),2);                     % Establish lower bound on the area of blobs
+            ROI_bounds(area<100,:)=[];
+        else
+            ROI_bounds = NaN(0,4);
+        end
 
         % Find ROIs that are too large or too small
         ROI_widths = ROI_bounds(:,3);

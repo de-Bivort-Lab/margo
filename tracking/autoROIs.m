@@ -59,20 +59,24 @@ clearvars hRect hText
 
 hRect(1) = rectangle('Position',[0 0 0 0],'EdgeColor','r');
 hText(1) = text(0,0,'1','Color','b');
+delete(findobj('Type','patch'));
+hPatch = patch('Faces',[],'XData',[],'YData',[],...
+    'FaceColor','none','EdgeColor','r','Parent',gui_handles.axes_handle);
+update_vignetting = false;
+nROIs = 0;
 tic
 
 while stop~=1
     
-    
+    tic
     stop=get(gui_handles.accept_ROI_thresh_pushbutton,'value');
-    pause(0.1);
 
     % query next frame and optionally correct lens distortion
     [trackDat,expmt] = autoFrame(trackDat,expmt,gui_handles);
 
     % Update threshold value
     ROI_thresh=get(gui_handles.ROI_thresh_slider,'value');
-    tic
+
     switch expmt.vignette.mode
         case 'manual'
             % subtract the vignette correction off of the raw image
@@ -88,16 +92,26 @@ while stop~=1
         case 'auto'
             % approximate light source as guassian to smooth vignetting
             % for more even illumination and better ROI detection
-
-            gauss = buildGaussianKernel(size(trackDat.im,2),...
-                size(trackDat.im,1),sigma,kernelWeight);
-            trackDat.im=(uint8(double(trackDat.im).*gauss));
+             
+            if update_vignetting 
+                expmt.vignette.im = filterVignetting(trackDat.im,ROI_coords(end,:));
+            end
+            if isfield(expmt.vignette,'im')
+                trackDat.im = trackDat.im - expmt.vignette.im;
+            elseif ~exist(gauss,'var')
+                gauss = buildGaussianKernel(size(trackDat.im,2),...
+                    size(trackDat.im,1),sigma,kernelWeight);
+                trackDat.im=(uint8(double(trackDat.im).*gauss));
+            end
+            
             
     end
-
+    
     % Extract ROIs from thresholded image
     [ROI_bounds,ROI_coords,~,~,binaryimage] = detect_ROIs(trackDat.im,ROI_thresh);
+    update_vignetting = nROIs ~= size(ROI_coords,1) & size(ROI_coords,1) > 0;
     nROIs = size(ROI_coords,1);
+
     % Calculate coords of ROI centers
     [xCenters,yCenters]=ROIcenters(binaryimage,ROI_coords);
     centers=[xCenters,yCenters];
@@ -105,61 +119,21 @@ while stop~=1
     % Define a permutation vector to sort ROIs from top-right to bottom left
     ROI_tol = gui_fig.UserData.ROI_tol;             % n stdevs from
     [centers,ROI_coords,ROI_bounds] = sortROIs(ROI_tol,centers,ROI_coords,ROI_bounds);
-  
+
     % detect assymetry about vertical axis
     mazeOri = getMazeOrientation(binaryimage,ROI_coords);
     
     % Display ROIs
-    imh.CData = binaryimage;
-    hold on
-
-    if length(hRect) > nROIs
-        nDraw = length(hRect);
-    else
-        nDraw = nROIs;
-    end
-
-    idel = [];
+    imh.CData = binaryimage;    
+    hPatch = displayROIs(hPatch,ROI_coords);
     
-    roi = num2cell(ROI_bounds,2);
-    cen = num2cell(centers,2);
-    
-    for i = 1:nDraw
-        
-        if i <= nROIs && i <= length(hRect)
-            hRect(i).Position = ROI_bounds(i,:);
-            hText(i).Position = [centers(i,1)-10 centers(i,2) 0];
-            if mazeOri(i)
-                hText(i).Color = [1 0 1];
-            else
-                hText(i).Color = [0 0 1];
-            end
-            
-        elseif i > nROIs
-            delete(hRect(i));
-            delete(hText(i));
-            idel = [idel i];
-            
-        elseif i > length(hRect)
-            hRect(i) = rectangle('Position',ROI_bounds(i,:),'EdgeColor','r');
-            if mazeOri(i)
-                hText(i) = text(centers(i,1)-5,centers(i,2),int2str(i),'Color','m');
-            else
-                hText(i) = text(centers(i,1)-5,centers(i,2),int2str(i),'Color','b');
-            end
-        end
-    end
-
-    hRect(idel) = [];
-    hText(idel) = [];
-    hold off
-    %}
-    drawnow limitrate
-
-
     % Report frames per sec to GUI
     set(gui_handles.edit_frame_rate,'String',num2str(round(1/toc)));
+    drawnow limitrate
+
 end
+
+delete(hPatch);
 
 gui_notify([num2str(size(centers,1)) ' ROIs detected'],gui_handles.disp_note);
 
