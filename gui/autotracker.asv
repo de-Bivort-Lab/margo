@@ -494,6 +494,9 @@ if ~isempty(expmt.camInfo)
             case 'int32'
                 expmt.camInfo.bitDepth = 32;
         end
+        if expmt.camInfo.bitDepth ~= 8
+            errordlg('')
+        end
         
         clean_gui(handles.axes_handle);
         handles.hImage = imagesc(im);
@@ -562,12 +565,6 @@ if ~isempty(expmt.camInfo)
         gui_notify(note, handles.disp_note);
         
         handles.Cam_preview_togglebutton.Enable = 'on';
-        
-        if expmt.camInfo.bitDepth ~= 8
-            errordlg([num2str(expmt.camInfo.bitDepth) ...
-                '-bit image mode detected. Only 8-bit image modes are supported'],...
-                'Unsupported Camera Mode');
-        end
         
     else
         errordlg('Settings not confirmed, no camera detected');
