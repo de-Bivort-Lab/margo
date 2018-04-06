@@ -1029,7 +1029,7 @@ else
             case 'Slow Phototaxis'
                 expmt = run_slowphototaxis(expmt,handles);
                 if isfield(expmt,'date')
-                    analyze_slowphototaxis(expmt,'Handles',handles,'Raw',{'Speed'});
+                    expmt = analyze_slowphototaxis(expmt,'Handles',handles,'Raw',{'Speed'});
                 else
                     keep_gui_state = true;
                 end
@@ -1053,7 +1053,7 @@ else
                 expmt = run_arenacircling(expmt,handles);
                 if isfield(expmt,'date')
                     args = {'Handles',handles,'Raw',{'Speed'},'Handedness',true};
-                    analyze_arenacircling(expmt,args{:});
+                    expmt = analyze_arenacircling(expmt,args{:});
                 else
                     keep_gui_state = true;
                 end
@@ -1063,7 +1063,7 @@ else
                 expmt = run_ymaze(expmt,handles);
                 if isfield(expmt,'date')
                     args = {'Handles',handles,'Raw',{'Speed'},'Handedness',true};
-                    analyze_ymaze(expmt,args{:});
+                    expmt = analyze_ymaze(expmt,args{:});
                 else
                     keep_gui_state = true;
                 end
@@ -1072,7 +1072,7 @@ else
             case 'Basic Tracking'
                 expmt = run_basictracking(expmt,handles);     % Run expmt
                 if isfield(expmt,'date')
-                    analyze_basictracking(expmt,'Handles',handles);
+                    expmt = analyze_basictracking(expmt,'Handles',handles);
                 else
                     keep_gui_state = true;
                 end
@@ -1082,7 +1082,7 @@ else
                 expmt = run_circadian(expmt,handles);
                 if isfield(expmt,'date')
                     args = {'Handles',handles,'Raw',{'Speed'},'Bootstrap',false,'Slide',false};
-                    analyze_circadian(expmt,args{:});
+                    expmt = analyze_circadian(expmt,args{:});
                 else
                     keep_gui_state = true;
                 end
@@ -1091,17 +1091,17 @@ else
                 
                 [circle,opto,photo] = run_arenablocks(expmt,handles);
                 if isfield(circle,'date')
-                    analyze_arenacircling(circle,handles,'Raw',{'Speed'});
+                    expmt = analyze_arenacircling(circle,handles,'Raw',{'Speed'});
                     clearvars circle
                 end
                 
                 if isfield(opto,'date')
-                    analyze_optomotor(opto,handles,'Raw',{'Speed'});
+                    expmt = analyze_optomotor(opto,handles,'Raw',{'Speed'});
                     clearvars opto
                 end
                 
                 if isfield(photo,'date')
-                    analyze_slowphototaxis(photo,handles,'Raw',{'Speed'});
+                    expmt = analyze_slowphototaxis(photo,handles,'Raw',{'Speed'});
                     clearvars photo
                 end
             
@@ -1109,10 +1109,22 @@ else
                 
                 expmt = run_tempphototaxis(expmt,handles);
                 if isfield(expmt,'date')
-                    analyze_tempphototaxis(expmt,'Handles',handles,'Raw',{'Speed'});
+                    expmt = analyze_tempphototaxis(expmt,'Handles',handles,'Raw',{'Speed'});
                 else
                     keep_gui_state = true;
                 end
+        end
+        
+        if isfield(expmt,'Centroid') && isfield(expmt.Centroid,'map')
+            ttl = 'Tracking Complete';
+            msg = {'ROIs, references, and noise statistics reset';...
+                'Would you like to plot raw tracking data?'};
+            buttons = {'OK';'no thanks'};
+            plot_traces = warningbox_subgui('title',ttl,'string',msg,...
+                'buttons',buttons,'icon',false);
+            if strcmp(plot_traces,'OK')
+                traceplot_subgui(expmt);
+            end
         end
     
     catch ME
@@ -1158,6 +1170,16 @@ else
     % re-Enable control set to off during experiment
     handles = toggleSubguis(handles,'on');
     
+    if isfield(expmt,'Speed')
+        expmt = rmfield(expmt,'Speed');
+    end
+    if isfield(expmt,'Circadian')
+        expmt = rmfield(expmt,'Circadian');
+    end
+    if isfield(expmt,'handedness')
+        expmt = rmfield(expmt,'handedness');
+    end
+    
     % remove saved rois, images, and noise statistics from prev experiment
     if isfield(expmt,'ROI') && ~keep_gui_state
         
@@ -1165,8 +1187,6 @@ else
         expmt = rmfield(expmt,'ref');
         expmt = rmfield(expmt,'noise');
         expmt = rmfield(expmt,'labels');
-        msgbox(['Experiment complete: saved ROIs, references, ' ...
-            'noise statistics, and labels have been reset.']);
         note = 'ROIs, references, and noise statistics reset';
         gui_notify(note,handles.disp_note);
         
@@ -1193,9 +1213,10 @@ else
         
     elseif keep_gui_state
         
+        
         % restore gui to prior state
-        set(handles.on_objs,'Enable','on');
-        set(handles.off_objs,'Enable','off');   
+        set(handles.on_objs(isvalid(handles.on_objs)),'Enable','on');
+        set(handles.off_objs(isvalid(handles.off_objs)),'Enable','off');   
         
     end
     

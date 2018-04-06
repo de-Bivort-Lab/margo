@@ -61,6 +61,7 @@ guidata(hObject, handles);
 % Hint: when choosing keywords, be sure they are not easily confused 
 % with existing figure properties.  See the output of set(figure) for
 % a list of figure properties.
+icon=true;
 if(nargin > 3)
     for index = 1:2:(nargin-3),
         if nargin-3==index, break, end
@@ -73,6 +74,8 @@ if(nargin > 3)
           names = varargin{index+1};
           handles.pushbutton1.String = names{1};
           handles.cancel_pushbutton.String = names{2};
+         case 'icon'
+          icon = varargin{index+1};     
         end
     end
 end
@@ -109,15 +112,20 @@ gui_dir = which('autotrackergui');
 gui_dir = gui_dir(1:strfind(gui_dir,'\gui\'));
 warnim = imread([gui_dir 'gui\icons\warn.jpg']);
 
-Img=image(warnim, 'Parent', handles.axes1);
+if icon
+    Img=image(warnim, 'Parent', handles.axes1);
+    set(handles.axes1, ...
+        'Visible', 'off', ...
+        'YDir'   , 'reverse'       , ...
+        'XLim'   , get(Img,'XData'), ...
+        'YLim'   , get(Img,'YData')  ...
+        );
+else
+    delete(handles.axes1);
+end
 %set(handles.figure1, 'Colormap', IconCMap);
 
-set(handles.axes1, ...
-    'Visible', 'off', ...
-    'YDir'   , 'reverse'       , ...
-    'XLim'   , get(Img,'XData'), ...
-    'YLim'   , get(Img,'YData')  ...
-    );
+
 
 % Make the GUI modal
 set(handles.figure1,'WindowStyle','modal')

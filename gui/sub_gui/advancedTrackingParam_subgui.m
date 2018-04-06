@@ -464,7 +464,7 @@ function track_fig_CloseRequestFcn(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-delete(handles.track_fig);
+delete(hObject);
 
 
 
