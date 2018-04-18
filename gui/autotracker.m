@@ -1148,7 +1148,7 @@ else
             plot_traces = warningbox_subgui('title',ttl,'string',msg,...
                 'buttons',buttons,'icon',false);
             if strcmp(plot_traces,'OK')
-                traceplot_subgui(expmt);
+                plotTraces(expmt);
             end
         end
     

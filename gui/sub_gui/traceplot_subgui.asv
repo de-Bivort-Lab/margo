@@ -22,7 +22,7 @@ function varargout = traceplot_subgui(varargin)
 
 % Edit the above text to modify the response to help traceplot_subgui
 
-% Last Modified by GUIDE v2.5 18-Apr-2018 16:04:42
+% Last Modified by GUIDE v2.5 18-Apr-2018 15:40:05
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -165,8 +165,6 @@ expmt = handles.trace_fig.UserData.expmt;
 ii = handles.trace_fig.UserData.idx;
 x = medfilt1(expmt.Centroid.map.Data.raw(idx,1,ii),7);
 y = medfilt1(expmt.Centroid.map.Data.raw(idx,2,ii),7);
-handles.(['roi_num_slider' num2str(plot_num)]).Value = idx;
-handles.(['edit_ROI_num' num2str(plot_num)]).String = num2str(idx);
 
 % update position plot
 if ~isempty(lh)
@@ -213,16 +211,6 @@ else
     ylabel(ah,'Spd','FontSize',12);
 end
 
-switch handles.roi_num_slider1.Value
-    case 1
-        handles.prev_pushbutton.Enable = 'off';
-    case handles.roi_num_slider1.Max - 5
-        handles.next_pushbutton.Enable = 'off';
-    otherwise
-        handles.prev_pushbutton.Enable = 'on';
-        handles.next_pushbutton.Enable = 'on';
-end
-
 
 % --- Executes on button press in prev_pushbutton.
 function prev_pushbutton_Callback(hObject, eventdata, handles)
@@ -235,7 +223,7 @@ start = handles.roi_num_slider1.Value;
 min_idx = handles.roi_num_slider1.Min;
 start = start-6;
 if start < min_idx
-    start = start + (min_idx - start);
+    start = start + (start + 5 - max_idx);
 end
 
 for i = 1:6
