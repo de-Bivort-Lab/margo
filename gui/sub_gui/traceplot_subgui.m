@@ -55,8 +55,8 @@ function traceplot_subgui_OpeningFcn(hObject, eventdata, handles, varargin)
 % get expmt struct and generate vector mask
 expmt = varargin{1};
 handles.trace_fig.UserData.expmt = expmt;
-handles.trace_fig.UserData.idx = floor(linspace(1,expmt.nFrames,1000));
-frame_rate = 1/nanmedian(expmt.Time.map.Data.raw(handles.trace_fig.UserData.idx));
+handles.trace_fig.UserData.idx = floor(linspace(1,expmt.nFrames,500000));
+frame_rate = 1/nanmedian(expmt.Time.map.Data.raw(handles.trace_fig.UserData.idx))/5;
 handles.trace_fig.UserData.idx = 1:round(frame_rate):expmt.nFrames;
 
 % set slider min-max values
@@ -163,8 +163,8 @@ ah = handles.(['pos_axes' num2str(plot_num)]);
 lh = findobj(ah.Children,'Type','Line','-depth',1);
 expmt = handles.trace_fig.UserData.expmt;
 ii = handles.trace_fig.UserData.idx;
-x = medfilt1(expmt.Centroid.map.Data.raw(idx,1,ii),7);
-y = medfilt1(expmt.Centroid.map.Data.raw(idx,2,ii),7);
+x = squeeze(medfilt1(expmt.Centroid.map.Data.raw(idx,1,ii),7));
+y = squeeze(medfilt1(expmt.Centroid.map.Data.raw(idx,2,ii),7));
 handles.(['roi_num_slider' num2str(plot_num)]).Value = idx;
 handles.(['edit_ROI_num' num2str(plot_num)]).String = num2str(idx);
 

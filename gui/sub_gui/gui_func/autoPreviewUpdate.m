@@ -4,6 +4,13 @@ function autoPreviewUpdate(obj,event,hImage)
 gui_handles = getappdata(hImage,'gui_handles');
 expmt = getappdata(hImage,'expmt');
 
+% adjust image for lens distortion if camera calibration parameters exist
+if strcmp(expmt.source,'camera') && ...
+        isfield(expmt.camInfo,'calibration') && ...
+        gui_handles.cam_calibrate_menu.UserData
+    [event.Data,~] = undistortImage(event.Data,expmt.camInfo.calibration);
+end
+
 switch gui_handles.display_menu.UserData
 
     % raw image

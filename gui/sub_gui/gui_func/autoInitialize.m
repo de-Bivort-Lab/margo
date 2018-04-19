@@ -117,7 +117,7 @@ mkdir(expmt.rawdir);
 % generate file ID for files to write
 for i = 1:length(trackDat.fields)                           
     expmt.(trackDat.fields{i}).path = ...                   % initialize path for new file    
-        [expmt.rawdir expmt.fLabel '_' trackDat.fields{i} '.bin'];
+        [expmt.rawdir expmt.date '_' trackDat.fields{i} '.bin'];
     if numel(expmt.(trackDat.fields{i}).path) > 260
         error(['RAW DATA file path exceeds maximum allowed length. '...
             'Shorten the file path and initialize the experiment again. '...
