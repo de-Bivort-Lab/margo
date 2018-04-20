@@ -28,7 +28,7 @@ for i = 1:length(varargin)
             case 'Dir'
                 i=i+1;
                 expmt.fdir = varargin{i};
-                expmt = autoUpdatePaths(expmt);
+                expmt = 
      
             case 'Save'
                 i=i+1;
