@@ -22,7 +22,7 @@ function varargout = autotracker(varargin)
 
 % Edit the above text to modify the response to help autotracker
 
-% Last Modified by GUIDE v2.5 04-Apr-2018 12:57:05
+% Last Modified by GUIDE v2.5 20-Apr-2018 17:08:53
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -3123,7 +3123,7 @@ function record_vid_radiobutton_CreateFcn(~,~,~)
 % handles    empty - handles not created until after all CreateFcns called
 
 % --------------------------------------------------------------------
-function record_video_menu_Callback(hObject,~,~)
+function record_video_menu_Callback(hObject,~,handles)
 % hObject    handle to record_video_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -3131,8 +3131,10 @@ function record_video_menu_Callback(hObject,~,~)
 switch hObject.Checked
     case 'off'
         hObject.Checked = 'on';
+        handles.vid_compress_menu.Enable = 'on';
     case 'on'
         hObject.Checked = 'off';
+        handles.vid_compress_menu.Enable = 'off';
 end
 
 
@@ -3879,6 +3881,29 @@ else
 end
 
 guidata(hObject,handles);
+
+
+
+
+
+% --------------------------------------------------------------------
+function video_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to video_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function vid_compress_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to vid_compress_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+
+switch hObject.Checked
+    case 'off'
+        hObject.Checked = 'on';
+    case 'on'
+        hObject.Checked = 'off';
+end
 
 
 

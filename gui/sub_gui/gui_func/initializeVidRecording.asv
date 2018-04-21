@@ -7,11 +7,8 @@ expmt.VideoData.path = ...
     [expmt.fdir expmt.fLabel '_VideoData.avi'];
 
 switch gui_handles.vid_compress_menu.Checked
-    case 'on'
-        expmt.VideoData.obj = VideoWriter(expmt.VideoData.path,'MPEG-4');
-    case 'off'
-        expmt.VideoData.obj = VideoWriter(expmt.VideoData.path,'Grayscale AVI');
-end
+    'on'
+expmt.VideoData.obj = VideoWriter(expmt.VideoData.path,'MPEG-4');
 expmt.VideoData.FrameRate = gui_handles.gui_fig.UserData.target_rate;
 open(expmt.VideoData.obj);
 
