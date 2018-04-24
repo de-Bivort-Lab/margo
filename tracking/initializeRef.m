@@ -42,6 +42,7 @@ depth = gui_handles.edit_ref_depth.Value;               % number of rolling sub 
 trackDat.ref.cen = NaN(nROIs,2,depth);                  % placeholder for cen. coords where references are taken
 trackDat.ref.ct = zeros(nROIs, 1);                      % Reference number placeholder
 trackDat.ref.t = 0;                                     % reference time stamp
+trackDat.ref.last_update = zeros(nROIs,1);
 
 
 % tracking vars

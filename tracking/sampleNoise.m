@@ -21,8 +21,9 @@ gui_handles.display_menu.UserData = 3;
 
 %% Sampling Parameters
 
-pixDistSize=100;                    % Num values to record in p
-pixelDist=NaN(pixDistSize,1);       % Distribution of total number of pixels above image threshold
+pixDistSize=100;                            % Num values to record in p
+pixelDist=NaN(pixDistSize,1);               % Distribution of total number of pixels above image threshold
+roiDist=NaN(pixDistSize,expmt.ROI.n);     % Distribution of total number of pixels above image threshold
 
 % tracking vars
 trackDat.Centroid = expmt.ROI.centers;     % placeholder for most recent non-NaN centroids
@@ -79,7 +80,9 @@ while trackDat.ct < pixDistSize;
    % Create distribution for num pixels above imageThresh
    % Image statistics used later during acquisition to detect noise
    diffim = (trackDat.ref.im - expmt.vignette.im) - (trackDat.im - expmt.vignette.im);
-   pixelDist(mod(trackDat.ct,pixDistSize)+1) = nansum(nansum(diffim > gui_handles.track_thresh_slider.Value));
+   thresh_im = diffim(:) > gui_handles.track_thresh_slider.Value;
+   pixelDist(mod(trackDat.ct-1,pixDistSize)+1) = nansum(thresh_im);
+   roiDist(mod(trackDat.ct-1,pixDistSize)+1,:) = cellfun(@(x) sum(thresh_im(x)),expmt.ROI.pixIdx);
    
 end
 
@@ -98,4 +101,7 @@ pixMean=nanmean(pixelDist);
 expmt.noise.dist = pixelDist;
 expmt.noise.std = nanstd(pixelDist);
 expmt.noise.mean = nanmean(pixelDist);
+expmt.noise.roi_dist = roiDist;
+expmt.noise.roi_std = nanstd(roiDist(roiDist>4));
+expmt.noise.roi_mean = nanmean(roiDist(roiDist>4));
 

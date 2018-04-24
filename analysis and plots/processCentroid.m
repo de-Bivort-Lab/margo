@@ -13,7 +13,7 @@ if ~isempty(opt.raw)
     rawdir = [expmt.fdir 'raw_data/'];
     for i=1:length(opt.raw)
         % get new path
-        path = [rawdir expmt.fLabel '_' opt.raw{i} '.bin'];
+        path = [rawdir expmt.date opt.raw{i} '.bin'];
         
         % delete any existing contents
         expmt.(opt.raw{i}).fID = fopen(path,'w');
@@ -29,8 +29,8 @@ end
         
 
 % query available memory to determine how many batches to process data in
-msz = memory;
-msz = msz.MaxPossibleArrayBytes;
+[umem,msz] = memory;
+msz = msz.PhysicalMemory.Available;
 switch expmt.Centroid.precision
     case 'double'
         cen_prcn = 8;
@@ -39,7 +39,7 @@ switch expmt.Centroid.precision
 end
 bytes_per = 16;
 rsz = expmt.nTracks * expmt.nFrames * (cen_prcn*2 + bytes_per);
-nBatch = ceil(rsz/msz * 0.5);
+nBatch = ceil(rsz/msz * 2);
 bsz = ceil(expmt.nFrames/nBatch);
 spd = NaN(expmt.nTracks,nBatch);
     

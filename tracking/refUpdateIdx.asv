@@ -20,7 +20,7 @@ if isfield(expmt,'noise') && isfield(expmt.noise,'roi_mean')
     ref_freq = findobj('Tag','edit_ref_freq');
     force_update = trackDat.ref.last_update >  ref_freq.Value * 60 * 3; 
     force_update = force_update & ~include;
-    if any(force_update) && ref_freq.Value > 1/120
+    if any(force_update)
         include = include | force_update;
         trackDat.ref.ct(force_update & ...
             trackDat.ref.ct == expmt.parameters.ref_depth) = 0;

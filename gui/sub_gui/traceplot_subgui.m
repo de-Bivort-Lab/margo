@@ -55,9 +55,15 @@ function traceplot_subgui_OpeningFcn(hObject, eventdata, handles, varargin)
 % get expmt struct and generate vector mask
 expmt = varargin{1};
 handles.trace_fig.UserData.expmt = expmt;
-handles.trace_fig.UserData.idx = floor(linspace(1,expmt.nFrames,500000));
-frame_rate = 1/nanmedian(expmt.Time.map.Data.raw(handles.trace_fig.UserData.idx))/5;
+[~,p] = memory;
+mem = p.PhysicalMemory.Available;
+n = mem/(8*expmt.nFrames*2*6) * expmt.nFrames * 0.1;
+handles.trace_fig.UserData.idx = floor(linspace(1,expmt.nFrames,n));
+frame_rate = 1/nanmedian(expmt.Time.map.Data.raw(handles.trace_fig.UserData.idx))/2;
 handles.trace_fig.UserData.idx = 1:round(frame_rate):expmt.nFrames;
+if numel(handles.trace_fig.UserData.idx) > n
+    handles.trace_fig.UserData.idx = floor(linspace(1,handles.trace_fig.UserData.idx,n));
+end
 
 % set slider min-max values
 for i=1:6
@@ -187,6 +193,8 @@ else
     ylabel(ah,'Position','FontSize',12);
 end
 
+clear x y
+
 % update speed plot
 s = sqrt(diff(x).^2+diff(y).^2);
 ah = handles.(['speed_axes' num2str(plot_num)]);
@@ -212,6 +220,8 @@ else
     end
     ylabel(ah,'Spd','FontSize',12);
 end
+
+clear s
 
 switch handles.roi_num_slider1.Value
     case 1

@@ -15,7 +15,8 @@ clearvars -except expmt trackProps options
 
 %% get individual area thresholds for separating frames at the ceiling and floor of the well
 
-if isfield(expmt,'Area') && isfield(expmt.Area,'map') && ~isfield(expmt.Area,'thresh')
+if isfield(expmt,'Area') && isfield(expmt.Area,'map') && ...
+        isfield(options,'area_thresh') && options.area_thresh
     
     % find threshold for each individual
     moving = expmt.Speed.map.Data.raw > 0.8;

@@ -62,6 +62,7 @@ handles.gui_dir = which('autotracker');
 [par_dir,~,~] = fileparts(handles.gui_dir);
 [par_dir,~,~] = fileparts(par_dir);
 handles.gui_dir = [par_dir '/'];
+addpath(genpath(handles.gui_dir));
 if ~exist([handles.gui_dir 'profiles/'],'dir')
     mkdir([handles.gui_dir 'profiles/']);
 end
@@ -88,7 +89,7 @@ if exist([handles.gui_dir 'profiles/deviceID.txt'],'file')
     
 end
 
-addpath(genpath(handles.gui_dir));
+
 handles.display_menu.UserData = 1;     
 gui_notify('welcome to autotracker',handles.disp_note);
 
@@ -1022,16 +1023,21 @@ end
 
 if isfield(expmt, 'fpath') == 0 
     errordlg('Please specify Save Location')
+    handles.run_pushbutton.Enable = 'on';
 elseif ~hasLabelData
     errordlg('Please set labels before running experiment')
+    handles.run_pushbutton.Enable = 'on';
 elseif ~isfield(expmt, 'camInfo')
     errordlg('Please confirm camera settings')
 elseif ~isfield(expmt,'ROI')
     errordlg('Please run ROI detection before starting tracking');
+    handles.run_pushbutton.Enable = 'on';
 elseif ~isfield(expmt,'ref')
     errordlg('Please acquire a reference image before beginning tracking');
+    handles.run_pushbutton.Enable = 'on';
 elseif ~isfield(expmt,'noise')
     errordlg('Please run noise sampling before starting tracking');
+    handles.run_pushbutton.Enable = 'on';
 else
     
     try

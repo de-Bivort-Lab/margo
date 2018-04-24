@@ -12,9 +12,10 @@ options.plot = false;           % plots raw centroid traces
 options.save = true;            % toggles file/figure saving
 options.raw = {};               % set fields to create raw data files for
 options.bootstrap = false;      % bootstrap metrics to generate null model
-options.slide = true;           % slide window over Circadian speed data
+options.slide = false;           % slide window over Circadian speed data
 options.regress = false;        % regress out camera distortion from speed data
 options.handedness = false;     % calculate handedness metrics
+options.area_threshold = false;
 
 for i = 1:length(varargin)
     
@@ -57,6 +58,9 @@ for i = 1:length(varargin)
             case 'Handedness'
                 i=i+1;
                 options.handedness = varargin{i};
+            case 'AreaThresh'
+                i=i+1;
+                options.area_threshold = varargin{i};
         end
     end
 end

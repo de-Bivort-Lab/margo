@@ -53,6 +53,7 @@ function [trackDat,tPrev] = updateTime(trackDat, tPrev, expmt, gui_handles, vara
     trackDat.ifi = ifi;
     if isfield(trackDat.ref,'t')
         trackDat.ref.t = trackDat.ref.t + ifi;
+        trackDat.ref.last_update = trackDat.ref.last_update + ifi;
     end
     
     % check reference update timer
