@@ -95,10 +95,11 @@ function varargout = traceplot_subgui_OutputFcn(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Get default command line output from handles structure
+%{
 while ishghandle(hObject)
     pause(0.001);
 end
-
+%}
 varargout{1} = handles.output;
 
 
@@ -193,8 +194,6 @@ else
     ylabel(ah,'Position','FontSize',12);
 end
 
-clear x y
-
 % update speed plot
 s = sqrt(diff(x).^2+diff(y).^2);
 ah = handles.(['speed_axes' num2str(plot_num)]);
@@ -221,7 +220,7 @@ else
     ylabel(ah,'Spd','FontSize',12);
 end
 
-clear s
+clear s x y
 
 switch handles.roi_num_slider1.Value
     case 1
