@@ -3715,7 +3715,7 @@ function add_ROI_pushbutton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-if hObject.UserData.nGrids < 6
+if hObject.UserData.nGrids < 10
     
     hObject.UserData.nGrids = hObject.UserData.nGrids + 1;
     handles = update_grid_UI(handles,'add');
@@ -3746,8 +3746,9 @@ function ROI_shape_popupmenu1_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: contents = cellstr(get(hObject,'String')) returns ROI_shape_popupmenu1 contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from ROI_shape_popupmenu1
+n = hObject.UserData;
+handles.add_ROI_pushbutton.UserData.grid(n).shape = hObject.String{hObject.Value};
+guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -3828,9 +3829,9 @@ function add_ROI_pushbutton_CreateFcn(hObject, eventdata, handles)
 % handles    empty - handles not created until after all CreateFcns called
 
 hObject.UserData.nGrids = 1;
-hObject.UserData.grid = struct('shape','Circular','nRows',8,'nCols',12,...
+hObject.UserData.grid = struct('shape','Quadrilateral','nRows',8,'nCols',12,...
     'hs',[],'hr',[],'hc',[],'hp',[],'centers',[],'bounds',[],...
-    'XData',[],'YData',[],'polypos',[]);
+    'XData',[],'YData',[],'polypos',[],'tform',[]);
 hObject.Value = false;
 guidata(hObject,handles);
 

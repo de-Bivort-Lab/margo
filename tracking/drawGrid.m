@@ -32,8 +32,17 @@ polyPos(4,:) = [roi(1) roi(2)];
 gui_handles.add_ROI_pushbutton.UserData.grid(grid_idx).hp = ...
     impoly(gui_handles.axes_handle, polyPos);
 
-hPatch = patch('Faces',1:size(xData,2),'XData',xData,'YData',yData,...
-    'FaceColor','none','EdgeColor','r','Parent',gui_handles.axes_handle);
+switch gui_handles.add_ROI_pushbutton.UserData.grid(grid_idx).shape
+    case 'Circular'
+        [gui_handles.add_ROI_pushbutton.UserData.grid(grid_idx).tforms,circDat] = transformROI(xData,yData);
+        hPatch = patch('Faces',1:size(xData,2),...
+            'XData',circDat(:,:,1),'YData',circDat(:,:,2),'FaceColor','none',...
+            'EdgeColor','r','Parent',gui_handles.axes_handle);
+    case 'Quadrilateral'
+        hPatch = patch('Faces',1:size(xData,2),...
+            'XData',xData,'YData',yData,'FaceColor','none',...
+            'EdgeColor','r','Parent',gui_handles.axes_handle);
+end
 uistack(hPatch,'down');
 
 set(on_objs,'Enable','on');

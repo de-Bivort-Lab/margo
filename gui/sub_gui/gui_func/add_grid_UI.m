@@ -11,8 +11,6 @@ n = ha.UserData.nGrids;
 par = ha.Parent;
 
 if ~isfield(ha.UserData,'grids') || isempty(ha.UserData.grids(1).hs)
-    ha.UserData.grids = struct('shape','Circular','nRows',8,'nCols',12,...
-    'hs',[],'hr',[],'hc',[]);
     ha.UserData.grid(1).hs = hs;
     ha.UserData.grid(1).hr = hr;
     ha.UserData.grid(1).hc = hc;
@@ -32,7 +30,7 @@ ha.UserData.grid(n).hc.Value = n;
 xShift = sum(hc.Position([1 3])) - ...
     hs.Position(1) + hd.Position(3) + 10;  % full length of single grid controls
 
-if n < 4
+if n < 5
     
     % adjust position
     yShift = hs.Position(4)+10;
@@ -57,14 +55,14 @@ else
     
 end
 
-if n==3
+if n==4
     ha.Position(2) = hs.Position(2);
     ha.Position(1) = hs.Position(1) + xShift;  
 else
     ha.Position(2) = ha.Position(2) - yShift;
 end
 
-if n==6
+if n==8
     ha.Visible = 'off';
 end
 

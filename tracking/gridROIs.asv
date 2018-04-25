@@ -65,7 +65,7 @@ if nGrids > 0 && ~isempty(hAdd.UserData.grid(1).polypos)
                     'EdgeColor','r','Parent',gui_handles.axes_handle);
             case 'Quadrilateral'
                 hPatch(i) = patch('Faces',1:size(xdat,2),...
-                    'XData',xdat,'YData',ydat,'FaceColor','none',...
+                    'XData',xdat,'YData',YData,'FaceColor','none',...
                     'EdgeColor','r','Parent',gui_handles.axes_handle);
         end
         hAdd.UserData.grid(i).hp  = impoly(gui_handles.axes_handle, ...
@@ -228,7 +228,7 @@ for i=1:nGrids
     shape = [shape; tmp_shape];
     
     tmp_tform = cell(nRow*nCol,1);
-    if ~isempty(hAdd.UserData.grid(i).tforms)
+    if ~isempty(hAdd.UserData.grid(i).tform)
         tmp_tform = hAdd.UserData.grid(i).tforms';
     end
     tform = [tform;tmp_tform];
@@ -259,7 +259,6 @@ if ~isempty(centers)
     expmt.ROI.centers = centers;
     expmt.ROI.orientation = mazeOri;
     expmt.ROI.im = trackDat.im;
-    expmt.ROI.tform = tform;
 end
 
 gui_handles.auto_detect_ROIs_pushbutton.Enable = 'on';

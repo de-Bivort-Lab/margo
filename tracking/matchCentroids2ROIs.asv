@@ -222,15 +222,11 @@ function ROI_num = gridAssignROI(cen,gv,shape,tf)
     % identify matching ROI, if any
     in_bounds = xL & xR & yT & yB;
     ROI_num = find(in_bounds);
-
     iscirc = strcmp(shape(ROI_num),'Circular');
     
     if any(iscirc)
         uc = cellfun(@(x) transformPointsForward(x,cen),tf(ROI_num(iscirc)),'UniformOutput',false);
-        uc = cat(1,uc{1});
-        if sqrt((uc(1)-0.5).^2 + (uc(2)-0.5).^2) > 0.5
-            ROI_num = [];
-        end
+        d = sqrt(
     end
 
 end
