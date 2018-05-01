@@ -28,7 +28,7 @@ for i = 1:nt
     end
     tic
     % find threshold for each individual
-    moving = s_map.Data.raw(i,:); 
+    moving = s_map.Data.raw(i,:) > 0.8; 
     moving = moving > 0.8;
     a= a_map.Data.raw(i,:);
     a(~moving) = NaN;

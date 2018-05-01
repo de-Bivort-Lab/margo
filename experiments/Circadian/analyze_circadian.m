@@ -18,7 +18,7 @@ clearvars -except expmt trackProps options
 if isfield(expmt,'Area') && isfield(expmt.Area,'map') && ...
         isfield(options,'area_threshold') && options.area_threshold
     tic
-    %parseCeilingBouts(expmt.Area.map,expmt.Speed.map,expmt.nTracks,expmt.nFrames)
+    parseCeilingBouts(expmt.Area.map,expmt.Speed.map,expmt.nTracks,expmt.nFrames)
     
     % find threshold for each individual
     moving = expmt.Speed.map.Data.raw > 0.8;
