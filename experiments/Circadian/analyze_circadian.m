@@ -16,7 +16,9 @@ clearvars -except expmt trackProps options
 %% get individual area thresholds for separating frames at the ceiling and floor of the well
 
 if isfield(expmt,'Area') && isfield(expmt.Area,'map') && ...
-        isfield(options,'area_thresh') && options.area_thresh
+        isfield(options,'area_threshold') && options.area_threshold
+    tic
+    %parseCeilingBouts(expmt.Area.map,expmt.Speed.map,expmt.nTracks,expmt.nFrames)
     
     % find threshold for each individual
     moving = expmt.Speed.map.Data.raw > 0.8;
@@ -45,6 +47,7 @@ if isfield(expmt,'Area') && isfield(expmt.Area,'map') && ...
     % get gravity index
     expmt.Gravity.index = (sum(expmt.Area.ceiling,2)-sum(expmt.Area.floor,2))./...
         (sum(expmt.Area.ceiling,2)+sum(expmt.Area.floor,2));   
+    toc
     
 end
     

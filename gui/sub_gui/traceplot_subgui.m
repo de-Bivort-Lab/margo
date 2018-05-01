@@ -58,11 +58,14 @@ handles.trace_fig.UserData.expmt = expmt;
 [~,p] = memory;
 mem = p.PhysicalMemory.Available;
 n = mem/(8*expmt.nFrames*2*6) * expmt.nFrames * 0.1;
-handles.trace_fig.UserData.idx = floor(linspace(1,expmt.nFrames,n));
-frame_rate = 1/nanmedian(expmt.Time.map.Data.raw(handles.trace_fig.UserData.idx))/2;
-handles.trace_fig.UserData.idx = 1:round(frame_rate):expmt.nFrames;
-if numel(handles.trace_fig.UserData.idx) > n
-    handles.trace_fig.UserData.idx = floor(linspace(1,handles.trace_fig.UserData.idx,n));
+if expmt.nFrames > n
+    handles.trace_fig.UserData.idx = 1:round(frame_rate):expmt.nFrames;
+    frame_rate = 1/nanmedian(expmt.Time.map.Data.raw(handles.trace_fig.UserData.idx))/5;
+    if numel(handles.trace_fig.UserData.idx) > n
+        handles.trace_fig.UserData.idx = floor(linspace(1,expmt.nFrames,n));
+    end
+else
+    handles.trace_fig.UserData.idx = 1:expmt.nFrames;
 end
 
 % set slider min-max values

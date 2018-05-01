@@ -461,6 +461,7 @@ if ~isempty(expmt.camInfo)
     if ~isempty(expmt.camInfo.DeviceInfo)
         
         % query the Enable states of objects in the gui
+        clean_gui(handles.axes_handle);
         on_objs = findobj('Enable','on');
         off_objs = findobj('Enable','off');
         
