@@ -39,13 +39,13 @@ s = round(sampling_rate/1/fr*60);
 
 first_idx = round(length(expmt.(f).map.Data.raw)/win_sz)+1;
 r = floor(win_sz/2);
-win_idx = r+1:stp_sz:length(expmt.(f).map.Data.raw)-r;
-idx = repmat(win_idx',1,floor(win_sz/s)+1);
+idx = r+1:stp_sz:length(expmt.(f).map.Data.raw)-r;
+idx = repmat(idx',1,floor(win_sz/s)+1);
 idx = idx + repmat(-r:s:r,size(idx,1),1);
 
 
 % perform the operation
-win_dat = NaN(size(idx,1),expmt.nTracks);
+win_dat = NaN(length(idx),expmt.nTracks);
 for i = 1:expmt.nTracks
     
     if ishghandle(h)
@@ -54,10 +54,8 @@ for i = 1:expmt.nTracks
     end
     
     dat = autoSlice(expmt,f,i);
-    dat = num2cell(reshape(dat(idx(:)),size(idx)),2);
-    win_dat(:,i) = cellfun(fh,dat);
-    clear dat
-    
+    dat = dat(idx(:));
+    win_dat(:,i) = arrayfun(@(k) slide_win(expmt.(f).map.Data.raw(i,:),k,r,s,fh), idx);
 end
 
 if ishghandle(h)
@@ -68,7 +66,7 @@ end
 for i = 1:nargout
     switch i
         case 1, varargout(i) = {win_dat};
-        case 2, varargout(i) = {win_idx};
+        case 2, varargout(i) = {idx};
         case 3, varargout(i) = {r};
     end
 end
@@ -76,9 +74,9 @@ end
 
 
 
-function out = slide_win(dat,fh)
+function out = slide_win(dat,idx,r,s,fh)
 
-    out = feval(fh,dat);
+    out = feval(fh,dat(:,idx-r:s:idx+1));
 
 
 

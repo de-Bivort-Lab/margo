@@ -17,37 +17,11 @@ clearvars -except expmt trackProps options
 
 if isfield(expmt,'Area') && isfield(expmt.Area,'map') && ...
         isfield(options,'area_threshold') && options.area_threshold
-    tic
-    parseCeilingBouts(expmt.Area.map,expmt.Speed.map,expmt.nTracks,expmt.nFrames)
-    
-    % find threshold for each individual
-    moving = expmt.Speed.map.Data.raw > 0.8;
-    a= expmt.Area.map.Data.raw;
-    a(~moving) = NaN;
-    a = num2cell(expmt.Area.map.Data.raw,2);
+
     if isfield(options,'handles')
         gui_notify('finding area thresholds',options.handles.disp_note);
     end
-    [ints,means,sigmas] = cellfun(@fitBimodalHist,a,'UniformOutput',false);
-    expmt.Area.thresh = NaN(expmt.nTracks,1);
-    expmt.Area.thresh(~cellfun(@isempty,ints)) = [ints{:}];
-    expmt.Area.modeMeans = NaN(expmt.nTracks,2);
-    expmt.Area.modeMeans(~cellfun(@isempty,means),:) = [means{:}]';
-    expmt.Area.modeSigmas = NaN(expmt.nTracks,2);
-    expmt.Area.modeSigmas(~cellfun(@isempty,sigmas),:) = [sigmas{:}]';
-    
-    % parse data into arena ceiling and floor frames
-    ints(cellfun(@isempty,ints))={NaN};
-    expmt.Area.ceiling = cellfun(@(x,y) x>y, a,ints,'UniformOutput',false);
-    expmt.Area.ceiling = cat(1,expmt.Area.ceiling{:});
-    expmt.Area.floor = cellfun(@(x,y) x<y, a,ints,'UniformOutput',false);
-    expmt.Area.floor = cat(1,expmt.Area.floor{:});
-    clear a moving
-    
-    % get gravity index
-    expmt.Gravity.index = (sum(expmt.Area.ceiling,2)-sum(expmt.Area.floor,2))./...
-        (sum(expmt.Area.ceiling,2)+sum(expmt.Area.floor,2));   
-    toc
+    expmt = parseCeilingBouts(expmt);
     
 end
     
@@ -57,20 +31,21 @@ end
 
 if options.slide
     
-    win_sz = 700;
-    stp_sz = 350;
+    win_sz = 2;             % size of sliding window (minutes)
+    stp_sz = 1;             % step size between windows (minutes)
+    sampling_rate = 0.05;    % sampling rate (minutes)
     if isfield(options,'handles')
         gui_notify('sliding speed window, may take a few minutes',options.handles.disp_note);
     end
-    [win_dat,win_idx] = getSlidingWindow(expmt,'Speed',win_sz,stp_sz);
+    [win_dat,win_idx] = getSlidingWindow(expmt,'Speed',win_sz,stp_sz,sampling_rate);
 
     % get mean and 95% CI
     [mu,~,ci95,~] = normfit(win_dat');
     expmt.Circadian.trace.mu = mu;
     expmt.Circadian.trace.ci95 = ci95;
     mu = medfilt1(mu);
-    ci95(1,:) = medfilt1(ci95(1,:));
-    ci95(2,:) = medfilt1(ci95(2,:));
+    ci95(1,:) = medfilt1(ci95(1,:),5);
+    ci95(2,:) = medfilt1(ci95(2,:),5);
 
     % get index tstamps
     tStamps = cumsum(expmt.Time.map.Data.raw);
@@ -122,7 +97,7 @@ if options.slide
             ft_hr = 0;
         end
     end
-    set(gca,'XTick',tTick,'XtickLabel',tickLabels);
+    set(gca,'XTick',tTick(1:4:end),'XtickLabel',tickLabels(1:4:end));
 
     expmt.Circadian.trace.tTick = tTick;
     expmt.Circadian.trace.tickLabels = tickLabels;

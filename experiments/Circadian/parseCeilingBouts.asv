@@ -27,7 +27,7 @@ expmt.Area.ceiling = false(expmt.nFrames,expmt.nTracks);
 expmt.Area.floor = false(expmt.nFrames,expmt.nTracks);
 
 
-for i = 1:expmt.nTracks
+for i = 74:expmt.nTracks
     
     if ishghandle(hwb)
         waitbar(i/expmt.nTracks,hwb,...
