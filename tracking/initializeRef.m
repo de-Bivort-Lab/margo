@@ -101,7 +101,7 @@ hold off
 % Time stamp placeholders
 trackDat.t = 0;
 tic
-tPrev=toc;
+trackDat.tPrev=toc;
 
 old_ref_freq = gui_handles.edit_ref_freq.Value;
 gui_handles.edit_ref_freq.Value = 1/120;
@@ -110,7 +110,7 @@ while trackDat.t < expmt.parameters.duration*3600 &&...
         ~gui_handles.accept_track_thresh_pushbutton.Value
     
     % update time stamps and frame rate
-    [trackDat, tPrev] = updateTime(trackDat, tPrev, expmt, gui_handles);
+    [trackDat] = autoTime(trackDat, expmt, gui_handles);
 
     % query next frame and optionally correct lens distortion
     [trackDat,expmt] = autoFrame(trackDat,expmt,gui_handles);
@@ -143,13 +143,13 @@ while trackDat.t < expmt.parameters.duration*3600 &&...
 
     % update ref at the reference frequency
     trackDat.px_dev = 0;
-    [trackDat, expmt] = updateRef(trackDat, expmt, gui_handles);   
+    [trackDat, expmt] = autoReference(trackDat, expmt, gui_handles);   
 
     % Update display
     if gui_handles.display_menu.UserData ~= 5
         
         % update the display
-        updateDisplay(trackDat, expmt, imh, gui_handles);
+        autoDisplay(trackDat, expmt, imh, gui_handles);
                 
         nRefs = trackDat.ref.ct;
 
@@ -174,8 +174,8 @@ gui_handles.edit_ref_freq.Value = old_ref_freq;
 %% Reset UI properties
 trackDat.t = 0;
 tic
-tPrev = toc;
-[~, ~] = updateTime(trackDat, tPrev, expmt, gui_handles);
+trackDat.tPrev = toc;
+autoTime(trackDat, expmt, gui_handles);
 expmt.ref = trackDat.ref;
 
 % Reset accept reference button

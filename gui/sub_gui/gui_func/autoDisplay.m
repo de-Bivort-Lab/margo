@@ -1,4 +1,4 @@
-function autoDisplay(trackDat, expmt, im_handle, gui_handles)
+function [trackDat] = autoDisplay(trackDat, expmt, im_handle, gui_handles)
 
 % query the active display mode
 active_disp = gui_handles.display_menu.UserData;
@@ -77,14 +77,7 @@ drawnow limitrate
 while gui_handles.pause_togglebutton.Value || gui_handles.stop_pushbutton.UserData.Value
     [expmt,trackDat.tPrev,exit] = updatePauseStop(trackDat,expmt,gui_handles);
     if exit
-
-        for i=1:nargout
-            switch i
-                case 1, varargout(i) = {expmt};
-                case 2, varargout(i) = {trackDat};
-            end
-        end
-
+        trackDat.lastFrame = true;
         return
     end
 end

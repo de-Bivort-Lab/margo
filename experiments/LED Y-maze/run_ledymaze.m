@@ -122,26 +122,13 @@ prev_LEDs = trackDat.LEDs;
 
 %% Main Experimental Loop
 
-% start timer
-tic
-tPrev = toc;
-
-% initialize centroid markers
-clean_gui(gui_handles.axes_handle);
-hold on
-hMark = plot(trackDat.Centroid(:,1),trackDat.Centroid(:,2),'ro');
-for i = 1:nROIs
-    hNTurns(i) = text(trackDat.Centroid(i,1)-5,trackDat.Centroid(i,2)+10,'',...
-    'Color',[1 0 0]);
-end
-hold off
 
 % run experimental loop until duration is exceeded or last frame
 % of the last video file is reached
 while ~trackDat.lastFrame
     
     % update time stamps and frame rate
-    [trackDat, tPrev] = updateTime(trackDat, tPrev, expmt, gui_handles);
+    [trackDat] = autoTime(trackDat, expmt, gui_handles);
 
     % query next frame and optionally correct lens distortion
     [trackDat,expmt] = autoFrame(trackDat,expmt,gui_handles);
@@ -173,35 +160,10 @@ while ~trackDat.lastFrame
     [trackDat,expmt] = autoWriteData(trackDat, expmt, gui_handles);
 
     % update ref at the reference frequency or reset if noise thresh is exceeded
-    [trackDat, expmt] = updateRef(trackDat, expmt, gui_handles);  
+    [trackDat, expmt] = autoReference(trackDat, expmt, gui_handles);  
 
-    if gui_handles.display_menu.UserData ~= 5
-        % update the display
-        updateDisplay(trackDat, expmt, imh, gui_handles);
-
-        % update centroid mark position
-        hMark.XData = trackDat.Centroid(:,1);
-        hMark.YData = trackDat.Centroid(:,2);
-        
-        for i = 1:nROIs
-            hNTurns(i).Position = [trackDat.Centroid(i,1)-5,trackDat.Centroid(i,2)+15];
-            if trackDat.changed_arm(i)
-                hNTurns(i).String = nTurns(i);
-            end
-        end
-        
-    end
-
-    % update the gui
-    drawnow limitrate
-    
-    % listen for gui pause/unpause
-    while gui_handles.pause_togglebutton.Value || gui_handles.stop_pushbutton.UserData.Value
-        [expmt,tPrev,exit] = updatePauseStop(trackDat,expmt,gui_handles);
-        if exit
-            return
-        end
-    end
+    % update the display
+    trackDat = autoDisplay(trackDat, expmt, imh, gui_handles);
     
 end
 

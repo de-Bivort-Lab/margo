@@ -51,7 +51,7 @@ trackDat.lastFrame = false;
 while ~trackDat.lastFrame
     
     % update time stamps and frame rate
-    [trackDat] = updateTime(trackDat, expmt, gui_handles);
+    [trackDat] = autoTime(trackDat, expmt, gui_handles);
 
     % query next frame and optionally correct lens distortion
     [trackDat,expmt] = autoFrame(trackDat,expmt,gui_handles);
@@ -66,7 +66,7 @@ while ~trackDat.lastFrame
     [trackDat, expmt] = autoReference(trackDat, expmt, gui_handles);  
 
     % set image data
-    updateDisplay(trackDat, expmt, imh, gui_handles);
+    trackDat = autoDisplay(trackDat, expmt, imh, gui_handles);
     
 
 end

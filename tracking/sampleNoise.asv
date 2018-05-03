@@ -93,7 +93,6 @@ tic
 tPrev = toc;
 [trackDat] = autoTime(trackDat, expmt, gui_handles,1);
 drawnow limitrate
-gui_handles.gui_fig.UserData.target_rate = old_rate;
 
 gui_notify('noise sampling complete',gui_handles.disp_note);
 
