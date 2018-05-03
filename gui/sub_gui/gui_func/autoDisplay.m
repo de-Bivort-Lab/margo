@@ -1,4 +1,4 @@
-function updateDisplay(trackDat, expmt, im_handle, gui_handles)
+function autoDisplay(trackDat, expmt, im_handle, gui_handles)
 
 % query the active display mode
 active_disp = gui_handles.display_menu.UserData;
@@ -56,13 +56,37 @@ switch active_disp
         end
 end
 
+if gui_handles.display_menu.UserData ~= 5
+    if isfield(gui_handles.gui_fig.UserData,'cenText') && ...
+            ishghandle(gui_handles.gui_fig.UserData.cenText(1)) &&...
+            strcmp(gui_handles.gui_fig.UserData.cenText(1).Visible,'on')
 
-if isfield(gui_handles.gui_fig.UserData,'cenText') && ...
-        ishghandle(gui_handles.gui_fig.UserData.cenText(1)) &&...
-        strcmp(gui_handles.gui_fig.UserData.cenText(1).Visible,'on')
-    
-    arrayfun(@updateText,gui_handles.gui_fig.UserData.cenText,...
-        num2cell(trackDat.Centroid,2));
+        arrayfun(@updateText,gui_handles.gui_fig.UserData.cenText,...
+            num2cell(trackDat.Centroid,2));
+    end
+    if isfield(trackDat,'hMark') && ishghandle(trackDat.hMark(1))
+        trackDat.hMark.XData = trackDat.Centroid(:,1);
+        trackDat.hMark.YData = trackDat.Centroid(:,2);
+    end
+end
+
+% force immediate screen drawing and callback evaluation
+drawnow limitrate                 
+
+% listen for gui pause/unpause
+while gui_handles.pause_togglebutton.Value || gui_handles.stop_pushbutton.UserData.Value
+    [expmt,trackDat.tPrev,exit] = updatePauseStop(trackDat,expmt,gui_handles);
+    if exit
+
+        for i=1:nargout
+            switch i
+                case 1, varargout(i) = {expmt};
+                case 2, varargout(i) = {trackDat};
+            end
+        end
+
+        return
+    end
 end
 
 

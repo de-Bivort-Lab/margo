@@ -149,6 +149,12 @@ end
 
 expmt.Initialize = false;
 
+% initialize centroid markers
+clean_gui(gui_handles.axes_handle);
+trackDat.hMark = plot(trackDat.Centroid(:,1),trackDat.Centroid(:,2),'ro',...
+    'Parent',gui_handles.axes_handle);
+
 % start the timer for the experiment
 tic;
+trackDat.tPrev = toc;
 gui_notify('tracking initialized',gui_handles.disp_note);

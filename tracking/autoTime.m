@@ -1,4 +1,4 @@
-function [trackDat,tPrev] = updateTime(trackDat, tPrev, expmt, gui_handles, varargin)
+function [trackDat] = autoTime(trackDat, expmt, gui_handles, varargin)
     
 
     % check last frame against block duration if running in block mode
@@ -23,17 +23,17 @@ function [trackDat,tPrev] = updateTime(trackDat, tPrev, expmt, gui_handles, vara
 
     % calculate the interframe interval (ifi)
     tCurrent = toc;
-    ifi = tCurrent - tPrev;
-    tPrev=tCurrent;
+    ifi = tCurrent - trackDat.tPrev;
+    trackDat.tPrev=tCurrent;
     gui_update_t = 0;
 
     %wait if necessary to achieve the target frame rate
     if nargin > 2
         while ifi < 1/gui_handles.gui_fig.UserData.target_rate
             tCurrent = toc;
-            ifi = ifi + tCurrent - tPrev;
-            gui_update_t = gui_update_t + tCurrent - tPrev;
-            tPrev=tCurrent;
+            ifi = ifi + tCurrent - trackDat.tPrev;
+            gui_update_t = gui_update_t + tCurrent - trackDat.tPrev;
+            trackDat.tPrev=tCurrent;
             
             % ensure timer is minimally update 1/sec
             if gui_update_t > 1 && strcmp(expmt.source,'camera') && ~no_plot               

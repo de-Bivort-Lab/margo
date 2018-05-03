@@ -1,4 +1,4 @@
-function [trackDat, expmt] = updateRef(trackDat,expmt,gui_handles)
+function [trackDat, expmt] = autoReference(trackDat,expmt,gui_handles)
 
     % if num pixels above thresh exceeds nine stdev
     reset = mean(trackDat.px_dev) > 8;
