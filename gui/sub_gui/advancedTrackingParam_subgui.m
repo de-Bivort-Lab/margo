@@ -384,7 +384,7 @@ while ishghandle(hObject) && display
 
 
     % update the display
-    updateDisplay(trackDat, expmt, imh, gui_handles);
+    autoDisplay(trackDat, expmt, imh, gui_handles);
     drawnow
             
 end

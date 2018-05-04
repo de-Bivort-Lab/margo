@@ -172,7 +172,7 @@ while ~gui_handles.accept_ROI_thresh_pushbutton.Value
     end
     
     % update the display
-    updateDisplay(trackDat, expmt, imh, gui_handles);
+    autoDisplay(trackDat, expmt, imh, gui_handles);
 
     % Report frames per sec to GUI
     set(gui_handles.edit_frame_rate,'String',num2str(round(1/toc)));

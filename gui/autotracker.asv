@@ -1957,7 +1957,7 @@ if strcmp(expmt.source,'camera') && isfield(expmt.camInfo,'vid')
     handles.disp_note.Enable='on';
     gui_notify('initializing ROI masks, may take a few moments',handles.disp_note);
     drawnow
-   
+    
     % get an pixel mask for all areas of the image with an ROI
     if isfield(expmt.ROI,'centers')
         expmt.ROI.n = size(expmt.ROI.centers,1);
@@ -1979,7 +1979,6 @@ if strcmp(expmt.source,'video') && isfield(expmt,'video')
     
         % run automatic ROI detections
         expmt = autoROIs(handles,expmt);
-        expmt.ROI.mode = 'auto';
 
         if expmt.ROI.n > 0
         % Enable downstream UI controls
@@ -1995,7 +1994,6 @@ if strcmp(expmt.source,'video') && isfield(expmt,'video')
         case 'grid'
             
         expmt = gridROIs(handles,expmt);
-        expmt.ROI.mode = 'grid';
         
         % Enable downstream ui controls
         handles.track_thresh_slider.Enable = 'on';
@@ -2006,12 +2004,6 @@ if strcmp(expmt.source,'video') && isfield(expmt,'video')
         handles.man_edit_roi_menu.Enable = 'on';
 
             
-    end
-    
-    % get an pixel mask for all areas of the image with an ROI
-    if isfield(expmt.ROI,'centers')
-        expmt.ROI.n = size(expmt.ROI.centers,1);
-        expmt = setROImask(expmt);
     end
     
 elseif strcmp(expmt.source,'video')
@@ -2690,7 +2682,7 @@ tmp_video = uigetvids(expmt);
 % update gui with video info
 if ~isempty(tmp_video)
     expmt.video = tmp_video;
-    expmt.video.nFrames = floor(expmt.video.nFrames);
+    expmt.video.nFrames = floor
     handles.edit_video_dir.String = expmt.video.fdir;
     handles.vid_select_popupmenu.String = expmt.video.fnames;
     handles.edit_time_remaining.String = num2str(expmt.video.nFrames);
