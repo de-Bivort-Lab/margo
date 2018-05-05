@@ -58,7 +58,7 @@ stop = false;
 clearvars hRect hText
 
 hRect(1) = rectangle('Position',[0 0 0 0],'EdgeColor','r');
-hText(1) = text(0,0,'1','Color','b');
+hText(1) = text(0,0,'','Color','b','HorizontalAlignment','Center');
 delete(findobj('Type','patch'));
 hPatch = patch('Faces',[],'XData',[],'YData',[],...
     'FaceColor','none','EdgeColor','r','Parent',gui_handles.axes_handle);
@@ -110,7 +110,7 @@ while stop~=1
     % Extract ROIs from thresholded image
     [ROI_bounds,ROI_coords,~,~,binaryimage] = detect_ROIs(trackDat.im,ROI_thresh);
     update_vignetting = nROIs ~= size(ROI_coords,1) & size(ROI_coords,1) > 0;
-    nROIs = size(ROI_coords,1);
+    
 
     % Calculate coords of ROI centers
     [xCenters,yCenters]=ROIcenters(binaryimage,ROI_coords);
@@ -126,6 +126,20 @@ while stop~=1
     % Display ROIs
     imh.CData = binaryimage;    
     hPatch = displayROIs(hPatch,ROI_coords);
+    
+    if nROIs > size(ROI_coords,1)
+        idx = numel(hText) - (nROIs - size(ROI_coords,1))+1:numel(hText);
+        delete(hText(idx));
+        hText(idx) = [];
+    elseif nROIs < size(ROI_coords,1)
+        idx = nROIs+1:size(ROI_coords,1);
+        hText(idx) = text(zeros(numel(idx),1),zeros(numel(idx),1),'','Color','b',...
+            'HorizontalAlignment','Center','Parent',gui_handles.axes_handle);
+    end
+    nROIs = size(ROI_coords,1);
+    
+    cellfun(@updateText,num2cell(hText),num2cell(centers(:,1)'),...
+        num2cell(centers(:,2)'),num2cell(1:nROIs),'UniformOutput',false);
     
     % Report frames per sec to GUI
     set(gui_handles.edit_frame_rate,'String',num2str(round(1/toc)));
@@ -155,3 +169,9 @@ if ~isempty(ROI_coords)
 end
 
 gui_handles.auto_detect_ROIs_pushbutton.Enable = 'on';
+
+function updateText(h,x,y,i)
+
+h.String = num2str(i);
+h.Position = [x y 0];
+

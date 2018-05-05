@@ -146,8 +146,7 @@ switch expmt.source
             display = true;
         end
     case 'video'
-        imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');
-        if isfield(expmt.video,'vid') && ~isempty(imh)
+        if isfield(expmt.video,'vid')
             display = true;
         end
 end
@@ -170,9 +169,38 @@ if display && isempty(imh)
     
     imh = image(trackDat.im,'Parent',gui_handles.axes_handle);
     % adjust aspect ratio of plot to match camera
-    colormap(gui_handles.axes_handle,'gray');       
+    colormap('gray');
+    vh = size(trackDat.im,1);
+    vw = size(trackDat.im,2);
+    im = uint8(zeros(vh,vw));
+    handles.hImage = image(im,'Parent',gui_handles.axes_handle);
+    gui_handles.axes_handle.XTick = [];
+    gui_handles.axes_handle.YTick = [];
+    gui_handles.axes_handle.Position(3) = ...
+        gui_handles.gui_fig.Position(3) - 5 - gui_handles.axes_handle.Position(1);
+    aspectR = vh/vw;
+    plot_aspect = pbaspect;
+    fscale = aspectR/plot_aspect(2);
+
+    if fscale < 1
+        axes_height_old = gui_handles.axes_handle.Position(4);
+        axes_height_new = axes_height_old*fscale;
+        gui_handles.axes_handle.Position(4) = axes_height_new;
+        gui_handles.axes_handle.Position(2) = gui_handles.axes_handle.Position(2) + axes_height_old - axes_height_new;
+    else
+        aspectR = vw/vh;
+        plot_aspect = pbaspect;
+        plot_aspect = plot_aspect./plot_aspect(2);
+        fscale = aspectR/plot_aspect(1);
+        axes_width_old = gui_handles.axes_handle.Position(3);
+        axes_width_new = axes_width_old*fscale;
+        gui_handles.axes_handle.Position(3) = axes_width_new;
+        gui_handles.gui_fig.Position(3) = ...
+            sum(gui_handles.axes_handle.Position([1 3])) + 10;
+    end       
+
     gui_handles.hImage.CDataMapping = 'scaled';
-    
+    colormap(gui_handles.axes_handle,'gray');
     
 end
 

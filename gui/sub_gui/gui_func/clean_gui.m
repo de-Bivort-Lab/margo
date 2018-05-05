@@ -9,7 +9,7 @@ text_handles = findobj(axes_handle,'-depth',3,'Type','text');
 delete(text_handles);
 delete(findobj(axes_handle,'-depth',3,'Type','scatter'));
 
-if strcmp(axes_handle.Visible,'off')
+if strcmp(axes_handle.Visible,'off') && ~isempty(axes_handle.Children)
     axes_handle.Visible = 'on';
 end
 

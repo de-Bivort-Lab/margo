@@ -51,6 +51,12 @@ expmt.parameters.dilate_element = [];
 t=clock;            % grab current time
 t=t(4:5);           % grab hrs and min only
 
+if ~isfield(expmt.parameters,'lights_ON')
+    expmt.parameters.lights_ON = [10 0];
+end
+if ~isfield(expmt.parameters,'lights_OFF')
+    expmt.parameters.lights_OFF = [22 0];
+end
 if expmt.parameters.lights_ON(1)<=t(1) && expmt.parameters.lights_OFF(1)>=t(1)
     
     hour_match = expmt.parameters.lights_ON(1) == t(1);

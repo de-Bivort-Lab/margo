@@ -1,7 +1,8 @@
 function [expmt_out] = cam_settings_subgui(handles,expmt_in)
 
 % get device properties
-if ~isfield(expmt_in.camInfo,'vid')
+if ~isfield(expmt_in.camInfo,'vid') || ...
+        (isfield(expmt_in.camInfo,'vid') && ~isvalid(expmt_in.camInfo.vid))
     imaqreset;
     pause(0.1);
     vid = videoinput(expmt_in.camInfo.AdaptorName,expmt_in.camInfo.DeviceIDs{1},expmt_in.camInfo.ActiveMode{:});

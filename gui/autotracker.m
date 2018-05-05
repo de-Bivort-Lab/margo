@@ -1039,6 +1039,10 @@ elseif ~isfield(expmt,'ref')
 elseif ~isfield(expmt,'noise')
     errordlg('Please run noise sampling before starting tracking');
     handles.run_pushbutton.Enable = 'on';
+elseif any(strcmp(expmt.Name,handles.parameter_subgui)) &&...
+        (~isfield(expmt.parameters,'initialized') || ~expmt.parameters.initialized)
+    errordlg('Parameters for the selected experiment must be set before tracking');
+    handles.run_pushbutton.Enable = 'on';
 else
     
     try
@@ -1423,6 +1427,7 @@ else
                 tmp_param = optomotor_parameter_gui(expmt);
                 if ~isempty(tmp_param)
                     expmt = tmp_param;
+                    expmt.parameters.initialized = true;
                 end
 
              
@@ -1431,6 +1436,7 @@ else
                 tmp_param = slowphototaxis_parameter_gui(expmt);
                 if ~isempty(tmp_param)
                     expmt = tmp_param;
+                    expmt.parameters.initialized = true;
                 end
                 
         case 'Circadian'
@@ -1438,6 +1444,7 @@ else
                 tmp_param = circadian_parameter_subgui(expmt,handles);
                 if ~isempty(tmp_param)
                     expmt.parameters = tmp_param;
+                    expmt.parameters.initialized = true;
                 end
                 
         case 'Arena Blocks'
@@ -1446,6 +1453,7 @@ else
                 tmp_param = arenablock_parameter_gui(expmt);
                 if ~isempty(tmp_param)
                     expmt = tmp_param;
+                    expmt.parameters.initialized = true;
                  
                 
                     % also query optomotor and slowphototaxis parameters
@@ -1455,6 +1463,7 @@ else
                         tmp_param = optomotor_parameter_gui(expmt);
                         if ~isempty(tmp_param)
                             expmt.opto_parameters = tmp_param.parameters;
+                            expmt.parameters.initialized = true;
                         end  
                     end
 
@@ -1462,6 +1471,7 @@ else
                         tmp_param = slowphototaxis_parameter_gui(expmt);
                         if ~isempty(tmp_param)
                             expmt.photo_parameters = tmp_param.parameters;
+                            expmt.parameters.initialized = true;
                         end
                     end
                 
@@ -1472,8 +1482,11 @@ else
             tmp_param = slowphototaxis_parameter_gui(expmt);
             if ~isempty(tmp_param)
                 expmt = tmp_param;
+                expmt.parameters.initialized = true;
             end
     end
+    
+    
 end
 
 

@@ -88,13 +88,9 @@ while trackDat.ct < pixDistSize;
    
 end
 
-trackDat.t = 0;
-tic
-tPrev = toc;
-[trackDat] = autoTime(trackDat, expmt, gui_handles,1);
+updateTimeString(round(gui_handles.edit_exp_duration.Value * 3600), gui_handles.edit_time_remaining);
 drawnow limitrate
 gui_handles.gui_fig.UserData.target_rate = old_rate;
-
 gui_notify('noise sampling complete',gui_handles.disp_note);
 
 % Assign outputs
