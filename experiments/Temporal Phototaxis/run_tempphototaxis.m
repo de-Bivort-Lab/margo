@@ -52,45 +52,10 @@ trackDat.lastFrame = false;
 
 %% Initialize the psychtoolbox window and query projector properties
 bg_color=[0 0 0];          
-expmt.scrProp=initialize_projector(expmt.reg_params.screen_num,bg_color);
+expmt = initialize_projector(expmt, bg_color);
+Fx = expmt.projector.Fx;
+Fy = expmt.projector.Fy;
 pause(1);
-
-%% Load the projector fit
-
-gui_dir = which('autotracker');
-gui_dir = gui_dir(1:strfind(gui_dir,'\gui\'));
-fName = 'projector_fit.mat';
-
-if exist([gui_dir 'hardware\projector_fit\']) == 7
-    
-    load([gui_dir '\hardware\projector_fit\' fName]);
-    
-else
-    
-    errordlg(['Projector registration not detected. Register the projector to the '...
-        'camera before running experiments with projector dependency']);
-    
-end
-
-[cam_yPixels,cam_xPixels]=size(expmt.ref);
-
-if cam_xPixels ~= reg_data.cam_xPixels || cam_yPixels ~= reg_data.cam_yPixels
-    
-    x_scale = cam_xPixels/reg_data.cam_xPixels;
-    y_scale = cam_yPixels/reg_data.cam_yPixels;
-    cam_x = reg_data.cam_xCoords*x_scale;
-    cam_y = reg_data.cam_yCoords*y_scale;
-    
-    % Create scattered interpolant for current camera resolution
-    expmt.projector.Fx=scatteredInterpolant(cam_x,cam_y,reg_data.proj_xCoords);
-    Fx = expmt.projector.Fx;
-    expmt.projector.Fy=scatteredInterpolant(cam_x,cam_y,reg_data.proj_yCoords);
-    Fy = expmt.projector.Fy;
-    
-else
-    Fx = reg_data.Fx;
-    Fy = reg_data.Fy;
-end
 
 %% Calculate ROI coords in the projector space and expand the edges by a small border to ensure ROI is fully covered
 

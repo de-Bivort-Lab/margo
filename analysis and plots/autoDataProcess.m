@@ -46,6 +46,9 @@ for i = 1:length(varargin)
             case 'Raw'
                 i=i+1;
                 options.raw = varargin{i};
+                if ~iscell(options.raw)
+                    option.raw = {options.raw};
+                end
             case 'Bootstrap'
                 i=i+1;
                 options.bootstrap = varargin{i};

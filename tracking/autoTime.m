@@ -12,7 +12,7 @@ function [trackDat] = autoTime(trackDat, expmt, gui_handles, varargin)
             case 'Slow Phototaxis'
                 trackDat.lastFrame = (trackDat.t - expmt.block.t) > expmt.block.photo_duration * 60;
         end
-    else
+    elseif strcmp(expmt.source,'camera')
         trackDat.lastFrame = trackDat.t > gui_handles.edit_exp_duration.Value * 3600;
     end
     

@@ -1,4 +1,11 @@
-function scrProp=initialize_projector(screenNumber,background_color)
+function expmt = initialize_projector(expmt,varargin)
+
+screen_num = expmt.reg_params.screen_num;
+background_color = [0 0 0];
+if ~isempty(varargin)
+    background_color = varargin{1};
+end
+    
 
 % Clear the workspace
 sca;
@@ -7,39 +14,31 @@ sca;
 PsychDefaultSetup(2);
 Screen('Preference', 'SkipSyncTests', 1);
 
-% Seed the random number generator. Here we use the an older way to be
-% compatible with older systems. Newer syntax would be rng('shuffle'). Look
-% at the help function of rand "help rand" for more information
-rand('seed', sum(100 * clock));
-
-% Screen Number
-%screenNumber = max(Screen('Screens'));
 
 % Define black, white and grey
-white = WhiteIndex(screenNumber);
-grey = white / 2;
-black = BlackIndex(screenNumber);
+white = WhiteIndex(screen_num);
+black = BlackIndex(screen_num);
 
 % Open the screen
-[window, windowRect] = PsychImaging('OpenWindow', screenNumber, background_color);
+[window, windowRect] = PsychImaging('OpenWindow', screen_num, background_color);
 Screen('Flip', window);
 
-% Query the frame duration
+% Get inter frame interval
 ifi = Screen('GetFlipInterval', window);
 
-% Maximum priority level
-topPriorityLevel = MaxPriority(window);
+% Set maximum priority
+MaxPriority(window);
 
 % Get the centre coordinate of the window
 [xCenter, yCenter] = RectCenter(windowRect);
 
-% Perform initial flip to gray background and sync us to the retrace:
+% flip to background color and get retrace timestamp
 vbl = Screen('Flip', window);
 
 % Numer of frames to wait before re-drawing
 waitframes = 1;
 
-scrProp.screenNumber = screenNumber;
+scrProp.screenNumber = screen_num;
 scrProp.window = window;
 scrProp.windowRect = windowRect;
 scrProp.xCenter = xCenter;
@@ -49,3 +48,39 @@ scrProp.white = white;
 scrProp.vbl = vbl;
 scrProp.ifi=ifi;
 scrProp.waitframes = waitframes;
+expmt.scrProp = scrProp;
+
+%% Load the projector fit
+
+gui_dir = which('autotracker');
+gui_dir = gui_dir(1:strfind(gui_dir,'\gui\'));
+fName = 'projector_fit.mat';
+
+if exist([gui_dir 'hardware\projector_fit\']) == 7
+    
+    load([gui_dir '\hardware\projector_fit\' fName]);
+    
+else
+    
+    errordlg(['Projector registration not detected. Register the projector to the '...
+        'camera before running experiments with projector dependency']);
+    
+end
+
+[cam_yPixels,cam_xPixels]=size(expmt.ref);
+
+if cam_xPixels ~= reg_data.cam_xPixels || cam_yPixels ~= reg_data.cam_yPixels
+    
+    x_scale = cam_xPixels/reg_data.cam_xPixels;
+    y_scale = cam_yPixels/reg_data.cam_yPixels;
+    cam_x = reg_data.cam_xCoords*x_scale;
+    cam_y = reg_data.cam_yCoords*y_scale;
+    
+    % Create scattered interpolant for current camera resolution
+    expmt.projector.Fx=scatteredInterpolant(cam_x,cam_y,reg_data.proj_xCoords);
+    expmt.projector.Fy=scatteredInterpolant(cam_x,cam_y,reg_data.proj_yCoords);
+    
+else
+    expmt.projector.Fx = reg_data.Fx;
+    expmt.projector.Fy = reg_data.Fy;
+end
