@@ -12,8 +12,8 @@ nFrames = expmt.nFrames;
 if ~isempty(opt.raw)
     rawdir = [expmt.fdir 'raw_data/'];
     if ~exist(rawdir,'dir')
-        mkdir(rawdir);
-    end
+        rawdir
+    
     for i=1:length(opt.raw)
         % get new path
         path = [rawdir expmt.date opt.raw{i} '.bin'];

@@ -25,7 +25,7 @@ end
 [fDir] = autoDir;
 
 fPaths = getHiddenMatDir(fDir,'ext','.mat',keyarg{:});
-varargin = [varargin;{'Dir'};]
+varargin = [varargin,{'Dir'}];
 dir_idx = numel(varargin)+1;
 fDir=cell(size(fPaths));
 for j=1:length(fPaths)
