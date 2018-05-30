@@ -1994,7 +1994,7 @@ if strcmp(expmt.source,'video') && isfield(expmt,'video')
         expmt = autoROIs(handles,expmt);
         expmt.ROI.mode = 'auto';
 
-        if expmt.ROI.n > 0
+        if isfield(expmt.ROI,'n') && expmt.ROI.n > 0
         % Enable downstream UI controls
         handles.track_thresh_slider.Enable = 'on';
         handles.accept_track_thresh_pushbutton.Enable = 'on';
@@ -2560,33 +2560,12 @@ if isfield(expmt,'video')
         end
         im = uint8(zeros(vh,vw));
         handles.hImage = image(im,'Parent',handles.axes_handle);
-        handles.axes_handle.XTick = [];
-        handles.axes_handle.YTick = [];
-        handles.axes_handle.Position(3) = ...
-            handles.gui_fig.Position(3) - 5 - handles.axes_handle.Position(1);
-        aspectR = vh/vw;
-        plot_aspect = pbaspect;
-        fscale = aspectR/plot_aspect(2);
-
-        if fscale < 1
-            axes_height_old = handles.axes_handle.Position(4);
-            axes_height_new = axes_height_old*fscale;
-            handles.axes_handle.Position(4) = axes_height_new;
-            handles.axes_handle.Position(2) = handles.axes_handle.Position(2) + axes_height_old - axes_height_new;
-        else
-            aspectR = vw/vh;
-            plot_aspect = pbaspect;
-            plot_aspect = plot_aspect./plot_aspect(2);
-            fscale = aspectR/plot_aspect(1);
-            axes_width_old = handles.axes_handle.Position(3);
-            axes_width_new = axes_width_old*fscale;
-            handles.axes_handle.Position(3) = axes_width_new;
-            handles.gui_fig.Position(3) = ...
-                sum(handles.axes_handle.Position([1 3])) + 10;
-        end       
-        
+        gui_fig_SizeChangedFcn(handles.gui_fig,[],handles);
         handles.hImage.CDataMapping = 'scaled';
+        drawnow
+        
     end
+        
     
 
     

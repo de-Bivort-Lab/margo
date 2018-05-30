@@ -25,6 +25,7 @@ if gui_handles.stop_pushbutton.UserData.Value
             
             % set expmt function to return
             exit = true;
+            expmt.Finish = false;
             
             % delete master data struct
             delete([expmt.fdir expmt.fLabel '.mat']);

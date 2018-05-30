@@ -1,4 +1,4 @@
-function [trackDat] = autoDisplay(trackDat, expmt, im_handle, gui_handles)
+function [trackDat,expmt] = autoDisplay(trackDat, expmt, im_handle, gui_handles)
 
 % query the active display mode
 active_disp = gui_handles.display_menu.UserData;

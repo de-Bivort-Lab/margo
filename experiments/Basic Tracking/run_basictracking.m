@@ -66,7 +66,7 @@ while ~trackDat.lastFrame
     [trackDat, expmt] = autoReference(trackDat, expmt, gui_handles);  
 
     % set image data
-    trackDat = autoDisplay(trackDat, expmt, imh, gui_handles);
+    [trackDat, expmt] = autoDisplay(trackDat, expmt, imh, gui_handles);
     
 
 end
