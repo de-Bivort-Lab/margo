@@ -16,24 +16,19 @@ function [varargout]=bootstrap_speed_blocks(expmt,blocks,nReps)
 
 % restrict based on minimum activity
 nf = expmt.nTracks;
-active = expmt.Speed.avg>0.01;
+active = expmt.Speed.avg>expmt.Speed.thresh;
 speed = expmt.Speed.map.Data.raw(active,:);
 blocks = blocks(active);
-nBouts = cell2mat(cellfun(@size,blocks','UniformOutput',false));
+nBouts = cell2mat(cellfun(@size,blocks,'UniformOutput',false));
 nBouts = nBouts(:,1);
 blocks(nBouts==0) = [];
 nBouts(nBouts==0)=[];
 
 % get bout lengths
-bout_length = NaN(max(nBouts),nf);
-for i = 1:length(blocks)
-    tmp_idx = blocks{i};
-    bout_length(1:nBouts(i),i) = tmp_idx(:,2) - tmp_idx(:,1) +1;
-end
+bout_length = cellfun(@(x) diff(x,[],2)+1,blocks,'UniformOutput',false);
 
-
-avg = nanmean(bout_length(:));      % mean bout length
-target = expmt.nFrames*nf;             % target frame num
+avg = nanmean(cat(1,bout_length{:}));       % mean bout length
+target = expmt.nFrames*nf;                  % target frame num
 draw_sz = round(target/avg);
 
 bs_speeds = NaN(nReps,nf);
@@ -48,12 +43,13 @@ disp('may a take a while with if number of replications is > 1000')
 for j = 1:nReps
     
     % draw IDs
-    ids = randi([1 length(blocks)],draw_sz,1);
+    ids = randi([1 numel(blocks)],draw_sz,1);
     bouts = ceil(rand(size(ids)).*nBouts(ids));
+    frame_num = sum(arrayfun(@(x,y) bout_length{x}(y),ids, bouts));
     
     % get linear indices
-    lin_ind = sub2ind(size(bout_length),bouts,ids);
-    frame_num = sum(bout_length(lin_ind));
+    %lin_ind = sub2ind(size(bout_length),bouts,ids);
+    %frame_num = sum(bout_length(lin_ind));
     
     while frame_num < target
         
@@ -63,9 +59,9 @@ for j = 1:nReps
         % draw IDs
         tmp_ids = randi([1 length(blocks)],sz,1);
         tmp_bouts = ceil(rand(size(tmp_ids)).*nBouts(tmp_ids));
-        
-        new_ind = sub2ind(size(bout_length),tmp_bouts,tmp_ids);
-        frame_num = frame_num + sum(bout_length(new_ind));
+        frame_num = sum(arrayfun(@(x,y) bout_length{x}(y),tmp_ids, tmp_bouts));
+        %new_ind = sub2ind(size(bout_length),tmp_bouts,tmp_ids);
+        %frame_num = frame_num + sum(bout_length(new_ind));
         
         ids = [ids;tmp_ids];
         bouts = [bouts;tmp_bouts];
@@ -79,8 +75,9 @@ for j = 1:nReps
     for i=1:length(ids)
         k1=blocks{ids(i)}(bouts(i),1);
         k2=blocks{ids(i)}(bouts(i),2);
-        tmp_speed(ct+1:ct+bout_length(bouts(i),ids(i)))=speed(ids(i),k1:k2);
-        ct=ct+bout_length(bouts(i),ids(i));
+        tmp_speed(ct+1:ct+bout_length{ids(i)}(bouts(i)))=speed(ids(i),k1:k2);
+        %tmp_speed(ct+1:ct+bout_length(bouts(i),ids(i)))=speed(ids(i),k1:k2);
+        ct=ct+bout_length{ids(i)}(bouts(i));
     end
     
     tmp_speed(target+1:end)=[];
@@ -102,18 +99,10 @@ end
 
 %%
 
-bs.obs = log(nanmean(expmt.Speed.map.Data.raw,2));
+bs.obs = log(nanmean(expmt.Speed.map.Data.raw,3));
 bs.include = active;
 bs.sim = log(bs_speeds);
 
-% create histogram of occupancy scores
-binmin=min(bs.sim(:));
-binmax=max(bs.sim(:));
-w = binmax - binmin;
-plt_res = w/(10^floor(log10(nf)));
-bs.bins = binmin:plt_res:binmax;
-c = histc(bs.sim,bs.bins) ./ repmat(sum(histc(bs.sim,bs.bins)),numel(bs.bins),1);
-[bs.avg,~,bs.ci95,~] = normfit(c');
 
 %% generate plots
 
@@ -123,24 +112,30 @@ hold on
 range = [min([bs.sim(:);bs.obs(:)]) max([bs.sim(:);bs.obs(:)])];
 range(1) = floor(range(1));
 range(2) = ceil(range(2));
+[bs_kde,x1] = ksdensity(bs.sim(:),linspace(range(1),range(2),1000));
+bs_kde = bs_kde./sum(bs_kde);
 
 % plot bootstrapped trace
-plot(bs.bins,bs.avg,'b','LineWidth',2);
+plot(x1,bs_kde,'Color',[0 .45 .55],'LineWidth',2);
 
-datbins = linspace(min(bs.obs(:)),max(bs.obs(:)),length(bs.bins));
-% plot observed data
-c = histc(bs.obs,datbins) ./ sum(sum(histc(bs.obs,datbins)));
-c = [0 c' 0];
-datbins = [range(1) datbins range(2)];
-plot(datbins,c,'r','LineWidth',2);
-set(gca,'XLim',range,'YLim',[0 max(bs.avg)]);
-legend({['bootstrapped (nReps = ' num2str(nReps) ')'];'observed'});
-title(['speed histogram (obs v. bootstrapped)']);
+% plot observed trace
+[obs_kde,x2] = ksdensity(bs.obs(:),linspace(range(1),range(2),1000));
+obs_kde = obs_kde./sum(obs_kde);
+plot(x2,obs_kde,'Color',[.85 0 .75],'LineWidth',2);
+set(gca,'XLim',range,'YLim',[0 max(bs_kde)*1.1]);
+xlabel('log(speed)');
+legend({['bootstrapped (nReps = ' num2str(nReps) ')'];'observed'},...
+            'Location','NorthWest');
+title(['speed (obs v. bootstrapped)']);
 
-% add confidence interval patch
-vx = [bs.bins fliplr(bs.bins)];
-vy = [bs.ci95(1,:) fliplr(bs.ci95(2,:))];
-ph = patch(vx,vy,[0 0.9 0.9],'FaceAlpha',0.3);
+% add bs and obs patch
+vx = [x1 x1(1)];
+vy = [bs_kde bs_kde(1)];
+ph = patch(vx,vy,[0 0.75 0.85],'FaceAlpha',0.3);
+uistack(ph,'bottom');
+vx = [x2 x2(1)];
+vy = [obs_kde obs_kde(1)];
+ph = patch(vx,vy,[.85  0 .75],'FaceAlpha',0.3);
 uistack(ph,'bottom');
 
 for i=1:nargout

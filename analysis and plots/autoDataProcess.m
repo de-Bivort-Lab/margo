@@ -147,10 +147,13 @@ if isfield(expmt,'Speed') && isfield(expmt.Speed,'map') ...
     end
     
     % chunk speed data into individual movement bouts
-    block_indices = blockActivity(expmt.Speed.map.Data.raw);
+    [block_indices, lag_thresh, speed_thresh] = blockActivity(expmt.Speed.map);
+    expmt.Speed.thresh = speed_thresh;
+    expmt.Speed.bouts.thresh = lag_thresh;
+    expmt.Speed.bouts.idx = block_indices;
     
     % bootstrap resample speed data to generate null distribution
-    [expmt.Speed.bs,f]=bootstrap_speed_blocks(expmt,block_indices,100);
+    [expmt.Speed.bs,f] = bootstrap_speed_blocks(expmt,block_indices,100);
     
     % save bootstrap figure to file
     fname = [expmt.figdir expmt.date '_bs_logspeed'];

@@ -98,6 +98,7 @@ for i = 1:length(opt.raw)
     fclose(expmt.(f).fID);
     prcn = expmt.(f).precision;
     dim = expmt.(f).dim;
+    dim = [dim expmt.nFrames];
     expmt.(f).map = memmapfile(expmt.(f).path, 'Format',{prcn,dim,'raw'});
 end
 

@@ -1994,14 +1994,14 @@ if strcmp(expmt.source,'video') && isfield(expmt,'video')
         expmt = autoROIs(handles,expmt);
         expmt.ROI.mode = 'auto';
 
-        if isfield(expmt.ROI,'n') && expmt.ROI.n > 0
-        % Enable downstream UI controls
-        handles.track_thresh_slider.Enable = 'on';
-        handles.accept_track_thresh_pushbutton.Enable = 'on';
-        handles.reference_pushbutton.Enable = 'on';
-        handles.track_thresh_label.Enable = 'on';
-        handles.disp_track_thresh.Enable = 'on';
-        handles.man_edit_roi_menu.Enable = 'on';
+        if isfield(expmt.ROI,'centers') && size(expmt.ROI.centers,1) > 0
+            % Enable downstream UI controls
+            handles.track_thresh_slider.Enable = 'on';
+            handles.accept_track_thresh_pushbutton.Enable = 'on';
+            handles.reference_pushbutton.Enable = 'on';
+            handles.track_thresh_label.Enable = 'on';
+            handles.disp_track_thresh.Enable = 'on';
+            handles.man_edit_roi_menu.Enable = 'on';
         end
 
     
@@ -2010,13 +2010,15 @@ if strcmp(expmt.source,'video') && isfield(expmt,'video')
         expmt = gridROIs(handles,expmt);
         expmt.ROI.mode = 'grid';
         
-        % Enable downstream ui controls
-        handles.track_thresh_slider.Enable = 'on';
-        handles.accept_track_thresh_pushbutton.Enable = 'on';
-        handles.reference_pushbutton.Enable = 'on';
-        handles.track_thresh_label.Enable = 'on';
-        handles.disp_track_thresh.Enable = 'on';
-        handles.man_edit_roi_menu.Enable = 'on';
+        if isfield(expmt.ROI,'centers') && size(expmt.ROI.centers,1) > 0
+            % Enable downstream ui controls
+            handles.track_thresh_slider.Enable = 'on';
+            handles.accept_track_thresh_pushbutton.Enable = 'on';
+            handles.reference_pushbutton.Enable = 'on';
+            handles.track_thresh_label.Enable = 'on';
+            handles.disp_track_thresh.Enable = 'on';
+            handles.man_edit_roi_menu.Enable = 'on';
+        end
 
             
     end
@@ -2942,6 +2944,10 @@ end
 
 if isfield(expmt.camInfo,'src')
     expmt.camInfo = rmfield(expmt.camInfo,'src');
+end
+
+if isfield(expmt,'video')
+    expmt = rmfield(expmt,'video');
 end
 
 % set profile save path

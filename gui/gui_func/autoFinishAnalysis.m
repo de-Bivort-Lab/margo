@@ -9,6 +9,8 @@ if isfield(expmt.camInfo,'vid')
     expmt.camInfo = rmfield(expmt.camInfo,'vid');
 end
 
+expmt = orderfields(expmt);
+
 % re-save updated expmt data struct to file
 if options.save
     save([expmt.fdir expmt.fLabel '.mat'],'expmt','-v7.3');
