@@ -20,7 +20,7 @@ function [varargout] = blockActivity(s_map)
 s = s_map.Data.raw;
 s = s';
 [ac] = autocorr(s(:),250);
-lag_thresh = find(diff(ac)>-0.01,1) + 1;
+lag_thresh = find(diff(ac)>-0.001,1) + 1;
 
 % median filter data by lag_thresh/2 to discretize bouts
 if (lag_thresh>1)
@@ -76,7 +76,7 @@ function idx = filterShortBouts(starts,stops,duration)
     if ~isempty(starts) && ~isempty(stops)
         bout_length = abs(starts{:}-stops{:});
         long_bout = bout_length > duration;
-        idx = [starts{:}(long_bout)' stops{:}(long_bout)'];
+        idx = [starts{:}(long_bout) stops{:}(long_bout)];
 
         if size(idx,1)>1
             % ensure that lower index comes first
@@ -87,7 +87,7 @@ function idx = filterShortBouts(starts,stops,duration)
             idx = [idx;[idx(1:length(idx)-1,2) idx(2:end,1)]];
 
             bout_length = idx(:,2)-idx(:,1);
-            idx(bout_length<duration,:)=[];
+            idx(bout_length<30,:)=[];
         end
     else
         idx = [];

@@ -27,7 +27,7 @@ if ~isempty(opt.raw)
         % intialize new raw file
         expmt.(opt.raw{i}).fID = fopen(path,'a');
         expmt.(opt.raw{i}).precision = 'single';
-        expmt.(opt.raw{i}).dim = [expmt.nTracks 1];
+        expmt.(opt.raw{i}).dim = [expmt.nTracks];
         expmt.(opt.raw{i}).path = path;
     end
 end

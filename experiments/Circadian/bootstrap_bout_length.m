@@ -1,4 +1,4 @@
-function bootstrap_bout_length(bout_length)
+function bs = bootstrap_bout_length(bout_length, nReps, ifi)
 
 avg_bout = cellfun(@nanmean,bout_length);
 nBouts = cellfun(@numel,bout_length,'UniformOutput',false);
@@ -9,8 +9,6 @@ bs.include = nBouts<2;
 nBouts(nBouts<2)=[];
 na = numel(nBouts);
 
-
-nReps = 10;
 bs.sim = NaN(nReps,nf);
 
 % create waitbar object
@@ -40,10 +38,10 @@ if ishghandle(h)
     close(h);
 end
 
-%%
+%% convert bout length (frames) to bout length (sec)
 
-bs.obs = log(avg_bout);
-bs.sim = log(bs.sim);
+bs.obs = log(avg_bout .* ifi);
+bs.sim = log(bs.sim .* ifi);
 
 
 %% generate plots
@@ -71,12 +69,12 @@ legend({['bootstrapped (nReps = ' num2str(nReps) ')'];'observed'},...
 title(['bout lengths (obs v. bootstrapped)']);
 
 % add bs and obs patch
-vx = [x1 x1(1)];
-vy = [bs_kde bs_kde(1)];
+vx = [x1 x1(end) 0 x1(1)];
+vy = [bs_kde 0  0 bs_kde(1)];
 ph = patch(vx,vy,[0 0 0.85],'FaceAlpha',0.3);
 uistack(ph,'bottom');
-vx = [x2 x2(1)];
-vy = [obs_kde obs_kde(1)];
+vx = [x2 x2(end) 0 x2(1)];
+vy = [obs_kde 0 0 obs_kde(1)];
 ph = patch(vx,vy,[.85  0 0],'FaceAlpha',0.3);
 uistack(ph,'bottom');
     

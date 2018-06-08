@@ -59,8 +59,8 @@ handles.trace_fig.UserData.expmt = expmt;
 mem = p.PhysicalMemory.Available;
 n = mem/(8*expmt.nFrames*2*6) * expmt.nFrames * 0.1;
 if expmt.nFrames > n
+    frame_rate = median(expmt.Time.map.Data.raw);
     handles.trace_fig.UserData.idx = 1:round(frame_rate):expmt.nFrames;
-    frame_rate = 1/nanmedian(expmt.Time.map.Data.raw(handles.trace_fig.UserData.idx))/5;
     if numel(handles.trace_fig.UserData.idx) > n
         handles.trace_fig.UserData.idx = floor(linspace(1,expmt.nFrames,n));
     end
@@ -173,8 +173,8 @@ ah = handles.(['pos_axes' num2str(plot_num)]);
 lh = findobj(ah.Children,'Type','Line','-depth',1);
 expmt = handles.trace_fig.UserData.expmt;
 ii = handles.trace_fig.UserData.idx;
-x = squeeze(medfilt1(expmt.Centroid.map.Data.raw(idx,1,ii),7));
-y = squeeze(medfilt1(expmt.Centroid.map.Data.raw(idx,2,ii),7));
+x = squeeze(expmt.Centroid.map.Data.raw(idx,1,ii));
+y = squeeze(expmt.Centroid.map.Data.raw(idx,2,ii));
 handles.(['roi_num_slider' num2str(plot_num)]).Value = idx;
 handles.(['edit_ROI_num' num2str(plot_num)]).String = num2str(idx);
 

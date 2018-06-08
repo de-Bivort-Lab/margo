@@ -47,10 +47,7 @@ for j = 1:nReps
     bouts = ceil(rand(size(ids)).*nBouts(ids));
     frame_num = sum(arrayfun(@(x,y) bout_length{x}(y),ids, bouts));
     
-    % get linear indices
-    %lin_ind = sub2ind(size(bout_length),bouts,ids);
-    %frame_num = sum(bout_length(lin_ind));
-    
+    % get linear indices 
     while frame_num < target
         
         d = target-frame_num;
@@ -60,8 +57,6 @@ for j = 1:nReps
         tmp_ids = randi([1 length(blocks)],sz,1);
         tmp_bouts = ceil(rand(size(tmp_ids)).*nBouts(tmp_ids));
         frame_num = sum(arrayfun(@(x,y) bout_length{x}(y),tmp_ids, tmp_bouts));
-        %new_ind = sub2ind(size(bout_length),tmp_bouts,tmp_ids);
-        %frame_num = frame_num + sum(bout_length(new_ind));
         
         ids = [ids;tmp_ids];
         bouts = [bouts;tmp_bouts];
@@ -76,7 +71,6 @@ for j = 1:nReps
         k1=blocks{ids(i)}(bouts(i),1);
         k2=blocks{ids(i)}(bouts(i),2);
         tmp_speed(ct+1:ct+bout_length{ids(i)}(bouts(i)))=speed(ids(i),k1:k2);
-        %tmp_speed(ct+1:ct+bout_length(bouts(i),ids(i)))=speed(ids(i),k1:k2);
         ct=ct+bout_length{ids(i)}(bouts(i));
     end
     
@@ -109,7 +103,8 @@ bs.sim = log(bs_speeds);
 f=figure();
 hold on
 
-range = [min([bs.sim(:);bs.obs(:)]) max([bs.sim(:);bs.obs(:)])];
+range = [min([bs.sim(~isinf(bs.sim));bs.obs(~isinf(bs.obs))]) ...
+        max([bs.sim(~isinf(bs.sim));bs.obs(~isinf(bs.obs))])];
 range(1) = floor(range(1));
 range(2) = ceil(range(2));
 [bs_kde,x1] = ksdensity(bs.sim(:),linspace(range(1),range(2),1000));
@@ -126,15 +121,15 @@ set(gca,'XLim',range,'YLim',[0 max(bs_kde)*1.1]);
 xlabel('log(speed)');
 legend({['bootstrapped (nReps = ' num2str(nReps) ')'];'observed'},...
             'Location','NorthWest');
-title(['speed (obs v. bootstrapped)']);
+title('speed (obs v. bootstrapped)');
 
 % add bs and obs patch
-vx = [x1 x1(1)];
-vy = [bs_kde bs_kde(1)];
+vx = [x1 x1(end) x1(1)];
+vy = [bs_kde 0 bs_kde(1)];
 ph = patch(vx,vy,[0 0.75 0.85],'FaceAlpha',0.3);
 uistack(ph,'bottom');
-vx = [x2 x2(1)];
-vy = [obs_kde obs_kde(1)];
+vx = [x2 x2(end) x2(1)];
+vy = [obs_kde 0 obs_kde(1)];
 ph = patch(vx,vy,[.85  0 .75],'FaceAlpha',0.3);
 uistack(ph,'bottom');
 
