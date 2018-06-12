@@ -1,7 +1,7 @@
 function [trackDat, expmt] = autoReference(trackDat,expmt,gui_handles)
 
     % if num pixels above thresh exceeds nine stdev
-    reset = mean(trackDat.px_dev) > 8;
+    reset = mean(trackDat.px_dev) > 7;
 
     % If noise is above threshold: reset reference stack,
     if reset

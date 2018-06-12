@@ -93,6 +93,9 @@ while stop~=1
             % approximate light source as guassian to smooth vignetting
             % for more even illumination and better ROI detection
              
+            if update_vignetting 
+                expmt.vignette.im = filterVignetting(trackDat.im,ROI_coords(end,:));
+            end
             if isfield(expmt.vignette,'im')
                 trackDat.im = trackDat.im - expmt.vignette.im;
             elseif ~exist('gauss','var')
@@ -101,8 +104,7 @@ while stop~=1
                 trackDat.im=(uint8(double(trackDat.im).*gauss));
                 gui_handles.ROI_thresh_slider.Value = ...
                     floor(graythresh(trackDat.im)*255);
-                feval(gui_handles.ROI_thresh_slider.Callback,...
-                    gui_handles.ROI_thresh_slider,[]);
+                feval(ROI_thresh_slider_Callback);
                 ROI_thresh = gui_handles.ROI_thresh_slider.Value;
             end
             
@@ -111,6 +113,8 @@ while stop~=1
     
     % Extract ROIs from thresholded image
     [ROI_bounds,ROI_coords,~,~,binaryimage] = detect_ROIs(trackDat.im,ROI_thresh);
+    update_vignetting = nROIs ~= size(ROI_coords,1) & size(ROI_coords,1) > 0;
+    
 
     % Calculate coords of ROI centers
     [xCenters,yCenters]=ROIcenters(binaryimage,ROI_coords);
