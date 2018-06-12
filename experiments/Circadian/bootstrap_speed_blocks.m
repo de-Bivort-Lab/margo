@@ -93,7 +93,8 @@ end
 
 %%
 
-bs.obs = log(nanmean(expmt.Speed.map.Data.raw,3));
+dim = find(size(expmt.Speed.map.Data.raw) == expmt.nFrames);
+bs.obs = log(nanmean(expmt.Speed.map.Data.raw,dim));
 bs.include = active;
 bs.sim = log(bs_speeds);
 
@@ -103,10 +104,13 @@ bs.sim = log(bs_speeds);
 f=figure();
 hold on
 
+% get range for density estimation
 range = [min([bs.sim(~isinf(bs.sim));bs.obs(~isinf(bs.obs))]) ...
         max([bs.sim(~isinf(bs.sim));bs.obs(~isinf(bs.obs))])];
 range(1) = floor(range(1));
 range(2) = ceil(range(2));
+
+
 [bs_kde,x1] = ksdensity(bs.sim(:),linspace(range(1),range(2),1000));
 bs_kde = bs_kde./sum(bs_kde);
 

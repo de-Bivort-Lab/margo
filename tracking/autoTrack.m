@@ -77,6 +77,9 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
         end
             
         % get region properties
+        if any(numel(thresh_im)~=numel(trackDat.im))
+            disp('break');
+        end
         props=regionprops(thresh_im,trackDat.im, in_fields);
         trackDat.thresh_im = thresh_im;
 
