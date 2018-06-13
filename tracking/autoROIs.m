@@ -8,7 +8,7 @@ function [expmt]=autoROIs(gui_handles, expmt)
 % Inputs
 
 clearvars -except gui_handles expmt
-colormap('gray')
+colormap('gray');
 
 gui_notify('running ROI detection',gui_handles.disp_note);
 gui_handles.auto_detect_ROIs_pushbutton.Enable = 'off';
