@@ -2897,11 +2897,14 @@ if vid
     thresh = graythresh(im(roi(2):roi(4),roi(1):roi(3)));
     tmpim = double(im);
     tmpim(tmpim<thresh*255) = NaN;
-    expmt.vignette.im =filterVignetting(tmpim,roi);
+    expmt.vignette.im =filterVignetting(expmt,roi,tmpim);
+    expmt.vignette.im = uint8(expmt.vignette.im);
     expmt.vignette.mode = 'manual';
     
     imh.CData = im - expmt.vignette.im;
-    imh.CDataMapping = 'direct';
+    imh.CDataMapping = 'scaled';
+    handles.axes_handle.CLim = [0 255];
+    gui_notify('previewing vignette correction image',handles.disp_note);
     text(handles.axes_handle.XLim(2)*0.01,handles.axes_handle.YLim(2)*0.01,...
         'Vignette Correction Preview','Color',[1 0 0]);
     drawnow limitrate

@@ -178,6 +178,9 @@ trackDat.tPrev = toc;
 autoTime(trackDat, expmt, gui_handles);
 expmt.ref = trackDat.ref;
 
+
+expmt.vignette.im = filterVignetting(expmt);
+
 % Reset accept reference button
 set(gui_handles.accept_track_thresh_pushbutton,'value',0);
 

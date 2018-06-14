@@ -1,4 +1,4 @@
-function vignetteMat=filterVignetting(refImage,dimROI)
+function vignetteMat=filterVignetting(expmt,varargin)
 
 % Normalize the intensity of all the mazes to the maximum intensity
 % of the dimmest ROI. Using that intensity value, this function generates
@@ -6,10 +6,72 @@ function vignetteMat=filterVignetting(refImage,dimROI)
 % dramatically improves the ability to apply a single threshold value to
 % the image when detecting ROIs or tracking objects
 
-dimROI = round(dimROI);
-tmpIm=refImage(dimROI(2):dimROI(4),dimROI(1):dimROI(3));    % Reference image for the dimROI
-lumOffset=nanmedian(nanmedian(tmpIm));                            % Find max intensity inside the ROI
-refImage = uint8(refImage);
+% assign default values
+roi_coords = [];
+ref_im = [];
+if isfield(expmt,'ref') && isfield(expmt.ref,'im')
+    ref_im = expmt.ref.im;
+end
+
+% parse variable inputs
+for i=1:length(varargin)
+    switch i
+        case 1
+            roi_coords = varargin{1};
+        case 2
+            ref_im = varargin{2};
+    end
+end
+
+if isempty(ref_im)
+    error('no image input for vignette correction');
+end
+
+% find dimmest ROI if no coords are specified
+if isempty(roi_coords)
+    
+    switch expmt.ROI.mode
+        case 'auto'
+            sub_ims = cellfun(@(x) expmt.ref.im(x),...
+                            expmt.ROI.pixIdx,'UniformOutput',false);  
+            sub_masks = cellfun(@(x) expmt.ROI.im(x),...
+                            expmt.ROI.pixIdx,'UniformOutput',false);           
+            med_intensities = cellfun(@(x,y) median(x(y)),sub_ims, sub_masks,...
+                                'UniformOutput',false); 
+            [~,dim_roi] = min(cat(1,med_intensities{:}));
+        case 'grid'
+            sub_ims = cellfun(@(x) expmt.ref.im(x),...
+                            expmt.ROI.pixIdx,'UniformOutput',false);          
+            mean_intensities = cellfun(@mean,sub_ims); 
+            [~,dim_roi] = min(mean_intensities);
+    end
+    
+    roi_coords = expmt.ROI.corners(dim_roi,:);
+end
+
+if isempty(roi_coords)
+    error('roi coordinates are empty');
+end
+
+% extract roi image and find luminance threshold
+roi_coords = round(roi_coords);
+sub_im=ref_im(roi_coords(2):roi_coords(4),roi_coords(1):roi_coords(3));
+switch expmt.ROI.mode
+    
+    case 'auto'
+        if isfield(expmt.ROI,'im')
+            roi_sub = expmt.ROI.im(roi_coords(2):roi_coords(4),...
+                                    roi_coords(1):roi_coords(3));
+            lumOffset = nanmedian(sub_im(roi_sub));
+        else
+            lumOffset = nanmedian(sub_im(:));
+        end
+        
+    case 'grid'
+        lum_mu = nanmean(sub_im(:));
+        lum_std = nanstd(double(sub_im(:)));
+        lumOffset = lum_mu + lum_std;
+end
 
 % Create subtraction matrix which is everything above the maximum intensity
-vignetteMat=refImage-lumOffset;      
+vignetteMat=ref_im-lumOffset;      

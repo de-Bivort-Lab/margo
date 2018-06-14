@@ -241,7 +241,7 @@ end
 
 % create a vignette correction image if mode is set to auto
 if strcmp(expmt.vignette.mode,'auto') && ~isempty(ROI_coords)
-    expmt.vignette.im = filterVignetting(trackDat.im,ROI_coords(end,:));
+    expmt.vignette.im = filterVignetting(expmt,ROI_coords(end,:),trackDat.im);
 end
 
 % set sort mode to bounds

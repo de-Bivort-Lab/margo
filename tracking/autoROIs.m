@@ -47,6 +47,7 @@ if isempty(imh)
 elseif strcmp(imh.CDataMapping,'direct')
    imh.CDataMapping = 'scaled';
 end
+gui_handles.axes_handle.CLim = [0 1];
 
 
 gui_handles.accept_ROI_thresh_pushbutton.Value = 0;
@@ -124,7 +125,7 @@ while stop~=1
     mazeOri = getMazeOrientation(binaryimage,ROI_coords);
     
     % Display ROIs
-    imh.CData = binaryimage;    
+    imh.CData = binaryimage;
     hPatch = displayROIs(hPatch,ROI_coords);
     
     if nROIs > size(ROI_coords,1)
@@ -144,6 +145,8 @@ while stop~=1
     % Report frames per sec to GUI
     set(gui_handles.edit_frame_rate,'String',num2str(round(1/toc)));
     drawnow limitrate
+    
+    expmt.ROI.im = binaryimage;                 % store ROI binary image
 
 end
 
@@ -156,7 +159,7 @@ set(gui_handles.accept_ROI_thresh_pushbutton,'value',0);
 
 % create a vignette correction image if mode is set to auto
 if strcmp(expmt.vignette.mode,'auto') && ~isempty(ROI_coords)
-    expmt.vignette.im = filterVignetting(trackDat.im,ROI_coords(end,:));
+    expmt.vignette.im = filterVignetting(expmt,ROI_coords(end,:),trackDat.im);
 end
 
 % assign outputs
