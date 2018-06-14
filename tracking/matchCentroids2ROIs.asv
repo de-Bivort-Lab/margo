@@ -157,11 +157,14 @@ update_centroid = false(size(trackDat.Centroid,1),1);
                      autoAssignROI(x,expmt.ROI.corners),...
                      num2cell(raw_cen,2),'UniformOutput',false);
             end
+
+
              
              % remove centroids out of bounds of any ROI
              filt = cellfun(@isempty,ROI_num);
              raw_cen(filt,:)=[];
-             ROI_num(filt)=[];            
+             ROI_num(filt)=[];
+             
              
              % check for centroids with more than one ROI assigned
              dupROIs = cellfun(@length,ROI_num)>1;
@@ -175,7 +178,7 @@ update_centroid = false(size(trackDat.Centroid,1),1);
               
              % find ROIs with more than one centroid assignment
              ROI_num = cat(2,ROI_num{:});    
-             hasDupCen = find(histc(ROI_num,1:expmt.ROI.n)>1);
+             hasDupCen = find(histc(ROI_num,1:length(expmt.ROI.row))>1);
              if ~isempty(hasDupCen)
                 dupCenIdx = arrayfun(@(x) find(ismember(ROI_num,x)),...
                     hasDupCen,'UniformOutput',false);
@@ -187,7 +190,7 @@ update_centroid = false(size(trackDat.Centroid,1),1);
              
              % assign outputs for sorting data
              [~,sorting_permutation] = sort(ROI_num);
-             update_centroid = ismember(1:expmt.ROI.n,ROI_num);
+             update_centroid = ismember(1:length(expmt.ROI.row),ROI_num);
            
         end
 
@@ -234,7 +237,7 @@ function ROI_num = gridAssignROI(cen,gv,shape,tf)
 end
 
 
-function ROI_num = autoAssignROI(cen,b)
+function roi_num = autoAssignROI(cen,b)
 
     % get the bounds for each ROI at
     % current x and y position
@@ -246,6 +249,7 @@ function ROI_num = autoAssignROI(cen,b)
     % identify matching ROI, if any
     in_bounds = xL & xR & yT & yB;
     ROI_num = find(in_bounds);   
+
 
 end
 
