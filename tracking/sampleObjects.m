@@ -9,9 +9,6 @@ function [expmt] = sampleObjects(gui_handles, expmt)
 
 gui_notify('sampling imaging noise',gui_handles.disp_note);
 
-gui_fig = gui_handles.gui_fig;
-imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');   % image handle
-
 colormap('gray');
 set(gui_handles.display_menu.Children,'Enable','on');
 set(gui_handles.display_menu.Children,'Checked','off');
@@ -21,7 +18,7 @@ gui_handles.display_menu.UserData = 3;
 
 %% Sampling Parameters
 
-n = 10000;
+n = 50000;
 sample_window = ceil(expmt.ref.thresh);
 sample_obj = cell(n,1);
 sample_bg = cell(n,1);
@@ -67,7 +64,7 @@ while sample_ct < n;
     % track objects and sort to ROIs
     [trackDat] = autoTrack(trackDat,expmt,gui_handles);
     
-    if trackDat.ct==1
+    if ~exist('area_thresh','var') || isnan(area_thresh)
         area_thresh = nanmedian(trackDat.Area);
     end
     

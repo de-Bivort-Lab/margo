@@ -120,9 +120,7 @@ while trackDat.t < expmt.parameters.duration*3600 &&...
                     (trackDat.im - expmt.vignette.im);
         tmp_thresh = floor(graythresh(diffim)*255);
         gui_handles.track_thresh_slider.Value = tmp_thresh;
-        feval(gui_handles.track_thresh_slider.Callback,...
-            gui_handles.track_thresh_slider,[]);
-    end
+        fe
 
     % track objects and sort to ROIs
     [trackDat] = autoTrack(trackDat,expmt,gui_handles);
