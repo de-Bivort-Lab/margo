@@ -11,6 +11,9 @@ switch active_disp
         if strcmp(im_handle.CDataMapping,'direct')
             im_handle.CDataMapping = 'scaled';
         end
+        if any(gui_handles.axes_handle.CLim ~= [0 255])
+            gui_handles.axes_handle.CLim = [0 255];
+        end
 
     % difference image
     case 2
@@ -19,6 +22,9 @@ switch active_disp
             (trackDat.ref.im-expmt.vignette.im)-(trackDat.im-expmt.vignette.im);
             if strcmp(im_handle.CDataMapping,'scaled')
                 im_handle.CDataMapping = 'direct';
+            end
+            if any(gui_handles.axes_handle.CLim ~= [0 255])
+                gui_handles.axes_handle.CLim = [0 255];
             end
         else
             gui_handles.display_menu.UserData = 1;
@@ -33,6 +39,9 @@ switch active_disp
             im_handle.CData = trackDat.thresh_im;
             if strcmp(im_handle.CDataMapping,'direct')
                 im_handle.CDataMapping = 'scaled';
+            end
+            if any(gui_handles.axes_handle.CLim ~= [0 1])
+                gui_handles.axes_handle.CLim = [0 1];
             end
         else
             gui_handles.display_menu.UserData = 1;
@@ -53,6 +62,9 @@ switch active_disp
             gui_handles.display_menu.Children(5).Checked= 'on';
             gui_handles.display_menu.Children(2).Checked= 'off';
             gui_handles.display_menu.Children(2).Enable = 'off';
+        end
+        if any(gui_handles.axes_handle.CLim ~= [0 255])
+            gui_handles.axes_handle.CLim = [0 255];
         end
 end
 

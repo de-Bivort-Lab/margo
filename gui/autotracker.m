@@ -1996,8 +1996,8 @@ if strcmp(expmt.source,'video') && isfield(expmt,'video')
         case 'auto'
     
         % run automatic ROI detections
-        expmt = autoROIs(handles,expmt);
         expmt.ROI.mode = 'auto';
+        expmt = autoROIs(handles,expmt);
 
         if isfield(expmt.ROI,'centers') && size(expmt.ROI.centers,1) > 0
             % Enable downstream UI controls
@@ -2012,8 +2012,9 @@ if strcmp(expmt.source,'video') && isfield(expmt,'video')
     
         case 'grid'
             
-        expmt = gridROIs(handles,expmt);
         expmt.ROI.mode = 'grid';
+        expmt = gridROIs(handles,expmt);
+
         
         if isfield(expmt.ROI,'centers') && size(expmt.ROI.centers,1) > 0
             % Enable downstream ui controls

@@ -44,6 +44,7 @@ if isempty(imh)
 elseif strcmp(imh.CDataMapping,'direct')
    imh.CDataMapping = 'scaled';
 end
+gui_handles.axes_handle.CLim = [0 255];
 
 % reset accept ROI pushbutton if necessary
 gui_handles.accept_ROI_thresh_pushbutton.Value = 0;
