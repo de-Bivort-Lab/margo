@@ -1,4 +1,4 @@
-function [expmt] = sampleNoise(gui_handles, expmt)
+function [expmt] = sampleObjects(gui_handles, expmt)
 % 
 % Samples the background noise distribution prior to imaging for the
 % purpose of determining when to force reset background reference images.
@@ -9,9 +9,6 @@ function [expmt] = sampleNoise(gui_handles, expmt)
 
 gui_notify('sampling imaging noise',gui_handles.disp_note);
 
-gui_fig = gui_handles.gui_fig;
-imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');   % image handle
-
 colormap('gray');
 set(gui_handles.display_menu.Children,'Enable','on');
 set(gui_handles.display_menu.Children,'Checked','off');
@@ -21,9 +18,11 @@ gui_handles.display_menu.UserData = 3;
 
 %% Sampling Parameters
 
-pixDistSize=100;                            % Num values to record in p
-pixelDist=NaN(pixDistSize,1);               % Distribution of total number of pixels above image threshold
-roiDist=NaN(pixDistSize,expmt.ROI.n);       % Distribution of total number of pixels above image threshold
+n = 50000;
+sample_window = ceil(expmt.ref.thresh);
+sample_obj = cell(n,1);
+sample_bg = cell(n,1);
+sample_ct = 0;
 
 % tracking vars
 trackDat.Centroid = expmt.ROI.centers;     % placeholder for most recent non-NaN centroids
@@ -53,29 +52,54 @@ trackDat.tPrev = toc;
 old_rate = gui_handles.gui_fig.UserData.target_rate;
 gui_handles.gui_fig.UserData.target_rate = 100;
 
-while trackDat.ct < pixDistSize;
+while sample_ct < n;
 
     % update time stamps and frame rate
     trackDat = autoTime(trackDat, expmt, gui_handles,1);
-    gui_handles.edit_time_remaining.String = num2str(pixDistSize - trackDat.ct);
+    gui_handles.edit_time_remaining.String = num2str(n - sample_ct);
 
     % query next frame and optionally correct lens distortion
     [trackDat,expmt] = autoFrame(trackDat,expmt,gui_handles);
 
     % track objects and sort to ROIs
     [trackDat] = autoTrack(trackDat,expmt,gui_handles);
+    
+    if ~exist('area_thresh','var') || isnan(area_thresh)
+        area_thresh = nanmedian(trackDat.Area);
+    end
+    
+    % identify objects with good separation from background
+    extract = trackDat.Area > area_thresh;
+    if any(extract)
+        [obj_ims, bg_ims] = ...
+            extractSamples(trackDat, expmt, extract, sample_window);
+        
+        if numel(obj_ims) + sample_ct > n
+            range = 1:n-sample_ct;
+        else
+            range = 1:numel(obj_ims);
+        end
+        sample_obj(sample_ct + range) = obj_ims(range);
+        sample_bg(sample_ct + range) = bg_ims(range);
+        sample_ct = sample_ct + range(end);
+        
+        sprintf('sample count:\t %i \t of \t %i\n',sample_ct,n)
+        
+    end
+    
 
     %Update display if display tracking is ON
     if gui_handles.display_menu.UserData ~= 5
 
-        % Draw last known centroid for each ROI and update ref. number indicator
-        hCirc.XData = trackDat.Centroid(:,1);
-        hCirc.YData = trackDat.Centroid(:,2);
-       
         % update the display
         autoDisplay(trackDat, expmt, imh, gui_handles);
 
+       % Draw last known centroid for each ROI and update ref. number indicator
+       hCirc.XData = trackDat.Centroid(:,1);
+       hCirc.YData = trackDat.Centroid(:,2);
+
     end
+    drawnow limitrate
 
 
    % Create distribution for num pixels above imageThresh
@@ -83,9 +107,6 @@ while trackDat.ct < pixDistSize;
    diffim = (trackDat.ref.im - expmt.vignette.im) - ...
        (trackDat.im - expmt.vignette.im);
    thresh_im = diffim(:) > gui_handles.track_thresh_slider.Value;
-   pixelDist(mod(trackDat.ct-1,pixDistSize)+1) = nansum(thresh_im);
-   roiDist(mod(trackDat.ct-1,pixDistSize)+1,:) = ...
-       cellfun(@(x) sum(thresh_im(x)),expmt.ROI.pixIdx);
    
 end
 

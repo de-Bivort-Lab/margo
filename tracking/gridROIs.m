@@ -59,7 +59,7 @@ if nGrids > 0 && ~isempty(hAdd.UserData.grid(1).polypos)
         ydat = hAdd.UserData.grid(i).YData;
         switch hAdd.UserData.grid(i).shape
             case 'Circular'
-                [hAdd.UserData.grid(i).tforms,circDat] = transformROI(xdat,ydat);
+                [hAdd.UserData.grid(i).tform,circDat] = transformROI(xdat,ydat);
                 hPatch(i) = patch('Faces',1:size(xdat,2),...
                     'XData',circDat(:,:,1),'YData',circDat(:,:,2),'FaceColor','none',...
                     'EdgeColor','r','Parent',gui_handles.axes_handle);
@@ -141,7 +141,7 @@ while ~gui_handles.accept_ROI_thresh_pushbutton.Value
             delete(hPatch(i));
             switch hAdd.UserData.grid(i).shape
                 case 'Circular'
-                    [hAdd.UserData.grid(i).tforms,circDat] = transformROI(XData,YData);
+                    [hAdd.UserData.grid(i).tform,circDat] = transformROI(XData,YData);
                     hPatch(i) = patch('Faces',1:size(XData,2),...
                         'XData',circDat(:,:,1),'YData',circDat(:,:,2),'FaceColor','none',...
                         'EdgeColor','r','Parent',gui_handles.axes_handle);
@@ -160,7 +160,7 @@ while ~gui_handles.accept_ROI_thresh_pushbutton.Value
             old_coords(i) = {pos};
             switch hAdd.UserData.grid(i).shape
                 case 'Circular'
-                    [hAdd.UserData.grid(i).tforms,circDat] = transformROI(XData,YData);
+                    [hAdd.UserData.grid(i).tform,circDat] = transformROI(XData,YData);
                     hPatch(i).XData = circDat(:,:,1);
                     hPatch(i).YData = circDat(:,:,2);
                 case 'Quadrilateral'
@@ -228,8 +228,8 @@ for i=1:nGrids
     shape = [shape; tmp_shape];
     
     tmp_tform = cell(nRow*nCol,1);
-    if ~isempty(hAdd.UserData.grid(i).tforms)
-        tmp_tform = hAdd.UserData.grid(i).tforms';
+    if ~isempty(hAdd.UserData.grid(i).tform)
+        tmp_tform = hAdd.UserData.grid(i).tform';
     end
     tform = [tform;tmp_tform];
         

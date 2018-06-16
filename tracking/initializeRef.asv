@@ -74,8 +74,8 @@ trackDat.ref.im = trackDat.im;
 trackDat.ref.stack = squeeze(num2cell(repmat(trackDat.ref.im,1,1,depth),[1 2]));
 pause(0.1);
 
-% initialize variables for ref bg_mode auto detection           
-dDifference = NaN(35,2);
+           
+dDifference = NaN(100,2);
 diffStack = cell(2,1);
 diffStack(:) = {uint8(zeros(size(trackDat.im,1),...
                     size(trackDat.ref.im,2),2))};
@@ -185,14 +185,14 @@ while trackDat.t < expmt.parameters.duration*3600 &&...
        
     end
 
-    if trackDat.ct <= size(dDifference,1)
+    if trackDat.ct <= numel(dDifference)
         % compute frame to frame change in the magnitude of the difference of
         % the difference image with bg_mode = 'light' and bg_mode = 'dark'
         diffStack{1}(:,:,mod(trackDat.ct-1,2)+1) = trackDat.ref.im - trackDat.im;
         diffStack{2}(:,:,mod(trackDat.ct-1,2)+1) = trackDat.im - trackDat.ref.im;
         tmp_dDif = cellfun(@(x) ...
             abs(diff(single(x),1,3)), diffStack,'UniformOutput',false);
-        dDifference(mod(trackDat.ct-1,size(dDifference,1))+1,:) = ...
+        dDifference(mod(trackDat.ct-1,numel(dDifference))+1,:) = ...
             cellfun(@(x) sum(x(:)),tmp_dDif);
     
         % select appropriate reference mode
@@ -201,16 +201,13 @@ while trackDat.t < expmt.parameters.duration*3600 &&...
             avg_deltaDiff = nanmean(dDifference);
             if avg_deltaDiff(1) > avg_deltaDiff(2)
                 trackDat.ref.bg_mode = 'light';
-                gui_notify('detected dark objects on light background',...
-                    gui_handles.disp_note);
+                gui_notify('detected light objects on dark background');
             else
                 trackDat.ref.bg_mode = 'dark';
-                gui_notify('detected light objects on dark background',...
-                    gui_handles.disp_note);
+                gui_notify('detected light objects on dark background');
             end
             
         end
-    end
     
     drawnow limitrate
     
@@ -224,9 +221,6 @@ tic
 trackDat.tPrev = toc;
 autoTime(trackDat, expmt, gui_handles);
 expmt.ref = trackDat.ref;
-
-
-expmt.vignette.im = filterVignetting(expmt);
 
 % Reset accept reference button
 set(gui_handles.accept_track_thresh_pushbutton,'value',0);
