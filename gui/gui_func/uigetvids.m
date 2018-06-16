@@ -1,7 +1,7 @@
 function [video] = uigetvids(expmt)
 
 % get files from UI
-[fName,fDir,fFilter] = uigetfile('*.avi;*.mp4;*.m4v;*.mov;*.wmv;*.mpg;*.bin','Select video files',...
+[fName,fDir,fFilter] = uigetfile('*.avi;*.mp4;*.m4v;*.mov;*.wmv;*.mpg;*.bin;*.mj2','Select video files',...
     'C:/Users/werkh/Documents/Prototyping Data/autotracker update testing','Multiselect','on');
 
 if ~iscell(fName)

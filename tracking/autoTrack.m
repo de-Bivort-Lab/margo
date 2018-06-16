@@ -32,7 +32,15 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
     trackDat.ct = trackDat.ct + 1;
 
     % calculate difference image and current for vignetting
-    diffim = (trackDat.ref.im - expmt.vignette.im) - (trackDat.im - expmt.vignette.im);
+    switch trackDat.ref.bg_mode
+        case 'light'
+            diffim = (trackDat.ref.im - expmt.vignette.im) -...
+                        (trackDat.im - expmt.vignette.im);
+        case 'dark'
+            diffim = (trackDat.im - expmt.vignette.im) -...
+                        (trackDat.ref.im - expmt.vignette.im);
+    end
+    
     
     % get current image threshold and use it to extract region properties     
     im_thresh = get(gui_handles.track_thresh_slider,'value');

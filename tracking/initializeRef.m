@@ -37,12 +37,14 @@ expmt = getVideoInput(expmt,gui_handles);
 %% Assign parameters and placeholders
 
 % Reference vars
-nROIs = size(expmt.ROI.corners, 1);                     % total number of ROIs
-depth = gui_handles.edit_ref_depth.Value;               % number of rolling sub references
-trackDat.ref.cen = NaN(nROIs,2,depth);                  % placeholder for cen. coords where references are taken
-trackDat.ref.ct = zeros(nROIs, 1);                      % Reference number placeholder
-trackDat.ref.t = 0;                                     % reference time stamp
+nROIs = size(expmt.ROI.corners, 1);             % total number of ROIs
+depth = gui_handles.edit_ref_depth.Value;       % number of rolling sub references
+trackDat.ref.cen = NaN(nROIs,2,depth);          % placeholder for cen. coords where references are taken
+trackDat.ref.ct = zeros(nROIs, 1);              % Reference number placeholder
+trackDat.ref.t = 0;                             % reference time stamp
 trackDat.ref.last_update = zeros(nROIs,1);
+trackDat.ref.bg_mode = 'light';                 % set reference mode to dark
+                                                % obj on light background
 
 
 % tracking vars
@@ -71,6 +73,12 @@ trackDat.ref.thresh = gui_fig.UserData.distance_thresh * 0.2;
 trackDat.ref.im = trackDat.im;
 trackDat.ref.stack = squeeze(num2cell(repmat(trackDat.ref.im,1,1,depth),[1 2]));
 pause(0.1);
+
+% initialize variables for ref bg_mode auto detection           
+dDifference = NaN(35,2);
+diffStack = cell(2,1);
+diffStack(:) = {uint8(zeros(size(trackDat.im,1),...
+                    size(trackDat.ref.im,2),2))};
 
 
 %% initialize display objects
@@ -119,9 +127,12 @@ while trackDat.t < expmt.parameters.duration*3600 &&...
         diffim = (trackDat.ref.im - expmt.vignette.im) -...
                     (trackDat.im - expmt.vignette.im);
         tmp_thresh = floor(graythresh(diffim)*255);
-        gui_handles.track_thresh_slider.Value = tmp_thresh;
-        feval(gui_handles.track_thresh_slider.Callback,...
-            gui_handles.track_thresh_slider,[]);
+        
+        if tmp_thresh > 4
+            gui_handles.track_thresh_slider.Value = tmp_thresh;
+            feval(gui_handles.track_thresh_slider.Callback,...
+                gui_handles.track_thresh_slider,[]);
+        end
     end
 
     % track objects and sort to ROIs
@@ -172,6 +183,33 @@ while trackDat.t < expmt.parameters.duration*3600 &&...
         hCirc.CData = color;
 
        
+    end
+
+    if trackDat.ct <= size(dDifference,1)
+        % compute frame to frame change in the magnitude of the difference of
+        % the difference image with bg_mode = 'light' and bg_mode = 'dark'
+        diffStack{1}(:,:,mod(trackDat.ct-1,2)+1) = trackDat.ref.im - trackDat.im;
+        diffStack{2}(:,:,mod(trackDat.ct-1,2)+1) = trackDat.im - trackDat.ref.im;
+        tmp_dDif = cellfun(@(x) ...
+            abs(diff(single(x),1,3)), diffStack,'UniformOutput',false);
+        dDifference(mod(trackDat.ct-1,size(dDifference,1))+1,:) = ...
+            cellfun(@(x) sum(x(:)),tmp_dDif);
+    
+        % select appropriate reference mode
+        if ~any(isnan(dDifference(:)))
+           
+            avg_deltaDiff = nanmean(dDifference);
+            if avg_deltaDiff(1) > avg_deltaDiff(2)
+                trackDat.ref.bg_mode = 'light';
+                gui_notify('detected dark objects on light background',...
+                    gui_handles.disp_note);
+            else
+                trackDat.ref.bg_mode = 'dark';
+                gui_notify('detected light objects on dark background',...
+                    gui_handles.disp_note);
+            end
+            
+        end
     end
     
     drawnow limitrate
