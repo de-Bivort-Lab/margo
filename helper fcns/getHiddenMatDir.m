@@ -59,3 +59,6 @@ for i=1:length(dirs)
     end
 end
 
+
+fPaths = cellfun(@unixify, fPaths, 'UniformOutput',false);
+

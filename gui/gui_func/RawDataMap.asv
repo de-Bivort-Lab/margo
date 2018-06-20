@@ -1,0 +1,44 @@
+classdef RawDataMap < handle
+% class definition for raw data maps container
+
+    properties (Hidden = true)
+        raw;
+        path;
+        dim;
+        precision;
+        map;
+    end
+    
+    methods
+        function obj = RawDataMap(varargin)
+            
+            % parse inputs
+            for i=1:length(varargin)
+                if ischar(varargin{i})
+                    switch varargin{i}
+                        case 'Path'
+                            i = i+1;
+                            obj.path = varargin{i};
+                        case 'Dim'
+                            i = i+1;
+                            obj.path = varargin{i};
+                        case 'Precision'
+                            i = i+1;
+                            obj.path = varargin{i};
+                        case 'Path'
+                            i = i+1;
+                            obj.path = varargin{i};
+                        case 'Path'
+                            i = i+1;
+                            obj.path = varargin{i};
+                    end
+            
+            
+        end
+        
+    end
+    
+    
+    
+    
+end
