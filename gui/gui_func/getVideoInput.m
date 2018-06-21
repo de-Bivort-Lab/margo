@@ -1,21 +1,21 @@
 function expmt = getVideoInput(expmt,gui_handles)
 
-if strcmp(expmt.source,'camera') && isfield(expmt.camInfo,'vid')
+if strcmp(expmt.meta.source,'camera') && isfield(expmt.hardware.cam,'vid')
     
-    if ~isvalid(expmt.camInfo.vid) || strcmp(expmt.camInfo.vid.Running,'off')
+    if ~isvalid(expmt.hardware.cam.vid) || strcmp(expmt.hardware.cam.vid.Running,'off')
     
         % Clear old video objects
         imaqreset
         pause(0.2);
 
         % Create camera object with input parameters
-        expmt.camInfo = initializeCamera(expmt.camInfo);
-        start(expmt.camInfo.vid);
+        expmt.hardware.cam = initializeCamera(expmt.hardware.cam);
+        start(expmt.hardware.cam.vid);
         pause(0.1);
     
-    elseif strcmp(expmt.camInfo.vid.Previewing,'on')
+    elseif strcmp(expmt.hardware.cam.vid.Previewing,'on')
         
-        stoppreview(expmt.camInfo.vid);
+        stoppreview(expmt.hardware.cam.vid);
         pause(0.001);
         
         if size(gui_handles.hImage.CData,3) > 1
@@ -30,7 +30,7 @@ if strcmp(expmt.source,'camera') && isfield(expmt.camInfo,'vid')
     end
         
         
-elseif strcmp(expmt.source,'video') 
+elseif strcmp(expmt.meta.source,'video') 
     
     % set current file to first file in list
     gui_handles.vid_select_popupmenu.Value = 1;

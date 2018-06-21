@@ -4,9 +4,9 @@ dec_scale = 1;  % factor by which to decimate the data
 
 % Find indices of stimulus ON/OFF transitions
 [~,iOFFc]=find(diff(include)==-1);
-nTrials=NaN(expmt.nTracks,1);
+nTrials=NaN(expmt.meta.num_traces,1);
 
-for i=1:expmt.nTracks
+for i=1:expmt.meta.num_traces
     nTrials(i)=sum(iOFFc==i);           % number of stim presentations for each animal
 end
 
@@ -20,15 +20,15 @@ iOFFr = ceil(iOFFr./dec_scale);
 
 % Stimulus triggered averaging of each stimulus bout
 win_sz = expmt.parameters.stim_int;                         % Size of the window on either side of the stimulus in sec
-win_start=NaN(size(iONr,1),expmt.nTracks);
-win_stop=NaN(size(iOFFr,1),expmt.nTracks);
-tElapsed = cumsum(expmt.Time.data);                         % time elapsed @ each frame
+win_start=NaN(size(iONr,1),expmt.meta.num_traces);
+win_stop=NaN(size(iOFFr,1),expmt.meta.num_traces);
+tElapsed = cumsum(expmt.data.time.data);                         % time elapsed @ each frame
 tElapsed = tElapsed(mod(1:length(tElapsed),dec_scale)==0);
-search_win = round(win_sz/nanmean(expmt.Time.data)*1.5);    % window around stim Off->On index to search for best tStamp
+search_win = round(win_sz/nanmean(expmt.data.time.data)*1.5);    % window around stim Off->On index to search for best tStamp
 
 
 % Start by finding tStamps win_sz on either side of stim ON->OFF index
-for i=1:expmt.nTracks
+for i=1:expmt.meta.num_traces
     
     idx = iONr(iONc==i);                % frame indices of transitions for current fly
     idx(idx>length(tElapsed)) = length(tElapsed);
@@ -59,7 +59,7 @@ win_start(sum(~isnan(win_start),2)==0,:)=[];
 win_stop(sum(~isnan(win_stop),2)==0,:)=[];
 
 nPts=max(max(win_stop-win_start));                  % max number of frames out of all windows
-cumang=NaN(nPts,size(win_start,1),expmt.nTracks);   % intialize cumulative change in angle placeholder
+cumang=NaN(nPts,size(win_start,1),expmt.meta.num_traces);   % intialize cumulative change in angle placeholder
 
 % get change in angle at each frame
 turning=expmt.Orientation.data;
@@ -81,16 +81,16 @@ tdist(~inc)=NaN;
 tmp_r = nansum(tdist);
 tmp_tot = nansum(abs(tdist));
 avg_index = tmp_r./tmp_tot;
-total_dist=NaN(size(win_start,1),expmt.nTracks);
-stimdir_dist=NaN(size(win_start,1),expmt.nTracks);
+total_dist=NaN(size(win_start,1),expmt.meta.num_traces);
+stimdir_dist=NaN(size(win_start,1),expmt.meta.num_traces);
 
 
 t0=round(nPts/2);
-off_spd=NaN(expmt.nTracks,1);
-on_spd=NaN(expmt.nTracks,1);
+off_spd=NaN(expmt.meta.num_traces,1);
+on_spd=NaN(expmt.meta.num_traces,1);
 
 
-for i=1:expmt.nTracks
+for i=1:expmt.meta.num_traces
     
     off_spd(i)=nanmean(speed(~inc(:,i),i));
     on_spd(i)=nanmean(speed(inc(:,i),i));

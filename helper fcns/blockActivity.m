@@ -1,4 +1,4 @@
-function [varargout] = blockActivity(s_map)
+function [varargout] = blockActivity(s_raw)
 
 % blockActivity divides autotracker speed traces into discreet bouts
 %
@@ -17,7 +17,7 @@ function [varargout] = blockActivity(s_map)
 
 % compute autocorrelation and find conservative 
 % cutoff for bout discretization
-s = s_map.Data.raw;
+s = s_raw;
 s = s';
 [ac] = autocorr(s(:),250);
 lag_thresh = find(diff(ac)>-0.01,1) + 1;
@@ -32,7 +32,7 @@ end
 speed_thresh = exp(intersect);
 
 % find frames where transitioned from 
-moving = s_map.Data.raw > speed_thresh;
+moving = s_raw > speed_thresh;
 transitions = diff(moving,1,2);
 transitions = cat(2,zeros(size(transitions,1),1,1),transitions);
 transitions = num2cell(transitions,2);

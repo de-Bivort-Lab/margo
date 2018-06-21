@@ -10,9 +10,9 @@ refIdx(trackDat.ref.ct<expmt.parameters.ref_depth) = ...
     trackDat.ref.ct(trackDat.ref.ct<expmt.parameters.ref_depth) + 1;
 
 % look for individually noisy ROIs
-if isfield(expmt,'noise') && isfield(expmt.noise,'roi_mean')
+if isfield(expmt,'noise') && isfield(expmt.meta.noise,'roi_mean')
     above_thresh = cellfun(@(x) sum(trackDat.thresh_im(x)),expmt.ROI.pixIdx) >...
-        (expmt.noise.roi_mean + expmt.noise.roi_std * 4);
+        (expmt.meta.noise.roi_mean + expmt.meta.noise.roi_std * 4);
     trackDat.ref.ct(above_thresh & ...
         trackDat.ref.ct == expmt.parameters.ref_depth) = 0;
     include = include | above_thresh;

@@ -34,11 +34,11 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
     % calculate difference image and current for vignetting
     switch trackDat.ref.bg_mode
         case 'light'
-            diffim = (trackDat.ref.im - expmt.vignette.im) -...
-                        (trackDat.im - expmt.vignette.im);
+            diffim = (trackDat.ref.im - expmt.meta.vignette.im) -...
+                        (trackDat.im - expmt.meta.vignette.im);
         case 'dark'
-            diffim = (trackDat.im - expmt.vignette.im) -...
-                        (trackDat.ref.im - expmt.vignette.im);
+            diffim = (trackDat.im - expmt.meta.vignette.im) -...
+                        (trackDat.ref.im - expmt.meta.vignette.im);
     end
     
     
@@ -57,7 +57,7 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
         
         trackDat.px_dist(mod(trackDat.ct,length(trackDat.px_dist))+1) = sum(sum(thresh_im));
         trackDat.px_dev((mod(trackDat.ct,length(trackDat.px_dist))+1)) =...
-            ((nanmean(trackDat.px_dist) - expmt.noise.mean)/expmt.noise.std);
+            ((nanmean(trackDat.px_dist) - expmt.meta.noise.mean)/expmt.meta.noise.std);
         
         if trackDat.px_dev((mod(trackDat.ct,length(trackDat.px_dist))+1)) > 7
             record = false;

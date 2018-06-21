@@ -15,7 +15,7 @@ function [varargout]=bootstrap_optomotor(expmt,nReps,field)
 %% bootstrap sample data
 
 if isfield(expmt,'nTracks')
-    nf = expmt.nTracks;
+    nf = expmt.meta.num_traces;
 else
     nf = size(expmt.(field).sdist,2);
 end

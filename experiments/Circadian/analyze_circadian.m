@@ -48,11 +48,11 @@ if options.slide
     ci95(2,:) = medfilt1(ci95(2,:),5);
 
     % get index tstamps
-    tStamps = cumsum(expmt.Time.map.Data.raw);
-    if length(tStamps)~=length(expmt.Speed.map.Data.raw) && isfield(options,'decimate')...
+    tStamps = cumsum(expmt.data.time.raw);
+    if length(tStamps)~=length(expmt.Speed.raw) && isfield(options,'decimate')...
             && any(strcmp({'Centroid'},options.decimate))
 
-        tStamps = tStamps(mod(1:expmt.nFrames,options.decfac)==1);
+        tStamps = tStamps(mod(1:expmt.meta.num_frames,options.decfac)==1);
 
     end
 
@@ -76,7 +76,7 @@ if options.slide
     min = str2double(expmt.date(15:16));
     sec = str2double(expmt.date(18:19));
     tStart = hr*3600 + min*60 + sec;
-    tEnd = sum(expmt.Time.map.Data.raw);
+    tEnd = sum(expmt.data.time.raw);
 
     % find nearest hour
     int = 3600;
@@ -103,11 +103,11 @@ if options.slide
     expmt.Circadian.trace.tickLabels = tickLabels;
 
     % create graded light-dark patches
-    tmp_Light = expmt.Light.map.Data.raw;
-    if length(tmp_Light)~=length(expmt.Light.map.Data.raw) && isfield(options,'decimate')...
+    tmp_Light = expmt.Light.raw;
+    if length(tmp_Light)~=length(expmt.Light.raw) && isfield(options,'decimate')...
             && any(strcmp({'Centroid'},options.decimate))
 
-        tmp_Light = tmp_Light(mod(1:expmt.nFrames,options.decfac)==1);
+        tmp_Light = tmp_Light(mod(1:expmt.meta.num_frames,options.decfac)==1);
 
     end
     tmp_Light = tmp_Light(win_idx);
@@ -139,9 +139,9 @@ if options.slide
 
     % bin by time of day
     expmt.Circadian.bins = 0:23;
-    expmt.Circadian.n = NaN(24,expmt.nTracks);
+    expmt.Circadian.n = NaN(24,expmt.meta.num_traces);
     expmt.Circadian.idx = false(24,size(win_dat,1));
-    expmt.Circadian.bin_spd = NaN(24,expmt.nTracks);
+    expmt.Circadian.bin_spd = NaN(24,expmt.meta.num_traces);
 
     % find the range of indices of windat that encompass each hour time bin
     % from tmp_tStamps
@@ -181,7 +181,7 @@ if options.slide
 
     % store normalized speed
     [mu,win_dat] = matchDim(mu,win_dat);
-    norm_speed = win_dat - repmat(mu,1,expmt.nTracks);
+    norm_speed = win_dat - repmat(mu,1,expmt.meta.num_traces);
     for i=1:24
         expmt.Circadian.norm_spd(i,:) = nanmean(norm_speed(expmt.Circadian.idx(i,:),:));
     end

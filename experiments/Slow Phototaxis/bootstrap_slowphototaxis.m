@@ -14,12 +14,12 @@ function varargout = bootstrap_slowphototaxis(expmt,nReps,field)
 
 %% bootstrap sample data
 nb = expmt.(field).nBlocks;
-fly_sub = randi([1 expmt.nTracks],nb*expmt.nTracks*nReps,1);
-block_sub = randi([1 nb],nb*expmt.nTracks*nReps,1);
+fly_sub = randi([1 expmt.meta.num_traces],nb*expmt.meta.num_traces*nReps,1);
+block_sub = randi([1 nb],nb*expmt.meta.num_traces*nReps,1);
 obs = cell2mat(expmt.(field).occ);
 idx = sub2ind(size(obs),block_sub,fly_sub);
 occ = obs(idx);
-occ = reshape(occ,nb,expmt.nTracks,nReps);
+occ = reshape(occ,nb,expmt.meta.num_traces,nReps);
 occ = squeeze(nanmean(occ,1));
 
 % create histogram of occupancy scores

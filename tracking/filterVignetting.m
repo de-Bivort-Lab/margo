@@ -9,8 +9,8 @@ function vignetteMat=filterVignetting(expmt,varargin)
 % assign default values
 roi_coords = [];
 ref_im = [];
-if isfield(expmt,'ref') && isfield(expmt.ref,'im')
-    ref_im = expmt.ref.im;
+if isfield(expmt,'ref') && isfield(expmt.meta.ref,'im')
+    ref_im = expmt.meta.ref.im;
 end
 
 % parse variable inputs
@@ -32,7 +32,7 @@ if isempty(roi_coords)
     
     switch expmt.ROI.mode
         case 'auto'
-            sub_ims = cellfun(@(x) expmt.ref.im(x),...
+            sub_ims = cellfun(@(x) expmt.meta.ref.im(x),...
                             expmt.ROI.pixIdx,'UniformOutput',false);  
             sub_masks = cellfun(@(x) expmt.ROI.im(x),...
                             expmt.ROI.pixIdx,'UniformOutput',false);           
@@ -40,7 +40,7 @@ if isempty(roi_coords)
                                 'UniformOutput',false); 
             [~,dim_roi] = min(cat(1,med_intensities{:}));
         case 'grid'
-            sub_ims = cellfun(@(x) expmt.ref.im(x),...
+            sub_ims = cellfun(@(x) expmt.meta.ref.im(x),...
                             expmt.ROI.pixIdx,'UniformOutput',false);          
             mean_intensities = cellfun(@mean,sub_ims); 
             [~,dim_roi] = min(mean_intensities);

@@ -30,9 +30,9 @@ expmt = getVideoInput(expmt,gui_handles);
 clean_gui(gui_handles.axes_handle);
 imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','Image');
 
-switch expmt.source
+switch expmt.meta.source
     case 'camera'
-        trackDat.im = peekdata(expmt.camInfo.vid,1);
+        trackDat.im = peekdata(expmt.hardware.cam.vid,1);
     case 'video'
         [trackDat.im, expmt.video] = nextFrame(expmt.video,gui_handles);
 end
@@ -78,24 +78,24 @@ while stop~=1
     % Update threshold value
     ROI_thresh=get(gui_handles.ROI_thresh_slider,'value');
 
-    switch expmt.vignette.mode
+    switch expmt.meta.vignette.mode
         case 'manual'
             % subtract the vignette correction off of the raw image
-            if isfield(expmt.vignette,'im')
-                trackDat.im = trackDat.im - expmt.vignette.im;
+            if isfield(expmt.meta.vignette,'im')
+                trackDat.im = trackDat.im - expmt.meta.vignette.im;
             else
                 gauss = buildGaussianKernel(size(trackDat.im,2),...
                     size(trackDat.im,1),sigma,kernelWeight);
                 trackDat.im=(uint8(double(trackDat.im).*gauss));
-                expmt.vignette.mode = 'auto';
+                expmt.meta.vignette.mode = 'auto';
             end
             
         case 'auto'
             % approximate light source as guassian to smooth vignetting
             % for more even illumination and better ROI detection
              
-            if isfield(expmt.vignette,'im')
-                trackDat.im = trackDat.im - expmt.vignette.im;
+            if isfield(expmt.meta.vignette,'im')
+                trackDat.im = trackDat.im - expmt.meta.vignette.im;
             elseif ~exist('gauss','var')
                 gauss = buildGaussianKernel(size(trackDat.im,2),...
                     size(trackDat.im,1),sigma,kernelWeight);
@@ -158,8 +158,8 @@ gui_notify([num2str(size(centers,1)) ' ROIs detected'],gui_handles.disp_note);
 set(gui_handles.accept_ROI_thresh_pushbutton,'value',0);
 
 % create a vignette correction image if mode is set to auto
-if strcmp(expmt.vignette.mode,'auto') && ~isempty(ROI_coords)
-    expmt.vignette.im = filterVignetting(expmt,ROI_coords(end,:),trackDat.im);
+if strcmp(expmt.meta.vignette.mode,'auto') && ~isempty(ROI_coords)
+    expmt.meta.vignette.im = filterVignetting(expmt,ROI_coords(end,:),trackDat.im);
 end
 
 % assign outputs

@@ -8,8 +8,10 @@ function [trackDat,expmt] = autoInitialize(trackDat,expmt,gui_handles)
 %set(gui_handles.off_objs,'Enable','off');
 
 % Initialize infrared and white illuminators
-expmt.COM = writeInfraredWhitePanel(expmt.COM,1,expmt.light.infrared);
-expmt.COM = writeInfraredWhitePanel(expmt.COM,0,expmt.light.white);
+expmt.hardware.COM = writeInfraredWhitePanel(expmt.hardware.COM,1,...
+                        expmt.hardware.light.infrared);
+expmt.hardware.COM = writeInfraredWhitePanel(expmt.hardware.COM,0,...
+                        expmt.hardware.light.white);
 
 % clear any objects drawn to gui window
 clean_gui(gui_handles.axes_handle);
@@ -21,7 +23,7 @@ set(gui_handles.display_menu.Children,'Enable','on')
 gui_handles.display_raw_menu.Checked = 'on';
 gui_handles.display_menu.UserData = 1;
 
-if strcmp(expmt.source,'camera') && ~isvalid(expmt.camInfo.vid)
+if strcmp(expmt.meta.source,'camera') && ~isvalid(expmt.hardware.cam.vid)
     expmt = getVideoInput(expmt,gui_handles);
 end
 
@@ -67,12 +69,12 @@ trackDat.tStamp = ...
 trackDat.t = 0;                                             % time elapsed, initialize to zero
 trackDat.ct = 0;                                            % frame count
 trackDat.drop_ct = zeros(size(expmt.ROI.centers(:,1),1),1); % number of frames dropped for each obj
-trackDat.ref = expmt.ref;                                   % referencing properties
+trackDat.ref = expmt.meta.ref;                                   % referencing properties
 trackDat.px_dist = zeros(10,1);                             % distribution of pixels over threshold  
 trackDat.pix_dev = zeros(10,1);                             % stdev of pixels over threshold
 trackDat.lastFrame = false;
 
-cam_center = repmat(fliplr(size(expmt.ref)./2),size(expmt.ROI.centers));
+cam_center = repmat(fliplr(size(expmt.meta.ref)./2),size(expmt.ROI.centers));
 expmt.ROI.cam_dist = sqrt((expmt.ROI.centers(:,1)-cam_center(:,1)).^2 + ...
     (expmt.ROI.centers(:,2)-cam_center(:,2)).^2);
 
@@ -141,7 +143,7 @@ save([expmt.fdir expmt.fLabel '.mat'],'expmt');
 expmt = getVideoInput(expmt,gui_handles);
 
 % initialize video recording if enabled
-if strcmp(expmt.source,'camera') && strcmp(gui_handles.record_video_menu.Checked,'on')
+if strcmp(expmt.meta.source,'camera') && strcmp(gui_handles.record_video_menu.Checked,'on')
     [trackDat,expmt] = initializeVidRecording(trackDat,expmt,gui_handles);
 else
    gui_handles.record_video_menu.Checked = 'off'; 

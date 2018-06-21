@@ -3,13 +3,13 @@ function expmt = modelLensDistortion(expmt)
 % query available memory to determine how many batches to process data in
 msz = memory;
 msz = msz.MaxPossibleArrayBytes;
-switch expmt.Centroid.precision
+switch expmt.data.centroid.precision
     case 'double'
         cen_prcn = 8;
     case 'single'
         cen_prcn = 4;
 end
-rsz = expmt.nTracks * expmt.nFrames * cen_prcn * 8;
+rsz = expmt.meta.num_traces * expmt.meta.num_frames * cen_prcn * 8;
 
 if rsz > msz
     warning(['file size too large to read into memory' ...
@@ -18,17 +18,17 @@ if rsz > msz
 end
 
 % intialize cam center coords for distance calculation
-cc = [size(expmt.ref,2)/2 size(expmt.ref,1)/2]; 
-cam_dist = squeeze(sqrt((expmt.Centroid.map.Data.raw(:,1,:)-cc(1)).^2 +...
-    (expmt.Centroid.map.Data.raw(:,2,:)-cc(2)).^2));
+cc = [size(expmt.meta.ref,2)/2 size(expmt.meta.ref,1)/2]; 
+cam_dist = squeeze(sqrt((expmt.data.centroid.raw(:,1,:)-cc(1)).^2 +...
+    (expmt.data.centroid.raw(:,2,:)-cc(2)).^2));
 
-spd_table = table(cam_dist(:),expmt.Speed.map.Data.raw(:),...
+spd_table = table(cam_dist(:),expmt.Speed.raw(:),...
     'VariableNames',{'Center_Distance';'Speed'});
 lm = fitlm(spd_table,'Speed~Center_Distance');
 
 if (lm.Coefficients{2,4})<0.05
     expmt.Speed.map.Writable = true;
-    expmt.Speed.map.Data.raw= expmt.Speed.map.Data.raw- lm.Coefficients{2,1}.*cam_dist;
+    expmt.Speed.raw= expmt.Speed.raw- lm.Coefficients{2,1}.*cam_dist;
 end
 clear lm
 

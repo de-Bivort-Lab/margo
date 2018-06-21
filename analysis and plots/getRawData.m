@@ -5,20 +5,20 @@ if ~isfield(expmt,'nFrames')
     
     expmt = updatefID(expmt,'Time');
     
-    if isfield(expmt.Time,'precision')
-        expmt.Time.raw = memmapfile(expmt.Time.path, 'Format',expmt.Time.precision);
+    if isfield(expmt.data.time,'precision')
+        expmt.data.time.raw = memmapfile(expmt.data.time.path, 'Format',expmt.data.time.precision);
     else
-        expmt.Time.raw = memmapfile(expmt.Time.path, 'Format','double');
-        expmt.Time.precision = 'double';
+        expmt.data.time.raw = memmapfile(expmt.data.time.path, 'Format','double');
+        expmt.data.time.precision = 'double';
     end
     
-    expmt.nFrames = length(expmt.Time.raw.Data);
+    expmt.meta.num_frames = length(expmt.data.time.raw.Data);
     
 end
 
 % convert drop count to fraction of total frames
 if isfield(expmt,'drop_ct') && any(expmt.drop_ct > 1)
-    expmt.drop_ct = expmt.drop_ct ./ expmt.nFrames;
+    expmt.drop_ct = expmt.drop_ct ./ expmt.meta.num_frames;
 end
 
 %% calculate decimation factor if relevant
@@ -26,22 +26,22 @@ end
 if isfield(options,'decimate')
     
     % get subfields
-    path = expmt.Time.path;
-    if isfield(expmt.Time,'dim')
-        dim = expmt.Time.dim;
+    path = expmt.data.time.path;
+    if isfield(expmt.data.time,'dim')
+        dim = expmt.data.time.dim;
     else
         dim = 1;
     end
-    if isfield(expmt.Time,'precision')
-        prcn = expmt.Time.precision;
+    if isfield(expmt.data.time,'precision')
+        prcn = expmt.data.time.precision;
     else
         prcn = 'double';
-        expmt.Time.precision = prcn;
+        expmt.data.time.precision = prcn;
     end
     
     expmt = updatefID(expmt,'Time');
-    expmt.Time.raw = memmapfile(expmt.Time.path, 'Format',expmt.Time.precision);
-    expmt.FrameRate = 1/nanmedian(expmt.Time.raw.Data);
+    expmt.data.time.raw = memmapfile(expmt.data.time.path, 'Format',expmt.data.time.precision);
+    expmt.FrameRate = 1/nanmedian(expmt.data.time.raw.Data);
     options.decfac = round(expmt.FrameRate/options.decfac);
     
     % cancel decimation if decimation factor is less than 2
@@ -54,7 +54,7 @@ if isfield(options,'decimate')
     % create decimation mask
     if isfield(options,'decimate')
         
-        options.decmask = mod(1:expmt.nFrames,options.decfac)==1;
+        options.decmask = mod(1:expmt.meta.num_frames,options.decfac)==1;
         options.decsz = sum(options.decmask);
         
     end
@@ -74,7 +74,7 @@ for i = 1:length(expmt.fields)
     path = expmt.(f).path;
     dim = expmt.(f).dim;
     dim(find(dim==1,1,'last'))=[];
-    dim = [dim expmt.nFrames];
+    dim = [dim expmt.meta.num_frames];
     prcn = expmt.(f).precision;
     
     % initialize the memmap

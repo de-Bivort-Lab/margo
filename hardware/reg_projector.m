@@ -16,15 +16,15 @@ screenNumber = expmt.reg_params.screen_num;
 
 %% Estimate camera frame rate
 
-[frameRate, expmt.camInfo] = estimateFrameRate(expmt.camInfo);
+[frameRate, expmt.hardware.cam] = estimateFrameRate(expmt.hardware.cam);
 
 %% Initialize the camera with settings tailored to imaging the projector
 
-if ~isfield(expmt.camInfo,'vid') || strcmp(expmt.camInfo.vid.Running,'off')
+if ~isfield(expmt.hardware.cam,'vid') || strcmp(expmt.hardware.cam.vid.Running,'off')
     imaqreset
     pause(0.1);
-    expmt.camInfo = initializeCamera(expmt.camInfo);
-    start(expmt.camInfo.vid);
+    expmt.hardware.cam = initializeCamera(expmt.hardware.cam);
+    start(expmt.hardware.cam.vid);
     pause(0.1);
 end
 
@@ -40,14 +40,14 @@ robot = java.awt.Robot;
 robot.mouseMove(1, 1); 
 
 % Image spot with cam
-ref=peekdata(expmt.camInfo.vid,1);
+ref=peekdata(expmt.hardware.cam.vid,1);
 if size(ref,3)>1
     ref=ref(:,:,2);
 end
 
 % adjust image for lens distortion if camera calibration parameters exist
-if isfield(expmt.camInfo,'calibration') && expmt.camInfo.calibrate
-    [ref,~] = undistortImage(ref,expmt.camInfo.calibration);
+if isfield(expmt.hardware.cam,'calibration') && expmt.hardware.cam.calibrate
+    [ref,~] = undistortImage(ref,expmt.hardware.cam.calibration);
 end
 
 % Save the camera resolution that the registration was performed at
@@ -81,20 +81,20 @@ robot = java.awt.Robot;
 robot.mouseMove(1, 1);    
 
 % cam midpoint                             
-mid = expmt.camInfo.vid.VideoResolution./2;
+mid = expmt.hardware.cam.vid.VideoResolution./2;
 
 % get white reference
 Screen('FillRect',scrProp.window,[1 1 1], scrProp.windowRect);
 Screen('Flip',scrProp.window);
 pause(0.5);
-im = peekdata(expmt.camInfo.vid,1);
+im = peekdata(expmt.hardware.cam.vid,1);
 white = double(median(median(im(mid(1)-50:mid(1)+50,mid(2)-50:mid(2)+50,1))));
 
 % black reference
 Screen('FillRect',scrProp.window,[0 0 0], scrProp.windowRect);
 Screen('Flip',scrProp.window);
 pause(0.5);
-im = peekdata(expmt.camInfo.vid,1);
+im = peekdata(expmt.hardware.cam.vid,1);
 black = double(median(median(im(mid(1)-50:mid(1)+50,mid(2)-50:mid(2)+50,1))));
 not_white = true;  
 blank = false;
@@ -113,7 +113,7 @@ while not_white
     tCurr = toc;
     t = t + tCurr - tPrev;
     tPrev = tCurr;
-    im = peekdata(expmt.camInfo.vid,1);
+    im = peekdata(expmt.hardware.cam.vid,1);
     lum = double(median(median(im(mid(1)-50:mid(1)+50,mid(2)-50:mid(2)+50,1))));
     not_white = abs(lum - black) < abs(lum - white);
     
@@ -163,14 +163,14 @@ for i=1:x_stp
         pause(delay);
         
         % Image spot with cam
-        im=peekdata(expmt.camInfo.vid,1);
+        im=peekdata(expmt.hardware.cam.vid,1);
         if size(im,3)>1
             im=im(:,:,2);
         end
         
         % adjust image for lens distortion if camera calibration parameters exist
-        if isfield(expmt.camInfo,'calibration') && expmt.camInfo.calibrate
-            [im,~] = undistortImage(im,expmt.camInfo.calibration);
+        if isfield(expmt.hardware.cam,'calibration') && expmt.hardware.cam.calibrate
+            [im,~] = undistortImage(im,expmt.hardware.cam.calibration);
         end
         
         im=im-ref;

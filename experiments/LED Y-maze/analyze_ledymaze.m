@@ -16,16 +16,16 @@ clearvars -except expmt options
 
 turn_idx = ~isnan(expmt.Turns.data);
 
-for i=1:expmt.nTracks
+for i=1:expmt.meta.num_traces
     col = find(turn_idx(i,:),1);
     expmt.Turns.data(i,col)=NaN;
 end
 
 %% Calculate turn probability
 expmt.Turns.n = sum(turn_idx)-1;
-expmt.Turns.sequence = NaN(max(expmt.Turns.n),expmt.nTracks);
-expmt.Turns.t = NaN(max(expmt.Turns.n),expmt.nTracks);
-expmt.LightChoice.sequence = NaN(max(expmt.Turns.n),expmt.nTracks);
+expmt.Turns.sequence = NaN(max(expmt.Turns.n),expmt.meta.num_traces);
+expmt.Turns.t = NaN(max(expmt.Turns.n),expmt.meta.num_traces);
+expmt.LightChoice.sequence = NaN(max(expmt.Turns.n),expmt.meta.num_traces);
 
 %{
 Start by converting arm number turn sequence into compressed right turn
@@ -37,9 +37,9 @@ turns = 0.
 %}
 
 
-tElapsed = cumsum(expmt.Time.data);
+tElapsed = cumsum(expmt.data.time.data);
 
-for i=1:expmt.nTracks
+for i=1:expmt.meta.num_traces
     
     idx = ~isnan(expmt.Turns.data(:,i));        % get turn indices
     expmt.Turns.t(1:length(tElapsed(idx)),i) = tElapsed(idx);         % record timestamps of turns
@@ -62,9 +62,9 @@ end
 expmt.Turns.rBias = nansum(expmt.Turns.sequence)./nansum(~isnan(expmt.Turns.sequence));
 
 % Calculate clumpiness and switchiness
-expmt.Turns.switchiness = NaN(expmt.nTracks,1);
-expmt.Turns.clumpiness = NaN(expmt.nTracks,1);
-for i = 1:expmt.nTracks
+expmt.Turns.switchiness = NaN(expmt.meta.num_traces,1);
+expmt.Turns.clumpiness = NaN(expmt.meta.num_traces,1);
+for i = 1:expmt.meta.num_traces
     
     idx = ~isnan(expmt.Turns.sequence(:,i));
     s = expmt.Turns.sequence(idx,i);
@@ -90,9 +90,9 @@ end
 expmt.LightChoice.n = sum(~isnan(expmt.LightChoice.data));
 expmt.LightChoice.pBias = sum(expmt.LightChoice.data==1)./expmt.LightChoice.n;
 expmt.LightChoice.active = expmt.LightChoice.n > 39;
-expmt.LightChoice.switchiness = NaN(expmt.nTracks,1);
+expmt.LightChoice.switchiness = NaN(expmt.meta.num_traces,1);
 
-for i = 1:expmt.nTracks
+for i = 1:expmt.meta.num_traces
     
     idx = ~isnan(expmt.Turns.sequence(:,i));
     s = expmt.LightChoice.sequence(idx,i);

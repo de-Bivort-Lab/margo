@@ -140,9 +140,9 @@ delete(text_handles);
 
 expmt = getVideoInput(expmt,gui_handles);
 
-switch expmt.source
+switch expmt.meta.source
     case 'camera'
-        if isfield(expmt.camInfo,'vid')
+        if isfield(expmt.hardware.cam,'vid')
             display = true;
         end
     case 'video'
@@ -157,8 +157,8 @@ imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');
 if display && isempty(imh)
     
     % Take single frame
-    if strcmp(expmt.source,'camera')
-        trackDat.im = peekdata(expmt.camInfo.vid,1);
+    if strcmp(expmt.meta.source,'camera')
+        trackDat.im = peekdata(expmt.hardware.cam.vid,1);
     else
         [trackDat.im, expmt.video] = nextFrame(expmt.video,gui_handles);
     end
@@ -181,7 +181,7 @@ end
 % initialize tracking variables if any parameter display is ticked
 trackDat.fields={'Centroid';'Area';'Speed'};     % Define fields autoTrack output
 if isfield(expmt,'ref')
-    trackDat.ref = expmt.ref;
+    trackDat.ref = expmt.meta.ref;
 end
 
 if isfield(expmt,'ROI') && isfield(expmt.ROI,'centers')
@@ -239,7 +239,7 @@ while ishghandle(hObject) && display
     end
     
     % grab a frame if a camera or video object exists
-    if (isfield(expmt.camInfo,'vid') && strcmp(expmt.camInfo.vid.Running,'on')) ||...
+    if (isfield(expmt.hardware.cam,'vid') && strcmp(expmt.hardware.cam.vid.Running,'on')) ||...
             isfield(expmt,'video')
 
         % query next frame and optionally correct lens distortion
@@ -265,7 +265,7 @@ while ishghandle(hObject) && display
         end
 
         % display parameter preview on objects and ROIs if they exist
-        if isfield(expmt,'ref') && isfield(expmt.vignette,'im')
+        if isfield(expmt,'ref') && isfield(expmt.meta.vignette,'im')
 
             % track objects and sort outputs specified in trackDat.fields
             trackDat = autoTrack(trackDat,expmt,gui_handles);
@@ -307,7 +307,7 @@ while ishghandle(hObject) && display
         % tracking
         if ~disp_speed
 
-            if isfield(expmt,'ref') && isfield(expmt.vignette,'im')
+            if isfield(expmt,'ref') && isfield(expmt.meta.vignette,'im')
 
             % track objects and sort outputs specified in trackDat.fields
             trackDat = autoTrack(trackDat,expmt,gui_handles);
@@ -351,7 +351,7 @@ while ishghandle(hObject) && display
         % tracking
         if ~disp_speed && ~disp_dist
 
-            if isfield(expmt,'ref') && isfield(expmt.vignette,'im')
+            if isfield(expmt,'ref') && isfield(expmt.meta.vignette,'im')
 
                 % track objects and sort outputs specified in trackDat.fields
                 trackDat = autoTrack(trackDat,expmt,gui_handles);

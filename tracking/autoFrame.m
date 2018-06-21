@@ -4,12 +4,12 @@ function [trackDat,expmt] = autoFrame(trackDat,expmt,gui_handles)
 
 
 % Take single frame
-switch expmt.source
+switch expmt.meta.source
     
     case 'camera'
 
     % grab frame from camera
-    trackDat.im = peekdata(expmt.camInfo.vid,1);
+    trackDat.im = peekdata(expmt.hardware.cam.vid,1);
 
     case 'video'
         
@@ -31,8 +31,8 @@ end
  
 
 % adjust image for lens distortion if camera calibration parameters exist
-if strcmp(expmt.source,'camera') && ...
-        isfield(expmt.camInfo,'calibration') && ...
+if strcmp(expmt.meta.source,'camera') && ...
+        isfield(expmt.hardware.cam,'calibration') && ...
         gui_handles.cam_calibrate_menu.UserData
-    [trackDat.im,~] = undistortImage(trackDat.im,expmt.camInfo.calibration);
+    [trackDat.im,~] = undistortImage(trackDat.im,expmt.hardware.cam.calibration);
 end

@@ -8,11 +8,11 @@ function slice_data = autoSlice(expmt,f,roi_num)
 if isfield(expmt.(f),'precision')
     p = expmt.(f).precision;
 elseif strcmp(f,'Speed')
-    expmt.(f).precision = expmt.Centroid.precision;
+    expmt.(f).precision = expmt.data.centroid.precision;
     p = expmt.(f).precision;
 end
 format = [p '=>' p];
-skip = expmt.nTracks - 1;
+skip = expmt.meta.num_traces - 1;
 
 % query num bytes per data point
 switch p
@@ -35,7 +35,7 @@ if ~ismember(expmt.(f).fID,open_files)
 end
 
 fseek(expmt.(f).fID,(roi_num-1)*nb,'bof');
-slice_data = fread(expmt.(f).fID,expmt.nFrames,format,skip*nb);
+slice_data = fread(expmt.(f).fID,expmt.meta.num_frames,format,skip*nb);
 
 
 

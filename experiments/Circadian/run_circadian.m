@@ -21,7 +21,7 @@ imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');   % image hand
 %% Experimental Setup
 
 % Initialize experiment parameters
-ref_stack = repmat(expmt.ref, 1, 1, gui_handles.edit_ref_depth.Value);  % initialize the reference stack
+ref_stack = repmat(expmt.meta.ref, 1, 1, gui_handles.edit_ref_depth.Value);  % initialize the reference stack
 
 % Initialize tracking variables
 trackDat.fields={'Centroid';'Area';'Time';'Light';'Motor'};                 % properties of the tracked objects to be recorded
@@ -64,17 +64,17 @@ if expmt.parameters.lights_ON(1)<=t(1) && expmt.parameters.lights_OFF(1)>=t(1)
     turn_ON = ~hour_match | (hour_match & after_light_min);
     
     if turn_ON
-        trackDat.Light = uint8(expmt.light.white);
-        writeInfraredWhitePanel(expmt.COM,0,trackDat.Light);
+        trackDat.Light = uint8(expmt.hardware.light.white);
+        writeInfraredWhitePanel(expmt.hardware.COM,0,trackDat.Light);
         trackDat.light.stat=1;
     else
         trackDat.Light = uint8(0);
-        writeInfraredWhitePanel(expmt.COM,0,0);
+        writeInfraredWhitePanel(expmt.hardware.COM,0,0);
         trackDat.light.stat=0;
     end
 else
         trackDat.Light = uint8(0);
-        writeInfraredWhitePanel(expmt.COM,0,0);
+        writeInfraredWhitePanel(expmt.hardware.COM,0,0);
         trackDat.light.stat=0;
 end
 

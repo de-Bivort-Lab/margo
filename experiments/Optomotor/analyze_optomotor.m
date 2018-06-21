@@ -61,14 +61,14 @@ if isfield(expmt,'sweep')
     dim = ceil((length(expmt.sweep.contrasts)+1)/3);
     f=figure();
     expmt.Contrast.values = expmt.sweep.contrasts;
-    expmt.Contrast.index = NaN(length(expmt.sweep.contrasts),expmt.nTracks);
-    expmt.Contrast.active = false(length(expmt.sweep.contrasts),expmt.nTracks);
+    expmt.Contrast.index = NaN(length(expmt.sweep.contrasts),expmt.meta.num_traces);
+    expmt.Contrast.active = false(length(expmt.sweep.contrasts),expmt.meta.num_traces);
     
     for i = 1:length(expmt.sweep.contrasts)
         
         % extract subset traces
         subplot(dim,3,i);
-        subset = expmt.StimStatus.data & repmat(expmt.Contrast.data == expmt.sweep.contrasts(i),1,expmt.nTracks);
+        subset = expmt.StimStatus.data & repmat(expmt.Contrast.data == expmt.sweep.contrasts(i),1,expmt.meta.num_traces);
         [da,opto_index,nTrials] = extractOptoTraces(subset,expmt,trackProps.speed);
         expmt.Contrast.index(i,:) = opto_index;
         
@@ -121,15 +121,15 @@ if isfield(expmt,'sweep')
     
     dim = ceil((length(expmt.sweep.ang_vel)+1)/3);
     expmt.AngularVel.values = expmt.sweep.ang_vel;
-    expmt.AngularVel.index = NaN(length(expmt.sweep.ang_vel),expmt.nTracks);
-    expmt.AngularVel.active = false(length(expmt.sweep.ang_vel),expmt.nTracks);
+    expmt.AngularVel.index = NaN(length(expmt.sweep.ang_vel),expmt.meta.num_traces);
+    expmt.AngularVel.active = false(length(expmt.sweep.ang_vel),expmt.meta.num_traces);
     f=figure();
     
     for i = 1:length(expmt.sweep.ang_vel)
         
         % extract subset traces
         subplot(dim,3,i);
-        subset = expmt.StimStatus.data & repmat(expmt.AngularVel.data == expmt.sweep.ang_vel(i),1,expmt.nTracks);
+        subset = expmt.StimStatus.data & repmat(expmt.AngularVel.data == expmt.sweep.ang_vel(i),1,expmt.meta.num_traces);
         [da,opto_index,nTrials] = extractOptoTraces(subset,expmt,trackProps.speed);
         
         % filter data for activity
@@ -186,14 +186,14 @@ if isfield(expmt,'sweep')
 
     f=figure();
     expmt.SpatialFreq.values = expmt.sweep.ang_vel;
-    expmt.SpatialFreq.index = NaN(length(expmt.sweep.ang_vel),expmt.nTracks);
-    expmt.SpatialFreq.active = false(length(expmt.sweep.ang_vel),expmt.nTracks);
+    expmt.SpatialFreq.index = NaN(length(expmt.sweep.ang_vel),expmt.meta.num_traces);
+    expmt.SpatialFreq.active = false(length(expmt.sweep.ang_vel),expmt.meta.num_traces);
     
     for i = 1:length(expmt.sweep.spatial_freq)
         
         % extract subset traces
         subplot(dim,3,i);
-        subset = expmt.StimStatus.data & repmat(expmt.SpatialFreq.data == expmt.sweep.spatial_freq(i),1,expmt.nTracks);
+        subset = expmt.StimStatus.data & repmat(expmt.SpatialFreq.data == expmt.sweep.spatial_freq(i),1,expmt.meta.num_traces);
         [da,opto_index,nTrials] = extractOptoTraces(subset,expmt,trackProps.speed);
         
         % filter data for activity

@@ -1,7 +1,7 @@
 function expmt = autoFinish(trackDat, expmt, gui_handles)
 
             % set time string to zero
-            switch expmt.source
+            switch expmt.meta.source
                 case 'camera'
                     gui_handles.edit_time_remaining.String = '00:00:00';
                 case 'video'
@@ -10,7 +10,7 @@ function expmt = autoFinish(trackDat, expmt, gui_handles)
 
             % store number of dropped frames for each object in master data struct
             expmt.drop_ct = trackDat.drop_ct;
-            expmt.nFrames = trackDat.ct;
+            expmt.meta.num_frames = trackDat.ct;
             
             % close .avi file if one exists
             if isfield(expmt,'VideoData') && isfield(expmt.VideoData,'obj') 
@@ -24,10 +24,10 @@ function expmt = autoFinish(trackDat, expmt, gui_handles)
             end
             
             % temporarily remove vid obj/source from struct for saving
-            if isfield(expmt.camInfo,'vid')
-                camcopy = expmt.camInfo;
-                expmt.camInfo = rmfield(expmt.camInfo,'src');
-                expmt.camInfo = rmfield(expmt.camInfo,'vid');
+            if isfield(expmt.hardware.cam,'vid')
+                camcopy = expmt.hardware.cam;
+                expmt.hardware.cam = rmfield(expmt.hardware.cam,'src');
+                expmt.hardware.cam = rmfield(expmt.hardware.cam,'vid');
             end
 
             % re-save updated expmt data struct to file
@@ -35,7 +35,7 @@ function expmt = autoFinish(trackDat, expmt, gui_handles)
             gui_notify(['experiment complete'],gui_handles.disp_note);
             
             if exist('camcopy','var')
-                expmt.camInfo = camcopy;
+                expmt.hardware.cam = camcopy;
             end
             
             if isfield(expmt,'projector')

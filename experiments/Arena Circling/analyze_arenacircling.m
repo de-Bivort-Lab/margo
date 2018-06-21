@@ -17,10 +17,10 @@ clearvars -except expmt options
 
 if options.handedness
     if isfield(expmt,'Speed') && isfield(expmt.Speed,'map')
-        expmt.Speed.avg = nanmean(expmt.Speed.map.Data.raw,2);
+        expmt.Speed.avg = nanmean(expmt.Speed.raw,2);
         expmt.handedness.active = expmt.Speed.avg > 0.1;
     else
-        expmt.handedness.active = true(expmt.nTracks,1);
+        expmt.handedness.active = true(expmt.meta.num_traces,1);
     end
 
     % generate handedness histogram

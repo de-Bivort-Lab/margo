@@ -29,7 +29,7 @@ gui_handles.display_menu.UserData = 1;
 %% Experimental Setup
 
 % Initialize experiment parameters
-ref_stack = repmat(expmt.ref, 1, 1, ...
+ref_stack = repmat(expmt.meta.ref, 1, 1, ...
     gui_handles.edit_ref_depth.Value);                      % initialize the reference stack
 nROIs = size(expmt.ROI.centers,1);                          % number of ROIs
 

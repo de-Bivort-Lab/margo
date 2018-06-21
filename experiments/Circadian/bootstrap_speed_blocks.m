@@ -15,9 +15,9 @@ function [varargout]=bootstrap_speed_blocks(expmt,blocks,nReps)
 %% bootstrap sample data
 
 % restrict based on minimum activity
-nf = expmt.nTracks;
+nf = expmt.meta.num_traces;
 active = expmt.Speed.avg>expmt.Speed.thresh;
-speed = expmt.Speed.map.Data.raw(active,:);
+speed = expmt.Speed.raw(active,:);
 blocks = blocks(active);
 nBouts = cell2mat(cellfun(@size,blocks,'UniformOutput',false));
 nBouts = nBouts(:,1);
@@ -28,7 +28,7 @@ nBouts(nBouts==0)=[];
 bout_length = cellfun(@(x) diff(x,[],2)+1,blocks,'UniformOutput',false);
 
 avg = nanmean(cat(1,bout_length{:}));       % mean bout length
-target = expmt.nFrames*nf;                  % target frame num
+target = expmt.meta.num_frames*nf;                  % target frame num
 draw_sz = round(target/avg);
 
 bs_speeds = NaN(nReps,nf);
@@ -93,8 +93,8 @@ end
 
 %%
 
-dim = find(size(expmt.Speed.map.Data.raw) == expmt.nFrames);
-bs.obs = log(nanmean(expmt.Speed.map.Data.raw,dim));
+dim = find(size(expmt.Speed.raw) == expmt.meta.num_frames);
+bs.obs = log(nanmean(expmt.Speed.raw,dim));
 bs.include = active;
 bs.sim = log(bs_speeds);
 

@@ -19,7 +19,7 @@ gui_handles.display_menu.UserData = 3;
 %% Sampling Parameters
 
 n = 50000;
-sample_window = ceil(expmt.ref.thresh);
+sample_window = ceil(expmt.meta.ref.thresh);
 sample_obj = cell(n,1);
 sample_bg = cell(n,1);
 sample_ct = 0;
@@ -30,7 +30,7 @@ trackDat.fields = {'Centroid';'Area'};     % Define fields for regionprops
 trackDat.tStamp = zeros(size(expmt.ROI.centers(:,1),1),1);
 trackDat.t = 0;
 trackDat.ct = 0;
-trackDat.ref = expmt.ref;
+trackDat.ref = expmt.meta.ref;
 
 %% Initalize camera and axes
 
@@ -104,13 +104,13 @@ while sample_ct < n;
 
    % Create distribution for num pixels above imageThresh
    % Image statistics used later during acquisition to detect noise
-   diffim = (trackDat.ref.im - expmt.vignette.im) - ...
-       (trackDat.im - expmt.vignette.im);
+   diffim = (trackDat.ref.im - expmt.meta.vignette.im) - ...
+       (trackDat.im - expmt.meta.vignette.im);
    thresh_im = diffim(:) > gui_handles.track_thresh_slider.Value;
    
 end
 
-switch expmt.source
+switch expmt.meta.source
     case 'video'
         gui_handles.edit_time_remaining.String = num2str(expmt.video.nFrames);
     case 'camera'
@@ -122,10 +122,10 @@ gui_handles.gui_fig.UserData.target_rate = old_rate;
 gui_notify('noise sampling complete',gui_handles.disp_note);
 
 % Assign outputs
-expmt.noise.dist = pixelDist;
-expmt.noise.std = nanstd(pixelDist);
-expmt.noise.mean = nanmean(pixelDist);
-expmt.noise.roi_dist = roiDist;
-expmt.noise.roi_std = nanstd(roiDist(roiDist>4));
-expmt.noise.roi_mean = nanmean(roiDist(roiDist>4));
+expmt.meta.noise.dist = pixelDist;
+expmt.meta.noise.std = nanstd(pixelDist);
+expmt.meta.noise.mean = nanmean(pixelDist);
+expmt.meta.noise.roi_dist = roiDist;
+expmt.meta.noise.roi_std = nanstd(roiDist(roiDist>4));
+expmt.meta.noise.roi_mean = nanmean(roiDist(roiDist>4));
 

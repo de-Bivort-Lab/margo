@@ -27,9 +27,9 @@ expmt = getVideoInput(expmt,gui_handles);
 clean_gui(gui_handles.axes_handle);
 imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','Image');
 
-switch expmt.source
+switch expmt.meta.source
     case 'camera'
-        trackDat.im = peekdata(expmt.camInfo.vid,1);
+        trackDat.im = peekdata(expmt.hardware.cam.vid,1);
     case 'video'
         [trackDat.im, expmt.video] = nextFrame(expmt.video,gui_handles);
 end
@@ -241,8 +241,8 @@ for i=1:nGrids
 end
 
 % create a vignette correction image if mode is set to auto
-if strcmp(expmt.vignette.mode,'auto') && ~isempty(ROI_coords)
-    expmt.vignette.im = filterVignetting(expmt,ROI_coords(end,:),trackDat.im);
+if strcmp(expmt.meta.vignette.mode,'auto') && ~isempty(ROI_coords)
+    expmt.meta.vignette.im = filterVignetting(expmt,ROI_coords(end,:),trackDat.im);
 end
 
 % set sort mode to bounds

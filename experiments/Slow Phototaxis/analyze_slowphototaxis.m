@@ -21,13 +21,13 @@ if sz(2) > sz(1)
 end
 
 % Convert centroid data to projector space
-x=double(squeeze(expmt.Centroid.map.Data.raw(:,1,:)));
-y=double(squeeze(expmt.Centroid.map.Data.raw(:,2,:)));
+x=double(squeeze(expmt.data.centroid.raw(:,1,:)));
+y=double(squeeze(expmt.data.centroid.raw(:,2,:)));
 proj_x = expmt.projector.Fx(x,y);
 proj_y = expmt.projector.Fy(x,y);
 clearvars x y
 [div_dist,in_Light] = ...
-    parseShadeLight(expmt.StimAngle.map.Data.raw, proj_x, proj_y, expmt.stim.centers, 0);
+    parseShadeLight(expmt.StimAngle.raw, proj_x, proj_y, expmt.stim.centers, 0);
 
 % Calculate mean distance to divider for each fly
 avg_d = cellfun(@mean,div_dist);
@@ -62,29 +62,29 @@ bb = num2cell(expmt.Blank.blocks,2);
 div_thresh = (mean(expmt.ROI.bounds(:,[3 4]),2) .* expmt.parameters.divider_size * 0.5)';
 
 % Initialize light occupancy variables
-expmt.Light.include = cell(expmt.Light.nBlocks,expmt.nTracks);
-expmt.Light.occ = cell(expmt.Light.nBlocks,expmt.nTracks);
-expmt.Light.tOcc = cell(expmt.Light.nBlocks,expmt.nTracks);
-expmt.Light.tInc = cell(expmt.Light.nBlocks,expmt.nTracks);
-expmt.Light.tDiv = cell(expmt.Light.nBlocks,expmt.nTracks);
+expmt.Light.include = cell(expmt.Light.nBlocks,expmt.meta.num_traces);
+expmt.Light.occ = cell(expmt.Light.nBlocks,expmt.meta.num_traces);
+expmt.Light.tOcc = cell(expmt.Light.nBlocks,expmt.meta.num_traces);
+expmt.Light.tInc = cell(expmt.Light.nBlocks,expmt.meta.num_traces);
+expmt.Light.tDiv = cell(expmt.Light.nBlocks,expmt.meta.num_traces);
 
 % Initialize blank stimulus occupancy variables
-expmt.Blank.include = cell(expmt.Blank.nBlocks,expmt.nTracks);
-expmt.Blank.occ = cell(expmt.Blank.nBlocks,expmt.nTracks);
-expmt.Blank.tOcc = cell(expmt.Blank.nBlocks,expmt.nTracks);
-expmt.Blank.tInc = cell(expmt.Blank.nBlocks,expmt.nTracks);
-expmt.Blank.tDiv = cell(expmt.Blank.nBlocks,expmt.nTracks);
+expmt.Blank.include = cell(expmt.Blank.nBlocks,expmt.meta.num_traces);
+expmt.Blank.occ = cell(expmt.Blank.nBlocks,expmt.meta.num_traces);
+expmt.Blank.tOcc = cell(expmt.Blank.nBlocks,expmt.meta.num_traces);
+expmt.Blank.tInc = cell(expmt.Blank.nBlocks,expmt.meta.num_traces);
+expmt.Blank.tDiv = cell(expmt.Blank.nBlocks,expmt.meta.num_traces);
 
 
 % Calculate occupancy for each fly in both blank and photo_stim conditions
-for i=1:expmt.nTracks
+for i=1:expmt.meta.num_traces
     
     % When one half of the arena is lit
     off_divider = abs(div_dist{i})>div_thresh(i)*2;                     % data mask for trials where fly is clearly in one half or the other
     [expmt.Texture.data,~] = matchDim(expmt.Texture.data,off_divider);
     include = off_divider & expmt.Texture.data;
     [occ,tOcc,tInc,tDiv,inc] = arrayfun(@(k) parseBlocks(k,include,...  % extract occupancy for each stimulus block
-        in_Light{i},expmt.Time.map.Data.raw), lb, 'UniformOutput',false);
+        in_Light{i},expmt.data.time.raw), lb, 'UniformOutput',false);
     expmt.Light.include(:,i) = inc;                                     % light status for included frames
     expmt.Light.tOcc(:,i) = tOcc;                                       % total time in the light
     expmt.Light.tInc(:,i) = tInc;                                       % time of included frames
@@ -95,7 +95,7 @@ for i=1:expmt.nTracks
     % When both halfs of the arena are unlit
     include = off_divider & ~expmt.Texture.data;
     [occ,tOcc,tInc,tDiv,inc] = arrayfun(@(k) parseBlocks(k,include,...  % extract occupancy for each stimulus block
-        in_Light{i},expmt.Time.map.Data.raw), bb, 'UniformOutput',false);
+        in_Light{i},expmt.data.time.raw), bb, 'UniformOutput',false);
     expmt.Blank.include(:,i) = inc;                                     % light status for included frames
     expmt.Blank.tOcc(:,i) = tOcc;                                       % total time in the light
     expmt.Blank.tInc(:,i) = tInc;
@@ -107,13 +107,13 @@ end
 
 %% Get centroid relative to stimulus
 %{
-stimang = expmt.StimAngle.map.Data.raw;
+stimang = expmt.StimAngle.raw;
 stimang(stimang>180)=stimang(stimang>180)-360;
 stimang = stimang * pi ./ 180;
 cen_theta = trackProps.theta - stimang;
 clearvars stimang
 
-expmt.StimCen.data = NaN(size(expmt.Centroid.map.Data.raw));
+expmt.StimCen.data = NaN(size(expmt.data.centroid.raw));
 expmt.StimCen.data(:,1,:) = trackProps.r .* cos(cen_theta);
 expmt.StimCen.data(:,2,:) = trackProps.r .* sin(cen_theta);
 %}
@@ -144,7 +144,7 @@ end
 %% Generate plots
 
 % Minimum time spent off the boundary divider (hours)
-min_active_period = 0.2 * nansum(expmt.Time.map.Data.raw(expmt.Texture.data))/3600;        
+min_active_period = 0.2 * nansum(expmt.data.time.raw(expmt.Texture.data))/3600;        
 active = expmt.Speed.avg > 0.01;
 tTotal = nansum(cell2mat(expmt.Light.tInc));
 btTotal = nansum(cell2mat(expmt.Blank.tInc));
@@ -230,11 +230,11 @@ first_half = false(size(trackProps.speed));
 first_half(1:round(length(first_half)/2),:) = true;
 inc = first_half & trackProps.speed >0.8;
 expmt.handedness_First = getHandedness(trackProps,'Include',inc);
-inc = repmat(~expmt.Texture.data,1,expmt.nTracks) & trackProps.speed >0.8;
+inc = repmat(~expmt.Texture.data,1,expmt.meta.num_traces) & trackProps.speed >0.8;
 expmt.handedness_Blank = getHandedness(trackProps,'Include',inc);
  inc = ~first_half & trackProps.speed >0.8;
 expmt.handedness_Second = getHandedness(trackProps,'Include',inc);
-inc = repmat(expmt.Texture.data,1,expmt.nTracks) & trackProps.speed >0.8;
+inc = repmat(expmt.Texture.data,1,expmt.meta.num_traces) & trackProps.speed >0.8;
 expmt.handedness_Light = getHandedness(trackProps,'Include',inc);
 
 if isfield(options,'plot') && options.plot

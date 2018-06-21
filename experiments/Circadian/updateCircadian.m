@@ -15,7 +15,7 @@ function trackDat = updateCircadian(trackDat,expmt,gui_handles)
     if  int_exceeded && trackDat.Light == 0
         gui_notify('initiating motor pulse',gui_handles.disp_note)
         trackDat.vib.stat = true;
-        writeVibrationalMotors(expmt.COM,6,1,1,...
+        writeVibrationalMotors(expmt.hardware.COM,6,1,1,...
             expmt.parameters.pulse_num,expmt.parameters.pulse_amp);
         trackDat.vib.t=toc;
     end
@@ -57,7 +57,7 @@ function trackDat = updateCircadian(trackDat,expmt,gui_handles)
         if trackDat.ramp.stat == 1
             
             trackDat.Light = uint8(trackDat.ramp.ct);
-            writeInfraredWhitePanel(expmt.COM,0,uint8(trackDat.ramp.ct));
+            writeInfraredWhitePanel(expmt.hardware.COM,0,uint8(trackDat.ramp.ct));
             trackDat.ramp.t = toc;
             trackDat.ramp.ct = trackDat.ramp.ct+1;
             
@@ -82,7 +82,7 @@ function trackDat = updateCircadian(trackDat,expmt,gui_handles)
         if trackDat.ramp.stat == -1
             
             trackDat.Light = uint8(255-trackDat.ramp.ct);
-            writeInfraredWhitePanel(expmt.COM,0,trackDat.Light);
+            writeInfraredWhitePanel(expmt.hardware.COM,0,trackDat.Light);
             trackDat.ramp.t = toc;
             trackDat.ramp.ct = trackDat.ramp.ct+1;
             

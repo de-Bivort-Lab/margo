@@ -34,7 +34,7 @@ imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');   % image hand
 %% Experimental Setup
 
 % Initialize experiment parameters
-ref_stack = repmat(expmt.ref, 1, 1, gui_handles.edit_ref_depth.Value);  % initialize the reference stack
+ref_stack = repmat(expmt.meta.ref, 1, 1, gui_handles.edit_ref_depth.Value);  % initialize the reference stack
 nROIs = size(expmt.ROI.centers,1);                                      % number of ROIs
 
 % Initialize tracking variables

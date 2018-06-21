@@ -10,9 +10,9 @@ imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');   % image hand
 
 if isempty(imh)
     % Take single frame
-    switch expmt.source
+    switch expmt.meta.source
         case 'camera'
-            trackDat.im = peekdata(expmt.camInfo.vid,1);
+            trackDat.im = peekdata(expmt.hardware.cam.vid,1);
         case 'video'
             [trackDat.im, expmt.video] = nextFrame(expmt.video,gui_handles);
     end
@@ -124,8 +124,8 @@ while trackDat.t < expmt.parameters.duration*3600 &&...
     [trackDat,expmt] = autoFrame(trackDat,expmt,gui_handles);
     
     if trackDat.ct == 0
-        diffim = (trackDat.ref.im - expmt.vignette.im) -...
-                    (trackDat.im - expmt.vignette.im);
+        diffim = (trackDat.ref.im - expmt.meta.vignette.im) -...
+                    (trackDat.im - expmt.meta.vignette.im);
         tmp_thresh = floor(graythresh(diffim)*255);
         
         if tmp_thresh > 4
@@ -223,10 +223,10 @@ trackDat.t = 0;
 tic
 trackDat.tPrev = toc;
 autoTime(trackDat, expmt, gui_handles);
-expmt.ref = trackDat.ref;
+expmt.meta.ref = trackDat.ref;
 
 
-expmt.vignette.im = filterVignetting(expmt);
+expmt.meta.vignette.im = filterVignetting(expmt);
 
 % Reset accept reference button
 set(gui_handles.accept_track_thresh_pushbutton,'value',0);
@@ -238,6 +238,6 @@ gui_handles.display_raw_menu.Checked = 'on';
 gui_handles.display_menu.UserData = 1;
 
 % Set time to zero
-if strcmp(expmt.source,'camera')
+if strcmp(expmt.meta.source,'camera')
     updateTimeString(0, gui_handles.edit_time_remaining);
 end

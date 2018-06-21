@@ -73,7 +73,7 @@ if isfield(options,'handles')
     gui_notify('importing and processing data...',options.handles.disp_note)
 end
 
-expmt.nTracks = size(expmt.ROI.centers,1);
+expmt.meta.num_traces = size(expmt.ROI.centers,1);
 
 %% initialize raw data memmap files
 
@@ -94,9 +94,9 @@ end
 expmt = getRawData(expmt,options);
 
 % query centroid file size
-if isfield(expmt.Centroid,'map')
-    sz = numel(expmt.Centroid.map.Data.raw);
-    switch expmt.Centroid.precision
+if isfield(expmt.data.centroid,'map')
+    sz = numel(expmt.data.centroid.raw);
+    switch expmt.data.centroid.precision
         case 'double', sz = sz*8;
         case 'single', sz = sz*4;
     end
@@ -116,7 +116,7 @@ end
 
 % record distance from camera center
 if ~isfield(expmt.ROI,'cam_dist')
-    cc = [size(expmt.ref,2)/2 size(expmt.ref,1)/2];
+    cc = [size(expmt.meta.ref,2)/2 size(expmt.meta.ref,1)/2];
     expmt.ROI.cam_dist = sqrt((expmt.ROI.centers(:,1)-cc(1)).^2 + ...
         (expmt.ROI.centers(:,2)-cc(2)).^2);
 end

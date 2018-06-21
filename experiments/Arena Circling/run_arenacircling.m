@@ -36,7 +36,7 @@ imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');   % image hand
 %% Experimental Setup
     
 % Initialize reference stack
-ref_stack = repmat(expmt.ref, 1, 1, gui_handles.edit_ref_depth.Value);
+ref_stack = repmat(expmt.meta.ref, 1, 1, gui_handles.edit_ref_depth.Value);
 
 % properties of the tracked objects to be recorded
 trackDat.fields={'Centroid';'Time'};                 

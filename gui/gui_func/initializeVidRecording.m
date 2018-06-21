@@ -23,7 +23,7 @@ expmt.VideoIndex.path = ...
 expmt.VideoIndex.fID = fopen(expmt.VideoIndex.path,'w');
 
 % query resolution and precision and save to first four values to video file
-im = peekdata(expmt.camInfo.vid,1);
+im = peekdata(expmt.hardware.cam.vid,1);
 res = [size(im,1);size(im,2)];
 c = class(im);
 

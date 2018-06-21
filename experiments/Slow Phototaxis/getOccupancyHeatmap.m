@@ -23,7 +23,7 @@ binlabels=-1:0.2:1;
 
 %% calculate occupancy
 
-for i=1:expmt.nTracks
+for i=1:expmt.meta.num_traces
     
     f='Centroid';
     % normalize centroid to centroid center

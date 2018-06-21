@@ -36,7 +36,7 @@ if gui_handles.stop_pushbutton.UserData.Value
                 delete(expmt.(trackDat.fields{i}).path);
             end
             
-            switch expmt.source
+            switch expmt.meta.source
                 case 'camera'
                     trackDat.t = 0;
                     tPrev = toc;

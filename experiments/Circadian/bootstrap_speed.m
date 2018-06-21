@@ -14,7 +14,7 @@ function [varargout]=bootstrap_speed(expmt,trackProps,nReps)
 
 %% bootstrap sample data
 
-nf = expmt.nTracks;
+nf = expmt.meta.num_traces;
 active = nanmean(trackProps.speed)>0.01;
 trackProps.speed = trackProps.speed(:,active);
 batch_sz = 5000;

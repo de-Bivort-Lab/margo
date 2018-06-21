@@ -8,30 +8,30 @@ switch expmt.Area.map.Format{1}
     case 'double', prcn = 8;
 end
 
-nbatch = msz / (prcn * expmt.nFrames * expmt.nTracks * 8 * 10);
+nbatch = msz / (prcn * expmt.meta.num_frames * expmt.meta.num_traces * 8 * 10);
 if nbatch < 1
-    bsz = floor(expmt.nFrames * nbatch);
+    bsz = floor(expmt.meta.num_frames * nbatch);
 else
-    bsz = expmt.nFrames;
+    bsz = expmt.meta.num_frames;
 end
 
-idx = round(linspace(1,expmt.nFrames,bsz));
+idx = round(linspace(1,expmt.meta.num_frames,bsz));
 
 
-hwb = waitbar(0,['processing trace 1 of ' num2str(expmt.nTracks)],'Name','Parsing floor/ceiling bouts');
-thresh = NaN(expmt.nTracks,1);
-ints = NaN(expmt.nTracks,1);
-means = NaN(expmt.nTracks,2)';
-sigmas = NaN(expmt.nTracks,2)';
-expmt.Area.ceiling = false(expmt.nFrames,expmt.nTracks);
-expmt.Area.floor = false(expmt.nFrames,expmt.nTracks);
+hwb = waitbar(0,['processing trace 1 of ' num2str(expmt.meta.num_traces)],'Name','Parsing floor/ceiling bouts');
+thresh = NaN(expmt.meta.num_traces,1);
+ints = NaN(expmt.meta.num_traces,1);
+means = NaN(expmt.meta.num_traces,2)';
+sigmas = NaN(expmt.meta.num_traces,2)';
+expmt.Area.ceiling = false(expmt.meta.num_frames,expmt.meta.num_traces);
+expmt.Area.floor = false(expmt.meta.num_frames,expmt.meta.num_traces);
 
 
-for i = 1:expmt.nTracks
+for i = 1:expmt.meta.num_traces
     
     if ishghandle(hwb)
-        waitbar(i/expmt.nTracks,hwb,...
-            ['processing trace ' num2str(i) ' of ' num2str(expmt.nTracks)]);
+        waitbar(i/expmt.meta.num_traces,hwb,...
+            ['processing trace ' num2str(i) ' of ' num2str(expmt.meta.num_traces)]);
     end
 
     % find threshold for each individual

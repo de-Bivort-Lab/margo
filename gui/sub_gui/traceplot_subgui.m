@@ -57,15 +57,15 @@ expmt = varargin{1};
 handles.trace_fig.UserData.expmt = expmt;
 [~,p] = memory;
 mem = p.PhysicalMemory.Available;
-n = mem/(8*expmt.nFrames*2*6) * expmt.nFrames * 0.1;
-if expmt.nFrames > n
-    frame_rate = median(expmt.Time.map.Data.raw);
-    handles.trace_fig.UserData.idx = 1:round(frame_rate):expmt.nFrames;
+n = mem/(8*expmt.meta.num_frames*2*6) * expmt.meta.num_frames * 0.1;
+if expmt.meta.num_frames > n
+    frame_rate = median(expmt.data.time.raw);
+    handles.trace_fig.UserData.idx = 1:round(frame_rate):expmt.meta.num_frames;
     if numel(handles.trace_fig.UserData.idx) > n
-        handles.trace_fig.UserData.idx = floor(linspace(1,expmt.nFrames,n));
+        handles.trace_fig.UserData.idx = floor(linspace(1,expmt.meta.num_frames,n));
     end
 else
-    handles.trace_fig.UserData.idx = 1:expmt.nFrames;
+    handles.trace_fig.UserData.idx = 1:expmt.meta.num_frames;
 end
 
 % set slider min-max values
@@ -173,8 +173,8 @@ ah = handles.(['pos_axes' num2str(plot_num)]);
 lh = findobj(ah.Children,'Type','Line','-depth',1);
 expmt = handles.trace_fig.UserData.expmt;
 ii = handles.trace_fig.UserData.idx;
-x = squeeze(expmt.Centroid.map.Data.raw(idx,1,ii));
-y = squeeze(expmt.Centroid.map.Data.raw(idx,2,ii));
+x = squeeze(expmt.data.centroid.raw(idx,1,ii));
+y = squeeze(expmt.data.centroid.raw(idx,2,ii));
 handles.(['roi_num_slider' num2str(plot_num)]).Value = idx;
 handles.(['edit_ROI_num' num2str(plot_num)]).String = num2str(idx);
 

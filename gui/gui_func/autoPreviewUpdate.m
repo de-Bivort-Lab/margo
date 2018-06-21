@@ -5,10 +5,10 @@ gui_handles = getappdata(hImage,'gui_handles');
 expmt = getappdata(hImage,'expmt');
 
 % adjust image for lens distortion if camera calibration parameters exist
-if strcmp(expmt.source,'camera') && ...
-        isfield(expmt.camInfo,'calibration') && ...
+if strcmp(expmt.meta.source,'camera') && ...
+        isfield(expmt.hardware.cam,'calibration') && ...
         gui_handles.cam_calibrate_menu.UserData
-    [event.Data,~] = undistortImage(event.Data,expmt.camInfo.calibration);
+    [event.Data,~] = undistortImage(event.Data,expmt.hardware.cam.calibration);
 end
 
 switch gui_handles.display_menu.UserData
@@ -23,9 +23,9 @@ switch gui_handles.display_menu.UserData
 
     % difference image
     case 2
-        if isfield(expmt,'ref') && isfield(expmt.vignette,'im')
+        if isfield(expmt,'ref') && isfield(expmt.meta.vignette,'im')
         hImage.CData = ...
-            (expmt.ref.im-expmt.vignette.im)-(event.Data-expmt.vignette.im);
+            (expmt.meta.ref.im-expmt.meta.vignette.im)-(event.Data-expmt.meta.vignette.im);
             if strcmp(hImage.CDataMapping,'scaled')
                 hImage.CDataMapping = 'direct';
                 hImage.Parent.CLim = [0 255];
@@ -40,8 +40,8 @@ switch gui_handles.display_menu.UserData
     % threshold image
     case 3 
         
-        if isfield(expmt,'ref') && isfield(expmt.vignette,'im')
-            hImage.CData = (expmt.ref.im-expmt.vignette.im)-(event.Data-expmt.vignette.im)...
+        if isfield(expmt,'ref') && isfield(expmt.meta.vignette,'im')
+            hImage.CData = (expmt.meta.ref.im-expmt.meta.vignette.im)-(event.Data-expmt.meta.vignette.im)...
                 > gui_handles.track_thresh_slider.Value;
             hImage.Parent.CLim = [0 1];
             if strcmp(hImage.CDataMapping,'direct')
@@ -58,7 +58,7 @@ switch gui_handles.display_menu.UserData
     % reference image
     case 4
         if isfield(expmt,'ref')
-            hImage.CData = expmt.ref.im;
+            hImage.CData = expmt.meta.ref.im;
             hImage.Parent.CLim = [0 max(event.Data(:))];
             if strcmp(hImage.CDataMapping,'direct')
                 hImage.CDataMapping = 'scaled';

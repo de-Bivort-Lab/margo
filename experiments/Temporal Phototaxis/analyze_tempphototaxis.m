@@ -16,14 +16,14 @@ clearvars -except expmt options
 
 
 % get stimulus transitions
-stim_trans = diff([zeros(1,expmt.nTracks);expmt.LightStatus.data]);
+stim_trans = diff([zeros(1,expmt.meta.num_traces);expmt.LightStatus.data]);
 [r,c] = find(stim_trans ~= 0);
-expmt.LightStatus.trans = cell(expmt.nTracks,1);
-expmt.LightStatus.n = NaN(expmt.nTracks,1);
-expmt.LightStatus.iti = NaN(expmt.nTracks,1);
-for i = 1:expmt.nTracks
+expmt.LightStatus.trans = cell(expmt.meta.num_traces,1);
+expmt.LightStatus.n = NaN(expmt.meta.num_traces,1);
+expmt.LightStatus.iti = NaN(expmt.meta.num_traces,1);
+for i = 1:expmt.meta.num_traces
     expmt.LightStatus.trans(i) = {r(c==i)};
-    expmt.LightStatus.iti(i) = mean(diff(expmt.LightStatus.trans{i})).*nanmean(expmt.Time.data);
+    expmt.LightStatus.iti(i) = mean(diff(expmt.LightStatus.trans{i})).*nanmean(expmt.data.time.data);
     expmt.Lightstatus.n(i) = length(expmt.LightStatus.trans{i});
 end
 
@@ -49,13 +49,13 @@ bb = num2cell(expmt.Blank.blocks,2);
 
 
 % Calculate occupancy for each fly in both blank and photo_stim conditions
-for i=1:expmt.nTracks
+for i=1:expmt.meta.num_traces
     
     % When one half of the arena is lit
     off_divider = abs(div_dist{i})>div_thresh(i)*2;                       % data mask for trials where fly is clearly in one half or the other
     include = off_divider & expmt.Texture.data;
     [occ,tOcc,tInc,tDiv,inc] = arrayfun(@(k) parseBlocks(k,include,...  % extract occupancy for each stimulus block
-        in_Light{i},expmt.Time.data), lb, 'UniformOutput',false);
+        in_Light{i},expmt.data.time.data), lb, 'UniformOutput',false);
     expmt.Light.include(:,i) = inc;                                     % light status for included frames
     expmt.Light.tOcc(:,i) = tOcc;                                       % total time in the light
     expmt.Light.tInc(:,i) = tInc;                                       % time of included frames
@@ -66,7 +66,7 @@ for i=1:expmt.nTracks
     % When both halfs of the arena are unlit
     include = off_divider & ~expmt.Texture.data;
     [occ,tOcc,tInc,tDiv,inc] = arrayfun(@(k) parseBlocks(k,include,...  % extract occupancy for each stimulus block
-        in_Light{i},expmt.Time.data), bb, 'UniformOutput',false);
+        in_Light{i},expmt.data.time.data), bb, 'UniformOutput',false);
     expmt.Blank.include(:,i) = inc;                                     % light status for included frames
     expmt.Blank.tOcc(:,i) = tOcc;                                       % total time in the light
     expmt.Blank.tInc(:,i) = tInc;
@@ -81,10 +81,10 @@ end
 stimang = expmt.StimAngle;
 stimang(stimang>180)=stimang(stimang>180)-360;
 stimang = stimang * pi ./ 180;
-cen_theta = trackProps.theta - repmat(stimang',expmt.nFrames,1);
+cen_theta = trackProps.theta - repmat(stimang',expmt.meta.num_frames,1);
 clearvars stimang
 
-expmt.StimCen.data = NaN(size(expmt.Centroid.data));
+expmt.StimCen.data = NaN(size(expmt.data.centroid.data));
 expmt.StimCen.data(:,1,:) = trackProps.r .* cos(cen_theta);
 expmt.StimCen.data(:,2,:) = trackProps.r .* sin(cen_theta);
 
@@ -114,7 +114,7 @@ end
 %% Generate plots
 
 % Minimum time spent off the boundary divider (hours)
-min_active_period = 0.2 * nansum(expmt.Time.data(expmt.Texture.data))/3600;        
+min_active_period = 0.2 * nansum(expmt.data.time.data(expmt.Texture.data))/3600;        
 active = nanmean(trackProps.speed) > 0.1;
 tTotal = nansum(cell2mat(expmt.Light.tInc));
 btTotal = nansum(cell2mat(expmt.Blank.tInc));
@@ -199,11 +199,11 @@ first_half = false(size(trackProps.speed));
 first_half(1:round(length(first_half)/2),:) = true;
 inc = first_half & trackProps.speed >0.8;
 expmt.handedness_First = getHandedness(trackProps,'Include',inc);
-%inc = repmat(~expmt.Texture.data,1,expmt.nTracks) & trackProps.speed >0.8;
+%inc = repmat(~expmt.Texture.data,1,expmt.meta.num_traces) & trackProps.speed >0.8;
 %expmt.handedness_Blank = getHandedness(trackProps,'Include',inc);
  inc = ~first_half & trackProps.speed >0.8;
 expmt.handedness_Second = getHandedness(trackProps,'Include',inc);
-%inc = repmat(expmt.Texture.data,1,expmt.nTracks) & trackProps.speed >0.8;
+%inc = repmat(expmt.Texture.data,1,expmt.meta.num_traces) & trackProps.speed >0.8;
 %expmt.handedness_Light = getHandedness(trackProps,'Include',inc);
 
 if isfield(options,'plot') && options.plot
@@ -224,7 +224,7 @@ xlabel('stimulus first half \mu');
 ylabel('stimulus second half \mu');
 dim = [.65 .78 .1 .1];
 str = ['r = ' num2str(round(r(2,1)*100)/100) ', p = ' num2str(round(p(2,1)*10000)/10000)...
-    ' (n=' num2str(expmt.nTracks) ')'];
+    ' (n=' num2str(expmt.meta.num_traces) ')'];
 annotation('textbox',dim,'String',str,'FitBoxToText','on');
 title('slow phototaxis - handedness');
 

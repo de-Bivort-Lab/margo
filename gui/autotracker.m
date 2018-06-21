@@ -189,11 +189,12 @@ else
 end
 
 % initialize ExperimentData obj
-expmt = [];
+expmt = ExpmerimentData;
 % cam setup
 
-expmt.source = 'camera';                    % set the source mode to camera by default
-[expmt.camInfo,handles.cam_list] = refresh_cam_list(handles);  % query available cameras and camera info
+expmt.meta.source = 'camera';       % set the source mode to camera by default
+[expmt.hardware.cam,handles.cam_list] = ...
+        refresh_cam_list(handles);  % query available cameras and camera info
 
 cam_dir = [handles.gui_dir '/hardware/camera_calibration/'];
 handles.cam_calibrate_menu.UserData = false;
@@ -214,7 +215,7 @@ if exist(cam_dir,'dir')==7
         target_file = cellfun(@(x) strcmp(target_name,x),var_names,'UniformOutput',false);
         target_file = target_file{find(~cellfun(@isempty,target_file),1,'first')};
         param_obj = load(cam_files{target_file},target_name);
-        expmt.camInfo.calibration = param_obj.(target_name);
+        expmt.hardware.cam.calibration = param_obj.(target_name);
     end
     
 end
@@ -223,18 +224,18 @@ end
 
 %Close and delete any open serial objects
 if ~isempty(instrfindall)
-fclose(instrfindall);                       % Make sure that the COM port is closed
-delete(instrfindall);                       % Delete any serial objects in memory
+    fclose(instrfindall);       % Make sure that the COM port is closed
+    delete(instrfindall);       % Delete any serial objects in memory
 end
 
 % Attempt handshake with light panel teensy
-[expmt.COM,handles.aux_COM_list] = identifyMicrocontrollers;
+[expmt.hardware.COM,handles.aux_COM_list] = identifyMicrocontrollers;
 
 
 
 % Update GUI menus with port names
-if ~isempty(expmt.COM)
-    set(handles.microcontroller_popupmenu,'string',expmt.COM.port);
+if ~isempty(expmt.hardware.COM)
+    set(handles.microcontroller_popupmenu,'string',expmt.hardware.COM.port);
 else
     set(handles.microcontroller_popupmenu,'string','No COM detected');
 end
@@ -244,12 +245,14 @@ IR_intensity = str2double(get(handles.edit_IR_intensity,'string'));
 White_intensity = str2double(get(handles.edit_White_intensity,'string'));
 
 % Convert intensity percentage to uint8 PWM value 0-255
-expmt.light.infrared = uint8((IR_intensity/100)*255);
-expmt.light.white = uint8((White_intensity/100)*255);
+expmt.hardware.light.infrared = uint8((IR_intensity/100)*255);
+expmt.hardware.light.white = uint8((White_intensity/100)*255);
 
 % Write values to microcontroller
-expmt.COM = writeInfraredWhitePanel(expmt.COM,1,expmt.light.infrared);
-expmt.COM = writeInfraredWhitePanel(expmt.COM,0,expmt.light.white);
+expmt.hardware.COM = writeInfraredWhitePanel(expmt.hardware.COM,1,...
+                        expmt.hardware.light.infrared);
+expmt.hardware.COM = writeInfraredWhitePanel(expmt.hardware.COM,0,...
+                        expmt.hardware.light.white);
 
 % generate menu items for AUX COMs and config their callbacks
 hParent = findobj('Tag','aux_com_menu');
@@ -319,7 +322,7 @@ handles.edit_dist_thresh.String = num2str(handles.gui_fig.UserData.distance_thre
 
 expmt.parameters.mm_per_pix = 1;            % set default distance scale 1 mm per pixel
 expmt.parameters.units = 'pixels';          % set default units to pixels
-expmt.vignette.mode = 'auto';
+expmt.meta.vignette.mode = 'auto';
 expmt.expID = 1;
 expmt.Initialize = true;
 expmt.Finish = true;
@@ -394,8 +397,8 @@ if ~isempty(handles.cam_list(get(hObject,'value')).adaptor)
         end
     end
     
-    expmt.camInfo = camInfo;
-    expmt.camInfo.activeID = handles.cam_list(get(hObject,'value')).index;
+    expmt.hardware.cam = camInfo;
+    expmt.hardware.cam.activeID = handles.cam_list(get(hObject,'value')).index;
     
 end
 
@@ -428,7 +431,7 @@ function cam_mode_popupmenu_Callback(hObject, ~, handles)
 expmt = getappdata(handles.gui_fig,'expmt');
 
 strCell = get(handles.cam_mode_popupmenu,'string');
-expmt.camInfo.ActiveMode = strCell(get(handles.cam_mode_popupmenu,'Value'));
+expmt.hardware.cam.ActiveMode = strCell(get(handles.cam_mode_popupmenu,'Value'));
 
 % Store expmteriment data struct
 setappdata(handles.gui_fig,'expmt',expmt);
@@ -458,8 +461,8 @@ function Cam_confirm_pushbutton_Callback(hObject, ~, handles)
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 
-if ~isempty(expmt.camInfo)
-    if ~isempty(expmt.camInfo.DeviceInfo)
+if ~isempty(expmt.hardware.cam)
+    if ~isempty(expmt.hardware.cam.DeviceInfo)
         
         % query the Enable states of objects in the gui
         clean_gui(handles.axes_handle);
@@ -476,8 +479,8 @@ if ~isempty(expmt.camInfo)
         gui_notify('may take a few moments...',handles.disp_note);
         imaqreset;
         pause(0.01);
-        expmt.camInfo = initializeCamera(expmt.camInfo);
-        start(expmt.camInfo.vid);
+        expmt.hardware.cam = initializeCamera(expmt.hardware.cam);
+        start(expmt.hardware.cam.vid);
         gui_notify('camera started, measuring frame rate...',handles.disp_note);
         drawnow
         
@@ -486,8 +489,8 @@ if ~isempty(expmt.camInfo)
         pause(0.09);
         
         % measure frame rate
-        [frame_rate, expmt.camInfo] = estimateFrameRate(expmt.camInfo);
-        expmt.camInfo.frame_rate = frame_rate;
+        [frame_rate, expmt.hardware.cam] = estimateFrameRate(expmt.hardware.cam);
+        expmt.hardware.cam.frame_rate = frame_rate;
         
         if handles.gui_fig.UserData.target_rate == 60
             handles.gui_fig.UserData.target_rate = frame_rate;
@@ -495,26 +498,26 @@ if ~isempty(expmt.camInfo)
         
         % adjust aspect ratio of plot to match camera
         colormap('gray');
-        im = peekdata(expmt.camInfo.vid,1);
+        im = peekdata(expmt.hardware.cam.vid,1);
         switch class(im)
             case 'uint8'
-                expmt.camInfo.bitDepth = 8;
+                expmt.hardware.cam.bitDepth = 8;
             case 'int8'
-                expmt.camInfo.bitDepth = 8;
+                expmt.hardware.cam.bitDepth = 8;
             case 'uint16'
-                expmt.camInfo.bitDepth = 16;
+                expmt.hardware.cam.bitDepth = 16;
             case 'int16'
-                expmt.camInfo.bitDepth = 16;
+                expmt.hardware.cam.bitDepth = 16;
             case 'uint32'
-                expmt.camInfo.bitDepth = 32;
+                expmt.hardware.cam.bitDepth = 32;
             case 'int32'
-                expmt.camInfo.bitDepth = 32;
+                expmt.hardware.cam.bitDepth = 32;
         end
         
         clean_gui(handles.axes_handle);
         handles.hImage = imagesc(im);
         set(handles.axes_handle,'Xtick',[],'Ytick',[],'XLabel',[],'YLabel',[]);
-        res = expmt.camInfo.vid.VideoResolution;
+        res = expmt.hardware.cam.vid.VideoResolution;
         handles.axes_handle.Position(3) = ...
             handles.gui_fig.Position(3) - 5 - handles.axes_handle.Position(1);
         handles.gui_fig.Position(3) = handles.gui_fig.Position(3)+1;
@@ -551,7 +554,7 @@ if ~isempty(expmt.camInfo)
             expmt = rmfield(expmt,'ROI');
             expmt = rmfield(expmt,'ref');
             expmt = rmfield(expmt,'noise');
-            expmt = rmfield(expmt.vignette,'im');
+            expmt = rmfield(expmt.meta.vignette,'im');
             msgbox(['Cam settings changed: saved ROIs, references and ' ...
                 'noise statistics have been discarded.']);
             note = 'ROIs, references, and noise statistics reset';
@@ -559,14 +562,14 @@ if ~isempty(expmt.camInfo)
         elseif isfield(expmt,'ROI') && isfield(expmt,'ref')
             expmt = rmfield(expmt,'ROI');
             expmt = rmfield(expmt,'ref');
-            expmt = rmfield(expmt.vignette,'im');
+            expmt = rmfield(expmt.meta.vignette,'im');
             msgbox(['Cam settings changed: saved ROIs, references ' ...
                 'have been discarded.']);
             note = 'ROIs and references reset';
             gui_notify(note,handles.disp_note);
         elseif isfield(expmt,'ROI')
            expmt = rmfield(expmt,'ROI');
-           expmt = rmfield(expmt.vignette,'im');
+           expmt = rmfield(expmt.meta.vignette,'im');
            msgbox(['Cam settings changed: saved ROIs ' ...
                 'have been discarded.']);
             note = 'saved ROI positions reset';
@@ -582,8 +585,8 @@ if ~isempty(expmt.camInfo)
         
         handles.Cam_preview_togglebutton.Enable = 'on';
         
-        if expmt.camInfo.bitDepth ~= 8
-            errordlg([num2str(expmt.camInfo.bitDepth) ...
+        if expmt.hardware.cam.bitDepth ~= 8
+            errordlg([num2str(expmt.hardware.cam.bitDepth) ...
                 '-bit image mode detected. Only 8-bit image modes are supported'],...
                 'Unsupported Camera Mode');
         end
@@ -618,10 +621,10 @@ handles.hImage = findobj(handles.axes_handle,'-depth',3,'Type','image');   % ima
 
 switch get(hObject,'value')
     case 1
-        if ~isempty(expmt.camInfo) && ~isfield(expmt.camInfo, 'vid')
+        if ~isempty(expmt.hardware.cam) && ~isfield(expmt.hardware.cam, 'vid')
             errordlg('Please confirm camera settings')
             hObject.Value = 0;
-        elseif isfield(expmt.camInfo, 'vid') && ~isvalid(expmt.camInfo.vid)
+        elseif isfield(expmt.hardware.cam, 'vid') && ~isvalid(expmt.hardware.cam.vid)
             set(hObject,'string','Stop preview','BackgroundColor',[0.8 0.45 0.45]);
             
             % Clear old video objects
@@ -629,33 +632,33 @@ switch get(hObject,'value')
             pause(0.1);
 
             % Create camera object with input parameters
-            expmt.camInfo = initializeCamera(expmt.camInfo);
-            start(expmt.camInfo.vid);
+            expmt.hardware.cam = initializeCamera(expmt.hardware.cam);
+            start(expmt.hardware.cam.vid);
             pause(0.1);
             set(handles.display_menu.Children,'Enable','on');
-            hPreview = preview(expmt.camInfo.vid,handles.hImage);
+            hPreview = preview(expmt.hardware.cam.vid,handles.hImage);
             setappdata(hPreview,'UpdatePreviewWindowFcn',@autoPreviewUpdate);
             setappdata(hPreview,'gui_handles',handles);
             setappdata(hPreview,'expmt',expmt);
             
             
-        elseif isfield(expmt.camInfo, 'vid') && strcmp(expmt.camInfo.vid.Running,'off')
+        elseif isfield(expmt.hardware.cam, 'vid') && strcmp(expmt.hardware.cam.vid.Running,'off')
             set(hObject,'string','Stop preview','BackgroundColor',[0.8 0.45 0.45]);
             
             set(handles.display_menu.Children,'Enable','on');
-            hPreview = preview(expmt.camInfo.vid,handles.hImage);
+            hPreview = preview(expmt.hardware.cam.vid,handles.hImage);
             setappdata(hPreview,'UpdatePreviewWindowFcn',@autoPreviewUpdate);
             setappdata(hPreview,'gui_handles',handles);
             setappdata(hPreview,'expmt',expmt);
             
-        elseif isfield(expmt.camInfo, 'vid') && strcmp(expmt.camInfo.vid.Running,'on')
+        elseif isfield(expmt.hardware.cam, 'vid') && strcmp(expmt.hardware.cam.vid.Running,'on')
             set(hObject,'string','Stop preview','BackgroundColor',[0.8 0.45 0.45]);
-            stoppreview(expmt.camInfo.vid);
+            stoppreview(expmt.hardware.cam.vid);
             if isempty(handles.hImage)
                 
                 % Take single frame
-                if strcmp(expmt.source,'camera')
-                    trackDat.im = peekdata(expmt.camInfo.vid,1);
+                if strcmp(expmt.meta.source,'camera')
+                    trackDat.im = peekdata(expmt.hardware.cam.vid,1);
                 else
                     [trackDat.im, expmt.video] = nextFrame(expmt.video,handles);
                 end
@@ -672,15 +675,15 @@ switch get(hObject,'value')
             end
             
             set(handles.display_menu.Children,'Enable','on');
-            hPreview = preview(expmt.camInfo.vid,handles.hImage);
+            hPreview = preview(expmt.hardware.cam.vid,handles.hImage);
             setappdata(hPreview,'UpdatePreviewWindowFcn',@autoPreviewUpdate);
             setappdata(hPreview,'gui_handles',handles);
             setappdata(hPreview,'expmt',expmt);
             
         end
     case 0
-        if ~isempty(expmt.camInfo) && isfield(expmt.camInfo,'vid')
-            stoppreview(expmt.camInfo.vid);           
+        if ~isempty(expmt.hardware.cam) && isfield(expmt.hardware.cam,'vid')
+            stoppreview(expmt.hardware.cam.vid);           
             
             if size(handles.hImage.CData,3) > 1
                 CData = handles.hImage.CData(:,:,2);
@@ -735,12 +738,12 @@ function edit_IR_intensity_Callback(hObject, ~, handles)
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 
-expmt.light.infrared = str2double(get(handles.edit_IR_intensity,'string'));
+expmt.hardware.light.infrared = str2double(get(handles.edit_IR_intensity,'string'));
 
 % Convert intensity percentage to uint8 PWM value 0-255
-expmt.light.infrared = uint8((expmt.light.infrared/100)*255);
+expmt.hardware.light.infrared = uint8((expmt.hardware.light.infrared/100)*255);
 
-expmt.COM = writeInfraredWhitePanel(expmt.COM,1,expmt.light.infrared);
+expmt.hardware.COM = writeInfraredWhitePanel(expmt.hardware.COM,1,expmt.hardware.light.infrared);
 
 % Store expmteriment data struct
 setappdata(handles.gui_fig,'expmt',expmt);
@@ -769,8 +772,8 @@ expmt = getappdata(handles.gui_fig,'expmt');
 White_intensity = str2double(get(handles.edit_White_intensity,'string'));
 
 % Convert intensity percentage to uint8 PWM value 0-255
-expmt.light.white = uint8((White_intensity/100)*255);
-expmt.COM = writeInfraredWhitePanel(expmt.COM,0,expmt.light.white);
+expmt.hardware.light.white = uint8((White_intensity/100)*255);
+expmt.hardware.COM = writeInfraredWhitePanel(expmt.hardware.COM,0,expmt.hardware.light.white);
 
 % Store expmteriment data struct
 setappdata(handles.gui_fig,'expmt',expmt);
@@ -1155,7 +1158,7 @@ else
                 end
         end
         
-        if isfield(expmt,'Centroid') && isfield(expmt.Centroid,'map')
+        if isfield(expmt,'Centroid') && isfield(expmt.data.centroid,'map')
             ttl = 'Tracking Complete';
             msg = {'ROIs, references, and noise statistics reset';...
                 'Would you like to plot raw tracking data?'};
@@ -1243,7 +1246,7 @@ else
         set(findall(handles.exp_uipanel, '-property', 'Enable'), 'Enable', 'off');
         set(findall(handles.run_uipanel, '-property', 'Enable'), 'Enable', 'off');
         
-        if isfield(expmt,'camInfo') && isfield(expmt.camInfo,'vid') && isvalid(expmt.camInfo.vid)
+        if isfield(expmt,'camInfo') && isfield(expmt.hardware.cam,'vid') && isvalid(expmt.hardware.cam.vid)
             handles.auto_detect_ROIs_pushbutton.Enable = 'on';
             handles.accept_ROI_thresh_pushbutton.Enable = 'on';
             handles.ROI_thresh_slider.Enable = 'on';
@@ -1514,11 +1517,11 @@ expmt = getappdata(handles.gui_fig,'expmt');
 
    
 % Attempt handshake with light panel teensy
-[expmt.COM,handles.aux_COM_list] = identifyMicrocontrollers;
+[expmt.hardware.COM,handles.aux_COM_list] = identifyMicrocontrollers;
 
-if ~isempty(expmt.COM)
+if ~isempty(expmt.hardware.COM)
     % Update GUI menus with port names
-    set(handles.microcontroller_popupmenu,'string',expmt.COM.port);
+    set(handles.microcontroller_popupmenu,'string',expmt.hardware.COM.port);
 else
     set(handles.microcontroller_popupmenu,'string','COM not detected');
 end
@@ -1934,7 +1937,7 @@ expmt = getappdata(handles.gui_fig,'expmt');
 try
 
 % autodetect ROIs
-if strcmp(expmt.source,'camera') && isfield(expmt.camInfo,'vid')
+if strcmp(expmt.meta.source,'camera') && isfield(expmt.hardware.cam,'vid')
     
     switch handles.gui_fig.UserData.ROI_mode
         
@@ -1986,11 +1989,11 @@ if strcmp(expmt.source,'camera') && isfield(expmt.camInfo,'vid')
     % re-enable controls
     set(on_objs, 'Enable', 'on');
     
-elseif strcmp(expmt.source,'camera')
+elseif strcmp(expmt.meta.source,'camera')
     errordlg('Confirm camera and camera settings before running ROI detection');
 end
 
-if strcmp(expmt.source,'video') && isfield(expmt,'video')
+if strcmp(expmt.meta.source,'video') && isfield(expmt,'video')
      
     switch handles.gui_fig.UserData.ROI_mode
         
@@ -2036,7 +2039,7 @@ if strcmp(expmt.source,'video') && isfield(expmt,'video')
         expmt = setROImask(expmt);
     end
     
-elseif strcmp(expmt.source,'video')
+elseif strcmp(expmt.meta.source,'video')
     errordlg('Select valid video path before running ROI detection');
 end
 
@@ -2225,8 +2228,8 @@ end
 
 if isfield(expmt,'reg_params')
 % Turn infrared and white background illumination off during registration
-expmt.COM = writeInfraredWhitePanel(expmt.COM,1,0);
-expmt.COM = writeInfraredWhitePanel(expmt.COM,0,0);
+expmt.hardware.COM = writeInfraredWhitePanel(expmt.hardware.COM,1,0);
+expmt.hardware.COM = writeInfraredWhitePanel(expmt.hardware.COM,0,0);
 
 msg_title = ['Projector Registration Tips'];
 spc = [' '];
@@ -2253,8 +2256,8 @@ waitfor(msgbox(message,msg_title));
 reg_projector(expmt,handles);
 
 % Reset infrared and white lights to prior values
-expmt.COM = writeInfraredWhitePanel(expmt.COM,1,expmt.light.infrared);
-expmt.COM = writeInfraredWhitePanel(expmt.COM,0,expmt.light.white);
+expmt.hardware.COM = writeInfraredWhitePanel(expmt.hardware.COM,1,expmt.hardware.light.infrared);
+expmt.hardware.COM = writeInfraredWhitePanel(expmt.hardware.COM,0,expmt.hardware.light.white);
 
 else
     errordlg('Please set registration parameters before running registration');
@@ -2298,8 +2301,8 @@ expmt = getappdata(handles.gui_fig,'expmt');
 if exist([handles.gui_dir 'hardware/projector_fit/']) == 7 && isfield(expmt,'reg_params')
     
     % Turn infrared and white background illumination off during registration
-    expmt.COM = writeInfraredWhitePanel(expmt.COM,1,0);
-    expmt.COM = writeInfraredWhitePanel(expmt.COM,0,0);
+    expmt.hardware.COM = writeInfraredWhitePanel(expmt.hardware.COM,1,0);
+    expmt.hardware.COM = writeInfraredWhitePanel(expmt.hardware.COM,0,0);
 
     msg_title = ['Registration Error Measurment']; %#ok<*NBRAK>
     spc = [' '];
@@ -2326,8 +2329,8 @@ if exist([handles.gui_dir 'hardware/projector_fit/']) == 7 && isfield(expmt,'reg
     projector_testFit(expmt,handles);
 
     % Reset infrared and white lights to prior values
-    expmt.COM = writeInfraredWhitePanel(expmt.COM,1,expmt.light.infrared);
-    expmt.COM = writeInfraredWhitePanel(expmt.COM,0,expmt.light.white);
+    expmt.hardware.COM = writeInfraredWhitePanel(expmt.hardware.COM,1,expmt.hardware.light.infrared);
+    expmt.hardware.COM = writeInfraredWhitePanel(expmt.hardware.COM,0,expmt.hardware.light.white);
 else
     errordlg('Set registration parameters and run projector registration before measuring registration error.');
 end
@@ -2370,17 +2373,17 @@ function distance_scale_menu_Callback(hObject, ~, handles)
 expmt = getappdata(handles.gui_fig,'expmt');
 
 % grab a frame if a camera or video object exists
-if (isfield(expmt.camInfo,'vid') && strcmp(expmt.camInfo.vid.Running,'on')) ||...
+if (isfield(expmt.hardware.cam,'vid') && strcmp(expmt.hardware.cam.vid.Running,'on')) ||...
     isfield(expmt,'video')
 
     % query next frame and optionally correct lens distortion
     trackDat = [];
     [trackDat,expmt] = autoFrame(trackDat,expmt,handles);
     
-elseif (isfield(expmt.camInfo,'vid') && strcmp(expmt.camInfo.vid.Running,'off'))
+elseif (isfield(expmt.hardware.cam,'vid') && strcmp(expmt.hardware.cam.vid.Running,'off'))
 
     % restart camera
-    start(expmt.camInfo.vid);
+    start(expmt.hardware.cam.vid);
     
     % query next frame and optionally correct lens distortion
     trackDat = [];
@@ -2728,8 +2731,8 @@ if ~isempty(tmp_video)
        expmt = rmfield(expmt,'noise');
     end
     
-    if isfield(expmt.vignette,'im')
-        expmt.vignette = rmfield(expmt.vignette,'im');
+    if isfield(expmt.meta.vignette,'im')
+        expmt.meta.vignette = rmfield(expmt.meta.vignette,'im');
     end
 
     gui_notify('cam settings confirmed',handles.disp_note);
@@ -2768,7 +2771,7 @@ function source_camera_menu_Callback(hObject, ~, handles)
 expmt = getappdata(handles.gui_fig,'expmt');
 
 % update gui controls
-if strcmp(expmt.source,'video')
+if strcmp(expmt.meta.source,'video')
     % disable all panels except cam/video and lighting
     handles.exp_uipanel.ForegroundColor = [.5   .5  .5];
     set(findall(handles.exp_uipanel, '-property', 'Enable'), 'Enable', 'off');
@@ -2798,7 +2801,7 @@ if isfield(expmt,'video')
 end
 
 % set source
-expmt.source = 'camera';
+expmt.meta.source = 'camera';
 
 % set expmt data struct
 setappdata(handles.gui_fig,'expmt',expmt);
@@ -2815,7 +2818,7 @@ function source_video_menu_Callback(hObject, ~, handles)
 % get expmt data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 
-if strcmp(expmt.source,'camera')
+if strcmp(expmt.meta.source,'camera')
     % disable all panels except cam/video and lighting
     handles.exp_uipanel.ForegroundColor = [.5   .5  .5];
     set(findall(handles.exp_uipanel, '-property', 'Enable'), 'Enable', 'off');
@@ -2851,13 +2854,13 @@ if strcmp(handles.cam_uipanel.Visible,'on')
 end
 
 % remove video object
-if isfield(expmt.camInfo,'vid') || isfield(expmt.camInfo,'src')
-    expmt.camInfo = rmfield(expmt.camInfo,'vid');
-    expmt.camInfo = rmfield(expmt.camInfo,'src');
+if isfield(expmt.hardware.cam,'vid') || isfield(expmt.hardware.cam,'src')
+    expmt.hardware.cam = rmfield(expmt.hardware.cam,'vid');
+    expmt.hardware.cam = rmfield(expmt.hardware.cam,'src');
 end
 
 % set source
-expmt.source = 'video';
+expmt.meta.source = 'video';
 
 % set expmt data struct
 setappdata(handles.gui_fig,'expmt',expmt);
@@ -2872,18 +2875,18 @@ clean_gui(handles.axes_handle);                     % clear drawn objects
 vid = true;
 
 % Setup the camera and/or video object
-if strcmp(expmt.source,'camera') && strcmp(expmt.camInfo.vid.Running,'off')
+if strcmp(expmt.meta.source,'camera') && strcmp(expmt.hardware.cam.vid.Running,'off')
     
     % Clear old video objects
     imaqreset
     pause(0.2);
 
     % Create camera object with input parameters
-    expmt.camInfo = initializeCamera(expmt.camInfo);
-    start(expmt.camInfo.vid);
+    expmt.hardware.cam = initializeCamera(expmt.hardware.cam);
+    start(expmt.hardware.cam.vid);
     pause(0.1);
     
-elseif strcmp(expmt.source,'video') 
+elseif strcmp(expmt.meta.source,'video') 
     
     % open video object from file
     expmt.video.vid = ...
@@ -2891,7 +2894,7 @@ elseif strcmp(expmt.source,'video')
     
     expmt.video.ct = handles.vid_select_popupmenu.Value;    % get file number in list
 
-elseif ~strcmp(expmt.camInfo.vid.Running,'on')
+elseif ~strcmp(expmt.hardware.cam.vid.Running,'on')
     errordlg('Must confirm a camera or video source before correcting vignetting');
     vid = false;
 end
@@ -2900,8 +2903,8 @@ end
 if vid
     
     % Take single frame
-    if strcmp(expmt.source,'camera')
-        im = peekdata(expmt.camInfo.vid,1);
+    if strcmp(expmt.meta.source,'camera')
+        im = peekdata(expmt.hardware.cam.vid,1);
     else
         [im, expmt.video] = nextFrame(expmt.video,handles);
     end
@@ -2932,11 +2935,11 @@ if vid
     thresh = graythresh(im(roi(2):roi(4),roi(1):roi(3)));
     tmpim = double(im);
     tmpim(tmpim<thresh*255) = NaN;
-    expmt.vignette.im =filterVignetting(expmt,roi,tmpim);
-    expmt.vignette.im = uint8(expmt.vignette.im);
-    expmt.vignette.mode = 'manual';
+    expmt.meta.vignette.im =filterVignetting(expmt,roi,tmpim);
+    expmt.meta.vignette.im = uint8(expmt.meta.vignette.im);
+    expmt.meta.vignette.mode = 'manual';
     
-    imh.CData = im - expmt.vignette.im;
+    imh.CData = im - expmt.meta.vignette.im;
     imh.CDataMapping = 'scaled';
     handles.axes_handle.CLim = [0 255];
     gui_notify('previewing vignette correction image',handles.disp_note);
@@ -2976,12 +2979,12 @@ function save_new_preset_menu_Callback(hObject, ~, handles)
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 
-if isfield(expmt.camInfo,'vid')
-    expmt.camInfo = rmfield(expmt.camInfo,'vid');
+if isfield(expmt.hardware.cam,'vid')
+    expmt.hardware.cam = rmfield(expmt.hardware.cam,'vid');
 end
 
-if isfield(expmt.camInfo,'src')
-    expmt.camInfo = rmfield(expmt.camInfo,'src');
+if isfield(expmt.hardware.cam,'src')
+    expmt.hardware.cam = rmfield(expmt.hardware.cam,'src');
 end
 
 if isfield(expmt,'video')
@@ -3035,22 +3038,22 @@ end
 expmt = getappdata(handles.gui_fig,'expmt');                    % load master data struct
 
 % Attempt handshake with light panel teensy
-[expmt.COM,handles.aux_COM_list] = identifyMicrocontrollers;
+[expmt.hardware.COM,handles.aux_COM_list] = identifyMicrocontrollers;
 
 % Update GUI menus with port names
-set(handles.microcontroller_popupmenu,'string',expmt.COM.Port);
+set(handles.microcontroller_popupmenu,'string',expmt.hardware.COM.Port);
 
 % Initialize light panel at default values
 IR_intensity = str2double(get(handles.edit_IR_intensity,'string'));
 White_intensity = str2double(get(handles.edit_White_intensity,'string'));
 
 % Convert intensity percentage to uint8 PWM value 0-255
-expmt.light.infrared = uint8((IR_intensity/100)*255);
-expmt.light.white = uint8((White_intensity/100)*255);
+expmt.hardware.light.infrared = uint8((IR_intensity/100)*255);
+expmt.hardware.light.white = uint8((White_intensity/100)*255);
 
 % Write values to microcontroller
-expmt.COM = writeInfraredWhitePanel(expmt.COM,1,expmt.light.infrared);
-expmt.COM = writeInfraredWhitePanel(expmt.COM,0,expmt.light.white);
+expmt.hardware.COM = writeInfraredWhitePanel(expmt.hardware.COM,1,expmt.hardware.light.infrared);
+expmt.hardware.COM = writeInfraredWhitePanel(expmt.hardware.COM,0,expmt.hardware.light.white);
 
 % generate menu items for AUX COMs and config their callbacks
 hParent = findobj('Tag','aux_com_menu');
@@ -3132,7 +3135,7 @@ function refresh_cam_menu_Callback(hObject, ~, handles)
 expmt = getappdata(handles.gui_fig,'expmt');            % fetch master data struct
 refresh = warningbox_subgui;                            % display warning and ask user whether or not to continue
 if strcmp(refresh,'OK')
-    expmt.camInfo = refresh_cam_list(handles);          % reset cameras and refresh gui lists
+    expmt.hardware.cam = refresh_cam_list(handles);          % reset cameras and refresh gui lists
 end
 
 % save loaded settings to master struct
@@ -3378,9 +3381,9 @@ switch hObject.Checked
             delete(handles.view_menu.UserData.hRefCen);
         end
         ah = handles.axes_handle;
-        if isfield(expmt,'ref') && isfield(expmt.ref,'cen')
-            x = squeeze(expmt.ref.cen(:,1,:));
-            y = squeeze(expmt.ref.cen(:,2,:));
+        if isfield(expmt,'ref') && isfield(expmt.meta.ref,'cen')
+            x = squeeze(expmt.meta.ref.cen(:,1,:));
+            y = squeeze(expmt.meta.ref.cen(:,2,:));
             x(isnan(x))=[];
             y(isnan(y))=[];
             hold on
@@ -3427,8 +3430,8 @@ guidata(hObject,handles);
 if isfield(expmt,'ROI')
     
         % Take single frame
-    if strcmp(expmt.source,'camera')
-        trackDat.im = peekdata(expmt.camInfo.vid,1);
+    if strcmp(expmt.meta.source,'camera')
+        trackDat.im = peekdata(expmt.hardware.cam.vid,1);
     else
         [trackDat.im, expmt.video] = nextFrame(expmt.video,handles);
     end
@@ -3740,11 +3743,11 @@ switch hObject.Checked
     case 'on'
         hObject.Checked = 'off';
         hObject.UserData = false;
-        expmt.camInfo.calibrate = false;
+        expmt.hardware.cam.calibrate = false;
     case 'off'
         hObject.Checked = 'on';
         hObject.UserData = true;
-        expmt.camInfo.calibrate = true;
+        expmt.hardware.cam.calibrate = true;
 end
 
 setappdata(handles.gui_fig,'expmt',expmt);

@@ -27,30 +27,30 @@ end
 %%
 
 % create waitbar object
-h = waitbar(0,['iteration 0 out of ' num2str(expmt.nTracks)]);
+h = waitbar(0,['iteration 0 out of ' num2str(expmt.meta.num_traces)]);
 h.Name = ['Sliding ' f ' window'];
 
 % calculate frame_rate
-fr = nanmedian(expmt.Time.map.Data.raw);
+fr = nanmedian(expmt.data.time.raw);
 win_sz = round(win_sz/fr*60);
 stp_sz = round(stp_sz/1/fr*60);
 s = round(sampling_rate/1/fr*60);
 
 
-first_idx = round(length(expmt.(f).map.Data.raw)/win_sz)+1;
+first_idx = round(length(expmt.(f).raw)/win_sz)+1;
 r = floor(win_sz/2);
-win_idx = r+1:stp_sz:length(expmt.(f).map.Data.raw)-r;
+win_idx = r+1:stp_sz:length(expmt.(f).raw)-r;
 idx = repmat(win_idx',1,floor(win_sz/s)+1);
 idx = idx + repmat(-r:s:r,size(idx,1),1);
 
 
 % perform the operation
-win_dat = NaN(size(idx,1),expmt.nTracks);
-for i = 1:expmt.nTracks
+win_dat = NaN(size(idx,1),expmt.meta.num_traces);
+for i = 1:expmt.meta.num_traces
     
     if ishghandle(h)
-        waitbar(i/expmt.nTracks,h,['iteration '...
-            num2str(i) ' out of ' num2str(expmt.nTracks)]);
+        waitbar(i/expmt.meta.num_traces,h,['iteration '...
+            num2str(i) ' out of ' num2str(expmt.meta.num_traces)]);
     end
     
     dat = autoSlice(expmt,f,i);

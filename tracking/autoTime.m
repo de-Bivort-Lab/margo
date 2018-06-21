@@ -12,7 +12,7 @@ function [trackDat] = autoTime(trackDat, expmt, gui_handles, varargin)
             case 'Slow Phototaxis'
                 trackDat.lastFrame = (trackDat.t - expmt.block.t) > expmt.block.photo_duration * 60;
         end
-    elseif strcmp(expmt.source,'camera')
+    elseif strcmp(expmt.meta.source,'camera')
         trackDat.lastFrame = trackDat.t > gui_handles.edit_exp_duration.Value * 3600;
     end
     
@@ -36,7 +36,7 @@ function [trackDat] = autoTime(trackDat, expmt, gui_handles, varargin)
             trackDat.tPrev=tCurrent;
             
             % ensure timer is minimally update 1/sec
-            if gui_update_t > 1 && strcmp(expmt.source,'camera') && ~no_plot               
+            if gui_update_t > 1 && strcmp(expmt.meta.source,'camera') && ~no_plot               
                 % report time remaining to reference timeout to GUI
                 tRemain = round(gui_handles.edit_exp_duration.Value * 3600 - (trackDat.t+ifi));
                 updateTimeString(tRemain, gui_handles.edit_time_remaining);
@@ -59,7 +59,7 @@ function [trackDat] = autoTime(trackDat, expmt, gui_handles, varargin)
     % check reference update timer
     trackDat.ref.update = trackDat.ref.t > gui_handles.edit_ref_freq.Value * 60;
     
-    if strcmp(expmt.source,'camera') && ~no_plot
+    if strcmp(expmt.meta.source,'camera') && ~no_plot
         
         % report time remaining to reference timeout to GUI
         tRemain = round(gui_handles.edit_exp_duration.Value * 3600 - trackDat.t);
