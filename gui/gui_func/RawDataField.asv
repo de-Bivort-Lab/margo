@@ -52,7 +52,9 @@ classdef RawDataField < handle
             
         % initialize raw data memmap from raw data file
         function obj = attach(obj)
-            try        
+            try
+                
+                
                 obj.raw.map = memmapfile(obj.path, ...
                                 'Format',{obj.precision,fliplr(obj.dim),'raw'});
                             
@@ -65,19 +67,13 @@ classdef RawDataField < handle
                         'Format',{obj.precision,fliplr(obj.dim),'raw'});
                 end
             catch 
-                % try to automatically repair the file path
                 try
-                    p = obj.Parent.meta.path;
-                    updatepaths(obj.Parent,[p.dir p.name]);
-                    obj.raw.map = memmapfile(obj.path, ...
-                                'Format',{obj.precision,fliplr(obj.dim),'raw'});
-                catch ME
-                    switch ME.identifier
-                        case 'MATLAB:memmapfile:inaccessibleFile'
-                            error(['Failed to initialize raw data map. '...
-                                'No such file or directory:\n'...
-                                '\t%s'],obj.path);
-                    end
+                    updatepaths(obj.Parent,obj.Parent.meta.path)
+                switch ME.identifier
+                    case 'MATLAB:memmapfile:inaccessibleFile'
+                        error(sprintf(['Failed to initialize raw data map. '...
+                            'No such file or directory:\n'...
+                            '\t%s'],obj.path));
                 end
             end
         end

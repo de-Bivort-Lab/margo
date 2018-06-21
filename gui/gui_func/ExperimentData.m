@@ -10,8 +10,9 @@ classdef ExperimentData < handle
     methods
         function obj = ExperimentData
             
-            es = struct;
-            obj.data = struct('Centroid',es,'Time',es);
+            es = struct();
+            obj.data = struct('Centroid',RawDataField('Parent',obj),...
+                'Time',RawDataField('Parent',obj));
             obj.meta = struct('name','Basic Tracking','fields',[],'path',es,...
                             'date','','strain','','treatment','','sex','');   
             obj.meta.fields = fieldnames(obj.data);
@@ -21,8 +22,8 @@ classdef ExperimentData < handle
         
         function obj = updatepaths(obj,fpath)
             
-            [dir,name,ext] = fileparts(fpath);
-            obj.meta.path.dir   =   dir;
+            [dir,name,~] = fileparts(fpath);
+            obj.meta.path.dir   =   [dir '\'];
             obj.meta.path.name  =   name;
 
             % get binary files
