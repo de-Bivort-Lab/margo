@@ -1,39 +1,36 @@
 classdef RawDataMap < handle
 % class definition for raw data maps container
-
+    
     properties (Hidden = true)
-        raw;
-        path;
-        dim;
-        precision;
         map;
     end
     
     methods
-        function obj = RawDataMap(varargin)
+        function obj = RawDataMap
+                   
+        end
+        
+        function out = subsref(obj,S)
             
-            % parse inputs
-            for i=1:length(varargin)
-                if ischar(varargin{i})
-                    switch varargin{i}
-                        case 'Path'
-                            i = i+1;
-                            obj.path = varargin{i};
-                        case 'Dim'
-                            i = i+1;
-                            obj.path = varargin{i};
-                        case 'Precision'
-                            i = i+1;
-                            obj.path = varargin{i};
-                        case 'Path'
-                            i = i+1;
-                            obj.path = varargin{i};
-                        case 'Path'
-                            i = i+1;
-                            obj.path = varargin{i};
-                    end
+            if isempty(obj.map)
+                error(['raw data file unattached - run attach(RawDataMap)' ...
+                        ' before indexing raw data']);
+            end
+        end
+        
+        function ans = display(obj)
             
-            
+            if isempty(obj.map)
+                ans = []
+            else
+                ans = sprintf(['\traw data file\n\n' ...
+                                '\tsize: \t\t(%ix%ix%i)\n'...
+                                '\tprecision: \t %s\n'],...
+                                size(obj.map.Data.raw,1),...
+                                size(obj.map.Data.raw,2),...
+                                size(obj.map.Data.raw,3),...
+                                obj.map.Format{1});
+            end
         end
         
     end
