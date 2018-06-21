@@ -10,19 +10,22 @@ classdef ExperimentData < handle
     methods
         function obj = ExperimentData
             
-            es = struct;
-            obj.data = struct('Centroid',es,'Time',es);
+            es = struct();
+            obj.data = struct('Centroid',RawDataField('Parent',obj),...
+                'Time',RawDataField('Parent',obj));
             obj.meta = struct('name','Basic Tracking','fields',[],'path',es,...
-                            'date','','strain','','treatment','','sex','');   
+                            'ROP',es,'ref',es,'noise',es,'date','','strain','','treatment','','sex','');
             obj.meta.fields = fieldnames(obj.data);
+            
+            
             
         end
         
         
         function obj = updatepaths(obj,fpath)
             
-            [dir,name,ext] = fileparts(fpath);
-            obj.meta.path.dir   =   dir;
+            [dir,name,~] = fileparts(fpath);
+            obj.meta.path.dir   =   [dir '\'];
             obj.meta.path.name  =   name;
 
             % get binary files
@@ -47,6 +50,45 @@ classdef ExperimentData < handle
             end
         end
         
+        % initialize all raw data maps
+        function obj = attach(obj) 
+            fn = fieldnames(obj.data);
+            for i=1:length(obj.meta.fields)
+                attach(obj.data.(fn{i}));
+            end
+        end
+        
+        % de-initialize all raw data maps
+        function obj = detach(obj) 
+            fn = fieldnames(obj.data);
+            for i=1:length(obj.meta.fields)
+                obj.data.(fn{i}).map = [];
+            end
+        end
+        
+        function p = intialize_parameters(p)
+            p.duration          = 1.2970
+            p.ref_depth         = 3
+            p.ref_freq          = 0.5000
+            p.ROI_thresh        = 45.5000
+            p.track_thresh      = 15
+            p.speed_thresh      = 95
+            p.distance_thresh   = 61.4000
+            p.vignette_sigma    = 0.4700
+            p.vignette_weight   = 0.3500
+            p.area_min          = 8
+            p.area_max          = 100
+            p.target_rate       = 30
+            p.mm_per_pix        = 1
+            p.units         = 'pixels'
+            p.ROI_mode = 'auto'
+            p.sort_mode = 'distance'
+            p.ROI_tol = 2.5000
+            p.edit_rois = 0
+            p.dilate_sz = 0
+        end
+            
+        
         
     end
     methods(Static)
@@ -55,7 +97,11 @@ classdef ExperimentData < handle
             
             % auto update path         
             if isvalid(obj)
-                fpath = evalin('caller','filename');
+                try
+                    fpath = evalin('caller','filename');
+                catch
+                    fpath = evalin('caller','fileAbsolutePath');
+                end
                 obj = updatepaths(obj,fpath);
             else
                 warning('automatic filepath update failed');

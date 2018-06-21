@@ -5,17 +5,25 @@ classdef ExperimentData < handle
     properties
         data;
         meta;
+        parameters;
         hardware;
     end
     methods
         function obj = ExperimentData
             
             es = struct();
-            obj.data = struct('Centroid',RawDataField('Parent',obj),...
-                'Time',RawDataField('Parent',obj));
+            obj.data = struct('centroid',RawDataField('Parent',obj),...
+                'time',RawDataField('Parent',obj));
             obj.meta = struct('name','Basic Tracking','fields',[],'path',es,...
-                            'date','','strain','','treatment','','sex','');   
+                            'source','camera','roi',es,'ref',es,'noise',es,...
+                            'date','','strain','','treatment','','sex','',...
+                            'labels',[],'labels_table',table);
+            obj.hardware = struct('camInfo',es,'com',es,...
+                                'light',es,'projector',es);
             obj.meta.fields = fieldnames(obj.data);
+            obj.parameters = initialize_parameters(obj);
+            
+            
             
         end
         
@@ -47,6 +55,46 @@ classdef ExperimentData < handle
                 
             end
         end
+        
+        % initialize all raw data maps
+        function obj = attach(obj) 
+            fn = fieldnames(obj.data);
+            for i=1:length(obj.meta.fields)
+                attach(obj.data.(fn{i}));
+            end
+        end
+        
+        % de-initialize all raw data maps
+        function obj = detach(obj) 
+            fn = fieldnames(obj.data);
+            for i=1:length(obj.meta.fields)
+                obj.data.(fn{i}).map = [];
+            end
+        end
+        
+        function p = initialize_parameters(~)
+            p = struct();
+            p.duration          = 2;
+            p.ref_depth         = 3;
+            p.ref_freq          = 0.5000;
+            p.roi_thresh        = 45.5000;
+            p.track_thresh      = 15;
+            p.speed_thresh      = 95;
+            p.distance_thresh   = 60;
+            p.vignette_sigma    = 0.4700;
+            p.vignette_weight   = 0.3500;
+            p.area_min          = 4;
+            p.area_max          = 100;
+            p.target_rate       = 30;
+            p.mm_per_pix        = 1;
+            p.units             = 'pixels';
+            p.roi_mode          = 'auto';
+            p.sort_mode         = 'bounds';
+            p.roi_tol           = 2.5000;
+            p.edit_rois         = 0;
+            p.dilate_sz         = 0;
+        end
+            
         
         
     end
