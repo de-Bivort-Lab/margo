@@ -156,8 +156,7 @@ set(findall(handles.run_uipanel, '-property', 'Enable'), 'Enable', 'off');
 handles.output = hObject;
 handles.gui_fig.UserData.edit_rois = false;
 handles.axes_handle = gca;
-set(gca,'Xtick',[],'Ytick',[],'XLabel',[],'YLabel',[]);
-expmt = [];                                      
+set(gca,'Xtick',[],'Ytick',[],'XLabel',[],'YLabel',[]);                                    
 
 
 % initialize array indicating expIDs for experiments with an associated
@@ -189,6 +188,8 @@ else
     handles.profiles = {'No profiles detected'};
 end
 
+% initialize ExperimentData obj
+expmt = [];
 % cam setup
 
 expmt.source = 'camera';                    % set the source mode to camera by default

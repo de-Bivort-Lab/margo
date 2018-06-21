@@ -156,8 +156,7 @@ set(findall(handles.run_uipanel, '-property', 'Enable'), 'Enable', 'off');
 handles.output = hObject;
 handles.gui_fig.UserData.edit_rois = false;
 handles.axes_handle = gca;
-set(gca,'Xtick',[],'Ytick',[],'XLabel',[],'YLabel',[]);
-expmt = [];                                      
+set(gca,'Xtick',[],'Ytick',[],'XLabel',[],'YLabel',[]);                                    
 
 
 % initialize array indicating expIDs for experiments with an associated
@@ -188,6 +187,8 @@ if size(profiles,1) > 0
 else
     handles.profiles = {'No profiles detected'};
 end
+
+% initialize ExperimentData obj
 
 % cam setup
 
@@ -550,7 +551,7 @@ if ~isempty(expmt.camInfo)
             expmt = rmfield(expmt,'ROI');
             expmt = rmfield(expmt,'ref');
             expmt = rmfield(expmt,'noise');
-            expmt = rmfield(expmt,'vignette');
+            expmt = rmfield(expmt.vignette,'im');
             msgbox(['Cam settings changed: saved ROIs, references and ' ...
                 'noise statistics have been discarded.']);
             note = 'ROIs, references, and noise statistics reset';
@@ -558,12 +559,14 @@ if ~isempty(expmt.camInfo)
         elseif isfield(expmt,'ROI') && isfield(expmt,'ref')
             expmt = rmfield(expmt,'ROI');
             expmt = rmfield(expmt,'ref');
+            expmt = rmfield(expmt.vignette,'im');
             msgbox(['Cam settings changed: saved ROIs, references ' ...
                 'have been discarded.']);
             note = 'ROIs and references reset';
             gui_notify(note,handles.disp_note);
         elseif isfield(expmt,'ROI')
            expmt = rmfield(expmt,'ROI');
+           expmt = rmfield(expmt.vignette,'im');
            msgbox(['Cam settings changed: saved ROIs ' ...
                 'have been discarded.']);
             note = 'saved ROI positions reset';
@@ -1994,8 +1997,8 @@ if strcmp(expmt.source,'video') && isfield(expmt,'video')
         case 'auto'
     
         % run automatic ROI detections
-        expmt = autoROIs(handles,expmt);
         expmt.ROI.mode = 'auto';
+        expmt = autoROIs(handles,expmt);
 
         if isfield(expmt.ROI,'centers') && size(expmt.ROI.centers,1) > 0
             % Enable downstream UI controls
@@ -2010,8 +2013,9 @@ if strcmp(expmt.source,'video') && isfield(expmt,'video')
     
         case 'grid'
             
-        expmt = gridROIs(handles,expmt);
         expmt.ROI.mode = 'grid';
+        expmt = gridROIs(handles,expmt);
+
         
         if isfield(expmt.ROI,'centers') && size(expmt.ROI.centers,1) > 0
             % Enable downstream ui controls
@@ -2036,8 +2040,9 @@ elseif strcmp(expmt.source,'video')
     errordlg('Select valid video path before running ROI detection');
 end
 
-catch
+catch ME
     hObject.Enable = 'on';
+    throw(ME);
 end
 
 
@@ -2489,7 +2494,7 @@ if isfield(handles,'fig_size')
         plot_aspect = pbaspect;
         pbr = plot_aspect(2)/plot_aspect(1);
         fscale = aspectR/pbr;
-
+        
         axes_height_old = handles.axes_handle.Position(4);
         axes_height_new = axes_height_old*fscale;
         
@@ -2713,10 +2718,18 @@ if ~isempty(tmp_video)
             'noise statistics have been discarded.']);
         note = 'ROIs, references, and noise statistics reset';
         gui_notify(note,handles.disp_note);
+    end
+    
     if isfield(expmt,'ref')
         expmt = rmfield(expmt,'ref');
-    elseif isfield(expmt,'noise')
+    end
+    
+    if isfield(expmt,'noise')
        expmt = rmfield(expmt,'noise');
+    end
+    
+    if isfield(expmt.vignette,'im')
+        expmt.vignette = rmfield(expmt.vignette,'im');
     end
 
     gui_notify('cam settings confirmed',handles.disp_note);
@@ -2919,11 +2932,14 @@ if vid
     thresh = graythresh(im(roi(2):roi(4),roi(1):roi(3)));
     tmpim = double(im);
     tmpim(tmpim<thresh*255) = NaN;
-    expmt.vignette.im =filterVignetting(tmpim,roi);
+    expmt.vignette.im =filterVignetting(expmt,roi,tmpim);
+    expmt.vignette.im = uint8(expmt.vignette.im);
     expmt.vignette.mode = 'manual';
     
     imh.CData = im - expmt.vignette.im;
-    imh.CDataMapping = 'direct';
+    imh.CDataMapping = 'scaled';
+    handles.axes_handle.CLim = [0 255];
+    gui_notify('previewing vignette correction image',handles.disp_note);
     text(handles.axes_handle.XLim(2)*0.01,handles.axes_handle.YLim(2)*0.01,...
         'Vignette Correction Preview','Color',[1 0 0]);
     drawnow limitrate

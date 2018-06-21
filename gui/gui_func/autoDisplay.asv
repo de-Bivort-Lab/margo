@@ -14,9 +14,8 @@ function [trackDat,expmt] = autoDisplay(trackDat, expmt, im_handle, gui_handles)
 %
 %   Outputs
 %
-%   trackDat    updated with lastFrame flag if pause/stop
-%               
-%   expmt       updated with closed files if pause/stop
+%   trackDat    
+
 
 
 % query the active display mode
