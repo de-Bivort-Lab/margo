@@ -17,11 +17,11 @@ if isfield(expmt,f)
     labelStr = [labelStr '_' num2str(expmt.(f))];
 end
 
-lab_fields = expmt.labels_table.Properties.VariableNames;
+lab_fields = expmt.meta.labels_table.Properties.VariableNames;
 
 f = 'ID';
 if any(strcmp(f,lab_fields))
-    labelStr = [labelStr '_' num2str(expmt.labels_table.(f)(1)) '-' num2str(expmt.labels_table.(f)(end))];
+    labelStr = [labelStr '_' num2str(expmt.meta.labels_table.(f)(1)) '-' num2str(expmt.meta.labels_table.(f)(end))];
 end
 
 if ~isempty(labelStr)

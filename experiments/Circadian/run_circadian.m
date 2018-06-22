@@ -24,7 +24,7 @@ imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');   % image hand
 ref_stack = repmat(expmt.meta.ref, 1, 1, gui_handles.edit_ref_depth.Value);  % initialize the reference stack
 
 % Initialize tracking variables
-trackDat.fields={'Centroid';'Area';'Time';'Light';'Motor'};                 % properties of the tracked objects to be recorded
+trackDat.fields={'centroid';'area';'time';'Light';'Motor'};                 % properties of the tracked objects to be recorded
 
 % initialize labels, files, and cam/video
 [trackDat,expmt] = autoInitialize(trackDat,expmt,gui_handles);

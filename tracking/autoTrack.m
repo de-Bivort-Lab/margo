@@ -6,20 +6,20 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
     in_fields = trackDat.fields;
     
     % temporarily remove fields not recognized by regionprops
-    prop_fields = {'Area';'BoundingBox';'Centroid';'ConvexArea';'ConvexHull';...
+    prop_fields = {'area';'BoundingBox';'centroid';'Convexarea';'ConvexHull';...
         'ConvexImage';'Eccentricity';'EquivDiameter';'EulerNumber';'Extent';...
-        'Extrema';'FilledArea';'FilledImage';'Image';'MajorAxisLength';...
+        'Extrema';'Filledarea';'FilledImage';'Image';'MajorAxisLength';...
         'MinorAxisLength';'Orientation';'Perimeter';'PixelIdxList';'PixelList';...
         'Solidity';'SubarrayIdx';'WeightedCentroid'};
     remove = ~ismember(in_fields,prop_fields);
     in_fields(remove) = [];
     
     % add centroid and area to the input regionprops fields if not provided
-    if ~any(strcmp('Centroid',in_fields)) && ~any(strcmp('WeightedCentroid',in_fields))
-        in_fields = [in_fields; {'Centroid'}];
+    if ~any(strcmp('centroid',in_fields)) && ~any(strcmp('WeightedCentroid',in_fields))
+        in_fields = [in_fields; {'centroid'}];
     end
-    if ~any(strcmp('Area',in_fields))
-        in_fields = [in_fields; {'Area'}];
+    if ~any(strcmp('area',in_fields))
+        in_fields = [in_fields; {'area'}];
     end
     
     % add BoundingBox as a field if dilate/erode mode
@@ -47,8 +47,8 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
     
     % threshold image
     thresh_im = diffim > im_thresh;
-    if isfield(expmt.ROI,'mask')
-        thresh_im = thresh_im & expmt.ROI.mask;
+    if isfield(expmt.meta.roi,'mask')
+        thresh_im = thresh_im & expmt.meta.roi.mask;
     end
     
     % check image noise and dump frame if noise is too high
@@ -115,8 +115,8 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
         if any(update)
             
             % calculate distance and convert from pix to mm
-            d = sqrt((raw_cen(permutation,1)-trackDat.Centroid(update,1)).^2 ...
-                     + (raw_cen(permutation,2)-trackDat.Centroid(update,2)).^2);
+            d = sqrt((raw_cen(permutation,1)-trackDat.centroid(update,1)).^2 ...
+                     + (raw_cen(permutation,2)-trackDat.centroid(update,2)).^2);
             d = d .* expmt.parameters.mm_per_pix;
             
             % time elapsed since each centroid was last updated
@@ -133,7 +133,7 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
 
         % Use permutation vector to sort raw centroid data and update
         % vector to specify which centroids are reliable and should be updated
-        trackDat.Centroid(update,:) = single(raw_cen(permutation,:));
+        trackDat.centroid(update,:) = single(raw_cen(permutation,:));
         trackDat.tStamp(update) = trackDat.t;
         
         % update centroid drop count for objects not updated this frame
@@ -155,27 +155,27 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
 %% Assign outputs
 
 % assign any optional sorted output fields to the trackDat
-% structure if listed in expmt.fields. 
+% structure if listed in expmt.meta.fields. 
 % return NaNs if record = false
 
 if any(strcmp('Speed',out_fields))
     if record
         trackDat.Speed = single(speed);
     else
-        trackDat.Speed = single(NaN(size(trackDat.Centroid,1),1)); 
+        trackDat.Speed = single(NaN(size(trackDat.centroid,1),1)); 
     end
 end
 
-if any(strcmp('Area',out_fields))
-    area = NaN(size(trackDat.Centroid,1),1);
+if any(strcmp('area',out_fields))
+    area = NaN(size(trackDat.centroid,1),1);
     if record
         area(update) = [props(permutation).Area];
     end
-    trackDat.Area = single(area .* (expmt.parameters.mm_per_pix^2));
+    trackDat.area = single(area .* (expmt.parameters.mm_per_pix^2));
 end
 
 if any(strcmp('Orientation',out_fields))
-    orientation = NaN(size(trackDat.Centroid,1),1);
+    orientation = NaN(size(trackDat.centroid,1),1);
     if record
         orientation(update) = [props(permutation).Orientation];
     end
@@ -183,7 +183,7 @@ if any(strcmp('Orientation',out_fields))
 end
 
 if any(strcmp('PixelIdxList',out_fields))
-    pxList = cell(size(trackDat.Centroid,1),1);
+    pxList = cell(size(trackDat.centroid,1),1);
     if record
         pxList(update) = {props(permutation).PixelIdxList};
     end
@@ -191,15 +191,15 @@ if any(strcmp('PixelIdxList',out_fields))
 end
 
 if any(strcmp('MajorAxisLength',out_fields))
-    maLength = NaN(size(trackDat.Centroid,1),1);
+    maLength = NaN(size(trackDat.centroid,1),1);
     if record
         maLength(update) =[props(permutation).MajorAxisLength];
     end
     trackDat.MajorAxisLength = single(maLength);
 end
 
-if any(strcmp('Time',out_fields))
-    trackDat.Time = single(trackDat.ifi);
+if any(strcmp('time',out_fields))
+    trackDat.time = single(trackDat.ifi);
 end
 
 if any(strcmp('VideoData',out_fields))

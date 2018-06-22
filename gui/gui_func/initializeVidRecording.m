@@ -4,7 +4,7 @@ function [trackDat,expmt] = initializeVidRecording(trackDat,expmt,gui_handles)
 trackDat.fields = [trackDat.fields;{'VideoIndex'}];
 
 expmt.VideoData.path = ...
-    [expmt.fdir expmt.fLabel '_VideoData.avi'];
+    [expmt.meta.path.dir expmt.meta.path.name '_VideoData.avi'];
 
 switch gui_handles.vid_compress_menu.Checked
     case 'on'
@@ -17,7 +17,7 @@ open(expmt.VideoData.obj);
 
 
 expmt.VideoIndex.path = ...
-    [expmt.fdir expmt.fLabel '_VideoIndex.bin'];
+    [expmt.meta.path.dir expmt.meta.path.name '_VideoIndex.bin'];
     fopen(expmt.VideoIndex.path,'w');
     
 expmt.VideoIndex.fID = fopen(expmt.VideoIndex.path,'w');

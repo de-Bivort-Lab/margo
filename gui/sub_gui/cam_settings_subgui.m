@@ -1,13 +1,13 @@
 function [expmt_out] = cam_settings_subgui(handles,expmt_in)
 
 % get device properties
-if ~isfield(expmt_in.camInfo,'vid') || ...
-        (isfield(expmt_in.camInfo,'vid') && ~isvalid(expmt_in.camInfo.vid))
+if ~isfield(expmt_in.hardware.cam,'vid') || ...
+        (isfield(expmt_in.hardware.cam,'vid') && ~isvalid(expmt_in.hardware.cam.vid))
     imaqreset;
     pause(0.1);
-    vid = videoinput(expmt_in.camInfo.AdaptorName,expmt_in.camInfo.DeviceIDs{1},expmt_in.camInfo.ActiveMode{:});
+    vid = videoinput(expmt_in.hardware.cam.AdaptorName,expmt_in.hardware.cam.DeviceIDs{1},expmt_in.hardware.cam.ActiveMode{:});
 else
-    vid = expmt_in.camInfo.vid;
+    vid = expmt_in.hardware.cam.vid;
     if strcmp(vid.Running,'on')
         stop(vid);
     end   
@@ -17,14 +17,14 @@ src = getselectedsource(vid);
 info = propinfo(src);
 names = fieldnames(info);
 
-if isfield(expmt_in.camInfo,'settings')
+if isfield(expmt_in.hardware.cam,'settings')
     
     % query saved cam settings
-    [i_src,i_set]=cmpCamSettings(src,expmt_in.camInfo.settings);
-    set_names = fieldnames(expmt_in.camInfo.settings);
+    [i_src,i_set]=cmpCamSettings(src,expmt_in.hardware.cam.settings);
+    set_names = fieldnames(expmt_in.hardware.cam.settings);
     
     for i = 1:length(i_src)
-        src.(names{i_src(i)}) = expmt_in.camInfo.settings.(set_names{i_set(i)});
+        src.(names{i_src(i)}) = expmt_in.hardware.cam.settings.(set_names{i_set(i)});
     end
     
 end
@@ -167,7 +167,7 @@ function slider_Callback(src,event)
     set(vals(src.UserData),'string',num2str(get(src,'value')));
     
     % update camera source and settings
-    data.expmt_in.camInfo.settings.(names{src.UserData}) = get(src,'value');
+    data.expmt_in.hardware.cam.settings.(names{src.UserData}) = get(src,'value');
     data.cam_src.(names{src.UserData}) = get(src,'value');
     set(pf,'UserData',data);
 
@@ -181,7 +181,7 @@ function popupmenu_Callback(src,event)
     str_list = get(src,'string');
     
     % update camera source and settings with current value of src.string
-    data.expmt_in.camInfo.settings.(names{src.UserData}) = str_list{get(src,'value')};
+    data.expmt_in.hardware.cam.settings.(names{src.UserData}) = str_list{get(src,'value')};
     data.cam_src.(names{src.UserData}) = str_list{get(src,'value')};
     set(pf,'UserData',data);
 
@@ -198,7 +198,7 @@ function edit_Callback(src,event)
     set(ctls(src.UserData),'value',str2num(get(src,'string')));
     
     % update camera source and settings with current value of src.string
-    data.expmt_in.camInfo.settings.(names{src.UserData}) = str2num(get(src,'string'));
+    data.expmt_in.hardware.cam.settings.(names{src.UserData}) = str2num(get(src,'string'));
     data.cam_src.(names{src.UserData}) = str2num(get(src,'string'));
     set(pf,'UserData',data); 
     

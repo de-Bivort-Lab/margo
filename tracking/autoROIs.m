@@ -139,14 +139,16 @@ while stop~=1
     end
     nROIs = size(ROI_coords,1);
     
-    cellfun(@updateText,num2cell(hText),num2cell(centers(:,1)'),...
-        num2cell(centers(:,2)'),num2cell(1:nROIs),'UniformOutput',false);
+    if nROIs
+        cellfun(@updateText,num2cell(hText),num2cell(centers(:,1)'),...
+            num2cell(centers(:,2)'),num2cell(1:nROIs),'UniformOutput',false);
+    end
     
     % Report frames per sec to GUI
     set(gui_handles.edit_frame_rate,'String',num2str(round(1/toc)));
     drawnow limitrate
     
-    expmt.ROI.im = binaryimage;                 % store ROI binary image
+    expmt.meta.roi.im = binaryimage;                 % store ROI binary image
 
 end
 
@@ -164,11 +166,11 @@ end
 
 % assign outputs
 if ~isempty(ROI_coords)
-    expmt.ROI.corners = ROI_coords;
-    expmt.ROI.centers = centers;
-    expmt.ROI.orientation = mazeOri;
-    expmt.ROI.bounds = ROI_bounds;
-    expmt.ROI.im = binaryimage;
+    expmt.meta.roi.corners = ROI_coords;
+    expmt.meta.roi.centers = centers;
+    expmt.meta.roi.orientation = mazeOri;
+    expmt.meta.roi.bounds = ROI_bounds;
+    expmt.meta.roi.im = binaryimage;
 end
 
 gui_handles.auto_detect_ROIs_pushbutton.Enable = 'on';

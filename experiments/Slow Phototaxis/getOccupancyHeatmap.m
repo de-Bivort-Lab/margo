@@ -5,7 +5,7 @@ function getOccupancyHeatmap(expmt,varargin)
 
 %% parse inputs and assign default values
 
-f='Centroid';
+f='centroid';
 
 for i=1:length(varargin)
     arg=varargin{i};
@@ -25,27 +25,27 @@ binlabels=-1:0.2:1;
 
 for i=1:expmt.meta.num_traces
     
-    f='Centroid';
+    f='centroid';
     % normalize centroid to centroid center
     normcen = single(NaN(size(expmt.(f).data(:,:,i))));
-    if strcmp(f,'Centroid')
-        normcen(:,1) = expmt.(f).data(:,1,i) - expmt.ROI.centers(i,1);
-        normcen(:,2) = expmt.(f).data(:,2,i) - expmt.ROI.centers(i,2);
+    if strcmp(f,'centroid')
+        normcen(:,1) = expmt.(f).data(:,1,i) - expmt.meta.roi.centers(i,1);
+        normcen(:,2) = expmt.(f).data(:,2,i) - expmt.meta.roi.centers(i,2);
     else
         normcen = expmt.(f).data(:,:,i);
     end
     
     % exclude points that fall outside of the ROI bounds
-    exclude = normcen(:,1) < expmt.ROI.corners(i,1) - expmt.ROI.centers(i,1) |...
-        normcen(:,1) > expmt.ROI.corners(i,3) - expmt.ROI.centers(i,1);
+    exclude = normcen(:,1) < expmt.meta.roi.corners(i,1) - expmt.meta.roi.centers(i,1) |...
+        normcen(:,1) > expmt.meta.roi.corners(i,3) - expmt.meta.roi.centers(i,1);
     normcen(exclude,1) = NaN;
-    exclude = normcen(:,2) < expmt.ROI.corners(i,2) - expmt.ROI.centers(i,2) |...
-        normcen(:,2) > expmt.ROI.corners(i,4) - expmt.ROI.centers(i,2);
+    exclude = normcen(:,2) < expmt.meta.roi.corners(i,2) - expmt.meta.roi.centers(i,2) |...
+        normcen(:,2) > expmt.meta.roi.corners(i,4) - expmt.meta.roi.centers(i,2);
     normcen(exclude,2) = NaN;
     
     % normalize the range between -1 and 1
-    normcen(:,1) =  normcen(:,1)./(expmt.ROI.bounds(i,3)/2);
-    normcen(:,2) =  normcen(:,2)./(expmt.ROI.bounds(i,4)/2);
+    normcen(:,1) =  normcen(:,1)./(expmt.meta.roi.bounds(i,3)/2);
+    normcen(:,2) =  normcen(:,2)./(expmt.meta.roi.bounds(i,4)/2);
 
     % get position histogram
     hmap = NaN(length(bins)-1);
@@ -83,26 +83,26 @@ for i=1:expmt.meta.num_traces
     f='StimCen';
     % normalize centroid to centroid center
     normcen = single(NaN(size(expmt.(f).data(:,:,i))));
-    if strcmp(f,'Centroid')
-        normcen(:,1) = expmt.(f).data(:,1,i) - expmt.ROI.centers(i,1);
-        normcen(:,2) = expmt.(f).data(:,2,i) - expmt.ROI.centers(i,2);
+    if strcmp(f,'centroid')
+        normcen(:,1) = expmt.(f).data(:,1,i) - expmt.meta.roi.centers(i,1);
+        normcen(:,2) = expmt.(f).data(:,2,i) - expmt.meta.roi.centers(i,2);
     else
         normcen = expmt.(f).data(:,:,i);
     end
     
     % exclude points that fall outside of the ROI bounds
-    exclude = normcen(:,1) < expmt.ROI.corners(i,1) - expmt.ROI.centers(i,1) |...
-        normcen(:,1) > expmt.ROI.corners(i,3) - expmt.ROI.centers(i,1);
+    exclude = normcen(:,1) < expmt.meta.roi.corners(i,1) - expmt.meta.roi.centers(i,1) |...
+        normcen(:,1) > expmt.meta.roi.corners(i,3) - expmt.meta.roi.centers(i,1);
     exclude = exclude | ~expmt.Texture.data;
     normcen(exclude,1) = NaN;
-    exclude = normcen(:,2) < expmt.ROI.corners(i,2) - expmt.ROI.centers(i,2) |...
-        normcen(:,2) > expmt.ROI.corners(i,4) - expmt.ROI.centers(i,2);
+    exclude = normcen(:,2) < expmt.meta.roi.corners(i,2) - expmt.meta.roi.centers(i,2) |...
+        normcen(:,2) > expmt.meta.roi.corners(i,4) - expmt.meta.roi.centers(i,2);
     exclude = exclude | ~expmt.Texture.data;
     normcen(exclude,2) = NaN;
     
     % normalize the range between -1 and 1
-    normcen(:,1) =  normcen(:,1)./(expmt.ROI.bounds(i,3)/2);
-    normcen(:,2) =  normcen(:,2)./(expmt.ROI.bounds(i,4)/2);
+    normcen(:,1) =  normcen(:,1)./(expmt.meta.roi.bounds(i,3)/2);
+    normcen(:,2) =  normcen(:,2)./(expmt.meta.roi.bounds(i,4)/2);
 
     % get position histogram
     hmap = NaN(length(bins)-1);

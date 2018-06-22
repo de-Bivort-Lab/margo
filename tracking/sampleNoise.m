@@ -23,12 +23,12 @@ gui_handles.display_menu.UserData = 3;
 
 pixDistSize=100;                            % Num values to record in p
 pixelDist=NaN(pixDistSize,1);               % Distribution of total number of pixels above image threshold
-roiDist=NaN(pixDistSize,expmt.ROI.n);       % Distribution of total number of pixels above image threshold
+roiDist=NaN(pixDistSize,expmt.meta.roi.n);       % Distribution of total number of pixels above image threshold
 
 % tracking vars
-trackDat.Centroid = expmt.ROI.centers;     % placeholder for most recent non-NaN centroids
-trackDat.fields = {'Centroid';'Area'};     % Define fields for regionprops
-trackDat.tStamp = zeros(size(expmt.ROI.centers(:,1),1),1);
+trackDat.centroid = expmt.meta.roi.centers;     % placeholder for most recent non-NaN centroids
+trackDat.fields = {'centroid';'area'};     % Define fields for regionprops
+trackDat.tStamp = zeros(size(expmt.meta.roi.centers(:,1),1),1);
 trackDat.t = 0;
 trackDat.ct = 0;
 trackDat.ref = expmt.meta.ref;
@@ -45,7 +45,7 @@ imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','Image');
 set(gca,'Xtick',[],'Ytick',[]);
 clearvars hCirc
 hold on
-hCirc = plot(expmt.ROI.centers(:,1),expmt.ROI.centers(:,2),'o','Color',[1 0 0]);
+hCirc = plot(expmt.meta.roi.centers(:,1),expmt.meta.roi.centers(:,2),'o','Color',[1 0 0]);
 hold off
 
 tic
@@ -69,8 +69,8 @@ while trackDat.ct < pixDistSize;
     if gui_handles.display_menu.UserData ~= 5
 
         % Draw last known centroid for each ROI and update ref. number indicator
-        hCirc.XData = trackDat.Centroid(:,1);
-        hCirc.YData = trackDat.Centroid(:,2);
+        hCirc.XData = trackDat.centroid(:,1);
+        hCirc.YData = trackDat.centroid(:,2);
        
         % update the display
         autoDisplay(trackDat, expmt, imh, gui_handles);
@@ -85,7 +85,7 @@ while trackDat.ct < pixDistSize;
    thresh_im = diffim(:) > gui_handles.track_thresh_slider.Value;
    pixelDist(mod(trackDat.ct-1,pixDistSize)+1) = nansum(thresh_im);
    roiDist(mod(trackDat.ct-1,pixDistSize)+1,:) = ...
-       cellfun(@(x) sum(thresh_im(x)),expmt.ROI.pixIdx);
+       cellfun(@(x) sum(thresh_im(x)),expmt.meta.roi.pixIdx);
    
 end
 

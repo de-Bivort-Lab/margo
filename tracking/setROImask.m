@@ -1,10 +1,10 @@
 function expmt = setROImask(expmt)
 
 % create a single mask for all ROIs in the image
-switch expmt.ROI.mode    
+switch expmt.meta.roi.mode    
     case 'grid'
        
-        nGrids = max(unique(expmt.ROI.grid));
+        nGrids = max(unique(expmt.meta.roi.grid));
         pixList = [];
         xdat = [];
         ydat = [];
@@ -21,23 +21,23 @@ switch expmt.ROI.mode
         % get pixel indices for each individual ROI
         xdat = num2cell(xdat,1);
         ydat = num2cell(ydat,1);
-        expmt.ROI.pixIdx = cellfun(@(x,y,z) ...
-            getGridROIPixels(x,y,z,size(expmt.ROI.im)), xdat,ydat,...
-            num2cell(expmt.ROI.vec,[2 3])','UniformOutput',false)';  
+        expmt.meta.roi.pixIdx = cellfun(@(x,y,z) ...
+            getGridROIPixels(x,y,z,size(expmt.meta.roi.im)), xdat,ydat,...
+            num2cell(expmt.meta.roi.vec,[2 3])','UniformOutput',false)';  
 
     case 'auto'
         
-       expmt.ROI.pixIdx = cellfun(@(x) getBoundsPixels(x,...
-           size(expmt.ROI.im)),num2cell(expmt.ROI.corners,2),...
+       expmt.meta.roi.pixIdx = cellfun(@(x) getBoundsPixels(x,...
+           size(expmt.meta.roi.im)),num2cell(expmt.meta.roi.corners,2),...
            'UniformOutput',false);
 
 end
 
-mask = false(size(expmt.ROI.im));
-pii = cat(1,expmt.ROI.pixIdx{:});
+mask = false(size(expmt.meta.roi.im));
+pii = cat(1,expmt.meta.roi.pixIdx{:});
 mask(pii)=true;
 
-expmt.ROI.mask = mask;
+expmt.meta.roi.mask = mask;
 
 
 

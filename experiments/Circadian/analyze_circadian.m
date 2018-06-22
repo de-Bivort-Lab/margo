@@ -15,7 +15,7 @@ clearvars -except expmt trackProps options
 
 %% get individual area thresholds for separating frames at the ceiling and floor of the well
 
-if isfield(expmt,'Area') && isfield(expmt.Area,'map') && ...
+if isfield(expmt,'area') && isfield(expmt.area,'map') && ...
         isfield(options,'area_threshold') && options.area_threshold
 
     if isfield(options,'handles')
@@ -50,7 +50,7 @@ if options.slide
     % get index tstamps
     tStamps = cumsum(expmt.data.time.raw);
     if length(tStamps)~=length(expmt.Speed.raw) && isfield(options,'decimate')...
-            && any(strcmp({'Centroid'},options.decimate))
+            && any(strcmp({'centroid'},options.decimate))
 
         tStamps = tStamps(mod(1:expmt.meta.num_frames,options.decfac)==1);
 
@@ -105,7 +105,7 @@ if options.slide
     % create graded light-dark patches
     tmp_Light = expmt.Light.raw;
     if length(tmp_Light)~=length(expmt.Light.raw) && isfield(options,'decimate')...
-            && any(strcmp({'Centroid'},options.decimate))
+            && any(strcmp({'centroid'},options.decimate))
 
         tmp_Light = tmp_Light(mod(1:expmt.meta.num_frames,options.decfac)==1);
 

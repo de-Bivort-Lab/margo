@@ -25,9 +25,9 @@ sample_bg = cell(n,1);
 sample_ct = 0;
 
 % tracking vars
-trackDat.Centroid = expmt.ROI.centers;     % placeholder for most recent non-NaN centroids
-trackDat.fields = {'Centroid';'Area'};     % Define fields for regionprops
-trackDat.tStamp = zeros(size(expmt.ROI.centers(:,1),1),1);
+trackDat.centroid = expmt.meta.roi.centers;     % placeholder for most recent non-NaN centroids
+trackDat.fields = {'centroid';'area'};     % Define fields for regionprops
+trackDat.tStamp = zeros(size(expmt.meta.roi.centers(:,1),1),1);
 trackDat.t = 0;
 trackDat.ct = 0;
 trackDat.ref = expmt.meta.ref;
@@ -44,7 +44,7 @@ imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','Image');
 set(gca,'Xtick',[],'Ytick',[]);
 clearvars hCirc
 hold on
-hCirc = plot(expmt.ROI.centers(:,1),expmt.ROI.centers(:,2),'o','Color',[1 0 0]);
+hCirc = plot(expmt.meta.roi.centers(:,1),expmt.meta.roi.centers(:,2),'o','Color',[1 0 0]);
 hold off
 
 tic
@@ -65,11 +65,11 @@ while sample_ct < n;
     [trackDat] = autoTrack(trackDat,expmt,gui_handles);
     
     if ~exist('area_thresh','var') || isnan(area_thresh)
-        area_thresh = nanmedian(trackDat.Area);
+        area_thresh = nanmedian(trackDat.area);
     end
     
     % identify objects with good separation from background
-    extract = trackDat.Area > area_thresh;
+    extract = trackDat.area > area_thresh;
     if any(extract)
         [obj_ims, bg_ims] = ...
             extractSamples(trackDat, expmt, extract, sample_window);
@@ -95,8 +95,8 @@ while sample_ct < n;
         autoDisplay(trackDat, expmt, imh, gui_handles);
 
        % Draw last known centroid for each ROI and update ref. number indicator
-       hCirc.XData = trackDat.Centroid(:,1);
-       hCirc.YData = trackDat.Centroid(:,2);
+       hCirc.XData = trackDat.centroid(:,1);
+       hCirc.YData = trackDat.centroid(:,2);
 
     end
     drawnow limitrate

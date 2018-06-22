@@ -28,15 +28,15 @@ for i = 1:expmt.meta.num_traces
     %Plot fly trace
     if exist('f','var')
         
-        xTrace = expmt.data.centroid.data(expmt.(f).include(:,i),1,i) - expmt.ROI.centers(i,1);
-        yTrace = expmt.data.centroid.data(expmt.(f).include(:,i),2,i) - expmt.ROI.centers(i,2);
+        xTrace = expmt.data.centroid.data(expmt.(f).include(:,i),1,i) - expmt.meta.roi.centers(i,1);
+        yTrace = expmt.data.centroid.data(expmt.(f).include(:,i),2,i) - expmt.meta.roi.centers(i,2);
         mu = -sin(expmt.(f).circum_vel(expmt.(f).include(:,i),i));
         z=zeros(sum(expmt.(f).include(:,i)),1);
         
     else
         
-        xTrace = expmt.data.centroid.data(expmt.handedness.include(:,i),1,i) - expmt.ROI.centers(i,1);
-        yTrace = expmt.data.centroid.data(expmt.handedness.include(:,i),2,i) - expmt.ROI.centers(i,2);
+        xTrace = expmt.data.centroid.data(expmt.handedness.include(:,i),1,i) - expmt.meta.roi.centers(i,1);
+        yTrace = expmt.data.centroid.data(expmt.handedness.include(:,i),2,i) - expmt.meta.roi.centers(i,2);
         mu = -sin(expmt.handedness.circum_vel(expmt.handedness.include(:,i),i));
         z=zeros(sum(expmt.handedness.include(:,i)),1);
         

@@ -93,11 +93,11 @@ if gui_handles.display_menu.UserData ~= 5
             strcmp(gui_handles.gui_fig.UserData.cenText(1).Visible,'on')
 
         arrayfun(@updateText,gui_handles.gui_fig.UserData.cenText,...
-            num2cell(trackDat.Centroid,2));
+            num2cell(trackDat.centroid,2));
     end
     if isfield(trackDat,'hMark') && ishghandle(trackDat.hMark(1))
-        trackDat.hMark.XData = trackDat.Centroid(:,1);
-        trackDat.hMark.YData = trackDat.Centroid(:,2);
+        trackDat.hMark.XData = trackDat.centroid(:,1);
+        trackDat.hMark.YData = trackDat.centroid(:,2);
     end
 end
 

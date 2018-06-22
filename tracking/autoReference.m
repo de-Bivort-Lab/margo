@@ -26,10 +26,10 @@ function [trackDat, expmt] = autoReference(trackDat,expmt,gui_handles)
         end
         
         % Reference vars
-        nROIs = size(expmt.ROI.corners, 1);         % total number of ROIs
+        nROIs = size(expmt.meta.roi.corners, 1);         % total number of ROIs
         depth = gui_handles.edit_ref_depth.Value;   % number of rolling sub references
         trackDat.ref.cen = ...                      % placeholder for cen. coords where
-            repmat(trackDat.Centroid,1,1,depth);    % references are taken
+            repmat(trackDat.centroid,1,1,depth);    % references are taken
         trackDat.ref.ct = zeros(nROIs, 1);          % Reference number placeholder
         trackDat.ref.t = 0;                         % reference time stamp
                 

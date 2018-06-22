@@ -48,7 +48,7 @@ scrProp.white = white;
 scrProp.vbl = vbl;
 scrProp.ifi=ifi;
 scrProp.waitframes = waitframes;
-expmt.scrProp = scrProp;
+expmt.hardware.screen = scrProp;
 
 %% Load the projector fit
 

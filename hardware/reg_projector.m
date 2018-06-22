@@ -176,14 +176,14 @@ for i=1:x_stp
         im=im-ref;
         
         % Extract centroid of spot
-        props=regionprops(im>im_thresh,'Centroid','Area');
-        props=props([props.Area]>min_area & [props.Area]<max_area);
+        props=regionprops(im>im_thresh,'centroid','area');
+        props=props([props.area]>min_area & [props.area]<max_area);
         
         % Further process the centroid if spot detected
-        if ~isempty([props.Centroid]) && length([props.Centroid])==2
+        if ~isempty([props.centroid]) && length([props.centroid])==2
             
             % Calculate center of mass using roi detected for the spot
-            cenDat=round([props.Centroid]);
+            cenDat=round([props.centroid]);
             yi=cenDat(2)-subim_sz:cenDat(2)+subim_sz;
             xi=cenDat(1)-subim_sz:cenDat(1)+subim_sz;
             if max(yi)<reg_yPixels+1 && min(yi)>0 && max(xi)<reg_xPixels+1 && min(xi)>1

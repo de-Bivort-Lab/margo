@@ -78,16 +78,16 @@ function [varargout]=matchCentroids2ROIs(raw_cen,trackDat,expmt,gui_handles)
 udat = gui_handles.gui_fig.UserData;
 
 % Define placeholder data variables equal to number ROIs
-tempCenDat=NaN(size(trackDat.Centroid,1),2);
+tempCenDat=NaN(size(trackDat.centroid,1),2);
 
 % Initialize temporary centroid variables
 tempCenDat(1:size(raw_cen,1),:)=raw_cen;
 
-% Find nearest Last Known Centroid for each current centroid
+% Find nearest Last Known centroid for each current centroid
 % Replicate temp centroid data into dimensions compatible with dot product
 % with the last known centroid of each fly
-tD=repmat(tempCenDat,1,1,size(trackDat.Centroid,1));
-c=repmat(trackDat.Centroid,1,1,size(tempCenDat,1));
+tD=repmat(tempCenDat,1,1,size(trackDat.centroid,1));
+c=repmat(trackDat.centroid,1,1,size(tempCenDat,1));
 c=permute(c,[3 2 1]);
 
 % Use dot product to calculate pairwise distance between all coordinates
@@ -100,7 +100,7 @@ g=abs(g);
 
 % Initialize empty placeholders for permutation and inclusion vectors
 sorting_permutation=[];
-update_centroid = false(size(trackDat.Centroid,1),1);
+update_centroid = false(size(trackDat.centroid,1),1);
 
     % For the centroids j, calculate speed and distance to ROI center for thresholding
     if size(raw_cen,1)>0 
@@ -110,7 +110,7 @@ update_centroid = false(size(trackDat.Centroid,1),1);
           case 'distance'
                 
             % Calculate distance to known landmark such as the ROI center
-            secondary_distance=abs(sqrt(dot(raw_cen(j,:)'-expmt.ROI.centers',expmt.ROI.centers'-raw_cen(j,:)')))';
+            secondary_distance=abs(sqrt(dot(raw_cen(j,:)'-expmt.meta.roi.centers',expmt.meta.roi.centers'-raw_cen(j,:)')))';
 
             % Exclude centroids that move too fast or are too far from the ROI center
             % corresponding to the previous centroid each item in j, was matched with
@@ -125,8 +125,8 @@ update_centroid = false(size(trackDat.Centroid,1),1);
 
             % Calculate pairwise distances between duplicate ROIs and temp centroids
             % using the same method above
-            tD=repmat(tempCenDat(duplicateCen,:),1,1,size(trackDat.Centroid,1));
-            c=repmat(trackDat.Centroid,1,1,size(tempCenDat(duplicateCen,:),1));
+            tD=repmat(tempCenDat(duplicateCen,:),1,1,size(trackDat.centroid,1));
+            c=repmat(trackDat.centroid,1,1,size(tempCenDat(duplicateCen,:),1));
             c=permute(c,[3 2 1]);
             g=sqrt(dot((c-tD),(tD-c),2));
             g=abs(g);
@@ -150,11 +150,11 @@ update_centroid = false(size(trackDat.Centroid,1),1);
                  
                  % find candidate ROIs for each centroid
                  ROI_num = arrayfun(@(x) ...
-                     gridAssignROI(x,expmt.ROI.vec,expmt.ROI.shape,expmt.ROI.tform),...
+                     gridAssignROI(x,expmt.meta.roi.vec,expmt.meta.roi.shape,expmt.meta.roi.tform),...
                      num2cell(raw_cen,2),'UniformOutput',false);
                case 'auto'
                  ROI_num = cellfun(@(x) ...
-                     autoAssignROI(x,expmt.ROI.corners),...
+                     autoAssignROI(x,expmt.meta.roi.corners),...
                      num2cell(raw_cen,2),'UniformOutput',false);
             end
              
@@ -168,26 +168,29 @@ update_centroid = false(size(trackDat.Centroid,1),1);
              if any(dupROIs)
                  
                  % find ROI with nearest last centroid to each raw_cen                
-                 ROI_num(dupROIs) = cellfun(@(x,y) closestCentroid(x,y,trackDat.Centroid),...
-                     num2cell(raw_cen(dupROIs,:),2),ROI_num(dupROIs),'UniformOutput',false);
+                 ROI_num(dupROIs) = ...
+                     cellfun(@(x,y) closestCentroid(x,y,trackDat.centroid),...
+                        num2cell(raw_cen(dupROIs,:),2),...
+                        ROI_num(dupROIs),'UniformOutput',false);
                  
              end   
               
              % find ROIs with more than one centroid assignment
              ROI_num = cat(2,ROI_num{:});    
-             hasDupCen = find(histc(ROI_num,1:expmt.ROI.n)>1);
+             hasDupCen = find(histc(ROI_num,1:expmt.meta.roi.n)>1);
              if ~isempty(hasDupCen)
                 dupCenIdx = arrayfun(@(x) find(ismember(ROI_num,x)),...
-                    hasDupCen,'UniformOutput',false);
+                                hasDupCen,'UniformOutput',false);
                 [~,discard] = cellfun(@(x,y) closestCentroid(x,y,raw_cen),...
-                    num2cell(trackDat.Centroid(hasDupCen,:),2),dupCenIdx','UniformOutput',false);
+                                    num2cell(trackDat.centroid(hasDupCen,:),2),...
+                                    dupCenIdx','UniformOutput',false);
                 ROI_num(cat(2,discard{:}))=[];
                 raw_cen((cat(2,discard{:})),:)=[];
              end
              
              % assign outputs for sorting data
              [~,sorting_permutation] = sort(ROI_num);
-             update_centroid = ismember(1:expmt.ROI.n,ROI_num);
+             update_centroid = ismember(1:expmt.meta.roi.n,ROI_num);
            
         end
 

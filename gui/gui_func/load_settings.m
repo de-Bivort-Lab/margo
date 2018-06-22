@@ -89,35 +89,35 @@ if isfield(expmt_new,'AUX_COM')
     expmt_old.AUX_COM = expmt_new.AUX_COM;
 end
 
-if ~isempty(expmt_new.camInfo.DeviceInfo)
-    if strcmp(expmt_old.camInfo.DeviceInfo.DeviceName,expmt_new.camInfo.DeviceInfo.DeviceName)
+if ~isempty(expmt_new.hardware.cam.DeviceInfo)
+    if strcmp(expmt_old.hardware.cam.DeviceInfo.DeviceName,expmt_new.hardware.cam.DeviceInfo.DeviceName)
 
         % stop and delete existing vid object
-        if isfield(expmt_new.camInfo,'vid')
-            delete(expmt_new.camInfo.vid);
+        if isfield(expmt_new.hardware.cam,'vid')
+            delete(expmt_new.hardware.cam.vid);
             imaqreset;
         end
 
         % update camera dropdown menu
         for i = 1:length(handles.cam_list)
-            if strcmp(expmt_old.camInfo.DeviceInfo.DeviceName,handles.cam_list(i).name)
+            if strcmp(expmt_old.hardware.cam.DeviceInfo.DeviceName,handles.cam_list(i).name)
                 handles.cam_select_popupmenu.Value = i;
             end
         end
 
         % update camera mode dropdown
-        handles.cam_mode_popupmenu.String = expmt_old.camInfo.DeviceInfo.SupportedFormats;
+        handles.cam_mode_popupmenu.String = expmt_old.hardware.cam.DeviceInfo.SupportedFormats;
         for i = 1:length(handles.cam_mode_popupmenu.String)
-            if strcmp(handles.cam_mode_popupmenu.String{i},expmt_old.camInfo.ActiveMode{:})
+            if strcmp(handles.cam_mode_popupmenu.String{i},expmt_old.hardware.cam.ActiveMode{:})
                 handles.cam_mode_popupmenu.Value = i;
             end
         end
 
     else
-        expmt_old.camInfo = expmt_new.camInfo;
+        expmt_old.hardware.cam = expmt_new.hardware.cam;
     end
 else
-    expmt_old.camInfo = expmt_new.camInfo;
+    expmt_old.hardware.cam = expmt_new.hardware.cam;
 end
 
 % remove fields that must be re-defined each expmt
@@ -137,7 +137,7 @@ if isfield(expmt_old.vignette,'im')
     expmt_old.vignette = rmfield(expmt_old.vignette, 'im');
 end
 
-if isfield(expmt_old.camInfo,'calibrate') && expmt_old.camInfo.calibrate
+if isfield(expmt_old.hardware.cam,'calibrate') && expmt_old.hardware.cam.calibrate
     handles.cam_calibrate_menu.UserData = true;
     handles.cam_calibrate_menu.Checked = 'on';
 else
@@ -151,7 +151,7 @@ cam_file = [cam_dir 'cam_params.mat'];
 if exist(cam_dir,'dir')==7 && exist(cam_file,'file')==2
     
     load(cam_file);
-    expmt_old.camInfo.calibration = cameraParams;
+    expmt_old.hardware.cam.calibration = cameraParams;
     
 end
 

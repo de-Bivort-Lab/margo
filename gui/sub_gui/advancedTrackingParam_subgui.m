@@ -179,34 +179,34 @@ end
 %% Tracking setup
 
 % initialize tracking variables if any parameter display is ticked
-trackDat.fields={'Centroid';'Area';'Speed'};     % Define fields autoTrack output
-if isfield(expmt,'ref')
+trackDat.fields={'centroid';'area';'Speed'};     % Define fields autoTrack output
+if isfield(expmt.meta.ref,'im')
     trackDat.ref = expmt.meta.ref;
 end
 
-if isfield(expmt,'ROI') && isfield(expmt.ROI,'centers')
-    trackDat.Centroid = expmt.ROI.centers;     % placeholder for most recent non-NaN centroids
+if isfield(expmt,'ROI') && isfield(expmt.meta.roi,'centers')
+    trackDat.centroid = expmt.meta.roi.centers;     % placeholder for most recent non-NaN centroids
 else
     midpoint(1) = sum(gui_handles.axes_handle.XLim)/2;
     midpoint(2) = sum(gui_handles.axes_handle.YLim)/2;
-    trackDat.Centroid = [midpoint(1) midpoint(2)];
+    trackDat.centroid = [midpoint(1) midpoint(2)];
 end
 
 % initialize coords
-d_bounds = centerRect(trackDat.Centroid,gui_fig.UserData.distance_thresh);
-mi_bounds = centerRect(trackDat.Centroid,sqrt(gui_fig.UserData.area_min/pi));
-ma_bounds = centerRect(trackDat.Centroid,sqrt(gui_fig.UserData.area_max/pi));
+d_bounds = centerRect(trackDat.centroid,gui_fig.UserData.distance_thresh);
+mi_bounds = centerRect(trackDat.centroid,sqrt(gui_fig.UserData.area_min/pi));
+ma_bounds = centerRect(trackDat.centroid,sqrt(gui_fig.UserData.area_max/pi));
 
 % initialize handles with position set to bounds
-for i = 1:size(trackDat.Centroid,1)
+for i = 1:size(trackDat.centroid,1)
 
-    spdText(i) = text('Parent',gui_handles.axes_handle,'Position',trackDat.Centroid(i,:),...
+    spdText(i) = text('Parent',gui_handles.axes_handle,'Position',trackDat.centroid(i,:),...
         'String','0','Visible','off','Color',[1 0 1]);
     minCirc(i) = rectangle('Parent',gui_handles.axes_handle,'Position',mi_bounds(i,:),...
         'EdgeColor',[1 0 0],'Curvature',[1 1],'Visible','off');
     maxCirc(i) = rectangle('Parent',gui_handles.axes_handle,'Position',ma_bounds(i,:),...
         'EdgeColor',[1 0 0],'Curvature',[1 1],'Visible','off');
-    areaText(i) = text('Parent',gui_handles.axes_handle,'Position',trackDat.Centroid(i,:),...
+    areaText(i) = text('Parent',gui_handles.axes_handle,'Position',trackDat.centroid(i,:),...
         'String','0','Visible','off','Color',[1 0 0]);
     dstCirc(i) = rectangle('Parent',gui_handles.axes_handle,'Position',d_bounds(i,:),...
         'EdgeColor',[0 0 1],'Curvature',[1 1],'Visible','off');
@@ -214,14 +214,14 @@ for i = 1:size(trackDat.Centroid,1)
 end
 
 % initialize rolling averages of speed and area
-roll_speed = NaN(size(trackDat.Centroid,1),500);
-roll_area = NaN(size(trackDat.Centroid,1),500);
+roll_speed = NaN(size(trackDat.centroid,1),500);
+roll_area = NaN(size(trackDat.centroid,1),500);
 
 % initialize timer
 tic
 trackDat.t=0;
 tPrev = toc;
-trackDat.tStamp = zeros(size(trackDat.Centroid,1),1);
+trackDat.tStamp = zeros(size(trackDat.centroid,1),1);
 
 
 %% Tracking loop
@@ -265,7 +265,7 @@ while ishghandle(hObject) && display
         end
 
         % display parameter preview on objects and ROIs if they exist
-        if isfield(expmt,'ref') && isfield(expmt.meta.vignette,'im')
+        if isfield(expmt.meta.ref,'im') && isfield(expmt.meta.vignette,'im')
 
             % track objects and sort outputs specified in trackDat.fields
             trackDat = autoTrack(trackDat,expmt,gui_handles);
@@ -278,7 +278,7 @@ while ishghandle(hObject) && display
         % convert real distance to pixel for proper display
         px_r = gui_fig.UserData.speed_thresh/expmt.parameters.mm_per_pix;
         spd = num2cell(roll_speed,2);
-        cen = num2cell(trackDat.Centroid,2);
+        cen = num2cell(trackDat.centroid,2);
         arrayfun(@updateSpeed,spdText',cen,spd);
         
         
@@ -307,7 +307,7 @@ while ishghandle(hObject) && display
         % tracking
         if ~disp_speed
 
-            if isfield(expmt,'ref') && isfield(expmt.meta.vignette,'im')
+            if isfield(expmt.meta.ref,'im') && isfield(expmt.meta.vignette,'im')
 
             % track objects and sort outputs specified in trackDat.fields
             trackDat = autoTrack(trackDat,expmt,gui_handles);
@@ -318,8 +318,8 @@ while ishghandle(hObject) && display
 
         % convert real distance to pixel for proper display
         px_r = gui_fig.UserData.distance_thresh/expmt.parameters.mm_per_pix;
-        if isfield(expmt,'ROI') && isfield(expmt.ROI,'centers')
-            d_bounds = centerRect(expmt.ROI.centers,px_r);
+        if isfield(expmt,'ROI') && isfield(expmt.meta.roi,'centers')
+            d_bounds = centerRect(expmt.meta.roi.centers,px_r);
         else
             mid(1) = sum(gui_handles.axes_handle.XLim)/2;
             mid(2) = sum(gui_handles.axes_handle.YLim)/2;
@@ -337,7 +337,7 @@ while ishghandle(hObject) && display
         end
     end
         
-    % Area display ticked
+    % area display ticked
     if disp_area
 
         % re-enable display if necessary
@@ -351,7 +351,7 @@ while ishghandle(hObject) && display
         % tracking
         if ~disp_speed && ~disp_dist
 
-            if isfield(expmt,'ref') && isfield(expmt.meta.vignette,'im')
+            if isfield(expmt.meta.ref,'im') && isfield(expmt.meta.vignette,'im')
 
                 % track objects and sort outputs specified in trackDat.fields
                 trackDat = autoTrack(trackDat,expmt,gui_handles);
@@ -361,20 +361,20 @@ while ishghandle(hObject) && display
         end
 
         % calculate rolling average of centroid area
-        if isfield(trackDat,'Area')
-            roll_area(:,mod(trackDat.ct,size(roll_area,2))+1) = trackDat.Area;
+        if isfield(trackDat,'area')
+            roll_area(:,mod(trackDat.ct,size(roll_area,2))+1) = trackDat.area;
         end
 
         % else display preview in center of axes
         px_r = gui_fig.UserData.area_min/expmt.parameters.mm_per_pix;
-        mi_bounds = centerRect(trackDat.Centroid,sqrt(px_r/pi));
+        mi_bounds = centerRect(trackDat.centroid,sqrt(px_r/pi));
         px_r = gui_fig.UserData.area_max/expmt.parameters.mm_per_pix;
-        ma_bounds = centerRect(trackDat.Centroid,sqrt(px_r/pi));
+        ma_bounds = centerRect(trackDat.centroid,sqrt(px_r/pi));
         
         mib = num2cell(mi_bounds,2);
         mab = num2cell(ma_bounds,2);
         rar = num2cell(roll_area,2);
-        cen = num2cell(trackDat.Centroid,2);
+        cen = num2cell(trackDat.centroid,2);
         arrayfun(@updateArea,minCirc',maxCirc',areaText',cen,mib,mab,rar);
 
     % else make objects invisible

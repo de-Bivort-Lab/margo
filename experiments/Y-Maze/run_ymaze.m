@@ -31,10 +31,10 @@ gui_handles.display_menu.UserData = 1;
 % Initialize experiment parameters
 ref_stack = repmat(expmt.meta.ref, 1, 1, ...
     gui_handles.edit_ref_depth.Value);                      % initialize the reference stack
-nROIs = size(expmt.ROI.centers,1);                          % number of ROIs
+nROIs = size(expmt.meta.roi.centers,1);                          % number of ROIs
 
 % Initialize tracking variables
-trackDat.fields={'Centroid';'Time';'Turns'};                % properties of the tracked objects to be recorded
+trackDat.fields={'centroid';'time';'Turns'};                % properties of the tracked objects to be recorded
 
 % initialize labels, files, and cam/video
 [trackDat,expmt] = autoInitialize(trackDat,expmt,gui_handles);
@@ -46,29 +46,29 @@ trackDat.lastFrame = false;
 
 % Calculate coordinates of end of each maze arm
 trackDat.arm = zeros(nROIs,2,6);                              % Placeholder
-w = expmt.ROI.bounds(:,3);                                  % width of each ROI
-h = expmt.ROI.bounds(:,4);                                  % height of each ROI
+w = expmt.meta.roi.bounds(:,3);                                  % width of each ROI
+h = expmt.meta.roi.bounds(:,4);                                  % height of each ROI
 
 % Offsets to shift arm coords in from edge of ROI bounding box
 xShift = w.*0.15;                             
 yShift = h.*0.15;
 
 % Coords 1-3 are for upside-down Ys
-trackDat.arm(:,:,1) = [expmt.ROI.corners(:,1)+xShift expmt.ROI.corners(:,4)-yShift];
-trackDat.arm(:,:,2) = [expmt.ROI.centers(:,1) expmt.ROI.corners(:,2)+yShift];
-trackDat.arm(:,:,3) = [expmt.ROI.corners(:,3)-xShift expmt.ROI.corners(:,4)-yShift];
+trackDat.arm(:,:,1) = [expmt.meta.roi.corners(:,1)+xShift expmt.meta.roi.corners(:,4)-yShift];
+trackDat.arm(:,:,2) = [expmt.meta.roi.centers(:,1) expmt.meta.roi.corners(:,2)+yShift];
+trackDat.arm(:,:,3) = [expmt.meta.roi.corners(:,3)-xShift expmt.meta.roi.corners(:,4)-yShift];
 
 % Coords 4-6 are for right-side up Ys
-trackDat.arm(:,:,4) = [expmt.ROI.corners(:,1)+xShift expmt.ROI.corners(:,2)+yShift];
-trackDat.arm(:,:,5) = [expmt.ROI.centers(:,1) expmt.ROI.corners(:,4)-yShift];
-trackDat.arm(:,:,6) = [expmt.ROI.corners(:,3)-xShift expmt.ROI.corners(:,2)+yShift];
+trackDat.arm(:,:,4) = [expmt.meta.roi.corners(:,1)+xShift expmt.meta.roi.corners(:,2)+yShift];
+trackDat.arm(:,:,5) = [expmt.meta.roi.centers(:,1) expmt.meta.roi.corners(:,4)-yShift];
+trackDat.arm(:,:,6) = [expmt.meta.roi.corners(:,3)-xShift expmt.meta.roi.corners(:,2)+yShift];
 
 trackDat.turntStamp = zeros(nROIs,1);                                % time stamp of last scored turn for each object
 trackDat.prev_arm = zeros(nROIs,1);
 
 % calculate arm threshold as fraction of width and height
 expmt.parameters.arm_thresh = mean([w h],2) .* 0.2;
-nTurns = zeros(size(expmt.ROI.centers,1),1);
+nTurns = zeros(size(expmt.meta.roi.centers,1),1);
 
 
 %% Main Experimental Loop

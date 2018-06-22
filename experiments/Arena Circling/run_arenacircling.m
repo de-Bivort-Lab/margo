@@ -39,7 +39,7 @@ imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');   % image hand
 ref_stack = repmat(expmt.meta.ref, 1, 1, gui_handles.edit_ref_depth.Value);
 
 % properties of the tracked objects to be recorded
-trackDat.fields={'Centroid';'Time'};                 
+trackDat.fields={'centroid';'time'};                 
 
 % initialize labels, files, and cam/video
 [trackDat,expmt] = autoInitialize(trackDat,expmt,gui_handles);
@@ -81,7 +81,7 @@ end
 
 %% post-experiment wrap-up
 
-if expmt.Finish
+if expmt.meta.finish
     
     % % auto process data and save master struct
     expmt = autoFinish(trackDat, expmt, gui_handles);

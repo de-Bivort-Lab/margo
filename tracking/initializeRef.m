@@ -37,7 +37,7 @@ expmt = getVideoInput(expmt,gui_handles);
 %% Assign parameters and placeholders
 
 % Reference vars
-nROIs = size(expmt.ROI.corners, 1);             % total number of ROIs
+nROIs = size(expmt.meta.roi.corners, 1);             % total number of ROIs
 depth = gui_handles.edit_ref_depth.Value;       % number of rolling sub references
 trackDat.ref.cen = NaN(nROIs,2,depth);          % placeholder for cen. coords where references are taken
 trackDat.ref.ct = zeros(nROIs, 1);              % Reference number placeholder
@@ -48,8 +48,8 @@ trackDat.ref.bg_mode = 'light';                 % set reference mode to dark
 
 
 % tracking vars
-trackDat.fields={'Centroid';'Area';'MajorAxisLength'};  % Define fields for regionprops
-trackDat.Centroid=expmt.ROI.centers;                   	% placeholder for most recent non-NaN centroids
+trackDat.fields={'centroid';'area';'MajorAxisLength'};  % Define fields for regionprops
+trackDat.centroid=expmt.meta.roi.centers;                   	% placeholder for most recent non-NaN centroids
 trackDat.tStamp=zeros(nROIs,1);
 trackDat.ct = 0;
 blob_lengths = NaN(100,1);
@@ -57,8 +57,8 @@ blob_lengths = NaN(100,1);
 
 % Set maximum allowable distance to center of ROI as the long axis of the ROI
 if gui_fig.UserData.distance_thresh == 20
-    widths=(expmt.ROI.bounds(:,3));
-    heights=(expmt.ROI.bounds(:,4));
+    widths=(expmt.meta.roi.bounds(:,3));
+    heights=(expmt.meta.roi.bounds(:,4));
     w=median(widths);
     h=median(heights);
     gui_fig.UserData.distance_thresh=round(sqrt(w^2+h^2)/2*0.9*10)/10 * expmt.parameters.mm_per_pix;
@@ -97,7 +97,7 @@ color_scale = 1 - hsv_targ/hsv_base;
 hold on
 color = zeros(nROIs,3);
 color(:,1) = 1;
-hCirc = scatter(expmt.ROI.corners(:,1),expmt.ROI.corners(:,2),...
+hCirc = scatter(expmt.meta.roi.corners(:,1),expmt.meta.roi.corners(:,2),...
     'o','filled','LineWidth',2);
 hCirc.CData = color;
 
@@ -237,7 +237,3 @@ set(gui_handles.display_menu.Children,'Checked','off');
 gui_handles.display_raw_menu.Checked = 'on';
 gui_handles.display_menu.UserData = 1;
 
-% Set time to zero
-if strcmp(expmt.meta.source,'camera')
-    updateTimeString(0, gui_handles.edit_time_remaining);
-end

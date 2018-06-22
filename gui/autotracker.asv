@@ -550,25 +550,25 @@ if ~isempty(expmt.hardware.cam)
             handles.sample_noise_pushbutton.Enable = 'off';
         end
         
-        if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n && isfield(expmt.meta.ref,'im') &&  isfield(expmt.noise,'dist')
-            expmt.meta.roi = [];
-            expmt.meta.ref = [];
-            expmt.meta.noise = [];
+        if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n && isfield(expmt.meta.ref,'im') &&  isfield(expmt,'noise')
+            expmt = rmfield(expmt,'ROI');
+            expmt = rmfield(expmt,'ref');
+            expmt = rmfield(expmt,'noise');
             expmt = rmfield(expmt.meta.vignette,'im');
             msgbox(['Cam settings changed: saved ROIs, references and ' ...
                 'noise statistics have been discarded.']);
             note = 'ROIs, references, and noise statistics reset';
             gui_notify(note,handles.disp_note);
         elseif isfield(expmt.meta.roi,'n') && expmt.meta.roi.n && isfield(expmt.meta.ref,'im')
-            expmt.meta.roi = [];
-            expmt.meta.ref = [];
+            expmt = rmfield(expmt,'ROI');
+            expmt = rmfield(expmt,'ref');
             expmt = rmfield(expmt.meta.vignette,'im');
             msgbox(['Cam settings changed: saved ROIs, references ' ...
                 'have been discarded.']);
             note = 'ROIs and references reset';
             gui_notify(note,handles.disp_note);
         elseif isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
-           expmt.meta.roi = [];
+           expmt = rmfield(expmt,'ROI');
            expmt = rmfield(expmt.meta.vignette,'im');
            msgbox(['Cam settings changed: saved ROIs ' ...
                 'have been discarded.']);
@@ -1223,17 +1223,17 @@ else
     % remove saved rois, images, and noise statistics from prev experiment
     if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n && ~keep_gui_state
         
-        expmt.meta.roi = [];
-        expmt.meta.ref = [];
-        expmt.meta.noise = [];
-        expmt.meta.labels = [];
+        expmt = rmfield(expmt,'ROI');
+        expmt = rmfield(expmt,'ref');
+        expmt = rmfield(expmt,'noise');
+        expmt = rmfield(expmt,'labels');
         note = 'ROIs, references, and noise statistics reset';
         gui_notify(note,handles.disp_note);
         
         % remove tracked fields from master expmt for next run
         if isfield(expmt,'fields')
-            for i = 1:length(expmt.meta.fields)
-                expmt = rmfield(expmt,expmt.meta.fields{i});
+            for i = 1:length(expmt.fields)
+                expmt = rmfield(expmt,expmt.fields{i});
             end
         end
 
@@ -2715,7 +2715,7 @@ if ~isempty(tmp_video)
     handles.select_video_label.Enable = 'on';
     
     if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
-        expmt.meta.roi = [];
+        expmt = rmfield(expmt,'ROI');
         msgbox(['Cam settings changed: saved ROIs, references and ' ...
             'noise statistics have been discarded.']);
         note = 'ROIs, references, and noise statistics reset';
@@ -2723,11 +2723,11 @@ if ~isempty(tmp_video)
     end
     
     if isfield(expmt.meta.ref,'im')
-        expmt.meta.ref = [];
+        expmt = rmfield(expmt,'ref');
     end
     
     if isfield(expmt.noise,'dist')
-       expmt.meta.noise = [];
+       expmt = rmfield(expmt,'noise');
     end
     
     if isfield(expmt.meta.vignette,'im')

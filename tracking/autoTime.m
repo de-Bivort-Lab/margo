@@ -4,7 +4,7 @@ function [trackDat] = autoTime(trackDat, expmt, gui_handles, varargin)
     % check last frame against block duration if running in block mode
     % otherwise, check against the experiment duration
     if isfield(expmt,'block')
-        switch expmt.Name
+        switch expmt.meta.name
             case 'Arena Circling'
                 trackDat.lastFrame = (trackDat.t - expmt.block.t) > expmt.block.arena_duration * 60;
             case 'Optomotor'

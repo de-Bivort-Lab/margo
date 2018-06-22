@@ -72,9 +72,9 @@ end
 for i=1:6
     tag = ['roi_num_slider' num2str(i)];
     handles.(tag).Min = 1;
-    handles.(tag).Max = expmt.ROI.n;
-    handles.(tag).SliderStep(1) = 1/(expmt.ROI.n-1);
-    if i <= expmt.ROI.n
+    handles.(tag).Max = expmt.meta.roi.n;
+    handles.(tag).SliderStep(1) = 1/(expmt.meta.roi.n-1);
+    if i <= expmt.meta.roi.n
         dispTrace(i,i,handles);
     end
 end

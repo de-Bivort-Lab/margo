@@ -78,16 +78,16 @@ function [varargout] = sortCentroids(raw_cen,trackDat,expmt,gui_handles)
 udat = gui_handles.gui_fig.UserData;
 
 % Define placeholder data variables equal to number ROIs
-tempCenDat=NaN(size(trackDat.Centroid,1),2);
+tempCenDat=NaN(size(trackDat.centroid,1),2);
 
 % Initialize temporary centroid variables
 tempCenDat(1:size(raw_cen,1),:)=raw_cen;
 
-% Find nearest Last Known Centroid for each current centroid
+% Find nearest Last Known centroid for each current centroid
 % Replicate temp centroid data into dimensions compatible with dot product
 % with the last known centroid of each fly
-tD=repmat(tempCenDat,1,1,size(trackDat.Centroid,1));
-c=repmat(trackDat.Centroid,1,1,size(tempCenDat,1));
+tD=repmat(tempCenDat,1,1,size(trackDat.centroid,1));
+c=repmat(trackDat.centroid,1,1,size(tempCenDat,1));
 c=permute(c,[3 2 1]);
 
 % Use dot product to calculate pairwise distance between all coordinates
@@ -103,7 +103,7 @@ include = find(~isnan(j));
 
 % Initialize empty placeholders for permutation and inclusion vectors
 sorting_permutation=[];
-update_centroid = logical(zeros(size(trackDat.Centroid,1),1));
+update_centroid = logical(zeros(size(trackDat.centroid,1),1));
 
     % For the centroids j, calculate speed and distance to ROI center for thresholding
     if size(raw_cen,1)>0 
@@ -111,8 +111,8 @@ update_centroid = logical(zeros(size(trackDat.Centroid,1),1));
         if strcmp(udat.sort_mode,'distance')
             
             % Calculate distance to known landmark such as the ROI center
-            secondary_distance = abs(sqrt(dot(raw_cen(include,:)'-expmt.ROI.centers(j(include),:)',...
-                expmt.ROI.centers(j(include),:)'-raw_cen(include,:)')))';
+            secondary_distance = abs(sqrt(dot(raw_cen(include,:)'-expmt.meta.roi.centers(j(include),:)',...
+                expmt.meta.roi.centers(j(include),:)'-raw_cen(include,:)')))';
 
             % Exclude centroids that move too fast or are too far from the ROI center
             % corresponding to the previous centroid each item in j, was matched with
@@ -122,10 +122,10 @@ update_centroid = logical(zeros(size(trackDat.Centroid,1),1));
             
         elseif strcmp(udat.sort_mode,'bounds')
             
-            x_bounded = raw_cen(include,1) > expmt.ROI.bounds(j(include),1) &...
-                raw_cen(include,1) < sum(expmt.ROI.bounds(j(include),[1 3]),2);
-            y_bounded = raw_cen(include,2) > expmt.ROI.bounds(j(include),2) &...
-                raw_cen(include,2) < sum(expmt.ROI.bounds(j(include),[2 4]),2);
+            x_bounded = raw_cen(include,1) > expmt.meta.roi.bounds(j(include),1) &...
+                raw_cen(include,1) < sum(expmt.meta.roi.bounds(j(include),[1 3]),2);
+            y_bounded = raw_cen(include,2) > expmt.meta.roi.bounds(j(include),2) &...
+                raw_cen(include,2) < sum(expmt.meta.roi.bounds(j(include),[2 4]),2);
             in_bounds = x_bounded & y_bounded;
             j(include(~in_bounds)) = NaN;
             
@@ -139,8 +139,8 @@ update_centroid = logical(zeros(size(trackDat.Centroid,1),1));
 
         % Calculate pairwise distances between duplicate ROIs and temp centroids
         % using the same method above
-        tD=repmat(tempCenDat(dCen,:),1,1,size(trackDat.Centroid,1));
-        c=repmat(trackDat.Centroid,1,1,size(tempCenDat(dCen,:),1));
+        tD=repmat(tempCenDat(dCen,:),1,1,size(trackDat.centroid,1));
+        c=repmat(trackDat.centroid,1,1,size(tempCenDat(dCen,:),1));
         c=permute(c,[3 2 1]);
         g=sqrt(dot((c-tD),(tD-c),2));
         g=abs(g);
@@ -182,7 +182,7 @@ function vars=parseinputvars(invars)
             vars.cenDat=invars{1};                          % Raw centroid invars
             vars.sort_coords_primary=invars{2};             % Primary coordinate basis to sort invars to
             expmt = invars{3};
-            vars.sort_coords_secondary=expmt.ROI.centers;   % Secondary coordinate basis to sort invars to
+            vars.sort_coords_secondary=expmt.meta.roi.centers;   % Secondary coordinate basis to sort invars to
             vars.mmpx = expmt.parameters.mm_per_pix;      % mm/pix conversion factor
             vars.dist_thresh = invars{4}.gui_fig.UserData.distance_thresh;  % threshold for max dist from roi center
             vars.sort_mode = invars{4}.gui_fig.UserData.sort_mode;

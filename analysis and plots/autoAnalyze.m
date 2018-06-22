@@ -5,7 +5,7 @@ function expmt = autoAnalyze(expmt,varargin)
 % analyze_multiFile.m
 
 
-switch expmt.Name
+switch expmt.meta.name
     
     case 'Basic Tracking'
         expmt = analyze_basictracking(expmt,varargin{:});

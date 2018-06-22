@@ -25,10 +25,10 @@ if gui_handles.stop_pushbutton.UserData.Value
             
             % set expmt function to return
             exit = true;
-            expmt.Finish = false;
+            expmt.meta.finish = false;
             
             % delete master data struct
-            delete([expmt.fdir expmt.fLabel '.mat']);
+            delete([expmt.meta.path.dir expmt.meta.path.name '.mat']);
             
             % close fileIDs
             for i = 1:length(trackDat.fields)                           
@@ -49,7 +49,7 @@ if gui_handles.stop_pushbutton.UserData.Value
             if isfield(expmt,'rawdir')
                 rmdir(expmt.rawdir);
             end
-            rmdir(expmt.fdir);
+            rmdir(expmt.meta.path.dir);
             
             df = {'date' 'fLabel'};
             expmt = rmfield(expmt,df);

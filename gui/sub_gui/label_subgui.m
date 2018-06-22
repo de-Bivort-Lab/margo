@@ -55,12 +55,12 @@ function label_subgui_OpeningFcn(hObject, eventdata, handles, varargin)
 % Choose default command line output for optomotor_parameter_gui
 expmt = varargin{1};
 if isfield(expmt,'labels')
-    label_data = expmt.labels;
+    label_data = expmt.meta.labels;
     if cellfun('isempty',label_data(1,4))
         label_data(1,4) = {1};
-        label_data(1,5) = {size(expmt.ROI.centers,1)};
+        label_data(1,5) = {size(expmt.meta.roi.centers,1)};
         label_data(1,6) = {1};
-        label_data(1,7) = {size(expmt.ROI.centers,1)};
+        label_data(1,7) = {size(expmt.meta.roi.centers,1)};
     end
     if cellfun('isempty',label_data(1,8))
         label_data(1,8) = {1};
@@ -70,9 +70,9 @@ if isfield(expmt,'labels')
 else
     label_data = handles.labels_table.Data;
     label_data(1,4) = {1};
-    label_data(1,5) = {size(expmt.ROI.centers,1)};
+    label_data(1,5) = {size(expmt.meta.roi.centers,1)};
     label_data(1,6) = {1};
-    label_data(1,7) = {size(expmt.ROI.centers,1)};
+    label_data(1,7) = {size(expmt.meta.roi.centers,1)};
     label_data(1,8) = {1};
     set(handles.labels_table, 'Data', label_data);
     handles.output=hObject.Children(3).Data;

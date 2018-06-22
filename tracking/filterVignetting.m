@@ -9,7 +9,7 @@ function vignetteMat=filterVignetting(expmt,varargin)
 % assign default values
 roi_coords = [];
 ref_im = [];
-if isfield(expmt,'ref') && isfield(expmt.meta.ref,'im')
+if isfield(expmt.meta.ref,'im')
     ref_im = expmt.meta.ref.im;
 end
 
@@ -30,23 +30,23 @@ end
 % find dimmest ROI if no coords are specified
 if isempty(roi_coords)
     
-    switch expmt.ROI.mode
+    switch expmt.meta.roi.mode
         case 'auto'
             sub_ims = cellfun(@(x) expmt.meta.ref.im(x),...
-                            expmt.ROI.pixIdx,'UniformOutput',false);  
-            sub_masks = cellfun(@(x) expmt.ROI.im(x),...
-                            expmt.ROI.pixIdx,'UniformOutput',false);           
+                            expmt.meta.roi.pixIdx,'UniformOutput',false);  
+            sub_masks = cellfun(@(x) expmt.meta.roi.im(x),...
+                            expmt.meta.roi.pixIdx,'UniformOutput',false);           
             med_intensities = cellfun(@(x,y) median(x(y)),sub_ims, sub_masks,...
                                 'UniformOutput',false); 
             [~,dim_roi] = min(cat(1,med_intensities{:}));
         case 'grid'
             sub_ims = cellfun(@(x) expmt.meta.ref.im(x),...
-                            expmt.ROI.pixIdx,'UniformOutput',false);          
+                            expmt.meta.roi.pixIdx,'UniformOutput',false);          
             mean_intensities = cellfun(@mean,sub_ims); 
             [~,dim_roi] = min(mean_intensities);
     end
     
-    roi_coords = expmt.ROI.corners(dim_roi,:);
+    roi_coords = expmt.meta.roi.corners(dim_roi,:);
 end
 
 if isempty(roi_coords)
@@ -56,11 +56,11 @@ end
 % extract roi image and find luminance threshold
 roi_coords = round(roi_coords);
 sub_im=ref_im(roi_coords(2):roi_coords(4),roi_coords(1):roi_coords(3));
-switch expmt.ROI.mode
+switch expmt.meta.roi.mode
     
     case 'auto'
-        if isfield(expmt.ROI,'im')
-            roi_sub = expmt.ROI.im(roi_coords(2):roi_coords(4),...
+        if isfield(expmt.meta.roi,'im')
+            roi_sub = expmt.meta.roi.im(roi_coords(2):roi_coords(4),...
                                     roi_coords(1):roi_coords(3));
             lumOffset = nanmedian(sub_im(roi_sub));
         else

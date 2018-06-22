@@ -38,10 +38,10 @@ imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');   % image hand
 
 % Initialize experiment parameters
 ref_stack = repmat(expmt.meta.ref, 1, 1, gui_handles.edit_ref_depth.Value);  % initialize the reference stack
-nROIs = size(expmt.ROI.centers,1);                                      % number of ROIs
+nROIs = size(expmt.meta.roi.centers,1);                                      % number of ROIs
 
 % Initialize tracking variables
-trackDat.fields={'Centroid';'Orientation';'Time';'StimAngle';'Texture'};  % properties of the tracked objects to be recorded
+trackDat.fields={'centroid';'Orientation';'time';'StimAngle';'Texture'};  % properties of the tracked objects to be recorded
 
 % initialize labels, files, and cam/video
 [trackDat,expmt] = autoInitialize(trackDat,expmt,gui_handles);
@@ -60,10 +60,10 @@ pause(1);
 %% Calculate ROI coords in the projector space and expand the edges by a small border to ensure ROI is fully covered
 
 % tmp vars
-scor = NaN(size(expmt.ROI.corners));
-rcor = expmt.ROI.corners;
+scor = NaN(size(expmt.meta.roi.corners));
+rcor = expmt.meta.roi.corners;
 scen = NaN(nROIs,2);
-rcen = expmt.ROI.centers;
+rcen = expmt.meta.roi.centers;
 
 % convert ROI coordinates to projector coordinates for stimulus targeting
 scen(:,1) = Fx(rcen(:,1),rcen(:,2));
@@ -100,8 +100,8 @@ expmt.stim.source = CenterRectOnPointd(expmt.stim.base,stmsz/2,stmsz/2);
 
 stim_ct=0;
 
-expmt.stim.lightTex = Screen('MakeTexture', expmt.scrProp.window, light);      % texture for half-light half-dark
-expmt.stim.darkTex = Screen('MakeTexture', expmt.scrProp.window, dark);        % texture for all dark
+expmt.stim.lightTex = Screen('MakeTexture', expmt.hardware.screen.window, light);      % texture for half-light half-dark
+expmt.stim.darkTex = Screen('MakeTexture', expmt.hardware.screen.window, dark);        % texture for all dark
 
 expmt.stim.t = 0;
 expmt.stim.ct = 0;                          % Counter for number of looming stim displayed each stimulation period
@@ -153,7 +153,7 @@ end
 % close the psychtoolbox window
 sca;
 
-if expmt.Finish
+if expmt.meta.finish
     
     % % auto process data and save master struct
     expmt = autoFinish(trackDat, expmt, gui_handles);

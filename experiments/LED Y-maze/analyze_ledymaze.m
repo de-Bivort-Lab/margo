@@ -48,9 +48,9 @@ for i=1:expmt.meta.num_traces
     tSeq = expmt.Turns.data(idx,i);
     lSeq = expmt.LightChoice.data(idx,i);
     tSeq=diff(tSeq);  
-    if expmt.ROI.orientation(i)
+    if expmt.meta.roi.orientation(i)
         expmt.Turns.sequence(1:length(tSeq),i)=tSeq==1|tSeq==-2;
-    elseif ~expmt.ROI.orientation(i)
+    elseif ~expmt.meta.roi.orientation(i)
         expmt.Turns.sequence(1:length(tSeq),i)=tSeq==-1|tSeq==2;
     end
     
@@ -146,12 +146,12 @@ axis([1 length(bins)-1 0 max(c)+0.05]);
 
 % Generate legend labels
 if isfield(expmt,'Strain')
-    strain=expmt.Strain;
+    strain=expmt.meta.strain;
 else
     strain = '';
 end
 if isfield(expmt,'Treatment')
-    treatment=expmt.Treatment;
+    treatment=expmt.meta.treatment;
 else
     treatment = '';
 end

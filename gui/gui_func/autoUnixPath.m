@@ -8,7 +8,7 @@ for i=1:numel(f)
 end
 
 if isfield(expmt,'fields')
-    f= expmt.fields;
+    f= expmt.meta.fields;
     f = [f;{'Speed';'Direction';'Theta';'Radius'}];
     for i=1:numel(f)
         if isfield(expmt,f{i})

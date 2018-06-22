@@ -13,7 +13,7 @@ expmt = orderfields(expmt);
 
 % re-save updated expmt data struct to file
 if options.save
-    save([expmt.fdir expmt.fLabel '.mat'],'expmt','-v7.3');
+    save([expmt.meta.path.dir expmt.meta.path.name '.mat'],'expmt','-v7.3');
     if isfield(options,'handles')
         gui_notify('processed data saved to file',options.handles.disp_note)
     end
@@ -29,7 +29,7 @@ end
 %% Display command to load data struct into workspace
 
 disp('Execute the following command to load your data into the workspace:')
-disp(['load(',char(39),strcat(expmt.fdir,expmt.fLabel,'.mat'),char(39),');'])
+disp(['load(',char(39),strcat(expmt.meta.path.dir,expmt.meta.path.name,'.mat'),char(39),');'])
 
 %% Set MATLAB priority to Above Normal via Windows Command line
 OS = computer;

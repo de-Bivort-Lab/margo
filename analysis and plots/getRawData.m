@@ -3,7 +3,7 @@ function expmt = getRawData(expmt,options)
 % attempt to autofix aborted expmt files
 if ~isfield(expmt,'nFrames')
     
-    expmt = updatefID(expmt,'Time');
+    expmt = updatefID(expmt,'time');
     
     if isfield(expmt.data.time,'precision')
         expmt.data.time.raw = memmapfile(expmt.data.time.path, 'Format',expmt.data.time.precision);
@@ -39,7 +39,7 @@ if isfield(options,'decimate')
         expmt.data.time.precision = prcn;
     end
     
-    expmt = updatefID(expmt,'Time');
+    expmt = updatefID(expmt,'time');
     expmt.data.time.raw = memmapfile(expmt.data.time.path, 'Format',expmt.data.time.precision);
     expmt.FrameRate = 1/nanmedian(expmt.data.time.raw.Data);
     options.decfac = round(expmt.FrameRate/options.decfac);
@@ -64,10 +64,10 @@ end
 
 %% sequentially initialize memmap files for each field
 
-for i = 1:length(expmt.fields)
+for i = 1:length(expmt.meta.fields)
     
  
-    f = expmt.fields{i};
+    f = expmt.meta.fields{i};
     expmt = updatefID(expmt,f);    
  
     % get subfields

@@ -43,8 +43,8 @@ for i = 1:length(newDayLabels)
     
     
     % alter name in labels table if it exists
-    if isfield(expmt,'labels_table') && any(strcmp(expmt.labels_table.Properties.VariableNames,'Day'))
-        expmt.labels_table.Day = repmat(newDayLabels(i),size(expmt.labels_table.Day));
+    if isfield(expmt,'labels_table') && any(strcmp(expmt.meta.labels_table.Properties.VariableNames,'Day'))
+        expmt.meta.labels_table.Day = repmat(newDayLabels(i),size(expmt.meta.labels_table.Day));
     end
     
     % rename directory
@@ -59,18 +59,18 @@ for i = 1:length(newDayLabels)
     [status,~]=movefile(old_dir,new_dir);
     
     % rename fLabel
-    day_idx = strfind(expmt.fLabel,'Day')+3;
+    day_idx = strfind(expmt.meta.path.name,'Day')+3;
     if day_idx   
-        expmt.fLabel(day_idx:day_idx+nDigits)=num2str(newDayLabels(i));
+        expmt.meta.path.name(day_idx:day_idx+nDigits)=num2str(newDayLabels(i));
     end
     
     % update file directory if necessary
-    if ~strcmp(expmt.fdir,fPaths{i})
+    if ~strcmp(expmt.meta.path.dir,fPaths{i})
         [d,f,e]=fileparts(fPaths{i});
-        expmt.fdir = [d '/'];
+        expmt.meta.path.dir = [d '/'];
     end
     
-    in_dir = dir(expmt.fdir);
+    in_dir = dir(expmt.meta.path.dir);
     for j=1:length(in_dir)
         
         if ~in_dir(j).isdir
@@ -79,14 +79,14 @@ for i = 1:length(newDayLabels)
                 day_idx = strfind(f,'Day')+3;
                 new_label = f;
                 new_label(day_idx:day_idx+nDigits) = num2str(newDayLabels(i));
-                [status,~]=movefile([expmt.fdir '/' f e],[expmt.fdir '/' new_label e]);
+                [status,~]=movefile([expmt.meta.path.dir '/' f e],[expmt.meta.path.dir '/' new_label e]);
             end
         end
         
     end
     
     % save the expmt struct
-    save([expmt.fdir expmt.fLabel '.mat'],'expmt');
+    save([expmt.meta.path.dir expmt.meta.path.name '.mat'],'expmt');
     
             
     

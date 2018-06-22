@@ -250,17 +250,17 @@ gui_handles.gui_fig.UserData.sort_mode = 'bounds';
 
 % assign outputs
 if ~isempty(centers)
-    expmt.ROI.shape = shape;
-    expmt.ROI.vec = gridVec;
-    expmt.ROI.row = r;
-    expmt.ROI.col = c;
-    expmt.ROI.grid = grid;
-    expmt.ROI.corners = ROI_coords;
-    expmt.ROI.bounds = bounds;
-    expmt.ROI.centers = centers;
-    expmt.ROI.orientation = mazeOri;
-    expmt.ROI.im = trackDat.im;
-    expmt.ROI.tform = tform;
+    expmt.meta.roi.shape = shape;
+    expmt.meta.roi.vec = gridVec;
+    expmt.meta.roi.row = r;
+    expmt.meta.roi.col = c;
+    expmt.meta.roi.grid = grid;
+    expmt.meta.roi.corners = ROI_coords;
+    expmt.meta.roi.bounds = bounds;
+    expmt.meta.roi.centers = centers;
+    expmt.meta.roi.orientation = mazeOri;
+    expmt.meta.roi.im = trackDat.im;
+    expmt.meta.roi.tform = tform;
 end
 
 gui_handles.auto_detect_ROIs_pushbutton.Enable = 'on';

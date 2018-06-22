@@ -2,7 +2,7 @@ function [expmt,trackDat] = refUpdateIdx(expmt,trackDat)
 
 
 % Calculate distance to previous locations where references were taken
-tcen = repmat(trackDat.Centroid,1,1,expmt.parameters.ref_depth);
+tcen = repmat(trackDat.centroid,1,1,expmt.parameters.ref_depth);
 d = abs(sqrt(dot((tcen-trackDat.ref.cen),(trackDat.ref.cen-tcen),2)));
 include = sum(d > trackDat.ref.thresh,3)>trackDat.ref.ct-1;
 [~,refIdx]=min(d,[],3);
@@ -10,8 +10,8 @@ refIdx(trackDat.ref.ct<expmt.parameters.ref_depth) = ...
     trackDat.ref.ct(trackDat.ref.ct<expmt.parameters.ref_depth) + 1;
 
 % look for individually noisy ROIs
-if isfield(expmt,'noise') && isfield(expmt.meta.noise,'roi_mean')
-    above_thresh = cellfun(@(x) sum(trackDat.thresh_im(x)),expmt.ROI.pixIdx) >...
+if isfield(expmt.noise,'dist') && isfield(expmt.meta.noise,'roi_mean')
+    above_thresh = cellfun(@(x) sum(trackDat.thresh_im(x)),expmt.meta.roi.pixIdx) >...
         (expmt.meta.noise.roi_mean + expmt.meta.noise.roi_std * 4);
     trackDat.ref.ct(above_thresh & ...
         trackDat.ref.ct == expmt.parameters.ref_depth) = 0;
@@ -39,7 +39,7 @@ trackDat.ref.ct(trackDat.ref.ct>expmt.parameters.ref_depth) = ...
 trackDat.ref.last_update(include)  = 0;
 
 % group pixel indices by which sub reference they update
-pixLists = arrayfun(@(x) getPixIdxLists(x,refIdx,expmt.ROI.pixIdx),1:size(d,3),...
+pixLists = arrayfun(@(x) getPixIdxLists(x,refIdx,expmt.meta.roi.pixIdx),1:size(d,3),...
     'UniformOutput',false);
 
 trackDat.ref.stack = cellfun(@(x,y) updateSubRef(x,y,trackDat.im),pixLists',...
@@ -53,7 +53,7 @@ if any(include)
     updateIdx = repmat([find(include) ones(n,1).*2 refIdx(include)],2,1);
     updateIdx(1:n,2)=1;
     updateIdx = sub2ind(size(trackDat.ref.cen),updateIdx(:,1),updateIdx(:,2),updateIdx(:,3));
-    trackDat.ref.cen(updateIdx)=trackDat.Centroid(include,:);
+    trackDat.ref.cen(updateIdx)=trackDat.centroid(include,:);
 end
 
 

@@ -8,9 +8,9 @@ expmt.(field).fID = fopen(path,'r');
 
 % if .bin file isn't found, search for .zip file and unzip
 if expmt.(field).fID == -1
-    [fPaths] = getHiddenMatDir(expmt.fdir,'ext','.zip');
+    [fPaths] = getHiddenMatDir(expmt.meta.path.dir,'ext','.zip');
     if ~isempty(fPaths)
-        unzipAllDir('Dir',expmt.fdir);
+        unzipAllDir('Dir',expmt.meta.path.dir);
         expmt.(field).fID = fopen(path,'r');
     end
 end
@@ -18,7 +18,7 @@ end
 % if .bin file still isn't found, try updating data path
 if expmt.(field).fID == -1
     
-    rawdir = [expmt.fdir 'raw_data/'];
+    rawdir = [expmt.meta.path.dir 'raw_data/'];
     if exist(rawdir,'dir')
         dinfo = dir(rawdir);
         fnames = {dinfo.name};
@@ -26,10 +26,10 @@ if expmt.(field).fID == -1
         expmt.(field).path = [rawdir dinfo(newpath).name];
         expmt.(field).fID = fopen(expmt.(field).path,'r');
     else    
-        dinfo = dir(expmt.fdir);
+        dinfo = dir(expmt.meta.path.dir);
         fnames = {dinfo.name};
         newpath = ~cellfun(@isempty,strfind(fnames,field));
-        expmt.(field).path = [expmt.fdir '/' dinfo(newpath).name];
+        expmt.(field).path = [expmt.meta.path.dir '/' dinfo(newpath).name];
         expmt.(field).fID = fopen(expmt.(field).path,'r');
     end
 

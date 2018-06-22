@@ -2,7 +2,7 @@ function label_table = labelMaker(expmt)
 
 %%
 varnames = {'Strain' 'Sex' 'Treatment' 'ID' 'Day' 'Box' 'Tray' 'Comments'};
-labels = expmt.labels;
+labels = expmt.meta.labels;
 
 %Turns labels cell array with sex, strain, treatment, maze start/end
 %columns into 120x3 label cell array for Y-maze
@@ -13,9 +13,9 @@ hasData = ~cellfun('isempty',labels);
 % create default labels and label ranges if none are entered
 if any(any(hasData)) && ~any(hasData(:,4))
     labels(1,4) = {1};
-    labels(1,5) = {size(expmt.ROI.centers,1)};
+    labels(1,5) = {size(expmt.meta.roi.centers,1)};
     labels(1,6) = {1};
-    labels(1,7) = {size(expmt.ROI.centers,1)};
+    labels(1,7) = {size(expmt.meta.roi.centers,1)};
     hasData = ~cellfun('isempty',labels);
 end
 

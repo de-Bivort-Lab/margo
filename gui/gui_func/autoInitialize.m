@@ -27,14 +27,14 @@ if strcmp(expmt.meta.source,'camera') && ~isvalid(expmt.hardware.cam.vid)
     expmt = getVideoInput(expmt,gui_handles);
 end
 
-if ~expmt.Initialize
+if ~expmt.meta.initialize
     return
 end
 
 %% estimate num data entries
 
 nDataPoints = expmt.parameters.duration * ...
-    expmt.parameters.target_rate * 3600 * length(expmt.ROI.centers);
+    expmt.parameters.target_rate * 3600 * length(expmt.meta.roi.centers);
 if nDataPoints > 1E7
     msg = {'WARNING: high estimated number of data points';...
         ['ROIs x Target Rate x Duration = ' num2str(nDataPoints,2)];...
@@ -63,57 +63,65 @@ end
 
 %% Initialize tracking variables
 
-trackDat.Centroid = single(expmt.ROI.centers);              % last known centroid of the object in each ROI
+trackDat.centroid = single(expmt.meta.roi.centers);         % last known centroid of the object in each ROI
 trackDat.tStamp = ...
-    single(zeros(size(expmt.ROI.centers(:,1),1),1));        % time stamps of centroid updates
+    single(zeros(size(expmt.meta.roi.centers(:,1),1),1));   % time stamps of centroid updates
 trackDat.t = 0;                                             % time elapsed, initialize to zero
 trackDat.ct = 0;                                            % frame count
-trackDat.drop_ct = zeros(size(expmt.ROI.centers(:,1),1),1); % number of frames dropped for each obj
-trackDat.ref = expmt.meta.ref;                                   % referencing properties
+trackDat.drop_ct = ...
+    zeros(size(expmt.meta.roi.centers(:,1),1),1);           % number of frames dropped for each obj
+trackDat.ref = expmt.meta.ref;                              % referencing properties
 trackDat.px_dist = zeros(10,1);                             % distribution of pixels over threshold  
 trackDat.pix_dev = zeros(10,1);                             % stdev of pixels over threshold
 trackDat.lastFrame = false;
 
-cam_center = repmat(fliplr(size(expmt.meta.ref)./2),size(expmt.ROI.centers));
-expmt.ROI.cam_dist = sqrt((expmt.ROI.centers(:,1)-cam_center(:,1)).^2 + ...
-    (expmt.ROI.centers(:,2)-cam_center(:,2)).^2);
+cam_center = repmat(fliplr(size(expmt.meta.ref)./2),...
+                size(expmt.meta.roi.centers));
+expmt.meta.roi.cam_dist = ...
+    sqrt((expmt.meta.roi.centers(:,1)-cam_center(:,1)).^2 + ...
+        (expmt.meta.roi.centers(:,2)-cam_center(:,2)).^2);
 
 %% Initialize labels, file paths, and files for tracked fields
 
 expmt.date = datestr(clock,'mm-dd-yyyy-HH-MM-SS_');         % get date string
-expmt.labels_table = labelMaker(expmt);                           % convert labels cell into table format
+expmt.meta.labels_table = labelMaker(expmt);                           % convert labels cell into table format
 
 % Query label fields and set label for file
-lab_fields = expmt.labels_table.Properties.VariableNames;
-expmt.fLabel = [expmt.date '_' expmt.Name];
+lab_fields = expmt.meta.labels_table.Properties.VariableNames;
+expmt.meta.path.name = [expmt.date '_' expmt.meta.name];
 for i = 1:length(lab_fields)
     switch lab_fields{i}
         case 'Strain'
-            expmt.(lab_fields{i}) = expmt.labels_table{1,i}{:};
-            expmt.fLabel = [expmt.fLabel '_' expmt.labels_table{1,i}{:}];
+            expmt.(lab_fields{i}) = expmt.meta.labels_table{1,i}{:};
+            expmt.meta.path.name = ...
+                [expmt.meta.path.name '_' expmt.meta.labels_table{1,i}{:}];
         case 'Sex'
-            expmt.(lab_fields{i}) = expmt.labels_table{1,i}{:};
-            expmt.fLabel = [expmt.fLabel '_' expmt.labels_table{1,i}{:}];
+            expmt.(lab_fields{i}) = expmt.meta.labels_table{1,i}{:};
+            expmt.meta.path.name = ...
+                [expmt.meta.path.name '_' expmt.meta.labels_table{1,i}{:}];
         case 'Treatment'
-            expmt.(lab_fields{i}) = expmt.labels_table{1,i}{:};
-            expmt.fLabel = [expmt.fLabel '_' expmt.labels_table{1,i}{:}];
+            expmt.(lab_fields{i}) = expmt.meta.labels_table{1,i}{:};
+            expmt.meta.path.name = ...
+                [expmt.meta.path.name '_' expmt.meta.labels_table{1,i}{:}];
         case 'Day'
-            expmt.(lab_fields{i}) = expmt.labels_table{1,i};
-            expmt.fLabel = [expmt.fLabel '_Day' num2str(expmt.labels_table{1,i})];
+            expmt.(lab_fields{i}) = expmt.meta.labels_table{1,i};
+            expmt.meta.path.name = ...
+                [expmt.meta.path.name '_Day' num2str(expmt.meta.labels_table{1,i})];
         case 'ID'
-            ids = expmt.labels_table{:,i};
-            expmt.fLabel = [expmt.fLabel '_' num2str(ids(1)) '-' num2str(ids(end))];
+            ids = expmt.meta.labels_table{:,i};
+            expmt.meta.path.name = ...
+                [expmt.meta.path.name '_' num2str(ids(1)) '-' num2str(ids(end))];
     end
 end
 
 % remove any illegal characters from path
 illegal = ' *."/\[]:;|=,';
-expmt.fLabel(ismember(expmt.fLabel,illegal))='_';
+expmt.meta.path.name(ismember(expmt.meta.path.name,illegal))='_';
 
 % make a new directory for the files
-expmt.fdir = [expmt.fpath '/' expmt.fLabel '/'];
-mkdir(expmt.fdir);
-expmt.rawdir = [expmt.fpath '/' expmt.fLabel '/raw_data/'];
+expmt.meta.path.dir = [expmt.meta.path.full '/' expmt.meta.path.name '/'];
+mkdir(expmt.meta.path.dir);
+expmt.rawdir = [expmt.meta.path.full '/' expmt.meta.path.name '/raw_data/'];
 mkdir(expmt.rawdir);
 
 % generate file ID for files to write
@@ -135,7 +143,7 @@ params = fieldnames(gui_handles.gui_fig.UserData);
 for i = 1:length(params)
     expmt.parameters.(params{i}) = gui_handles.gui_fig.UserData.(params{i});
 end
-save([expmt.fdir expmt.fLabel '.mat'],'expmt');
+save([expmt.meta.path.dir expmt.meta.path.name '.mat'],'expmt');
 
 
 %% Setup the camera and/or video object
@@ -149,12 +157,12 @@ else
    gui_handles.record_video_menu.Checked = 'off'; 
 end
 
-expmt.Initialize = false;
+expmt.meta.initialize = false;
 
 % initialize centroid markers
 clean_gui(gui_handles.axes_handle);
 hold on
-trackDat.hMark = plot(trackDat.Centroid(:,1),trackDat.Centroid(:,2),'ro',...
+trackDat.hMark = plot(trackDat.centroid(:,1),trackDat.centroid(:,2),'ro',...
     'Parent',gui_handles.axes_handle);
 hold off
 

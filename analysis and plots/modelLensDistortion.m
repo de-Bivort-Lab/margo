@@ -33,11 +33,11 @@ end
 clear lm
 
 if isfield(expmt,'Gravity') && isfield(expmt.Gravity,'index')
-    spd_table = table(expmt.ROI.cam_dist,expmt.Gravity.index',...
+    spd_table = table(expmt.meta.roi.cam_dist,expmt.Gravity.index',...
         'VariableNames',{'Center_Distance';'Gravity'});
     lm = fitlm(spd_table,'Gravity~Center_Distance');
     if (lm.Coefficients{2,4})<0.05
-        expmt.Gravity.index = expmt.Gravity.index' - lm.Coefficients{2,1}.*expmt.ROI.cam_dist;
+        expmt.Gravity.index = expmt.Gravity.index' - lm.Coefficients{2,1}.*expmt.meta.roi.cam_dist;
     end
         
 end

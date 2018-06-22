@@ -35,10 +35,10 @@ imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');   % image hand
 
 % Initialize experiment parameters
 ref_stack = repmat(expmt.meta.ref, 1, 1, gui_handles.edit_ref_depth.Value);  % initialize the reference stack
-nROIs = size(expmt.ROI.centers,1);                                      % number of ROIs
+nROIs = size(expmt.meta.roi.centers,1);                                      % number of ROIs
 
 % Initialize tracking variables
-trackDat.fields={'Centroid';'Orientation';'Time';...
+trackDat.fields={'centroid';'Orientation';'time';...
     'Speed';'StimStatus';'Texture';'SpatialFreq';...
     'AngularVel';'Contrast'};  % properties of the tracked objects to be recorded
 
@@ -64,10 +64,10 @@ gui_handles.display_menu.UserData = 5;
 %% Calculate ROI coords in the projector space and expand the edges by a small border to ensure ROI is fully covered
 
 % tmp vars
-scor = NaN(size(expmt.ROI.corners));
-rcor = expmt.ROI.corners;
+scor = NaN(size(expmt.meta.roi.corners));
+rcor = expmt.meta.roi.corners;
 scen = NaN(nROIs,2);
-rcen = expmt.ROI.centers;
+rcen = expmt.meta.roi.centers;
 
 % convert ROI coordinates to projector coordinates for stimulus targeting
 scen(:,1) = Fx(rcen(:,1),rcen(:,2));
@@ -114,9 +114,11 @@ expmt.stim.scale(:,2) = (ssz_y/2)./(scor(:,4)-scor(:,2));
 trackDat.local_spd = NaN(15,nROIs);
 trackDat.prev_ori = NaN(nROIs,1);
 
-expmt.stim.pinTex_pos = Screen('MakeTexture', expmt.scrProp.window, expmt.stim.im);  % Placeholder for pinwheel textures positively rotating
-expmt.stim.pinTex_neg = Screen('MakeTexture', expmt.scrProp.window, expmt.stim.im); % Placeholder for pinwheel textures negatively rotating
-
+% Placeholder for pinwheel textures positively/negatively rotating
+expmt.stim.pinTex_pos = ...
+    Screen('MakeTexture', expmt.hardware.screen.window, expmt.stim.im);  
+expmt.stim.pinTex_neg = ...
+    Screen('MakeTexture', expmt.hardware.screen.window, expmt.stim.im); 
 
 trackDat.StimStatus = false(nROIs,1);
 trackDat.Texture = true(nROIs,1);
@@ -154,7 +156,7 @@ robot.mouseMove(1, 1);
 while ~trackDat.lastFrame
     
     % update time stamps and frame rate
-    [trackDat] = sutoTime(trackDat, expmt, gui_handles);
+    [trackDat] = autoTime(trackDat, expmt, gui_handles);
 
     % query next frame and optionally correct lens distortion
     [trackDat,expmt] = autoFrame(trackDat,expmt,gui_handles);
@@ -184,7 +186,7 @@ end
 % close the psychtoolbox window
 sca;
 
-if expmt.Finish
+if expmt.meta.finish
     
     % % auto process data and save master struct
     expmt = autoFinish(trackDat, expmt, gui_handles);

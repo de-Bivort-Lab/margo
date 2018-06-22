@@ -1,7 +1,7 @@
 function [trackDat,expmt] = autoWriteData(trackDat, expmt, gui_handles)
 
 % if first frame update the expmt file with output precision and dimensions
-if trackDat.ct == 1 && ~expmt.Initialize
+if trackDat.ct == 1 && ~expmt.meta.initialize
     
     % record the dimensions of data in each recorded field
     for i = 1:length(trackDat.fields)
@@ -9,8 +9,8 @@ if trackDat.ct == 1 && ~expmt.Initialize
         expmt.(trackDat.fields{i}).precision = class(trackDat.(trackDat.fields{i}));
     end
     
-    expmt.fields = trackDat.fields;
-    save([expmt.fdir expmt.fLabel '.mat'],'expmt','-v7.3');
+    expmt.meta.fields = trackDat.fields;
+    save([expmt.meta.path.dir expmt.meta.path.name '.mat'],'expmt','-v7.3');
     
 end
 

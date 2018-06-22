@@ -28,7 +28,7 @@ for i = 1:length(varargin)
                 options.plot = varargin{i};             
             case 'Dir'
                 i=i+1;
-                expmt.fdir = varargin{i};
+                expmt.meta.path.dir= varargin{i};
                 expmt = autoUpdatePaths(expmt);
      
             case 'Save'
@@ -73,7 +73,7 @@ if isfield(options,'handles')
     gui_notify('importing and processing data...',options.handles.disp_note)
 end
 
-expmt.meta.num_traces = size(expmt.ROI.centers,1);
+expmt.meta.num_traces = size(expmt.meta.roi.centers,1);
 
 %% initialize raw data memmap files
 
@@ -115,10 +115,10 @@ end
 [expmt] = processCentroid(expmt,options);
 
 % record distance from camera center
-if ~isfield(expmt.ROI,'cam_dist')
+if ~isfield(expmt.meta.roi,'cam_dist')
     cc = [size(expmt.meta.ref,2)/2 size(expmt.meta.ref,1)/2];
-    expmt.ROI.cam_dist = sqrt((expmt.ROI.centers(:,1)-cc(1)).^2 + ...
-        (expmt.ROI.centers(:,2)-cc(2)).^2);
+    expmt.meta.roi.cam_dist = sqrt((expmt.meta.roi.centers(:,1)-cc(1)).^2 + ...
+        (expmt.meta.roi.centers(:,2)-cc(2)).^2);
 end
 
 % regress out lens distance distortion with linear model
@@ -130,7 +130,7 @@ if options.regress
     expmt = modelLensDistortion(expmt);
 end
 
-expmt.figdir = [expmt.fdir 'figures_' expmt.date '/'];
+expmt.figdir = [expmt.meta.path.dir 'figures_' expmt.date '/'];
 if ~exist(expmt.figdir,'dir') && options.save
     [mkst,~]=mkdir(expmt.figdir);
     if ~mkst

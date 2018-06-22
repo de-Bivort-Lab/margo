@@ -1,17 +1,17 @@
 function expmt = autoUpdatePaths(expmt)
 
 savefile = false;
-if exist(expmt.fdir)~=7
-    expmt.fdir = uigetdir('','Select parent directory containing master struct .mat file');
-    expmt.fdir = [expmt.fdir '/'];
+if exist(expmt.meta.path.dir)~=7
+    expmt.meta.path.dir = uigetdir('','Select parent directory containing master struct .mat file');
+    expmt.meta.path.dir = [expmt.meta.path.dir '/'];
     savefile = true;
 end
     
 if isfield(expmt,'rawdir') && exist(expmt.rawdir)~=7
-    dinfo = dir(expmt.fdir);
+    dinfo = dir(expmt.meta.path.dir);
     for i=1:length(dinfo)
         if dinfo(i).isdir && ~isempty(strfind(dinfo(i).name,'raw_data'))
-            expmt.rawdir = [expmt.fdir dinfo(i).name '/'];
+            expmt.rawdir = [expmt.meta.path.dir dinfo(i).name '/'];
         end
     end
     
@@ -21,13 +21,13 @@ if isfield(expmt,'rawdir') && exist(expmt.rawdir)~=7
 end
 
 if isfield(expmt,'Speed') && isfield(expmt.Speed,'map') &&...
-        ~any(strcmp(expmt.fields,'Speed'))
-    expmt.fields = [expmt.fields;'Speed'];
+        ~any(strcmp(expmt.meta.fields,'Speed'))
+    expmt.meta.fields = [expmt.meta.fields;'Speed'];
 end
         
-for i=1:length(expmt.fields)
-    f=expmt.fields{i};
-    path = getHiddenMatDir(expmt.fdir,'keyword',f,'ext','.bin');
+for i=1:length(expmt.meta.fields)
+    f=expmt.meta.fields{i};
+    path = getHiddenMatDir(expmt.meta.path.dir,'keyword',f,'ext','.bin');
     
     if ~isempty(path)
        if ~strcmp(path,expmt.(f).path)
@@ -48,7 +48,7 @@ end
 
 if savefile
     % save the updated information to file
-    save([expmt.fdir expmt.fLabel '.mat'],'expmt');
+    save([expmt.meta.path.dir expmt.meta.path.name '.mat'],'expmt');
 end
 
                 

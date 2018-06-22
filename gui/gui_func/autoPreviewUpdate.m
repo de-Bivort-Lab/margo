@@ -23,7 +23,7 @@ switch gui_handles.display_menu.UserData
 
     % difference image
     case 2
-        if isfield(expmt,'ref') && isfield(expmt.meta.vignette,'im')
+        if isfield(expmt.meta.vignette,'im')
         hImage.CData = ...
             (expmt.meta.ref.im-expmt.meta.vignette.im)-(event.Data-expmt.meta.vignette.im);
             if strcmp(hImage.CDataMapping,'scaled')
@@ -40,7 +40,7 @@ switch gui_handles.display_menu.UserData
     % threshold image
     case 3 
         
-        if isfield(expmt,'ref') && isfield(expmt.meta.vignette,'im')
+        if isfield(expmt.meta.vignette,'im')
             hImage.CData = (expmt.meta.ref.im-expmt.meta.vignette.im)-(event.Data-expmt.meta.vignette.im)...
                 > gui_handles.track_thresh_slider.Value;
             hImage.Parent.CLim = [0 1];
@@ -57,7 +57,7 @@ switch gui_handles.display_menu.UserData
 
     % reference image
     case 4
-        if isfield(expmt,'ref')
+        if isfield(expmt.meta.ref,'im')
             hImage.CData = expmt.meta.ref.im;
             hImage.Parent.CLim = [0 max(event.Data(:))];
             if strcmp(hImage.CDataMapping,'direct')

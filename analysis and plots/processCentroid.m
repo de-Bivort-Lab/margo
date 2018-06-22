@@ -10,7 +10,7 @@ nFrames = expmt.meta.num_frames;
 
 % initialize raw data files if necessary
 if ~isempty(opt.raw)
-    rawdir = [expmt.fdir 'raw_data/'];
+    rawdir = [expmt.meta.path.dir 'raw_data/'];
     if ~exist(rawdir,'dir')
         mkdir(rawdir);
     end
@@ -54,14 +54,14 @@ for j = 1:nBatch
     % read next batch from mapped raw data
     if j==nBatch
         inx = squeeze(expmt.data.centroid.raw(:,1,(j-1)*bsz+1:end)) - ...
-            repmat(expmt.ROI.centers(:,1),1,nFrames-(j-1)*bsz);
+            repmat(expmt.meta.roi.centers(:,1),1,nFrames-(j-1)*bsz);
         iny = squeeze(expmt.data.centroid.raw(:,2,(j-1)*bsz+1:end)) - ...
-            repmat(expmt.ROI.centers(:,2),1,nFrames-(j-1)*bsz);
+            repmat(expmt.meta.roi.centers(:,2),1,nFrames-(j-1)*bsz);
     else
         inx = squeeze(expmt.data.centroid.raw(:,1,(j-1)*bsz+1:j*bsz)) - ...
-            repmat(expmt.ROI.centers(:,1),1,bsz);
+            repmat(expmt.meta.roi.centers(:,1),1,bsz);
         iny = squeeze(expmt.data.centroid.raw(:,2,(j-1)*bsz+1:j*bsz)) - ...
-            repmat(expmt.ROI.centers(:,2),1,bsz);
+            repmat(expmt.meta.roi.centers(:,2),1,bsz);
     end
     
     % get x and y coordinates of the centroid and normalize to upper left ROI corner        

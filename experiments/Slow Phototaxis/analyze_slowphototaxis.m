@@ -59,7 +59,7 @@ bb = num2cell(expmt.Blank.blocks,2);
 
 
 % get divider distance threshold for each ROI
-div_thresh = (mean(expmt.ROI.bounds(:,[3 4]),2) .* expmt.parameters.divider_size * 0.5)';
+div_thresh = (mean(expmt.meta.roi.bounds(:,[3 4]),2) .* expmt.parameters.divider_size * 0.5)';
 
 % Initialize light occupancy variables
 expmt.Light.include = cell(expmt.Light.nBlocks,expmt.meta.num_traces);
@@ -184,10 +184,10 @@ end
 strain='';
 treatment='';
 if isfield(expmt,'Strain')
-    strain=expmt.Strain;
+    strain=expmt.meta.strain;
 end
 if isfield(expmt,'Treatment')
-    treatment=expmt.Treatment;
+    treatment=expmt.meta.treatment;
 end
 
 % light ON label

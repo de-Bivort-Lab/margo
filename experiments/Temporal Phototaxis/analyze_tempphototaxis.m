@@ -152,10 +152,10 @@ end
 
 % Generate legend labels
 if isfield(expmt,'Strain')
-    strain=expmt.Strain;
+    strain=expmt.meta.strain;
 end
 if isfield(expmt,'Treatment')
-    treatment=expmt.Treatment;
+    treatment=expmt.meta.treatment;
 end
 
 % light ON label
