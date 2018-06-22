@@ -9,6 +9,7 @@ classdef ExperimentData < handle
         hardware;
     end
     methods
+        % construct new ExperimentData obj with default values
         function obj = ExperimentData
             
             es = struct();
@@ -18,16 +19,14 @@ classdef ExperimentData < handle
                             'source','camera','roi',es,'ref',es,'noise',es,...
                             'date','','strain','','treatment','','sex','',...
                             'labels',[],'labels_table',table);
-            obj.hardware = struct('cam',es,'com',es,...
+            obj.hardware = struct('cam',es,'COM',es,...
                                 'light',es,'projector',es);
             obj.meta.fields = fieldnames(obj.data);
             obj.parameters = initialize_parameters(obj);
-            
-            
-            
+
         end
         
-        
+        % automatically repair master container and raw data file paths
         function obj = updatepaths(obj,fpath)
             
             [dir,name,~] = fileparts(fpath);
@@ -69,6 +68,38 @@ classdef ExperimentData < handle
             fn = fieldnames(obj.data);
             for i=1:length(obj.meta.fields)
                 obj.data.(fn{i}).map = [];
+            end
+        end
+        
+        % reset experiment specific properties for new session
+        function obj = reset(obj)
+            
+            % remove roi, reference, noise and vignette data
+            if ~isempty(obj.meta.roi)
+                m = obj.meta.roi.mode;
+                obj.meta.roi = [];
+                obj.meta.roi.mode = m;
+            end
+            if ~isempty(obj.meta.ref)
+                obj.meta.ref= [];
+            end
+            if ~isempty(obj.meta.noise)
+                obj.meta.noise = [];
+            end
+            if ~isempty(obj.meta.vignette)
+                m = obj.meta.vignette.mode;
+                obj.meta.vignette = [];
+                obj.meta.vignette.mode = m;
+            end
+            if ~isempty(obj.meta.labels)
+                obj.meta.labels = [];
+            end
+            
+            % re-initialize data fields
+            obj.data = struct();
+            f = obj.meta.fields;
+            for i = 1:numel(f)
+                obj.data.(f) = RawDataField('Parent',obj);
             end
         end
         

@@ -13,29 +13,29 @@ ports=serialInfo.AvailableSerialPorts;
 panelNum=[];
 
 if ~isempty(ports)
-for i=1:size(ports,1)
+    for i=1:size(ports,1)
 
-    s = serial(ports{i});    % Create Serial Object
-    set(s,'BaudRate',9600);         % Set baud rate
-    fopen(s);                       % Open the port
+        s = serial(ports{i});    % Create Serial Object
+        set(s,'BaudRate',9600);         % Set baud rate
+        fopen(s);                       % Open the port
 
-    panel=2;
-    level=2;
-    writeData=char([level panel 23 23]);
+        panel=2;
+        level=2;
+        writeData=char([level panel 23 23]);
 
-    fwrite(s,writeData,'uchar');
-    pause(0.25);
-    
-    if s.BytesAvailable == numel(IR_white_panel_handshake)
-    handshake=fread(s,7);
-        if length(handshake) == length(IR_white_panel_handshake)
-            panelNum=i;
+        fwrite(s,writeData,'uchar');
+        pause(0.25);
+
+        if s.BytesAvailable == numel(IR_white_panel_handshake)
+        handshake=fread(s,7);
+            if length(handshake) == length(IR_white_panel_handshake)
+                panelNum=i;
+            end
         end
+
+        fclose(s);
+        delete(s);
     end
-    
-    fclose(s);
-    delete(s);
-end
 end
 
 if ~isempty(panelNum)

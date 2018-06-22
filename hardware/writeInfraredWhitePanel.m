@@ -1,4 +1,4 @@
-function COM_obj = writeInfraredWhitePanel(COM_obj,panel,level)
+function writeInfraredWhitePanel(COM_obj,panel,level)
 
 % Write intensity values to either the infrared or white light channels of 
 % the dual infrared/white LED illumination panels

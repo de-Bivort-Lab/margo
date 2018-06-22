@@ -22,7 +22,7 @@ function varargout = autotracker(varargin)
 
 % Edit the above text to modify the response to help autotracker
 
-% Last Modified by GUIDE v2.5 22-Jun-2018 15:19:39
+% Last Modified by GUIDE v2.5 20-Apr-2018 17:08:53
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -2638,7 +2638,6 @@ end
 % remove video object
 if isfield(expmt.meta.video,'vid')
     expmt = rmfield(expmt.meta,'video');
-    gui_notify('source switched to camera',handles.disp_note);
 end
 
 % set source
@@ -3724,17 +3723,3 @@ end
 
 
 
-
-
-% --------------------------------------------------------------------
-function analysis_menu_Callback(hObject, eventdata, handles)
-
-expmt = getappdata(handles.gui_fig,'expmt');
-tmp = analysisoptions_gui(expmt);
-if ~isempty(tmp)
-    expmt = tmp;
-end
-
-setappdata(handles.gui_fig,'expmt',expmt);
-
-guidata(hObject,handles);
