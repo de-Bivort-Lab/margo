@@ -147,7 +147,7 @@ switch expmt.meta.source
         end
     case 'video'
         imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');
-        if isfield(expmt.video,'vid') && ~isempty(imh)
+        if isfield(expmt.meta.video,'vid') && ~isempty(imh)
             display = true;
         end
 end
@@ -160,7 +160,7 @@ if display && isempty(imh)
     if strcmp(expmt.meta.source,'camera')
         trackDat.im = peekdata(expmt.hardware.cam.vid,1);
     else
-        [trackDat.im, expmt.video] = nextFrame(expmt.video,gui_handles);
+        [trackDat.im, expmt.meta.video] = nextFrame(expmt.meta.video,gui_handles);
     end
 
     % extract green channel if format is RGB
@@ -239,8 +239,9 @@ while ishghandle(hObject) && display
     end
     
     % grab a frame if a camera or video object exists
-    if (isfield(expmt.hardware.cam,'vid') && strcmp(expmt.hardware.cam.vid.Running,'on')) ||...
-            isfield(expmt,'video')
+    if (isfield(expmt.hardware.cam,'vid') && ...
+            strcmp(expmt.hardware.cam.vid.Running,'on')) ||...
+            isfield(expmt.meta.video,'vid')
 
         % query next frame and optionally correct lens distortion
         [trackDat,expmt] = autoFrame(trackDat,expmt,gui_handles);         

@@ -67,7 +67,7 @@ function [trackDat] = autoTime(trackDat, expmt, gui_handles, varargin)
         
     elseif ~no_plot
         
-        frames_remaining = expmt.video.nFrames - trackDat.ct;
+        frames_remaining = expmt.meta.video.nFrames - trackDat.ct;
         gui_handles.edit_time_remaining.String = num2str(frames_remaining);
         
     end

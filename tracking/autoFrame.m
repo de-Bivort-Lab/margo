@@ -14,12 +14,12 @@ switch expmt.meta.source
     case 'video'
         
         % get next frame from video file
-        [trackDat.im, expmt.video] = nextFrame(expmt.video,gui_handles);
+        [trackDat.im, expmt.meta.video] = nextFrame(expmt.meta.video,gui_handles);
 
         % stop expmt when last frame of last video is reached
-        if isfield(expmt.video,'fID')
-            trackDat.lastFrame = feof(expmt.video.fID);
-        elseif ~hasFrame(expmt.video.vid) && expmt.video.ct == expmt.video.nVids
+        if isfield(expmt.meta.video,'fID')
+            trackDat.lastFrame = feof(expmt.meta.video.fID);
+        elseif ~hasFrame(expmt.meta.video.vid) && expmt.meta.video.ct == expmt.meta.video.nVids
             trackDat.lastFrame = true;
         end
 end

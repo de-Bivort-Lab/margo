@@ -550,7 +550,7 @@ if ~isempty(expmt.hardware.cam)
             handles.sample_noise_pushbutton.Enable = 'off';
         end
         
-        if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n && isfield(expmt.meta.ref,'im') &&  isfield(expmt.noise,'dist')
+        if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n && isfield(expmt.meta.ref,'im') &&  isfield(expmt.meta.noise,'dist')
             expmt.meta.roi = [];
             expmt.meta.ref = [];
             expmt.meta.noise = [];
@@ -660,7 +660,7 @@ switch get(hObject,'value')
                 if strcmp(expmt.meta.source,'camera')
                     trackDat.im = peekdata(expmt.hardware.cam.vid,1);
                 else
-                    [trackDat.im, expmt.video] = nextFrame(expmt.video,handles);
+                    [trackDat.im, expmt.meta.video] = nextFrame(expmt.meta.video,handles);
                 end
 
                 % extract green channel if format is RGB
@@ -1032,15 +1032,13 @@ if isfield(expmt.meta.path,'full') == 0
 elseif ~hasLabelData
     errordlg('Please set labels before running experiment')
     handles.run_pushbutton.Enable = 'on';
-elseif ~isfield(expmt.hardware.cam,'vid')
-    errordlg('Please confirm camera settings')
 elseif ~isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
     errordlg('Please run ROI detection before starting tracking');
     handles.run_pushbutton.Enable = 'on';
 elseif ~isfield(expmt.meta.ref,'im')
     errordlg('Please acquire a reference image before beginning tracking');
     handles.run_pushbutton.Enable = 'on';
-elseif ~isfield(expmt.noise,'dist')
+elseif ~isfield(expmt.meta.noise,'dist')
     errordlg('Please run noise sampling before starting tracking');
     handles.run_pushbutton.Enable = 'on';
 elseif any(strcmp(expmt.meta.name,handles.parameter_subgui)) &&...
@@ -1991,7 +1989,7 @@ elseif strcmp(expmt.meta.source,'camera')
     errordlg('Confirm camera and camera settings before running ROI detection');
 end
 
-if strcmp(expmt.meta.source,'video') && isfield(expmt,'video')
+if strcmp(expmt.meta.source,'video') && isfield(expmt.meta.video,'vid')
      
     switch handles.gui_fig.UserData.ROI_mode
         
@@ -2373,7 +2371,7 @@ expmt = getappdata(handles.gui_fig,'expmt');
 
 % grab a frame if a camera or video object exists
 if (isfield(expmt.hardware.cam,'vid') && strcmp(expmt.hardware.cam.vid.Running,'on')) ||...
-    isfield(expmt,'video')
+    isfield(expmt.meta.video,'vid')
 
     % query next frame and optionally correct lens distortion
     trackDat = [];
@@ -2560,19 +2558,19 @@ end
 % get expmt data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 
-if isfield(expmt,'video')
+if isfield(expmt.meta.video,'vid')
     
     % initialize axes and image settings
     if hObject.Value
         
         % adjust aspect ratio of plot to match camera
         colormap('gray');
-        if isfield(expmt.video,'fID')
-            vh = expmt.video.res(1);
-            vw = expmt.video.res(2);
+        if isfield(expmt.meta.video,'fID')
+            vh = expmt.meta.video.res(1);
+            vw = expmt.meta.video.res(2);
         else
-            vh = expmt.video.vid.Height;
-            vw = expmt.video.vid.Width;
+            vh = expmt.meta.video.vid.Height;
+            vw = expmt.meta.video.vid.Width;
         end
         im = uint8(zeros(vh,vw));
         handles.hImage = image(im,'Parent',handles.axes_handle);
@@ -2593,7 +2591,7 @@ if isfield(expmt,'video')
         ct = ct+1;
         
         % get next frame and update image
-        [im, expmt.video] = nextFrame(expmt.video,handles);
+        [im, expmt.meta.video] = nextFrame(expmt.meta.video,handles);
         if size(im,3)>1
             im=im(:,:,2);
         end
@@ -2605,7 +2603,7 @@ if isfield(expmt,'video')
         
         % update frame rate and frames remaining
         handles.edit_frame_rate.String = num2str(round(1/toc*10)/10);
-        handles.edit_time_remaining.String = num2str(expmt.video.nFrames - ct);
+        handles.edit_time_remaining.String = num2str(expmt.meta.video.nFrames - ct);
  
     end
     
@@ -2636,7 +2634,7 @@ function vid_select_popupmenu_Callback(hObject, ~, handles)
 expmt = getappdata(handles.gui_fig,'expmt');
 
 % update current video object
-expmt.video.vid = VideoReader([expmt.video.fdir expmt.video.fnames{hObject.Value}]);
+expmt.meta.video.vid = VideoReader([expmt.meta.video.fdir expmt.meta.video.fnames{hObject.Value}]);
 
 % set expmt data struct
 setappdata(handles.gui_fig,'expmt',expmt);
@@ -2698,11 +2696,11 @@ tmp_video = uigetvids(expmt);
 % update gui with video info
 if ~isempty(tmp_video)
     
-    expmt.video = tmp_video;
-    expmt.video.nFrames = floor(expmt.video.nFrames);
-    handles.edit_video_dir.String = expmt.video.fdir;
-    handles.vid_select_popupmenu.String = expmt.video.fnames;
-    handles.edit_time_remaining.String = num2str(expmt.video.nFrames);
+    expmt.meta.video = tmp_video;
+    expmt.meta.video.nFrames = floor(expmt.meta.video.nFrames);
+    handles.edit_video_dir.String = expmt.meta.video.fdir;
+    handles.vid_select_popupmenu.String = expmt.meta.video.fnames;
+    handles.edit_time_remaining.String = num2str(expmt.meta.video.nFrames);
     handles.gui_fig.UserData.target_rate = tmp_video.vid.FrameRate;
     
     % set downstream UI panel Enable status
@@ -2726,7 +2724,7 @@ if ~isempty(tmp_video)
         expmt.meta.ref = [];
     end
     
-    if isfield(expmt.noise,'dist')
+    if isfield(expmt.meta.noise,'dist')
        expmt.meta.noise = [];
     end
     
@@ -2795,7 +2793,7 @@ if strcmp(handles.vid_uipanel.Visible,'on')
 end
 
 % remove video object
-if isfield(expmt,'video')
+if isfield(expmt.meta.video,'vid')
     expmt = rmfield(expmt,'video');
 end
 
@@ -2833,7 +2831,7 @@ if strcmp(expmt.meta.source,'camera')
     handles.vid_preview_togglebutton.Enable = 'off';
     handles.select_video_label.Enable = 'off';
     
-    if isfield(expmt,'video')
+    if isfield(expmt.meta.video,'vid')
         handles.ROI_thresh_slider.Enable = 'on';
         handles.accept_ROI_thresh_pushbutton.Enable = 'on';
         handles.disp_ROI_thresh.Enable = 'on';
@@ -2888,10 +2886,10 @@ if strcmp(expmt.meta.source,'camera') && strcmp(expmt.hardware.cam.vid.Running,'
 elseif strcmp(expmt.meta.source,'video') 
     
     % open video object from file
-    expmt.video.vid = ...
-        VideoReader([expmt.video.fdir expmt.video.fnames{handles.vid_select_popupmenu.Value}]);
+    expmt.meta.video.vid = ...
+        VideoReader([expmt.meta.video.fdir expmt.meta.video.fnames{handles.vid_select_popupmenu.Value}]);
     
-    expmt.video.ct = handles.vid_select_popupmenu.Value;    % get file number in list
+    expmt.meta.video.ct = handles.vid_select_popupmenu.Value;    % get file number in list
 
 elseif ~strcmp(expmt.hardware.cam.vid.Running,'on')
     errordlg('Must confirm a camera or video source before correcting vignetting');
@@ -2905,7 +2903,7 @@ if vid
     if strcmp(expmt.meta.source,'camera')
         im = peekdata(expmt.hardware.cam.vid,1);
     else
-        [im, expmt.video] = nextFrame(expmt.video,handles);
+        [im, expmt.meta.video] = nextFrame(expmt.meta.video,handles);
     end
     
     % extract green channel if format is RGB
@@ -2986,7 +2984,7 @@ if isfield(expmt.hardware.cam,'src')
     expmt.hardware.cam = rmfield(expmt.hardware.cam,'src');
 end
 
-if isfield(expmt,'video')
+if isfield(expmt.meta.video,'vid')
     expmt = rmfield(expmt,'video');
 end
 
@@ -3432,7 +3430,7 @@ if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
     if strcmp(expmt.meta.source,'camera')
         trackDat.im = peekdata(expmt.hardware.cam.vid,1);
     else
-        [trackDat.im, expmt.video] = nextFrame(expmt.video,handles);
+        [trackDat.im, expmt.meta.video] = nextFrame(expmt.meta.video,handles);
     end
 
     % extract green channel if format is RGB

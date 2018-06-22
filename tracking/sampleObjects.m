@@ -112,7 +112,7 @@ end
 
 switch expmt.meta.source
     case 'video'
-        gui_handles.edit_time_remaining.String = num2str(expmt.video.nFrames);
+        gui_handles.edit_time_remaining.String = num2str(expmt.meta.video.nFrames);
     case 'camera'
         updateTimeString(round(gui_handles.edit_exp_duration.Value * 3600),...
                         gui_handles.edit_time_remaining);

@@ -31,7 +31,7 @@ switch expmt.meta.source
     case 'camera'
         trackDat.im = peekdata(expmt.hardware.cam.vid,1);
     case 'video'
-        [trackDat.im, expmt.video] = nextFrame(expmt.video,gui_handles);
+        [trackDat.im, expmt.meta.video] = nextFrame(expmt.meta.video,gui_handles);
 end
 
 % Extract green channel if image is RGB
