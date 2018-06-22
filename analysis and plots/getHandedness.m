@@ -5,8 +5,8 @@ function handedness = getHandedness(trackProps,varargin)
 bw = 2*pi/25;                                   % bin width
 bins = 0:bw:2*pi;                          % handedness bins
 speedthresh = 0.8;
-nf = min(size(trackProps.Speed));
-empty = single(NaN(size(trackProps.Speed)));
+nf = min(size(trackProps.speed));
+empty = single(NaN(size(trackProps.speed)));
 
 handedness = struct('include',~isnan(empty),'mu',NaN(1,nf),...
     'angle_histogram',NaN(length(bins),nf),'bins',bins,'bin_width',bw);
@@ -27,7 +27,7 @@ for i = 1:length(varargin)
                     include = repmat(include,1,nf);
                 end
                 
-            case 'SpeedThresh'
+            case 'speedThresh'
                 i = i+1;
                 speedthresh = varargin{i};
         end
@@ -37,7 +37,7 @@ end
 %%
 
 if ~exist('include','var')
-    include = trackProps.Speed > speedthresh;
+    include = trackProps.speed > speedthresh;
 end
 handedness.include = include;
 include = num2cell(include,2);

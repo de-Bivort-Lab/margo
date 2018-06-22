@@ -16,8 +16,8 @@ function [varargout]=bootstrap_speed_blocks(expmt,blocks,nReps)
 
 % restrict based on minimum activity
 nf = expmt.meta.num_traces;
-active = expmt.Speed.avg>expmt.Speed.thresh;
-speed = expmt.Speed.raw(active,:);
+active = expmt.data.speed.avg>expmt.data.speed.thresh;
+speed = expmt.data.speed.raw(active,:);
 blocks = blocks(active);
 nBouts = cell2mat(cellfun(@size,blocks,'UniformOutput',false));
 nBouts = nBouts(:,1);
@@ -93,8 +93,8 @@ end
 
 %%
 
-dim = find(size(expmt.Speed.raw) == expmt.meta.num_frames);
-bs.obs = log(nanmean(expmt.Speed.raw,dim));
+dim = find(size(expmt.data.speed.raw) == expmt.meta.num_frames);
+bs.obs = log(nanmean(expmt.data.speed.raw,dim));
 bs.include = active;
 bs.sim = log(bs_speeds);
 

@@ -65,10 +65,10 @@ for j = 1:nBatch
     end
     
     % get x and y coordinates of the centroid and normalize to upper left ROI corner        
-    trackProps.Speed = single([zeros(expmt.meta.num_traces,1) ...
+    trackProps.speed = single([zeros(expmt.meta.num_traces,1) ...
         sqrt(diff(inx,1,2).^2+diff(iny,1,2).^2)]);   
-    trackProps.Speed(trackProps.Speed(:,j) > 12, j) = NaN;
-    spd(:,j) = nanmean(trackProps.Speed,2);
+    trackProps.speed(trackProps.speed(:,j) > 12, j) = NaN;
+    spd(:,j) = nanmean(trackProps.speed,2);
 
     
     if opt.handedness
@@ -90,7 +90,7 @@ for j = 1:nBatch
 end
 
 % record mean speed
-expmt.Speed.avg = nanmean(spd,2);
+expmt.data.speed.avg = nanmean(spd,2);
 
 % close raw data and initialize new memmap for raw data
 for i = 1:length(opt.raw)

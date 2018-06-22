@@ -3,7 +3,7 @@ function [varargout] = blockActivity(s_raw)
 % blockActivity divides autotracker speed traces into discreet bouts
 %
 % input:
-%   s_map           ->  memmap to raw speed data file (ie. expmt.Speed.map)
+%   s_map           ->  memmap to raw speed data file (ie. expmt.data.speed.map)
 %
 % outputs:
 %

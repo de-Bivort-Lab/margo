@@ -94,7 +94,7 @@ end
 expmt = getRawData(expmt,options);
 
 % query centroid file size
-if isfield(expmt.data.centroid,'map')
+if isattached(expmt.data.centroid)
     sz = numel(expmt.data.centroid.raw);
     switch expmt.data.centroid.precision
         case 'double', sz = sz*8;
@@ -138,7 +138,7 @@ if ~exist(expmt.figdir,'dir') && options.save
     end
 end
 
-if isfield(expmt,'Speed') && isfield(expmt.Speed,'map') ...
+if isfield(expmt.data,'speed') && isattached(expmt.data.speed) ...
         && options.bootstrap
     
     if isfield(options,'handles')
@@ -147,13 +147,13 @@ if isfield(expmt,'Speed') && isfield(expmt.Speed,'map') ...
     end
     
     % chunk speed data into individual movement bouts
-    [block_indices, lag_thresh, speed_thresh] = blockActivity(expmt.Speed.map);
-    expmt.Speed.thresh = speed_thresh;
-    expmt.Speed.bouts.thresh = lag_thresh;
-    expmt.Speed.bouts.idx = block_indices;
+    [block_indices, lag_thresh, speed_thresh] = blockActivity(expmt.data.speed.map);
+    expmt.data.speed.thresh = speed_thresh;
+    expmt.data.speed.bouts.thresh = lag_thresh;
+    expmt.data.speed.bouts.idx = block_indices;
     
     % bootstrap resample speed data to generate null distribution
-    [expmt.Speed.bs,f] = bootstrap_speed_blocks(expmt,block_indices,100);
+    [expmt.data.speed.bs,f] = bootstrap_speed_blocks(expmt,block_indices,100);
     
     % save bootstrap figure to file
     fname = [expmt.figdir expmt.date '_bs_logspeed'];

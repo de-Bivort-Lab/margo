@@ -20,9 +20,9 @@ if isfield(expmt,'rawdir') && exist(expmt.rawdir)~=7
     end
 end
 
-if isfield(expmt,'Speed') && isfield(expmt.Speed,'map') &&...
-        ~any(strcmp(expmt.meta.fields,'Speed'))
-    expmt.meta.fields = [expmt.meta.fields;'Speed'];
+if isfield(expmt.data,'speed') && isattached(expmt.data.speed) &&...
+        ~any(strcmp(expmt.meta.fields,'speed'))
+    expmt.meta.fields = [expmt.meta.fields;'speed'];
 end
         
 for i=1:length(expmt.meta.fields)

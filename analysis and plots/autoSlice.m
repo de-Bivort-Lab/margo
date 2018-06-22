@@ -7,7 +7,7 @@ function slice_data = autoSlice(expmt,f,roi_num)
 % renaming vars for shorthand
 if isfield(expmt.(f),'precision')
     p = expmt.(f).precision;
-elseif strcmp(f,'Speed')
+elseif strcmp(f,'speed')
     expmt.(f).precision = expmt.data.centroid.precision;
     p = expmt.(f).precision;
 end

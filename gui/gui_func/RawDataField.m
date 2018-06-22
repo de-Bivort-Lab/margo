@@ -86,6 +86,10 @@ classdef RawDataField < handle
             obj.raw.map = [];
         end
         
+        function out = isattached(obj)
+            out = ~isempty(size(obj.raw));
+        end
+        
     end
     
     

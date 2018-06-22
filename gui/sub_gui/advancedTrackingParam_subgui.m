@@ -179,7 +179,7 @@ end
 %% Tracking setup
 
 % initialize tracking variables if any parameter display is ticked
-trackDat.fields={'centroid';'area';'Speed'};     % Define fields autoTrack output
+trackDat.fields={'centroid';'area';'speed'};     % Define fields autoTrack output
 if isfield(expmt.meta.ref,'im')
     trackDat.ref = expmt.meta.ref;
 end
@@ -271,7 +271,7 @@ while ishghandle(hObject) && display
             trackDat = autoTrack(trackDat,expmt,gui_handles);
 
             % update rolling speed
-            roll_speed(:,mod(trackDat.ct,size(roll_speed,2))+1) = trackDat.Speed;
+            roll_speed(:,mod(trackDat.ct,size(roll_speed,2))+1) = trackDat.speed;
 
         end
 

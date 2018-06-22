@@ -9,7 +9,7 @@ end
 
 if isfield(expmt,'fields')
     f= expmt.meta.fields;
-    f = [f;{'Speed';'Direction';'Theta';'Radius'}];
+    f = [f;{'speed';'Direction';'Theta';'Radius'}];
     for i=1:numel(f)
         if isfield(expmt,f{i})
             if isfield(expmt.(f{i}),'path')

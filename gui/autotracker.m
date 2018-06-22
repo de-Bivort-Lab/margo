@@ -1060,7 +1060,7 @@ else
             case 'Optomotor'
                 expmt = run_optomotor(expmt,handles);
                 if isfield(expmt,'date')
-                    expmt = analyze_optomotor(expmt,'Handles',handles,'Raw',{'Speed'});
+                    expmt = analyze_optomotor(expmt,'Handles',handles,'Raw',{'speed'});
                 else
                     keep_gui_state = true;
                 end
@@ -1069,7 +1069,7 @@ else
             case 'Slow Phototaxis'
                 expmt = run_slowphototaxis(expmt,handles);
                 if isfield(expmt,'date')
-                    expmt = analyze_slowphototaxis(expmt,'Handles',handles,'Raw',{'Speed'});
+                    expmt = analyze_slowphototaxis(expmt,'Handles',handles,'Raw',{'speed'});
                 else
                     keep_gui_state = true;
                 end
@@ -1082,7 +1082,7 @@ else
                 else
                     expmt = run_ledymaze(expmt,handles);
                     if isfield(expmt,'date')
-                        expmt = analyze_ledymaze(expmt,'Handles',handles,'Raw',{'Speed'});
+                        expmt = analyze_ledymaze(expmt,'Handles',handles,'Raw',{'speed'});
                     else
                         keep_gui_state = true;
                     end
@@ -1092,7 +1092,7 @@ else
             case 'Arena Circling'
                 expmt = run_arenacircling(expmt,handles);
                 if isfield(expmt,'date')
-                    args = {'Handles',handles,'Raw',{'Speed'},'Handedness',true};
+                    args = {'Handles',handles,'Raw',{'speed'},'Handedness',true};
                     expmt = analyze_arenacircling(expmt,args{:});
                 else
                     keep_gui_state = true;
@@ -1102,7 +1102,7 @@ else
             case 'Y-maze'
                 expmt = run_ymaze(expmt,handles);
                 if isfield(expmt,'date')
-                    args = {'Handles',handles,'Raw',{'Speed'},'Handedness',true};
+                    args = {'Handles',handles,'Raw',{'speed'},'Handedness',true};
                     expmt = analyze_ymaze(expmt,args{:});
                 else
                     keep_gui_state = true;
@@ -1121,7 +1121,7 @@ else
             case 'Circadian'
                 expmt = run_circadian(expmt,handles);
                 if isfield(expmt,'date')
-                    args = {'Handles',handles,'Raw',{'Speed'},'Bootstrap',false,'Slide',false};
+                    args = {'Handles',handles,'Raw',{'speed'},'Bootstrap',false,'Slide',false};
                     expmt = analyze_circadian(expmt,args{:});
                 else
                     keep_gui_state = true;
@@ -1131,17 +1131,17 @@ else
                 
                 [circle,opto,photo] = run_arenablocks(expmt,handles);
                 if isfield(circle,'date')
-                    expmt = analyze_arenacircling(circle,handles,'Raw',{'Speed'});
+                    expmt = analyze_arenacircling(circle,handles,'Raw',{'speed'});
                     clearvars circle
                 end
                 
                 if isfield(opto,'date')
-                    expmt = analyze_optomotor(opto,handles,'Raw',{'Speed'});
+                    expmt = analyze_optomotor(opto,handles,'Raw',{'speed'});
                     clearvars opto
                 end
                 
                 if isfield(photo,'date')
-                    expmt = analyze_slowphototaxis(photo,handles,'Raw',{'Speed'});
+                    expmt = analyze_slowphototaxis(photo,handles,'Raw',{'speed'});
                     clearvars photo
                 end
             
@@ -1149,13 +1149,13 @@ else
                 
                 expmt = run_tempphototaxis(expmt,handles);
                 if isfield(expmt,'date')
-                    expmt = analyze_tempphototaxis(expmt,'Handles',handles,'Raw',{'Speed'});
+                    expmt = analyze_tempphototaxis(expmt,'Handles',handles,'Raw',{'speed'});
                 else
                     keep_gui_state = true;
                 end
         end
         
-        if isfield(expmt,'centroid') && isfield(expmt.data.centroid,'map')
+        if isfield(expmt,'centroid') && isattached(expmt.data.centroid)
             ttl = 'Tracking Complete';
             msg = {'ROIs, references, and noise statistics reset';...
                 'Would you like to plot raw tracking data?'};
@@ -1210,8 +1210,8 @@ else
     % re-Enable control set to off during experiment
     handles = toggleSubguis(handles,'on');
     
-    if isfield(expmt,'Speed')
-        expmt = rmfield(expmt,'Speed');
+    if isfield(expmt.data,'speed')
+        expmt = rmfield(expmt,'speed');
     end
     if isfield(expmt,'Circadian')
         expmt = rmfield(expmt,'Circadian');

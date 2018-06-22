@@ -35,7 +35,7 @@ for i = 1:expmt.meta.num_traces
     end
 
     % find threshold for each individual
-    moving = autoSlice(expmt,'Speed',i) > 0.8;
+    moving = autoSlice(expmt,'speed',i) > 0.8;
     a= autoSlice(expmt,'area',i);
     a(~moving) = NaN;
 

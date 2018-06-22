@@ -37,7 +37,7 @@ if options.slide
     if isfield(options,'handles')
         gui_notify('sliding speed window, may take a few minutes',options.handles.disp_note);
     end
-    [win_dat,win_idx] = getSlidingWindow(expmt,'Speed',win_sz,stp_sz,sampling_rate);
+    [win_dat,win_idx] = getSlidingWindow(expmt,'speed',win_sz,stp_sz,sampling_rate);
 
     % get mean and 95% CI
     [mu,~,ci95,~] = normfit(win_dat');
@@ -49,7 +49,7 @@ if options.slide
 
     % get index tstamps
     tStamps = cumsum(expmt.data.time.raw);
-    if length(tStamps)~=length(expmt.Speed.raw) && isfield(options,'decimate')...
+    if length(tStamps)~=length(expmt.data.speed.raw) && isfield(options,'decimate')...
             && any(strcmp({'centroid'},options.decimate))
 
         tStamps = tStamps(mod(1:expmt.meta.num_frames,options.decfac)==1);
@@ -130,7 +130,7 @@ if options.slide
         state = ~state;
     end
 
-    ylabel('Speed');
+    ylabel('speed');
     xlabel('Time of day');
     legend([ph,ph_ci95,ph_mu],{'lights OFF';'95% CI';'mean speed'});
     title('Circadian activity trace');

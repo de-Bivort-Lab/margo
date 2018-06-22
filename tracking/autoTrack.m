@@ -158,11 +158,11 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
 % structure if listed in expmt.meta.fields. 
 % return NaNs if record = false
 
-if any(strcmp('Speed',out_fields))
+if any(strcmp('speed',out_fields))
     if record
-        trackDat.Speed = single(speed);
+        trackDat.speed = single(speed);
     else
-        trackDat.Speed = single(NaN(size(trackDat.centroid,1),1)); 
+        trackDat.speed = single(NaN(size(trackDat.centroid,1),1)); 
     end
 end
 

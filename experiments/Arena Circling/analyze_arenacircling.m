@@ -16,9 +16,9 @@ clearvars -except expmt options
 %% Generate trace plots
 
 if options.handedness
-    if isfield(expmt,'Speed') && isfield(expmt.Speed,'map')
-        expmt.Speed.avg = nanmean(expmt.Speed.raw,2);
-        expmt.handedness.active = expmt.Speed.avg > 0.1;
+    if isfield(expmt.data,'speed') && isattached(expmt.data.speed)
+        expmt.data.speed.avg = nanmean(expmt.data.speed.raw,2);
+        expmt.handedness.active = expmt.data.speed.avg > 0.1;
     else
         expmt.handedness.active = true(expmt.meta.num_traces,1);
     end

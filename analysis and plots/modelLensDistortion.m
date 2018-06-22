@@ -22,13 +22,13 @@ cc = [size(expmt.meta.ref,2)/2 size(expmt.meta.ref,1)/2];
 cam_dist = squeeze(sqrt((expmt.data.centroid.raw(:,1,:)-cc(1)).^2 +...
     (expmt.data.centroid.raw(:,2,:)-cc(2)).^2));
 
-spd_table = table(cam_dist(:),expmt.Speed.raw(:),...
-    'VariableNames',{'Center_Distance';'Speed'});
-lm = fitlm(spd_table,'Speed~Center_Distance');
+spd_table = table(cam_dist(:),expmt.data.speed.raw(:),...
+    'VariableNames',{'Center_Distance';'speed'});
+lm = fitlm(spd_table,'speed~Center_Distance');
 
 if (lm.Coefficients{2,4})<0.05
-    expmt.Speed.map.Writable = true;
-    expmt.Speed.raw= expmt.Speed.raw- lm.Coefficients{2,1}.*cam_dist;
+    expmt.data.speed.map.Writable = true;
+    expmt.data.speed.raw= expmt.data.speed.raw- lm.Coefficients{2,1}.*cam_dist;
 end
 clear lm
 

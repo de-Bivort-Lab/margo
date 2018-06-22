@@ -145,7 +145,7 @@ end
 
 % Minimum time spent off the boundary divider (hours)
 min_active_period = 0.2 * nansum(expmt.data.time.raw(expmt.Texture.data))/3600;        
-active = expmt.Speed.avg > 0.01;
+active = expmt.data.speed.avg > 0.01;
 tTotal = nansum(cell2mat(expmt.Light.tInc));
 btTotal = nansum(cell2mat(expmt.Blank.tInc));
 locc = nanmean(cell2mat(expmt.Light.occ));
