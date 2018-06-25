@@ -36,8 +36,8 @@ expmt.Optomotor.tdist = total_dist;
 nReps = 1000;
 [expmt.Optomotor.bootstrap,~,f]=bootstrap_optomotor(expmt,nReps,'Optomotor');
 
-fname = [expmt.figdir expmt.date '_bs_opto'];
-if ~isempty(expmt.figdir) && options.save
+fname = [expmt.meta.path.fig expmt.meta.date '_bs_opto'];
+if ~isempty(expmt.meta.path.fig) && options.save
     hgsave(f,fname);
     close(f);
 end
@@ -46,8 +46,8 @@ end
 f=figure();
 plotOptoTraces(da,active,expmt.parameters);
 
-fname = [expmt.figdir expmt.date '_combined'];
-if ~isempty(expmt.figdir) && options.save
+fname = [expmt.meta.path.fig expmt.meta.date '_combined'];
+if ~isempty(expmt.meta.path.fig) && options.save
     hgsave(f,fname);
     close(f);
 end
@@ -107,8 +107,8 @@ if isfield(expmt,'sweep')
     set(gca,'Xtick',1:length(avg_trace),'XtickLabel',expmt.sweep.contrasts);
     legend({'95%CI' 'index'})
     
-    fname = [expmt.figdir expmt.date '_con_swp'];
-    if ~isempty(expmt.figdir) && options.save
+    fname = [expmt.meta.path.fig expmt.meta.date '_con_swp'];
+    if ~isempty(expmt.meta.path.fig) && options.save
         hgsave(f,fname);
         close(f);
     end
@@ -170,8 +170,8 @@ if isfield(expmt,'sweep')
     ylabel('opto index')
     set(gca,'Xtick',1:length(avg_trace),'XtickLabel',expmt.sweep.ang_vel);    
 
-    fname = [expmt.figdir expmt.date '_angv_swp'];
-    if ~isempty(expmt.figdir) && options.save
+    fname = [expmt.meta.path.fig expmt.meta.date '_angv_swp'];
+    if ~isempty(expmt.meta.path.fig) && options.save
         hgsave(f,fname);
         close(f);
     end
@@ -234,8 +234,8 @@ if isfield(expmt,'sweep')
     ylabel('opto index')
     set(gca,'Xtick',1:length(avg_trace),'XtickLabel',expmt.sweep.spatial_freq);  
 
-    fname = [expmt.figdir expmt.date '_spatf_swp'];
-    if ~isempty(expmt.figdir) && options.save
+    fname = [expmt.meta.path.fig expmt.meta.date '_spatf_swp'];
+    if ~isempty(expmt.meta.path.fig) && options.save
         hgsave(f,fname);
         close(f);
     end

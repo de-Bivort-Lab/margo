@@ -27,7 +27,7 @@ end
         
 for i=1:length(expmt.meta.fields)
     f=expmt.meta.fields{i};
-    path = getHiddenMatDir(expmt.meta.path.dir,'keyword',f,'ext','.bin');
+    path = recursiveSearch(expmt.meta.path.dir,'keyword',f,'ext','.bin');
     
     if ~isempty(path)
        if ~strcmp(path,expmt.(f).path)

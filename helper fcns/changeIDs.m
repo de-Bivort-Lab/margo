@@ -1,7 +1,7 @@
 function changeIDs(oldIDs,newIDs)
 
 fDir = autoDir;
-fPaths = getHiddenMatDir(fDir,'ext','.mat');
+fPaths = recursiveSearch(fDir,'ext','.mat');
 
 hwb = waitbar(0,'loading files');
 
@@ -34,7 +34,7 @@ for j = 1:length(fPaths)
     
     % Query label fields and set label for file
     lab_fields = expmt.meta.labels_table.Properties.VariableNames;
-    expmt.meta.path.name = [expmt.date '_' expmt.meta.name];
+    expmt.meta.path.name = [expmt.meta.date '_' expmt.meta.name];
     for i = 1:length(lab_fields)
         switch lab_fields{i}
             case 'Strain'

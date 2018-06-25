@@ -201,7 +201,7 @@ handles.cam_calibrate_menu.UserData = false;
 
 if exist(cam_dir,'dir')==7
     
-    cam_files = getHiddenMatDir(cam_dir);
+    cam_files = recursiveSearch(cam_dir);
     var_names = cell(length(cam_files),1);
     for i=1:length(cam_files)
         vn = {who('-file',cam_files{i})};
@@ -258,6 +258,9 @@ expmt.parameters.track_thresh = round(handles.track_thresh_slider.Value);
 expmt.parameters.sort_mode = 'distance';
 expmt.parameters.ROI_mode = 'auto';
 expmt.parameters.ROI_tol = 2.5;
+
+% set analysis options
+[~,expmt.meta.options] = defaultAnalysisOptions;
 
 handles.edit_speed_thresh.String = num2str(handles.gui_fig.UserData.speed_thresh);
 handles.edit_dist_thresh.String = num2str(handles.gui_fig.UserData.distance_thresh);
@@ -1040,9 +1043,10 @@ else
                 
             case 'Basic Tracking'
                 expmt = run_basictracking(expmt,handles);     % Run expmt
-                if isfield(expmt,'date')
+                if ~expmt.meta.options.disable
                     expmt = analyze_basictracking(expmt,'Handles',handles);
-                else
+                end
+                if ~expmt.meta.finish
                     keep_gui_state = true;
                 end
                 
@@ -1146,6 +1150,7 @@ else
         % remove tracked fields from master expmt for next run
         expmt.meta.fields = {'centroid','time'};
         expmt = reset(expmt);
+        [~,expmt.meta.options] = defaultAnalysisOptions;
         note = 'ROIs, references, and noise statistics reset';
         gui_notify(note,handles.disp_note);
         
@@ -2588,6 +2593,20 @@ if ~isempty(tmp_video)
     if ~isfield(expmt.meta.ref,'im')
         handles.sample_noise_pushbutton.Enable = 'off';
     end
+    
+    im = nextFrame(expmt.meta.video, handles);
+    if size(im,3) > 1
+        im = im(:,:,1);
+    end   
+    if ~isfield(handles.hImage,'CData')
+        colormap('gray');
+        handles.hImage = imagesc(im);
+    else
+        handles.hImage.CData = im;
+    end
+    
+    gui_fig_SizeChangedFcn(handles.gui_fig, [], handles);
+    
 end
 
 % set expmt data struct
@@ -2733,7 +2752,8 @@ elseif strcmp(expmt.meta.source,'video')
     
     % open video object from file
     expmt.meta.video.vid = ...
-        VideoReader([expmt.meta.video.fdir expmt.meta.video.fnames{handles.vid_select_popupmenu.Value}]);
+        VideoReader([expmt.meta.video.fdir ...
+            expmt.meta.video.fnames{handles.vid_select_popupmenu.Value}]);
     
     expmt.meta.video.ct = handles.vid_select_popupmenu.Value;    % get file number in list
 
@@ -2893,12 +2913,10 @@ guidata(hObject,handles);
 
 % --------------------------------------------------------------------
 function refresh_cam_menu_Callback(hObject, ~, handles)
-% hObject    handle to refresh_cam_menu (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
 
-expmt = getappdata(handles.gui_fig,'expmt');            % fetch master data struct
-refresh = warningbox_subgui;                            % display warning and ask user whether or not to continue
+% display warning and ask user whether or not to reset cam
+expmt = getappdata(handles.gui_fig,'expmt');
+refresh = warningbox_subgui('title', 'Camera Reset');     
 if strcmp(refresh,'OK')
     expmt.hardware.cam = refresh_cam_list(handles);          % reset cameras and refresh gui lists
 end
@@ -3721,9 +3739,6 @@ switch hObject.Checked
     case 'on'
         hObject.Checked = 'off';
 end
-
-
-
 
 
 % --------------------------------------------------------------------

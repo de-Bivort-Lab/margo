@@ -64,14 +64,14 @@ function analysisoptions_gui_OpeningFcn(hObject, eventdata, handles, varargin)
     end
     
     if isfield(expmt.meta,'fields')
-        f = expmt.fields;
+        f = expmt.meta.fields;
     else
         [f,~] = defaultAnalysisOptions;
     end
 
     handles.output = expmt;
     handles.output.meta.options;
-    handles.output.fields = f;
+    handles.output.meta.fields = f;
     
     light_uipanel = findobj('Tag','light_uipanel');
     gui_fig = findobj('Name','autotracker');
@@ -130,6 +130,7 @@ function analysisoptions_gui_OpeningFcn(hObject, eventdata, handles, varargin)
     if opt.disable
         hCheck = findobj(handles.figure1,'-depth',3,'Style','checkbox');
         set(hCheck,'Enable','off');
+        handles.Text15.Enable = 'off';
         handles.disable_checkbox.Enable = 'on';
     end
     
@@ -179,8 +180,10 @@ handles.output.meta.options.disable = hObject.Value;
 hCheck = findobj(handles.figure1,'-depth',3,'Style','checkbox');
 if hObject.Value
     set(hCheck,'Enable','off');
+    handles.text15.Enable = 'off';
 else
     set(hCheck,'Enable','on');
+    handles.text15.Enable = 'on';
 end
 hObject.Enable = 'on';
 guidata(hObject,handles);
@@ -238,7 +241,7 @@ guidata(hObject,handles);
 function speed_checkbox_Callback(hObject, eventdata, handles)
 % hObject    handle to speed_checkbox (see GCBO)
 
-f = handles.output.fields;
+f = handles.output.meta.fields;
 if hObject.Value
      if ~any(strcmp('Speed',f))
          f = [f;{'Speed'}];
@@ -249,7 +252,7 @@ else
          f(idx) = [];
      end
 end
-handles.output.fields = f;
+handles.output.meta.fields = f;
 guidata(hObject,handles);
 
 
@@ -258,7 +261,7 @@ guidata(hObject,handles);
 function area_checkbox_Callback(hObject, eventdata, handles) %#ok<*INUSD>
 % hObject    handle to area_checkbox (see GCBO)
 
-f = handles.output.fields;
+f = handles.output.meta.fields;
 if hObject.Value
      if ~any(strcmp('Area',f))
          f = [f;{'Area'}];
@@ -269,7 +272,7 @@ else
          f(idx) = [];
      end
 end
-handles.output.fields = f;
+handles.output.meta.fields = f;
 guidata(hObject,handles);
 
 
@@ -278,7 +281,7 @@ guidata(hObject,handles);
 function orientation_checkbox_Callback(hObject, eventdata, handles)
 % hObject    handle to orientation_checkbox (see GCBO)
 
-f = handles.output.fields;
+f = handles.output.meta.fields;
 if hObject.Value
      if ~any(strcmp('Orientation',f))
          f = [f;{'Orientation'}];
@@ -289,7 +292,7 @@ else
          f(idx) = [];
      end
 end
-handles.output.fields = f;
+handles.output.meta.fields = f;
 guidata(hObject,handles);
 
 
@@ -299,7 +302,7 @@ guidata(hObject,handles);
 function weightedcentroid_checkbox_Callback(hObject, eventdata, handles)
 % hObject    handle to weightedcentroid_checkbox (see GCBO)
 
-f = handles.output.fields;
+f = handles.output.meta.fields;
 if hObject.Value
      if ~any(strcmp('WeightedCentroid',f))
          f = [f;{'WeightedCentroid'}];
@@ -310,7 +313,7 @@ else
          f(idx) = [];
      end
 end
-handles.output.fields = f;
+handles.output.meta.fields = f;
 guidata(hObject,handles);
 
 
@@ -320,7 +323,7 @@ guidata(hObject,handles);
 function major_axis_checkbox_Callback(hObject, eventdata, handles)
 % hObject    handle to major_axis_checkbox (see GCBO)
 
-f = handles.output.fields;
+f = handles.output.meta.fields;
 if hObject.Value
      if ~any(strcmp('MajorAxisLength',f))
          f = [f;{'MajorAxisLength'}];
@@ -331,7 +334,7 @@ else
          f(idx) = [];
      end
 end
-handles.output.fields = f;
+handles.output.meta.fields = f;
 guidata(hObject,handles);
 
 
@@ -339,7 +342,7 @@ guidata(hObject,handles);
 function minor_axis_checkbox_Callback(hObject, eventdata, handles)
 % hObject    handle to minor_axis_checkbox (see GCBO)
 
-f = handles.output.fields;
+f = handles.output.meta.fields;
 if hObject.Value
      if ~any(strcmp('MinorAxisLength',f))
          f = [f;{'MinorAxisLength'}];
@@ -350,7 +353,7 @@ else
          f(idx) = [];
      end
 end
-handles.output.fields = f;
+handles.output.meta.fields = f;
 guidata(hObject,handles);
 
 

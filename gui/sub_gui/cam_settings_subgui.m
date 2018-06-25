@@ -150,7 +150,7 @@ end
 while ishghandle(f)
     pause(0.001);
     if isprop(f,'UserData')
-    expmt_out = f.UserData.expmt_in;
+        expmt_out = f.UserData.expmt_in;
     end
 end
 
@@ -194,12 +194,23 @@ function edit_Callback(src,event)
     names = data.names;
     ctls = data.uictl;
     
-    % update coupled UI component
-    set(ctls(src.UserData),'value',str2num(get(src,'string')));
-    
     % update camera source and settings with current value of src.string
-    data.expmt_in.hardware.cam.settings.(names{src.UserData}) = str2num(get(src,'string'));
-    data.cam_src.(names{src.UserData}) = str2num(get(src,'string'));
+    val = str2num(get(src,'string'));
+    info = propinfo(data.cam_src);
+    if isfield(info,(names{src.UserData})) && ...
+            isfield(info.(names{src.UserData}),'Constraint')
+        if val < info.(names{src.UserData}).ConstraintValue(1)
+            val = info.(names{src.UserData}).ConstraintValue(1);
+        elseif val > info.(names{src.UserData}).ConstraintValue(2)
+            val = info.(names{src.UserData}).ConstraintValue(2);
+        end
+    end
+    
+    % update coupled UI component Experiment Data
+    set(ctls(src.UserData),'value',val);   
+    data.expmt_in.hardware.cam.settings.(names{src.UserData}) = val;
+    data.cam_src.(names{src.UserData}) = val;
+    src.String = num2str(val);
     set(pf,'UserData',data); 
     
 end

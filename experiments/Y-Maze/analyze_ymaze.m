@@ -119,8 +119,8 @@ legendLabel(1)={[strain ' ' treatment ...
     ', n=' num2str(sum(expmt.Turns.n>40)) ')']};
 legend(legendLabel);
 
-fname = [expmt.figdir expmt.date '_hist_handedness'];
-if ~isempty(expmt.figdir) && options.save
+fname = [expmt.meta.path.fig expmt.meta.date '_hist_handedness'];
+if ~isempty(expmt.meta.path.fig) && options.save
     hgsave(f,fname);
     close(f);
 end

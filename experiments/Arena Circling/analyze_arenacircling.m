@@ -38,8 +38,8 @@ if options.handedness
         ', n=' num2str(sum(expmt.handedness.active)) ')']);
     axis([-1 1 0 max(c)*1.2]);
 
-    fname = [expmt.figdir expmt.date '_handedness'];
-    if ~isempty(expmt.figdir) && options.save
+    fname = [expmt.meta.path.fig expmt.meta.date '_handedness'];
+    if ~isempty(expmt.meta.path.fig) && options.save
         hgsave(f,fname);
         close(f);
     end

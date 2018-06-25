@@ -72,9 +72,9 @@ if options.slide
     expmt.Circadian.trace.t = tmp_tStamps;
 
     % Create time labels and light patches
-    hr = str2double(expmt.date(12:13));
-    min = str2double(expmt.date(15:16));
-    sec = str2double(expmt.date(18:19));
+    hr = str2double(expmt.meta.date(12:13));
+    min = str2double(expmt.meta.date(15:16));
+    sec = str2double(expmt.meta.date(18:19));
     tStart = hr*3600 + min*60 + sec;
     tEnd = sum(expmt.data.time.raw);
 
@@ -210,8 +210,8 @@ if options.slide
     end
 
     % save fig
-    fname = [expmt.figdir expmt.date '_activity trace'];
-    if ~isempty(expmt.figdir) && options.save
+    fname = [expmt.meta.path.fig expmt.meta.date '_activity trace'];
+    if ~isempty(expmt.meta.path.fig) && options.save
         hgsave(f,fname);
         close(f);
     end

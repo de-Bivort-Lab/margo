@@ -34,7 +34,7 @@ classdef ExperimentData < handle
             obj.meta.path.name  =   name;
 
             % get binary files
-            rawpaths = getHiddenMatDir(dir,'ext','.bin');
+            rawpaths = recursiveSearch(dir,'ext','.bin');
             [~,rawnames] = cellfun(@fileparts, rawpaths, ...
                                         'UniformOutput',false);
             

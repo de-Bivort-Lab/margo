@@ -32,27 +32,26 @@ if gui_handles.stop_pushbutton.UserData.Value
             
             % close fileIDs
             for i = 1:length(trackDat.fields)                           
-                fclose(expmt.(trackDat.fields{i}).fID);
-                delete(expmt.(trackDat.fields{i}).path);
+                fclose(expmt.data.(trackDat.fields{i}).fID);
+                delete(expmt.data.(trackDat.fields{i}).path);
             end
             
             switch expmt.meta.source
                 case 'camera'
                     trackDat.t = 0;
-                    tPrev = toc;
-                    updateTime(trackDat, tPrev, expmt, gui_handles);
+                    trackDat.tPrev = toc;
+                    autoTime(trackDat, expmt, gui_handles);
                 case 'video'
                     gui_handles.edit_time_remaining.String = '-';
             end
             
             % delete the experiment directory
-            if isfield(expmt,'rawdir')
-                rmdir(expmt.rawdir);
+            if exist(expmt.meta.path.dir,'dir')==7
+                rmdir(expmt.meta.path.dir,'s');
             end
-            rmdir(expmt.meta.path.dir);
             
-            df = {'date' 'fLabel'};
-            expmt = rmfield(expmt,df);
+            expmt.meta.data = [];
+            expmt.meta.path.name = [];
             
         case 'Exit'
             

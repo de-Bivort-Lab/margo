@@ -9,7 +9,7 @@ function expmt = autoFinish(trackDat, expmt, gui_handles)
             end
 
             % store number of dropped frames for each object in master data struct
-            expmt.drop_ct = trackDat.drop_ct;
+            expmt.meta.num_dropped = trackDat.drop_ct;
             expmt.meta.num_frames = trackDat.ct;
             
             % close .avi file if one exists

@@ -37,12 +37,6 @@ for i = 1:length(varargin)
             case 'Handles'
                 i=i+1;
                 options.handles = varargin{i};
-            case 'Decimate'
-                i=i+1;
-                options.decimate = varargin{i};
-            case 'DecFac'
-                i=i+1;
-                options.decfac = varargin{i};
             case 'Raw'
                 i=i+1;
                 options.raw = varargin{i};
@@ -116,9 +110,10 @@ end
 
 % record distance from camera center
 if ~isfield(expmt.meta.roi,'cam_dist')
-    cc = [size(expmt.meta.ref,2)/2 size(expmt.meta.ref,1)/2];
-    expmt.meta.roi.cam_dist = sqrt((expmt.meta.roi.centers(:,1)-cc(1)).^2 + ...
-        (expmt.meta.roi.centers(:,2)-cc(2)).^2);
+    cc = [size(expmt.meta.ref.im,2)/2 size(expmt.meta.ref.im,1)/2];
+    expmt.meta.roi.cam_dist = ...
+        sqrt((expmt.meta.roi.centers(:,1)-cc(1)).^2 + ...
+            (expmt.meta.roi.centers(:,2)-cc(2)).^2);
 end
 
 % regress out lens distance distortion with linear model
@@ -130,11 +125,11 @@ if options.regress
     expmt = modelLensDistortion(expmt);
 end
 
-expmt.figdir = [expmt.meta.path.dir 'figures_' expmt.date '/'];
-if ~exist(expmt.figdir,'dir') && options.save
-    [mkst,~]=mkdir(expmt.figdir);
+expmt.meta.path.figdir = [expmt.meta.path.dir 'figures_' expmt.meta.date '/'];
+if ~exist(expmt.meta.path.fig,'dir') && options.save
+    [mkst,~]=mkdir(expmt.meta.path.fig);
     if ~mkst
-       expmt.figdir=[];
+       expmt.meta.path.fig=[];
     end
 end
 
@@ -156,8 +151,8 @@ if isfield(expmt.data,'speed') && isattached(expmt.data.speed) ...
     [expmt.data.speed.bs,f] = bootstrap_speed_blocks(expmt,block_indices,100);
     
     % save bootstrap figure to file
-    fname = [expmt.figdir expmt.date '_bs_logspeed'];
-    if ~isempty(expmt.figdir) && options.save
+    fname = [expmt.meta.path.fig expmt.meta.date '_bs_logspeed'];
+    if ~isempty(expmt.meta.path.fig) && options.save
         hgsave(f,fname);
         close(f);
     end

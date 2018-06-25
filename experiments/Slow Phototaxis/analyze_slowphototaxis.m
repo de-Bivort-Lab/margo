@@ -122,8 +122,8 @@ expmt.StimCen.data(:,2,:) = trackProps.r .* sin(cen_theta);
 
 nReps = 1000;
 [expmt.Light.bs,f] = bootstrap_slowphototaxis(expmt,nReps,'Light');
-fname = [expmt.figdir expmt.date '_light_bs'];
-if ~isempty(expmt.figdir) && options.save
+fname = [expmt.meta.path.fig expmt.meta.date '_light_bs'];
+if ~isempty(expmt.meta.path.fig) && options.save
     hgsave(f,fname);
     close(f);
 end
@@ -132,8 +132,8 @@ if ~isfield(expmt.parameters,'blank_duration') || ...
         (isfield(expmt.parameters,'blank_duration') && expmt.parameters.blank_duration > 0)
     
     [expmt.Blank.bs,f] = bootstrap_slowphototaxis(expmt,nReps,'Blank');
-    fname = [expmt.figdir expmt.date '_dark_bs'];
-    if ~isempty(expmt.figdir) && options.save
+    fname = [expmt.meta.path.fig expmt.meta.date '_dark_bs'];
+    if ~isempty(expmt.meta.path.fig) && options.save
         hgsave(f,fname);
         close(f);
     end
@@ -210,8 +210,8 @@ end
 legend(legendLabel);
 shg
 
-fname = [expmt.figdir expmt.date '_histogram'];
-if ~isempty(expmt.figdir) && options.save
+fname = [expmt.meta.path.fig expmt.meta.date '_histogram'];
+if ~isempty(expmt.meta.path.fig) && options.save
     hgsave(f,fname);
     close(f);
 end
@@ -261,8 +261,8 @@ str = ['r = ' num2str(round(r(2,1)*100)/100) ', p = ' num2str(round(p(2,1)*10000
 annotation('textbox',dim,'String',str,'FitBoxToText','on');
 title('slow phototaxis - handedness');
 
-fname = [expmt.figdir expmt.date '_handedness'];
-if ~isempty(expmt.figdir) && options.save
+fname = [expmt.meta.path.fig expmt.meta.date '_handedness'];
+if ~isempty(expmt.meta.path.fig) && options.save
     hgsave(f,fname);
     close(f);
 end

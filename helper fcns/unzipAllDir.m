@@ -16,7 +16,7 @@ if ~exist('fDir','var')
     'Select directory containing raw data .zip files');
 end
 
-fPaths = getHiddenMatDir(fDir,'ext','.zip');
+fPaths = recursiveSearch(fDir,'ext','.zip');
 
 wh=waitbar(0,['unzipping file 0 out of ' num2str(length(fPaths))]);
 wh.Name = 'unzipping files, please wait...';

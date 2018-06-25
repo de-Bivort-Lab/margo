@@ -54,7 +54,7 @@ function label_subgui_OpeningFcn(hObject, eventdata, handles, varargin)
 
 % Choose default command line output for optomotor_parameter_gui
 expmt = varargin{1};
-if isfield(expmt,'labels')
+if ~isempty(expmt.meta.labels)
     label_data = expmt.meta.labels;
     if cellfun('isempty',label_data(1,4))
         label_data(1,4) = {1};

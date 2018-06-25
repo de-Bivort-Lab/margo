@@ -24,7 +24,7 @@ end
 % Get paths to data files
 [fDir] = autoDir;
 
-fPaths = getHiddenMatDir(fDir,'ext','.mat',keyarg{:});
+fPaths = recursiveSearch(fDir,'ext','.mat',keyarg{:});
 varargin = [varargin,{'Dir'}];
 dir_idx = numel(varargin)+1;
 fDir=cell(size(fPaths));

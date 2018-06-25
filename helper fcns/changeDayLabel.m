@@ -23,7 +23,7 @@ end
 [fDir] = uigetdir('C:/Users/debivort/Documents/MATLAB/Decathlon Raw Data',...
     'Select directory containing expmt files and folders to be renamed');
 
-fPaths = getHiddenMatDir(fDir);
+fPaths = recursiveSearch(fDir);
 dir_idx = i+1;
 fDir=cell(size(fPaths));
 for j=1:length(fPaths)

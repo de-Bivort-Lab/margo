@@ -8,9 +8,9 @@ function [trackDat,expmt] = autoInitialize(trackDat,expmt,gui_handles)
 %set(gui_handles.off_objs,'Enable','off');
 
 % Initialize infrared and white illuminators
-expmt.hardware.COM = writeInfraredWhitePanel(expmt.hardware.COM,1,...
+writeInfraredWhitePanel(expmt.hardware.COM.light,1,...
                         expmt.hardware.light.infrared);
-expmt.hardware.COM = writeInfraredWhitePanel(expmt.hardware.COM,0,...
+writeInfraredWhitePanel(expmt.hardware.COM.light,0,...
                         expmt.hardware.light.white);
 
 % clear any objects drawn to gui window
@@ -51,12 +51,14 @@ if isfield(gui_handles,'deviceID')
     try
         minstr = num2str(round(expmt.parameters.duration * 60));
         minstr = [repmat('0',1,4-length(minstr)) minstr];
-        webread(['http://lab.debivort.org/mu.php?id=' gui_handles.deviceID '&st=1' minstr],webop);
+        webread(['http://lab.debivort.org/mu.php?id=' ...
+            gui_handles.deviceID '&st=1' minstr],webop);
     catch
         status = false;
     end
     if ~status
-        gui_notify('unable to connect to http://lab.debivort.org',gui_handles.disp_note);
+        gui_notify(['unable to connect to '...
+            'http://lab.debivort.org'],gui_handles.disp_note);
     end
 end
 
@@ -83,34 +85,36 @@ expmt.meta.roi.cam_dist = ...
 
 %% Initialize labels, file paths, and files for tracked fields
 
-expmt.date = datestr(clock,'mm-dd-yyyy-HH-MM-SS_');         % get date string
-expmt.meta.labels_table = labelMaker(expmt);                           % convert labels cell into table format
+expmt.meta.date = datestr(clock,'mm-dd-yyyy-HH-MM-SS_');
+expmt.meta.labels_table = labelMaker(expmt);
 
 % Query label fields and set label for file
 lab_fields = expmt.meta.labels_table.Properties.VariableNames;
-expmt.meta.path.name = [expmt.date '_' expmt.meta.name];
+expmt.meta.path.name = [expmt.meta.date '_' expmt.meta.name];
 for i = 1:length(lab_fields)
     switch lab_fields{i}
         case 'Strain'
-            expmt.(lab_fields{i}) = expmt.meta.labels_table{1,i}{:};
+            expmt.meta.(lab_fields{i}) = expmt.meta.labels_table{1,i}{:};
             expmt.meta.path.name = ...
                 [expmt.meta.path.name '_' expmt.meta.labels_table{1,i}{:}];
         case 'Sex'
-            expmt.(lab_fields{i}) = expmt.meta.labels_table{1,i}{:};
+            expmt.meta.(lab_fields{i}) = expmt.meta.labels_table{1,i}{:};
             expmt.meta.path.name = ...
                 [expmt.meta.path.name '_' expmt.meta.labels_table{1,i}{:}];
         case 'Treatment'
-            expmt.(lab_fields{i}) = expmt.meta.labels_table{1,i}{:};
+            expmt.meta.(lab_fields{i}) = expmt.meta.labels_table{1,i}{:};
             expmt.meta.path.name = ...
                 [expmt.meta.path.name '_' expmt.meta.labels_table{1,i}{:}];
         case 'Day'
-            expmt.(lab_fields{i}) = expmt.meta.labels_table{1,i};
+            expmt.meta.(lab_fields{i}) = expmt.meta.labels_table{1,i};
             expmt.meta.path.name = ...
-                [expmt.meta.path.name '_Day' num2str(expmt.meta.labels_table{1,i})];
+                [expmt.meta.path.name '_Day' ...
+                num2str(expmt.meta.labels_table{1,i})];
         case 'ID'
             ids = expmt.meta.labels_table{:,i};
             expmt.meta.path.name = ...
-                [expmt.meta.path.name '_' num2str(ids(1)) '-' num2str(ids(end))];
+                [expmt.meta.path.name '_' num2str(ids(1))...
+                '-' num2str(ids(end))];
     end
 end
 
@@ -121,21 +125,24 @@ expmt.meta.path.name(ismember(expmt.meta.path.name,illegal))='_';
 % make a new directory for the files
 expmt.meta.path.dir = [expmt.meta.path.full '/' expmt.meta.path.name '/'];
 mkdir(expmt.meta.path.dir);
-expmt.rawdir = [expmt.meta.path.full '/' expmt.meta.path.name '/raw_data/'];
-mkdir(expmt.rawdir);
+expmt.meta.rawdir = [expmt.meta.path.full '/' expmt.meta.path.name '/raw_data/'];
+mkdir(expmt.meta.rawdir);
 
 % generate file ID for files to write
 for i = 1:length(trackDat.fields)                           
-    expmt.(trackDat.fields{i}).path = ...                   % initialize path for new file    
-        [expmt.rawdir expmt.date '_' trackDat.fields{i} '.bin'];
-    if numel(expmt.(trackDat.fields{i}).path) > 260
+    expmt.data.(trackDat.fields{i}).path = ...                   % initialize path for new file    
+        [expmt.meta.rawdir expmt.meta.date '_' trackDat.fields{i} '.bin'];
+    if numel(expmt.data.(trackDat.fields{i}).path) > 260
         error(['RAW DATA file path exceeds maximum allowed length. '...
             'Shorten the file path and initialize the experiment again. '...
-            'Note: label information such as strain and treatment are automatically'...
-            'incorporated into the file path and may need to be abbreviated. ']);
+            'Note: label information such as strain and treatment are '...
+            'automatically incorporated into the file path and may'...
+            'need to be abbreviated. ']);
     end        
-    expmt.(trackDat.fields{i}).fID = ...
-        fopen(expmt.(trackDat.fields{i}).path,'w');         % open fileID with write permission
+    
+    % open fileID with write permission
+    expmt.data.(trackDat.fields{i}).fID = ...
+        fopen(expmt.data.(trackDat.fields{i}).path,'w');         
 end
 
 % save current parameters to .mat file prior to experiment
@@ -151,7 +158,8 @@ save([expmt.meta.path.dir expmt.meta.path.name '.mat'],'expmt');
 expmt = getVideoInput(expmt,gui_handles);
 
 % initialize video recording if enabled
-if strcmp(expmt.meta.source,'camera') && strcmp(gui_handles.record_video_menu.Checked,'on')
+if strcmp(expmt.meta.source,'camera') && ...
+        strcmp(gui_handles.record_video_menu.Checked,'on')
     [trackDat,expmt] = initializeVidRecording(trackDat,expmt,gui_handles);
 else
    gui_handles.record_video_menu.Checked = 'off'; 
@@ -162,8 +170,9 @@ expmt.meta.initialize = false;
 % initialize centroid markers
 clean_gui(gui_handles.axes_handle);
 hold on
-trackDat.hMark = plot(trackDat.centroid(:,1),trackDat.centroid(:,2),'ro',...
-    'Parent',gui_handles.axes_handle);
+trackDat.hMark = ...
+    plot(trackDat.centroid(:,1),trackDat.centroid(:,2),'ro',...
+        'Parent',gui_handles.axes_handle);
 hold off
 
 % start the timer for the experiment

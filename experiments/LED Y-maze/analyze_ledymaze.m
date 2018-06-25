@@ -112,8 +112,8 @@ if isfield(expmt.LightChoice,'active') && any(expmt.LightChoice.active)
     [expmt.LightChoice.bs, f] = bootstrap_ledymaze(expmt,200);
 
 
-    fname = [expmt.figdir expmt.date '_bs_light'];
-    if ~isempty(expmt.figdir) && options.save
+    fname = [expmt.meta.path.fig expmt.meta.date '_bs_light'];
+    if ~isempty(expmt.meta.path.fig) && options.save
         hgsave(f,fname);
         close(f);
     end
@@ -166,8 +166,8 @@ legend(legendLabel);
 
 title('Phototaxis and Right Turn Histogram');
 
-fname = [expmt.figdir expmt.date '_hist_photo'];
-if ~isempty(expmt.figdir) && options.save
+fname = [expmt.meta.path.fig expmt.meta.date '_hist_photo'];
+if ~isempty(expmt.meta.path.fig) && options.save
     hgsave(f,fname);
     close(f);
 end
