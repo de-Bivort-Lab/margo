@@ -956,8 +956,7 @@ handles.run_pushbutton.Enable = 'off';
 keep_gui_state = false;
 
 % check labels
-hasData = any(~cellfun('isempty',expmt.meta.labels));
-hasLabelData = hasData(1);
+hasLabelData = ~isempty(expmt.meta.labels);
 
 
 if isfield(expmt.meta.path,'full') == 0 
@@ -2851,7 +2850,7 @@ if isfield(expmt.hardware.cam,'src')
 end
 
 if isfield(expmt.meta.video,'vid')
-    expmt = rmfield(expmt,'video');
+    expmt.meta = rmfield(expmt.meta,'video');
 end
 
 % set profile save path

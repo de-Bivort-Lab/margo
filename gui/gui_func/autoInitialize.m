@@ -128,6 +128,12 @@ mkdir(expmt.meta.path.dir);
 expmt.meta.rawdir = [expmt.meta.path.full '/' expmt.meta.path.name '/raw_data/'];
 mkdir(expmt.meta.rawdir);
 
+% add any optional fields
+f=trackDat.fields;
+append_fields = cellfun(@(x) ~any(strcmp(x,expmt.meta.fields)),f);
+expmt.meta.fields = [expmt.meta.fields; f(append_fields)];
+trackDat.fields = expmt.meta.fields;
+
 % generate file ID for files to write
 for i = 1:length(trackDat.fields)                           
     expmt.data.(trackDat.fields{i}).path = ...                   % initialize path for new file    

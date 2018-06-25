@@ -29,6 +29,8 @@ function expmt = autoFinish(trackDat, expmt, gui_handles)
                 expmt.hardware.cam = rmfield(expmt.hardware.cam,'src');
                 expmt.hardware.cam = rmfield(expmt.hardware.cam,'vid');
             end
+            
+            expmt.meta.fields(strcmpi(expmt.meta.fields,'WeightedCentroid'))=[];
 
             % re-save updated expmt data struct to file
             save([expmt.meta.path.dir expmt.meta.path.name '.mat'],'expmt','-v7.3');

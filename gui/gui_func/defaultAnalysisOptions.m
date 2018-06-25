@@ -4,8 +4,8 @@ f = false;
 options = struct('disable',f,'handedness',f,'bouts',f,'bootstrap',f,...
     'regress',f,'slide',f,'areathresh',f,'save',true,'raw',f);
 options.raw = {};
-fields = {'Centroid';'Time'};
-f={'Centroid';'Time'};
+fields = {'centroid';'time'};
+f={'centroid';'time'};
 if ~isempty(varargin)
     expmt = varargin{1};
     remove_fields = cellfun(@(x) ~any(strcmp(x,f)),expmt.fields);

@@ -95,7 +95,7 @@ function analysisoptions_gui_OpeningFcn(hObject, eventdata, handles, varargin)
             case 'raw',
                 for j = 1:numel(opt.(fn{i}))
                     switch opt.(fn{i}){j}
-                        case 'Speed', handles.trackProps_speed_checkbox.Value = true;
+                        case 'speed', handles.trackProps_speed_checkbox.Value = true;
                         case 'Direction', handles.direction_checkbox.Value = true;
                         case 'Theta', handles.theta_checkbox.Value = true;
                         case 'Radius', handles.radius_checkbox.Value = true;
@@ -112,12 +112,12 @@ function analysisoptions_gui_OpeningFcn(hObject, eventdata, handles, varargin)
     for i=1:numel(f)
         clear h
         switch f{i}
-            case 'Orientation', h = handles.orientation_checkbox;
-            case 'Area', h = handles.area_checkbox;
-            case 'WeightedCentroid', h = handles.weightedcentroid_checkbox;
-            case 'MajorAxisLength', h = handles.major_axis_checkbox;
-            case 'MinorAxisLength', h = handles.minor_axis_checkbox;
-            case 'Speed', h = handles.speed_checkbox;
+            case 'orientation', h = handles.orientation_checkbox;
+            case 'area', h = handles.area_checkbox;
+            case 'weightedCentroid', h = handles.weightedcentroid_checkbox;
+            case 'majorAxisLength', h = handles.major_axis_checkbox;
+            case 'minorAxisLength', h = handles.minor_axis_checkbox;
+            case 'speed', h = handles.speed_checkbox;
         end
         
         if exist('h','var')
@@ -243,12 +243,12 @@ function speed_checkbox_Callback(hObject, eventdata, handles)
 
 f = handles.output.meta.fields;
 if hObject.Value
-     if ~any(strcmp('Speed',f))
-         f = [f;{'Speed'}];
+     if ~any(strcmp('speed',f))
+         f = [f;{'speed'}];
      end
 else
-     if any(strcmp('Speed',f))
-         idx = strcmp('Speed',f);
+     if any(strcmp('speed',f))
+         idx = strcmp('speed',f);
          f(idx) = [];
      end
 end
@@ -263,12 +263,12 @@ function area_checkbox_Callback(hObject, eventdata, handles) %#ok<*INUSD>
 
 f = handles.output.meta.fields;
 if hObject.Value
-     if ~any(strcmp('Area',f))
-         f = [f;{'Area'}];
+     if ~any(strcmp('area',f))
+         f = [f;{'area'}];
      end
 else
-     if any(strcmp('Area',f))
-         idx = strcmp('Area',f);
+     if any(strcmp('area',f))
+         idx = strcmp('area',f);
          f(idx) = [];
      end
 end
@@ -283,12 +283,12 @@ function orientation_checkbox_Callback(hObject, eventdata, handles)
 
 f = handles.output.meta.fields;
 if hObject.Value
-     if ~any(strcmp('Orientation',f))
-         f = [f;{'Orientation'}];
+     if ~any(strcmp('orientation',f))
+         f = [f;{'orientation'}];
      end
 else
-     if any(strcmp('Orientation',f))
-         idx = strcmp('Orientation',f);
+     if any(strcmp('orientation',f))
+         idx = strcmp('orientation',f);
          f(idx) = [];
      end
 end
@@ -304,12 +304,12 @@ function weightedcentroid_checkbox_Callback(hObject, eventdata, handles)
 
 f = handles.output.meta.fields;
 if hObject.Value
-     if ~any(strcmp('WeightedCentroid',f))
-         f = [f;{'WeightedCentroid'}];
+     if ~any(strcmp('weightedCentroid',f))
+         f = [f;{'weightedCentroid'}];
      end
 else
-     if any(strcmp('WeightedCentroid',f))
-         idx = strcmp('WeightedCentroid',f);
+     if any(strcmp('weightedCentroid',f))
+         idx = strcmp('weightedCentroid',f);
          f(idx) = [];
      end
 end
@@ -325,12 +325,12 @@ function major_axis_checkbox_Callback(hObject, eventdata, handles)
 
 f = handles.output.meta.fields;
 if hObject.Value
-     if ~any(strcmp('MajorAxisLength',f))
-         f = [f;{'MajorAxisLength'}];
+     if ~any(strcmp('majorAxisLength',f))
+         f = [f;{'majorAxisLength'}];
      end
 else
-     if any(strcmp('MajorAxisLength',f))
-         idx = strcmp('MajorAxisLength',f);
+     if any(strcmp('majorAxisLength',f))
+         idx = strcmp('majorAxisLength',f);
          f(idx) = [];
      end
 end
@@ -344,12 +344,12 @@ function minor_axis_checkbox_Callback(hObject, eventdata, handles)
 
 f = handles.output.meta.fields;
 if hObject.Value
-     if ~any(strcmp('MinorAxisLength',f))
-         f = [f;{'MinorAxisLength'}];
+     if ~any(strcmp('minorAxisLength',f))
+         f = [f;{'minorAxisLength'}];
      end
 else
-     if any(strcmp('MinorAxisLength',f))
-         idx = strcmp('MinorAxisLength',f);
+     if any(strcmp('minorAxisLength',f))
+         idx = strcmp('minorAxisLength',f);
          f(idx) = [];
      end
 end
@@ -371,12 +371,12 @@ end
 
 
 if hObject.Value
-     if ~any(strcmp('Speed',r))
-         r = [r;{'Speed'}];
+     if ~any(strcmp('speed',r))
+         r = [r;{'speed'}];
      end
 else
-     if any(strcmp('Speed',r))
-         idx = strcmp('Speed',r);
+     if any(strcmp('speed',r))
+         idx = strcmp('speed',r);
          r(idx) = [];
      end
 end

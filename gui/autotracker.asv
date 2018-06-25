@@ -956,7 +956,7 @@ handles.run_pushbutton.Enable = 'off';
 keep_gui_state = false;
 
 % check labels
-hasData = any(~cellfun('isempty',expmt.meta.labels));
+hasData = ismepty(expmt.meta.labels));
 hasLabelData = hasData(1);
 
 
@@ -2597,13 +2597,15 @@ if ~isempty(tmp_video)
     im = nextFrame(expmt.meta.video, handles);
     if size(im,3) > 1
         im = im(:,:,1);
-    end
-    
+    end   
     if ~isfield(handles.hImage,'CData')
+        colormap('gray');
         handles.hImage = imagesc(im);
     else
         handles.hImage.CData = im;
     end
+    
+    gui_fig_SizeChangedFcn(handles.gui_fig, [], handles);
     
 end
 

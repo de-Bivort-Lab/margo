@@ -145,8 +145,8 @@ classdef ExperimentData < handle
                 if any(strfind(callLine,'load('))
                     i = strfind(callLine,'load(');
                     i=i(1);
-                    i = [i find(callLine==')',1,'first')];
-                    callVar = callLine(i(1):i(2));
+                    i = [i 
+                    callVar = callLine(callLine == '();
                 end
                 vars = evalin('caller','whos');
                 try

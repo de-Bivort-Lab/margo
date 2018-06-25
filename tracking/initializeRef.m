@@ -48,7 +48,7 @@ trackDat.ref.bg_mode = 'light';                 % set reference mode to dark
 
 
 % tracking vars
-trackDat.fields={'centroid';'area';'MajorAxisLength'};  % Define fields for regionprops
+trackDat.fields={'centroid';'area';'majorAxisLength'};  % Define fields for regionprops
 trackDat.centroid=expmt.meta.roi.centers;                   	% placeholder for most recent non-NaN centroids
 trackDat.tStamp=zeros(nROIs,1);
 trackDat.ct = 0;
@@ -139,25 +139,25 @@ while trackDat.t < expmt.parameters.duration*3600 &&...
     [trackDat] = autoTrack(trackDat,expmt,gui_handles);
     
     % update blob length distribution
-    if any(isnan(blob_lengths)) && any(~isnan(trackDat.MajorAxisLength))
+    if any(isnan(blob_lengths)) && any(~isnan(trackDat.majorAxisLength))
         n_remain = sum(isnan(blob_lengths));
-        n_available = sum(~isnan(trackDat.MajorAxisLength));
+        n_available = sum(~isnan(trackDat.majorAxisLength));
         if n_available <= n_remain
             idx = numel(blob_lengths)-n_remain+1;
             blob_lengths(idx:idx+n_available-1) =...
-                trackDat.MajorAxisLength(~isnan(trackDat.MajorAxisLength));
+                trackDat.majorAxisLength(~isnan(trackDat.majorAxisLength));
         else
             idx = numel(blob_lengths)-n_remain+1;
             blob_lengths(idx:end) =...
-                trackDat.MajorAxisLength(...
-                find(~isnan(trackDat.MajorAxisLength),n_remain));
+                trackDat.majorAxisLength(...
+                find(~isnan(trackDat.majorAxisLength),n_remain));
         end
         if ~any(isnan(blob_lengths))          
            tmp_thresh = (mean(blob_lengths) + std(blob_lengths)*3)*0.6;
            if tmp_thresh < trackDat.ref.thresh
                 trackDat.ref.thresh = tmp_thresh;
            end
-           trackDat.fields(strcmp(trackDat.fields,'MajorAxisLength'))=[];
+           trackDat.fields(strcmp(trackDat.fields,'majorAxisLength'))=[];
         end
     end
 

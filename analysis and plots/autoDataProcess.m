@@ -125,8 +125,8 @@ if options.regress
     expmt = modelLensDistortion(expmt);
 end
 
-expmt.meta.path.figdir = [expmt.meta.path.dir 'figures_' expmt.meta.date '/'];
-if ~exist(expmt.meta.path.fig,'dir') && options.save
+expmt.meta.path.fig = [expmt.meta.path.dir 'figures_' expmt.meta.date '/'];
+if options.save
     [mkst,~]=mkdir(expmt.meta.path.fig);
     if ~mkst
        expmt.meta.path.fig=[];
