@@ -41,6 +41,8 @@ function [trackDat, expmt] = autoReference(trackDat,expmt,gui_handles)
            % reset timer
            trackDat.ref.t = 0;   
            [expmt,trackDat] = refUpdateIdx(expmt,trackDat);
+           
+           trackDat = refRawCrossPatch(trackDat, expmt, gui_handles);
 
            trackDat.ref.update = false;
    

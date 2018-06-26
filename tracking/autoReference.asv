@@ -26,12 +26,12 @@ function [trackDat, expmt] = autoReference(trackDat,expmt,gui_handles)
         end
         
         % Reference vars
-        nROIs = size(expmt.ROI.corners, 1);                     % total number of ROIs
-        depth = gui_handles.edit_ref_depth.Value;               % number of rolling sub references
-        trackDat.ref.cen = ...
-            repmat(trackDat.Centroid,1,1,depth);                % placeholder for cen. coords where references are taken
-        trackDat.ref.ct = zeros(nROIs, 1);                      % Reference number placeholder
-        trackDat.ref.t = 0;                                     % reference time stamp
+        nROIs = size(expmt.meta.roi.corners, 1);         % total number of ROIs
+        depth = gui_handles.edit_ref_depth.Value;   % number of rolling sub references
+        trackDat.ref.cen = ...                      % placeholder for cen. coords where
+            repmat(trackDat.centroid,1,1,depth);    % references are taken
+        trackDat.ref.ct = zeros(nROIs, 1);          % Reference number placeholder
+        trackDat.ref.t = 0;                         % reference time stamp
                 
            
     % add a reference to the reference stack if time since last reference
@@ -41,6 +41,8 @@ function [trackDat, expmt] = autoReference(trackDat,expmt,gui_handles)
            % reset timer
            trackDat.ref.t = 0;   
            [expmt,trackDat] = refUpdateIdx(expmt,trackDat);
+           
+           refRaw
 
            trackDat.ref.update = false;
    

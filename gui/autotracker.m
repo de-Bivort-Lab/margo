@@ -1042,11 +1042,10 @@ else
                 
             case 'Basic Tracking'
                 expmt = run_basictracking(expmt,handles);     % Run expmt
-                if ~expmt.meta.options.disable
-                    expmt = analyze_basictracking(expmt,'Handles',handles);
-                end
                 if ~expmt.meta.finish
                     keep_gui_state = true;
+                elseif ~expmt.meta.options.disable
+                    expmt = analyze_basictracking(expmt,'Handles',handles);
                 end
                 
 
@@ -2762,12 +2761,13 @@ function saved_preset_Callback(hObject, ~)
 
 gui_fig = hObject.Parent.Parent.Parent;     % get gui handles
 expmt_new = getappdata(gui_fig,'expmt');        % get expmt data struct
+warning('off');
 load(hObject.UserData.path);
+warning('on');
 
 % load new settings in from file
-warning('off');
 expmt = load_settings(expmt,expmt_new,hObject.UserData.gui_handles); %#ok<NODEF>
-warning('on');
+
 % save loaded settings to master struct
 setappdata(gui_fig,'expmt',expmt);  
 

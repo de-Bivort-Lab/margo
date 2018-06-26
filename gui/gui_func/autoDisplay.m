@@ -71,12 +71,12 @@ switch active_disp
 
     % reference image
     case 4
-        if isfield(expmt,'ref')
+        if isfield(trackDat,'ref') && isfield(trackDat.ref,'im')
             im_handle.CData = trackDat.ref.im;
             if strcmp(im_handle.CDataMapping,'direct')
                 im_handle.CDataMapping = 'scaled';
             end
-        else
+        else 
             gui_handles.display_menu.UserData = 1;
             gui_handles.display_menu.Children(5).Checked= 'on';
             gui_handles.display_menu.Children(2).Checked= 'off';
