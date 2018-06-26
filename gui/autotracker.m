@@ -2543,8 +2543,8 @@ if ~isempty(tmp_video)
     
     % update video panel UI and image handles
     expmt.meta.video = tmp_video;
-    expmt = guiInitializeVideo(expmt, gui_handles);
-    gui_fig_SizeChangedFcn(gui_handles.gui_fig, [], gui_handles);
+    expmt = guiInitializeVideo(expmt, handles);
+    gui_fig_SizeChangedFcn(handles.gui_fig, [], handles);
     
 end
 
