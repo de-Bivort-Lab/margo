@@ -35,14 +35,7 @@ elseif strcmp(expmt.meta.source,'video')
     % set current file to first file in list
     gui_handles.vid_select_popupmenu.Value = 1;
     
-    if isfield(expmt.meta.video,'fID')
-        
-        % ensure that the current position of the file is set to 
-        % the beginning of the file (bof) + an offset of 32 bytes
-        % (the first 32 bytes store info on resolution and precision)
-        fseek(expmt.meta.video.fID, 32, 'bof');
-        
-    else
+    if isfield(expmt.meta,'video') && isfield(expmt.meta.video,'fID')
         
         % open video object from file
         expmt.meta.video.vid = ...
@@ -53,7 +46,8 @@ elseif strcmp(expmt.meta.source,'video')
         expmt.meta.video.ct = gui_handles.vid_select_popupmenu.Value;
 
         % estimate duration based on video duration
-        gui_handles.edit_exp_duration.Value = expmt.meta.video.total_duration * 1.15 / 3600;
+        gui_handles.edit_exp_duration.Value = ...
+            expmt.meta.video.total_duration * 1.15 / 3600;
         
     end
     

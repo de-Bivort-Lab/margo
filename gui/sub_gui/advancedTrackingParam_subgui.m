@@ -55,7 +55,7 @@ function advancedTrackingParam_subgui_OpeningFcn(hObject, eventdata, handles, va
 % varargin   command line arguments to advancedTrackingParam_subgui (see VARARGIN)
 
 expmt = varargin{1};
-param_data = expmt.parameters;
+param = expmt.parameters;
 
 in_handles = varargin{2};
 handles.track_fig.UserData.gui_handles = in_handles;
@@ -65,26 +65,26 @@ gui_fig = in_handles.gui_fig;
 
 
 % Set GUI strings with input parameters
-set(handles.edit_speed_thresh,'string',round(10*gui_fig.UserData.speed_thresh)/10);
-set(handles.edit_dist_thresh,'string',round(10*gui_fig.UserData.distance_thresh)/10);
-set(handles.edit_target_rate,'string',round(10*gui_fig.UserData.target_rate)/10);
-set(handles.edit_vignette_sigma,'string',round(10*gui_fig.UserData.vignette_sigma)/10);
-set(handles.edit_vignette_weight,'string',round(10*gui_fig.UserData.vignette_weight)/10);
-set(handles.edit_area_min,'string',round(10*gui_fig.UserData.area_min)/10);
-set(handles.edit_area_max,'string',round(10*gui_fig.UserData.area_max)/10);
-set(handles.edit_ROI_cluster_tolerance,'string',round(100*gui_fig.UserData.ROI_tol)/100);
-set(handles.edit_dilate_sz,'string',round(gui_fig.UserData.dilate_sz));
+set(handles.edit_speed_thresh,'string',round(10*param.speed_thresh)/10);
+set(handles.edit_dist_thresh,'string',round(10*param.distance_thresh)/10);
+set(handles.edit_target_rate,'string',round(10*param.target_rate)/10);
+set(handles.edit_vignette_sigma,'string',round(10*param.vignette_sigma)/10);
+set(handles.edit_vignette_weight,'string',round(10*param.vignette_weight)/10);
+set(handles.edit_area_min,'string',round(10*param.area_min)/10);
+set(handles.edit_area_max,'string',round(10*param.area_max)/10);
+set(handles.edit_ROI_cluster_tolerance,'string',round(100*param.roi_tol)/100);
+set(handles.edit_dilate_sz,'string',round(param.dilate_sz));
 
 % find idx of active mode in menu and set it in gui
-activemode = find(strcmp(gui_fig.UserData.sort_mode,handles.sort_mode_popupmenu.String));
-handles.sort_mode_popupmenu.Value = activemode;
+handles.sort_mode_popupmenu.Value = ...
+    find(strcmp(param.sort_mode,handles.sort_mode_popupmenu.String));
 
 % find idx of active mode in menu and set it in gui
-activemode = find(strcmp(gui_fig.UserData.ROI_mode,handles.roi_mode_popupmenu.String));
-if strcmp(gui_fig.UserData.ROI_mode,'grid')
+handles.roi_mode_popupmenu.Value = ...
+    find(strcmp(param.roi_mode,handles.roi_mode_popupmenu.String));
+if strcmp(param.roi_mode,'grid')
     handles.sort_mode_popupmenu.Enable = 'off';
 end
-handles.roi_mode_popupmenu.Value = activemode;
 
 % set subgui position to top left corner of the axes
 handles.track_fig.Position(1) = gui_fig.Position(1) + ...
@@ -103,20 +103,27 @@ function varargout = advancedTrackingParam_subgui_OutputFcn(hObject, eventdata, 
 % varargout  cell array for returning output args (see VARARGOUT);
 % handles    structure with handles and user data (see GUIDATA)
 
-% initialize tracking vars
-trackDat.ct = 0;
-
-
-
 % get handles to main gui
 expmt = handles.track_fig.UserData.expmt;
 gui_handles = handles.track_fig.UserData.gui_handles;
+varargout{1} = [];
+
+
+% exit tracking preview if experiment is in progress
+if ~expmt.meta.initialize
+    set(findobj(handles.track_fig,'-depth',1,...
+        'Style','radiobutton'),'Enable','off');
+    return
+end
+
+% initialize tracking vars
+trackDat.ct = 0;
+
+% clear and prep the display
 clean_gui(gui_handles.axes_handle);
 gui_fig = gui_handles.gui_fig;
 display_menu = findobj('Tag','display_menu');
 display_menu.UserData = 1;
-thresh_slider = findobj('Tag','track_thresh_slider');
-
 
 % enable display controls
 for i = 1:length(display_menu.Children)
@@ -128,16 +135,7 @@ raw_menu.Checked = 'on';
 display_menu.UserData = 1;
 display = false;
 
-% clear any objects drawn to gui window
-centroid_markers = findobj(gui_handles.axes_handle,'-depth',3,'Type','line');
-delete(centroid_markers);
-rect_handles = findobj(gui_handles.axes_handle,'-depth',3,'Type','rectangle');
-delete(rect_handles);
-text_handles = findobj(gui_handles.axes_handle,'-depth',3,'Type','text');
-delete(text_handles);
-
-%% Initialize camera and video object
-
+% Initialize camera and video object
 expmt = getVideoInput(expmt,gui_handles);
 
 switch expmt.meta.source
@@ -171,9 +169,7 @@ if display && isempty(imh)
     imh = image(trackDat.im,'Parent',gui_handles.axes_handle);
     % adjust aspect ratio of plot to match camera
     colormap(gui_handles.axes_handle,'gray');       
-    gui_handles.hImage.CDataMapping = 'scaled';
-    
-    
+    gui_handles.hImage.CDataMapping = 'scaled';   
 end
 
 %% Tracking setup
@@ -193,9 +189,9 @@ else
 end
 
 % initialize coords
-d_bounds = centerRect(trackDat.centroid,gui_fig.UserData.distance_thresh);
-mi_bounds = centerRect(trackDat.centroid,sqrt(gui_fig.UserData.area_min/pi));
-ma_bounds = centerRect(trackDat.centroid,sqrt(gui_fig.UserData.area_max/pi));
+d_bounds = centerRect(trackDat.centroid,expmt.parameters.distance_thresh);
+mi_bounds = centerRect(trackDat.centroid,sqrt(expmt.parameters.area_min/pi));
+ma_bounds = centerRect(trackDat.centroid,sqrt(expmt.parameters.area_max/pi));
 
 % initialize handles with position set to bounds
 for i = 1:size(trackDat.centroid,1)
@@ -215,7 +211,6 @@ for i = 1:size(trackDat.centroid,1)
     dstCirc(i) = rectangle('Parent',gui_handles.axes_handle,...
         'Position',d_bounds(i,:),...
         'EdgeColor',[0 0 1],'Curvature',[1 1],'Visible','off');
-    
 end
 
 % initialize rolling averages of speed and area
@@ -282,12 +277,10 @@ while ishghandle(hObject) && display
         end
 
         % convert real distance to pixel for proper display
-        px_r = gui_fig.UserData.speed_thresh/expmt.parameters.mm_per_pix;
+        px_r = expmt.parameters.speed_thresh/expmt.parameters.mm_per_pix;
         spd = num2cell(roll_speed,2);
         cen = num2cell(trackDat.centroid,2);
-        arrayfun(@updateSpeed,spdText',cen,spd);
-        
-        
+        arrayfun(@updateSpeed,spdText',cen,spd);      
         
     % disable display if necessary
     else
@@ -312,18 +305,13 @@ while ishghandle(hObject) && display
         % use trackiog from disp_speed if toggled, else initiate
         % tracking
         if ~disp_speed
-
             if isfield(expmt.meta.ref,'im') && isfield(expmt.meta.vignette,'im')
-
-            % track objects and sort outputs specified in trackDat.fields
-            trackDat = autoTrack(trackDat,expmt,gui_handles);
-
+                trackDat = autoTrack(trackDat,expmt,gui_handles);
             end
-
         end
 
         % convert real distance to pixel for proper display
-        px_r = gui_fig.UserData.distance_thresh/expmt.parameters.mm_per_pix;
+        px_r = expmt.parameters.distance_thresh/expmt.parameters.mm_per_pix;
         if isfield(expmt,'ROI') && isfield(expmt.meta.roi,'centers')
             d_bounds = centerRect(expmt.meta.roi.centers,px_r);
         else
@@ -335,7 +323,6 @@ while ishghandle(hObject) && display
         db = num2cell(d_bounds,2);
         arrayfun(@updateDistance,dstCirc',db);
         
-
     % disable display if necessary
     else
         if strcmp(dstCirc(1).Visible,'on')      
@@ -356,14 +343,9 @@ while ishghandle(hObject) && display
         % use tracking from disp_speed if toggled, else initiate
         % tracking
         if ~disp_speed && ~disp_dist
-
             if isfield(expmt.meta.ref,'im') && isfield(expmt.meta.vignette,'im')
-
-                % track objects and sort outputs specified in trackDat.fields
                 trackDat = autoTrack(trackDat,expmt,gui_handles);
-
             end
-
         end
 
         % calculate rolling average of centroid area
@@ -372,9 +354,9 @@ while ishghandle(hObject) && display
         end
 
         % else display preview in center of axes
-        px_r = gui_fig.UserData.area_min/expmt.parameters.mm_per_pix;
+        px_r = expmt.parameters.area_min/expmt.parameters.mm_per_pix;
         mi_bounds = centerRect(trackDat.centroid,sqrt(px_r/pi));
-        px_r = gui_fig.UserData.area_max/expmt.parameters.mm_per_pix;
+        px_r = expmt.parameters.area_max/expmt.parameters.mm_per_pix;
         ma_bounds = centerRect(trackDat.centroid,sqrt(px_r/pi));
         
         mib = num2cell(mi_bounds,2);
@@ -392,24 +374,11 @@ while ishghandle(hObject) && display
         end
     end
 
-
     % update the display
     autoDisplay(trackDat, expmt, imh, gui_handles);
-    drawnow
+    drawnow limitrate
             
 end
-
-% assign values to expmt struct
-expmt.parameters.speed_thresh = gui_handles.gui_fig.UserData.speed_thresh;
-expmt.parameters.distance_thresh = gui_handles.gui_fig.UserData.distance_thresh;
-expmt.parameters.vignette_sigma = gui_handles.gui_fig.UserData.vignette_sigma;
-expmt.parameters.vignette_weight = gui_handles.gui_fig.UserData.vignette_weight;
-expmt.parameters.area_min = gui_handles.gui_fig.UserData.area_min;
-expmt.parameters.area_max = gui_handles.gui_fig.UserData.area_max;
-expmt.parameters.ROI_mode = gui_handles.gui_fig.UserData.ROI_mode;
-expmt.parameters.sort_mode = gui_handles.gui_fig.UserData.sort_mode;
-expmt.parameters.ROI_tol = gui_handles.gui_fig.UserData.ROI_tol;
-expmt.parameters.target_rate = gui_handles.gui_fig.UserData.target_rate;
 
 setappdata(gui_handles.gui_fig,'expmt',expmt);
 
@@ -497,8 +466,9 @@ function edit_vignette_weight_Callback(hObject, eventdata, handles)
 %        str2double(get(hObject,'String')) returns contents of edit_vignette_weight as a double
 
 gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
+expmt = getappdata(gui_fig,'expmt');
 
-gui_fig.UserData.vignette_weight=str2num(get(handles.edit_vignette_weight,'string'));
+expmt.parameters.vignette_weight=str2num(get(handles.edit_vignette_weight,'string'));
 guidata(hObject,handles);
 
 
@@ -511,8 +481,9 @@ function edit_vignette_sigma_Callback(hObject, eventdata, handles)
 %        str2double(get(hObject,'String')) returns contents of edit_vignette_sigma as a double
 
 gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
+expmt = getappdata(gui_fig,'expmt');
 
-gui_fig.UserData.vignette_sigma=str2num(get(handles.edit_vignette_sigma,'string'));
+expmt.parameters.vignette_sigma=str2num(get(handles.edit_vignette_sigma,'string'));
 guidata(hObject,handles);
 
 
@@ -525,8 +496,9 @@ function edit_target_rate_Callback(hObject, eventdata, handles)
 %        str2double(get(hObject,'String')) returns contents of edit29 as a double
 
 gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
+expmt = getappdata(gui_fig,'expmt');
 
-gui_fig.UserData.target_rate=str2num(handles.edit_target_rate.String);
+expmt.parameters.target_rate=str2num(handles.edit_target_rate.String);
 guidata(hObject,handles);
 
 
@@ -540,10 +512,11 @@ function edit_dist_thresh_Callback(hObject, eventdata, handles)
 %        str2double(get(hObject,'String')) returns contents of edit_dist_thresh as a double
 
 gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
+expmt = getappdata(gui_fig,'expmt');
 handles.track_fig.UserData.gui_handles.edit_dist_thresh.String =...
     get(handles.edit_dist_thresh,'string');
 
-gui_fig.UserData.distance_thresh=str2num(get(handles.edit_dist_thresh,'string'));
+expmt.parameters.distance_thresh=str2num(get(handles.edit_dist_thresh,'string'));
 guidata(hObject,handles);
 
 
@@ -557,10 +530,11 @@ function edit_speed_thresh_Callback(hObject, eventdata, handles)
 %        str2double(get(hObject,'String')) returns contents of edit_speed_thresh as a double
 
 gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
+expmt = getappdata(gui_fig,'expmt');
 handles.track_fig.UserData.gui_handles.edit_speed_thresh.String =...
     get(handles.edit_speed_thresh,'string');
 
-gui_fig.UserData.speed_thresh=str2num(get(handles.edit_speed_thresh,'string'));
+expmt.parameters.speed_thresh=str2num(get(handles.edit_speed_thresh,'string'));
 guidata(hObject,handles);
 
 
@@ -571,8 +545,8 @@ function edit_area_max_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
-
-gui_fig.UserData.area_max = str2num(get(hObject,'string'));
+expmt = getappdata(gui_fig,'expmt');
+expmt.parameters.area_max = str2num(get(hObject,'string'));
 guidata(hObject,handles);
 
 
@@ -583,8 +557,8 @@ function edit_area_min_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
-
-gui_fig.UserData.area_min = str2num(get(hObject,'string'));
+expmt = getappdata(gui_fig,'expmt');
+expmt.parameters.area_min = str2num(get(hObject,'string'));
 guidata(hObject,handles);
 
 
@@ -769,7 +743,7 @@ function area_radiobutton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hint: get(hObject,'Value') returns toggle state of area_radiobutton
+
 
 
 % --- Executes on selection change in sort_mode_popupmenu.
@@ -779,8 +753,8 @@ function sort_mode_popupmenu_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
-
-gui_fig.UserData.sort_mode = hObject.String{hObject.Value};
+expmt = getappdata(gui_fig,'expmt');
+expmt.parameters.sort_mode = hObject.String{hObject.Value};
 guidata(hObject,handles);
 
 
@@ -804,8 +778,8 @@ function edit_ROI_cluster_tolerance_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
-
-gui_fig.UserData.ROI_tol = str2num(get(hObject,'string'));
+expmt = getappdata(gui_fig,'expmt');
+expmt.parameters.roi_tol = str2num(get(hObject,'string'));
 guidata(hObject,handles);
 
 
@@ -829,9 +803,9 @@ function roi_mode_popupmenu_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
-
-gui_fig.UserData.ROI_mode = hObject.String{hObject.Value};
-switch gui_fig.UserData.ROI_mode
+expmt = getappdata(gui_fig,'expmt');
+expmt.parameters.roi_mode = hObject.String{hObject.Value};
+switch expmt.parameters.roi_mode
     case 'auto'
         handles.sort_mode_popupmenu.Enable = 'on';
     case 'grid'
@@ -864,8 +838,8 @@ function edit_dilate_sz_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
-
-gui_fig.UserData.dilate_sz = str2num(get(hObject,'string'));
+expmt = getappdata(gui_fig,'expmt');
+expmt.parameters.dilate_sz = str2num(get(hObject,'string'));
 guidata(hObject,handles);
 
 

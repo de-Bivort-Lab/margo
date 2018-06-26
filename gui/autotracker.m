@@ -93,6 +93,8 @@ end
 handles.display_menu.UserData = 1;     
 gui_notify('welcome to autotracker',handles.disp_note);
 
+%% configure the figure window
+
 % open in main display window
 root = get(0);
 ndisp = size(root.MonitorPositions,1);
@@ -140,7 +142,6 @@ handles.left_edge = handles.exp_uipanel.Position(1) + handles.exp_uipanel.Positi
 handles.vid_uipanel.Position = handles.cam_uipanel.Position;
 handles.vid_uipanel.UserData = handles.vid_uipanel.Position;
 handles.disp_note.UserData = handles.disp_note.Position;
-
 handles.fig_size = handles.gui_fig.Position;
 
 
@@ -188,7 +189,19 @@ else
     handles.profiles = {'No profiles detected'};
 end
 
-% initialize ExperimentData obj
+% generate menu items for saved profiles and config their callbacks
+hParent = findobj('Tag','saved_presets_menu');
+save_path = [handles.gui_dir 'profiles/'];
+for i = 1:length(profiles)
+    menu_items(i) = uimenu(hParent,'Label',profiles{i},...
+        'Callback',@saved_preset_Callback);
+    menu_items(i).UserData.path = [save_path profiles{i} '.mat'];
+    menu_items(i).UserData.index = i;
+    menu_items(i).UserData.gui_handles = handles;
+end
+
+%% initialize ExperimentData obj
+
 expmt = ExperimentData;
 % cam setup
 
@@ -223,70 +236,23 @@ end
 % query ports and initialize COM objects
 [expmt, handles] = refreshCOM(expmt, handles);
 
-% Initialize expmteriment parameters from text boxes in the GUI
-handles.edit_ref_depth.Value  =  str2double(get(handles.edit_ref_depth,'String'));
-handles.edit_ref_freq.Value = str2double(get(handles.edit_ref_freq,'String'));
-handles.edit_exp_duration.Value = str2double(get(handles.edit_exp_duration,'String'));
-handles.disp_ROI_thresh.String = num2str(round(handles.ROI_thresh_slider.Value));
-handles.disp_track_thresh.String = num2str(round(handles.track_thresh_slider.Value));
-
-% initialize tracking parameters to default values
-handles.gui_fig.UserData.speed_thresh = 95;
-handles.gui_fig.UserData.distance_thresh = 20;
-handles.gui_fig.UserData.vignette_sigma = 0.47;
-handles.gui_fig.UserData.vignette_weight = 0.35;
-handles.gui_fig.UserData.area_min = 4;
-handles.gui_fig.UserData.area_max = 300;
-handles.gui_fig.UserData.ROI_tol = 2.5;
-handles.gui_fig.UserData.dilate_sz = 0;
-handles.gui_fig.UserData.sort_mode = 'distance';
-handles.gui_fig.UserData.ROI_mode = 'auto';
-
-
-% save values to expmt master struct
-expmt.parameters.speed_thresh = handles.gui_fig.UserData.speed_thresh;
-expmt.parameters.distance_thresh = handles.gui_fig.UserData.distance_thresh;
-expmt.parameters.vignette_sigma = handles.gui_fig.UserData.vignette_sigma;
-expmt.parameters.vignette_weight = handles.gui_fig.UserData.vignette_weight;
-expmt.parameters.area_min = handles.gui_fig.UserData.area_min;
-expmt.parameters.area_max = handles.gui_fig.UserData.area_max;
-expmt.parameters.ref_depth = str2double(get(handles.edit_ref_depth,'String'));
-expmt.parameters.ref_freq = str2double(get(handles.edit_ref_freq,'String'));
-expmt.parameters.duration = str2double(get(handles.edit_exp_duration,'String'));
-expmt.parameters.ROI_thresh = round(handles.ROI_thresh_slider.Value);
-expmt.parameters.track_thresh = round(handles.track_thresh_slider.Value);
-expmt.parameters.sort_mode = 'distance';
-expmt.parameters.ROI_mode = 'auto';
-expmt.parameters.ROI_tol = 2.5;
+% Initialize experiment parameters from text boxes in the GUI
+p = expmt.parameters;
+handles.edit_ref_depth.Value  = p.ref_depth;
+handles.edit_ref_freq.Value = p.ref_freq;
+handles.edit_exp_duration.Value = p.duration;
+handles.ROI_thresh_slider.Value = ceil(p.roi_thresh);
+handles.track_thresh_slider.Value = ceil(p.track_thresh);
+handles.disp_ROI_thresh.String = num2str(handles.ROI_thresh_slider.Value);
+handles.disp_track_thresh.String = num2str(handles.track_thresh_slider.Value);
+handles.edit_speed_thresh.String = num2str(p.speed_thresh);
+handles.edit_dist_thresh.String = num2str(p.distance_thresh);
 
 % set analysis options
 [~,expmt.meta.options] = defaultAnalysisOptions;
 
-handles.edit_speed_thresh.String = num2str(handles.gui_fig.UserData.speed_thresh);
-handles.edit_dist_thresh.String = num2str(handles.gui_fig.UserData.distance_thresh);
-
-expmt.parameters.mm_per_pix = 1;            % set default distance scale 1 mm per pixel
-expmt.parameters.units = 'pixels';          % set default units to pixels
-expmt.meta.vignette.mode = 'auto';
-expmt.meta.exp_id = 1;
-expmt.meta.initialize = true;
-expmt.meta.finish = true;
-
-handles.gui_fig.UserData.target_rate = 60;
-expmt.parameters.target_rate = handles.gui_fig.UserData.target_rate;
 
 setappdata(handles.gui_fig,'expmt',expmt);
-
-% generate menu items for saved profiles and config their callbacks
-hParent = findobj('Tag','saved_presets_menu');
-save_path = [handles.gui_dir 'profiles/'];
-for i = 1:length(profiles)
-    menu_items(i) = uimenu(hParent,'Label',profiles{i},...
-        'Callback',@saved_preset_Callback);
-    menu_items(i).UserData.path = [save_path profiles{i} '.mat'];
-    menu_items(i).UserData.index = i;
-    menu_items(i).UserData.gui_handles = handles;
-end
 
 % Update handles structure
 guidata(hObject,handles);
@@ -2198,7 +2164,7 @@ function advanced_tracking_menu_Callback(hObject, ~, handles)
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 
-expmt = advancedTrackingParam_subgui(expmt,handles);
+advancedTrackingParam_subgui(expmt,handles);
 
 % Store expmteriment data struct
 setappdata(handles.gui_fig,'expmt',expmt);

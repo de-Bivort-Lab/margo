@@ -71,6 +71,7 @@ trackDat.ref.thresh = gui_fig.UserData.distance_thresh * 0.2;
 % Initialize reference with single image
 [trackDat,expmt] = autoFrame(trackDat,expmt,gui_handles);
 trackDat.ref.im = trackDat.im;
+tmp_ref = trackDat.ref.im;
 trackDat.ref.stack = squeeze(num2cell(repmat(trackDat.ref.im,1,1,depth),[1 2]));
 pause(0.1);
 
@@ -188,8 +189,8 @@ while trackDat.t < expmt.parameters.duration*3600 &&...
     if trackDat.ct <= size(dDifference,1)
         % compute frame to frame change in the magnitude of the difference of
         % the difference image with bg_mode = 'light' and bg_mode = 'dark'
-        diffStack{1}(:,:,mod(trackDat.ct-1,2)+1) = trackDat.ref.im - trackDat.im;
-        diffStack{2}(:,:,mod(trackDat.ct-1,2)+1) = trackDat.im - trackDat.ref.im;
+        diffStack{1}(:,:,mod(trackDat.ct-1,2)+1) = tmp_ref - trackDat.im;
+        diffStack{2}(:,:,mod(trackDat.ct-1,2)+1) = trackDat.im - tmp_ref;
         tmp_dDif = cellfun(@(x) ...
             abs(diff(single(x),1,3)), diffStack,'UniformOutput',false);
         dDifference(mod(trackDat.ct-1,size(dDifference,1))+1,:) = ...

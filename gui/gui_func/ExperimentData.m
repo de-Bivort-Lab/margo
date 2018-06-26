@@ -18,12 +18,19 @@ classdef ExperimentData < handle
             obj.meta = struct('name','Basic Tracking','fields',[],'path',es,...
                             'source','camera','roi',es,'ref',es,'noise',es,...
                             'date','','strain','','treatment','','sex','',...
-                            'labels',[],'labels_table',table);
+                            'labels',[],'labels_table',table,'video',es,...
+                            'vignette',es);
             obj.hardware = struct('cam',es,'COM',es,...
                                 'light',es,'projector',es);
             obj.meta.fields = fieldnames(obj.data);
             obj.parameters = initialize_parameters(obj);
+            
+            % assign default meta data
             obj.meta.roi.mode = 'grid';
+            obj.meta.vignette.mode = 'auto';
+            obj.meta.initialize = false;
+            obj.meta.finish = true;
+            obj.meta.exp_id = 1;
 
         end
         

@@ -69,13 +69,13 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
         
     if record  
         
-        if isfield(gui_handles.gui_fig.UserData,'dilate_sz') &&...
-                gui_handles.gui_fig.UserData.dilate_sz > 0
+        if isfield(expmt.parameters,'dilate_sz') &&...
+                expmt.parameters.dilate_sz > 0
             
             if ~isfield(expmt.parameters,'dilate_element') ||...
                     isempty(expmt.parameters.dilate_element)
                 expmt.parameters.dilate_element = ...
-                    strel('disk',gui_handles.gui_fig.UserData.dilate_sz);
+                    strel('disk',expmt.parameters.dilate_sz);
             end
             
             % dilate and erode with same element to connect components
@@ -93,9 +93,9 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
 
         % threshold blobs by area
         above_min = [props.Area]  .* (expmt.parameters.mm_per_pix^2) > ...
-            gui_handles.gui_fig.UserData.area_min;
+            expmt.parameters.area_min;
         below_max = [props.Area] .* (expmt.parameters.mm_per_pix^2) <...
-            gui_handles.gui_fig.UserData.area_max;
+            expmt.parameters.area_max;
         props(~(above_min & below_max)) = [];
 
 
@@ -121,7 +121,7 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
             
             % calculate speed and exclude centroids over speed threshold
             tmp_spd = d./dt;
-            above_spd_thresh = tmp_spd > gui_handles.gui_fig.UserData.speed_thresh;
+            above_spd_thresh = tmp_spd > expmt.parameters.speed_thresh;
             permutation(above_spd_thresh)=[];
             update(update) = ~above_spd_thresh;
             speed(update) = tmp_spd(~above_spd_thresh);
