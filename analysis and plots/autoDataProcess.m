@@ -85,7 +85,7 @@ if nGigs < 1
 end
 
 % initialize memmaps
-expmt = getRawData(expmt,options);
+expmt = getRawData(expmt);
 
 % query centroid file size
 if isattached(expmt.data.centroid)

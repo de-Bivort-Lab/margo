@@ -19,7 +19,7 @@ end
 % if .bin file still isn't found, try updating data path
 if expmt.data.(field).fID == -1
     
-    expmt = updatepaths(expmt);
+    expmt = updatepaths(expmt,expmt.meta.path.dir);
     expmt.data.(field).fID = fopen(expmt.data.(field).path,'r');
 
 end

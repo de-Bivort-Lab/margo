@@ -980,7 +980,7 @@ elseif any(strcmp(expmt.meta.name,handles.parameter_subgui)) &&...
     handles.run_pushbutton.Enable = 'on';
 else
     
-    try
+    %try
     
     % disable controls that are not to be accessed while expmt is running
     handles = toggleSubguis(handles,'off');
@@ -1098,7 +1098,7 @@ else
                 plotTraces(expmt);
             end
         end
-    
+    %{
     catch ME
         
         if isfield(handles,'deviceID')
@@ -1127,7 +1127,7 @@ else
         msg=getReport(ME,'extended','hyperlinks','off');
         errordlg(msg,title);
     end
-    
+    %}
     if isfield(handles,'deviceID')
         try
         [~,status]=urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=2']);
@@ -2350,7 +2350,7 @@ if isfield(handles,'fig_size')
         if axes_height_new + 10 > handles.gui_fig.Position(4)
      
             aspectR = res(1)/res(2);
-            plot_aspect = pbaspect;
+            plot_aspect = pbaspect(handles.axes_handle);
             plot_aspect = plot_aspect./plot_aspect(2);
             fscale = aspectR/plot_aspect(1);
             axes_width_old = handles.axes_handle.Position(3);
@@ -2363,9 +2363,10 @@ if isfield(handles,'fig_size')
             handles.axes_handle.Position(4) = axes_height_new;
             handles.axes_handle.Position(2) = handles.axes_handle.Position(2) + axes_height_old - axes_height_new;   
             
-        end        
-
+        end
         
+        handles.axes_handle.XTick = [];
+        handles.axes_handle.YTick = [];     
     end
 
 end
@@ -2427,9 +2428,6 @@ if isfield(expmt.meta.video,'vid')
         
     end
         
-    
-
-    
     % stream frames to the axes until the preview button is unticked
     ct=0;
     while hObject.Value
@@ -2481,7 +2479,8 @@ function vid_select_popupmenu_Callback(hObject, ~, handles)
 expmt = getappdata(handles.gui_fig,'expmt');
 
 % update current video object
-expmt.meta.video.vid = VideoReader([expmt.meta.video.fdir expmt.meta.video.fnames{hObject.Value}]);
+expmt.meta.video.vid = ...
+    VideoReader([expmt.meta.video.fdir expmt.meta.video.fnames{hObject.Value}]);
 
 % set expmt data struct
 setappdata(handles.gui_fig,'expmt',expmt);
@@ -2543,68 +2542,10 @@ tmp_video = uigetvids(expmt);
 % update gui with video info
 if ~isempty(tmp_video)
     
+    % update video panel UI and image handles
     expmt.meta.video = tmp_video;
-    expmt.meta.video.nFrames = floor(expmt.meta.video.nFrames);
-    handles.edit_video_dir.String = expmt.meta.video.fdir;
-    handles.vid_select_popupmenu.String = expmt.meta.video.fnames;
-    handles.edit_time_remaining.String = num2str(expmt.meta.video.nFrames);
-    handles.gui_fig.UserData.target_rate = tmp_video.vid.FrameRate;
-    
-    % set downstream UI panel Enable status
-    handles.tracking_uipanel.ForegroundColor = [0 0 0];
-    set(findall(handles.tracking_uipanel, '-property', 'Enable'), 'Enable', 'on');
-    handles.distance_scale_menu.Enable = 'on';
-    handles.vignette_correction_menu.Enable = 'on';
-    handles.vid_select_popupmenu.Enable = 'on';
-    handles.vid_preview_togglebutton.Enable = 'on';
-    handles.select_video_label.Enable = 'on';
-    
-    if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
-        expmt.meta.roi = [];
-        msgbox(['Cam settings changed: saved ROIs, references and ' ...
-            'noise statistics have been discarded.']);
-        note = 'ROIs, references, and noise statistics reset';
-        gui_notify(note,handles.disp_note);
-    end
-    
-    if isfield(expmt.meta.ref,'im')
-        expmt.meta.ref = [];
-    end
-    
-    if isfield(expmt.meta.noise,'dist')
-       expmt.meta.noise = [];
-    end
-    
-    if isfield(expmt.meta.vignette,'im')
-        expmt.meta.vignette = rmfield(expmt.meta.vignette,'im');
-    end
-
-    gui_notify('cam settings confirmed',handles.disp_note);
-
-    if ~isfield(expmt.meta.roi,'n')
-        handles.track_thresh_slider.Enable = 'off';
-        handles.accept_track_thresh_pushbutton.Enable = 'off';
-        handles.reference_pushbutton.Enable = 'off';
-        handles.track_thresh_label.Enable = 'off';
-        handles.disp_track_thresh.Enable = 'off';
-    end
-
-    if ~isfield(expmt.meta.ref,'im')
-        handles.sample_noise_pushbutton.Enable = 'off';
-    end
-    
-    im = nextFrame(expmt.meta.video, handles);
-    if size(im,3) > 1
-        im = im(:,:,1);
-    end   
-    if ~isfield(handles.hImage,'CData')
-        colormap('gray');
-        handles.hImage = imagesc(im);
-    else
-        handles.hImage.CData = im;
-    end
-    
-    gui_fig_SizeChangedFcn(handles.gui_fig, [], handles);
+    expmt = guiInitializeVideo(expmt, gui_handles);
+    gui_fig_SizeChangedFcn(gui_handles.gui_fig, [], gui_handles);
     
 end
 
@@ -2824,8 +2765,9 @@ expmt_new = getappdata(gui_fig,'expmt');        % get expmt data struct
 load(hObject.UserData.path);
 
 % load new settings in from file
+warning('off');
 expmt = load_settings(expmt,expmt_new,hObject.UserData.gui_handles); %#ok<NODEF>
-
+warning('on');
 % save loaded settings to master struct
 setappdata(gui_fig,'expmt',expmt);  
 
@@ -2849,8 +2791,8 @@ if isfield(expmt.hardware.cam,'src')
     expmt.hardware.cam = rmfield(expmt.hardware.cam,'src');
 end
 
-if isfield(expmt.meta.video,'vid')
-    expmt.meta = rmfield(expmt.meta,'video');
+if isfield(expmt.meta,'video') && isfield(expmt.meta.video,'vid')
+    expmt.meta.video = rmfield(expmt.meta.video,'vid');
 end
 
 % set profile save path
@@ -2868,7 +2810,7 @@ if any(FileName)
         profile_name = FileName(1:strfind(FileName,'.mat')-1);
         hMenu = findobj('Tag','saved_presets_menu');
         new_menu_item = uimenu(hMenu,'Label',profile_name,...
-        'Callback',@saved_preset_Callback);
+            'Callback',@saved_preset_Callback);
         new_menu_item.UserData.index = length(hMenu.Children)+1;
         new_menu_item.UserData.path = strcat(PathName,FileName);
         new_menu_item.UserData.gui_handles = handles;

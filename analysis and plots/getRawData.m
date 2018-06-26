@@ -1,4 +1,4 @@
-function expmt = getRawData(expmt,options)
+function expmt = getRawData(expmt)
 
 % attempt to autofix aborted expmt files
 if ~isfield(expmt.meta,'num_frames')

@@ -9,7 +9,9 @@ if isfield(expmt.hardware.cam,'vid')
     expmt.hardware.cam = rmfield(expmt.hardware.cam,'vid');
 end
 
-expmt = orderfields(expmt);
+expmt.data = orderfields(expmt.data);
+expmt.meta = orderfields(expmt.meta);
+expmt.parameters = orderfields(expmt.parameters);
 
 % re-save updated expmt data struct to file
 if options.save

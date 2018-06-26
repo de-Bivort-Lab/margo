@@ -23,12 +23,16 @@ classdef ExperimentData < handle
                                 'light',es,'projector',es);
             obj.meta.fields = fieldnames(obj.data);
             obj.parameters = initialize_parameters(obj);
+            obj.meta.roi.mode = 'grid';
 
         end
         
         % automatically repair master container and raw data file paths
         function obj = updatepaths(obj,fpath)
             
+            if ~exist('fpath','var')
+                fpath = [obj.meta.path.dir obj.meta.path.name];
+            end
             [dir,name,~] = fileparts(fpath);
             obj.meta.path.dir   =   [dir '\'];
             obj.meta.path.name  =   name;
@@ -49,7 +53,9 @@ classdef ExperimentData < handle
                     match_idx = find(fmatch & tmatch,1,'first');
                     obj.data.(f).path = rawpaths{match_idx};
                 else
-                    warning(sprintf('raw data file for field %s not found\n',f));
+                    warning('off','backtrace');
+                    warning('raw data file for field %s not found',f);
+                    warning('on','backtrace');
                 end
                 
             end
@@ -96,10 +102,12 @@ classdef ExperimentData < handle
             end
             
             % re-initialize data fields
-            obj.data = struct();
             f = obj.meta.fields;
+            new_fields = cell(2,numel(f));
+            new_fields(1,:) = f;
+            obj.data = struct(new_fields{:});
             for i = 1:numel(f)
-                obj.data.(f) = RawDataField('Parent',obj);
+                obj.data.(f{i}) = RawDataField('Parent',obj);
             end
         end
         
@@ -119,7 +127,7 @@ classdef ExperimentData < handle
             p.target_rate       = 30;
             p.mm_per_pix        = 1;
             p.units             = 'pixels';
-            p.roi_mode          = 'auto';
+            p.roi_mode          = 'grid';
             p.sort_mode         = 'bounds';
             p.roi_tol           = 2.5000;
             p.edit_rois         = 0;
@@ -133,6 +141,8 @@ classdef ExperimentData < handle
         
         function obj = loadobj(obj)
             
+            warning('off','MATLAB:m_missing_operator');
+            
             % auto update path         
             if isvalid(obj)
                 try
@@ -144,22 +154,31 @@ classdef ExperimentData < handle
                 
                 if any(strfind(callLine,'load('))
                     i = strfind(callLine,'load(');
-                    i=i(1);
+                    i=i(1)+5;
                     i = [i find(callLine==')',1,'first')];
-                    callVar = callLine(i(1):i(2));
+                    callVar = callLine(i(1):i(2)-1);
+                    fpath = evalin('caller',callVar);
+                else
+                    callVars = evalin('caller','whos');
+                    for i=1:numel(callVars)
+                        varName = callVars(i).name;
+                        switch varName
+                            case 'filename'
+                                fpath = evalin('caller',varName);
+                            case 'fileAbsolutePath'
+                                fpath = evalin('caller',varName);
+                        end
+                    end
                 end
-                vars = evalin('caller','whos');
-                try
-                    fpath = evalin('caller','filename');
-                catch
-                    fpath = evalin('caller','fileAbsolutePath');
+                
+                if exist('fpath','var')
+                    obj = updatepaths(obj,fpath);
                 end
-                obj = updatepaths(obj,fpath);
             else
                 warning('automatic filepath update failed');
             end
 
-            
+            warning('on','MATLAB:m_missing_operator');
         end
         
     end
