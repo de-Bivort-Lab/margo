@@ -11,8 +11,7 @@ for i = 1:nargin-1
     end
 end
 
-%% Separate right-side down ROIs (0) from right to left
-
+% Separate right-side down ROIs (0) from right to left
 y = centers(:,2);
 [val,perm_y] = sort(y);                                % Sort ROI yCoords
 row_breaks = find([0;diff(val)>std(diff(val))*tolerance]);    % Find breaks between rows
@@ -26,20 +25,20 @@ for i = 1:length(row_breaks)+1
         case 1
             
             py_subset = perm_y(1:row_breaks(i)-1);          % get subset of perm vector for current row
-            [val,perm_x] = sort(centers(py_subset,1));      % sort x coords for current row
+            [~,perm_x] = sort(centers(py_subset,1));      % sort x coords for current row
             perm_y(1:row_breaks(i)-1) = py_subset(perm_x);    % reassign the permuted permutation to full perm vector
 
             
         case length(row_breaks)+1
             
             py_subset = perm_y(row_breaks(i-1):end);
-            [val,perm_x] = sort(centers(py_subset,1));
+            [~,perm_x] = sort(centers(py_subset,1));
             perm_y(row_breaks(i-1):end) = py_subset(perm_x);
             
         otherwise
             
             py_subset = perm_y(row_breaks(i-1):row_breaks(i)-1);
-            [val,perm_x] = sort(centers(py_subset,1));
+            [~,perm_x] = sort(centers(py_subset,1));
             perm_y(row_breaks(i-1):row_breaks(i)-1) = py_subset(perm_x);
     end
 end

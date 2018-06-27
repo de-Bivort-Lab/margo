@@ -56,17 +56,17 @@ blob_lengths = NaN(100,1);
 
 
 % Set maximum allowable distance to center of ROI as the long axis of the ROI
-if gui_fig.UserData.distance_thresh == 20
+if expmt.parameters.distance_thresh == 20
     widths=(expmt.meta.roi.bounds(:,3));
     heights=(expmt.meta.roi.bounds(:,4));
     w=median(widths);
     h=median(heights);
-    gui_fig.UserData.distance_thresh=round(sqrt(w^2+h^2)/2*0.9*10)/10 * expmt.parameters.mm_per_pix;
-    gui_handles.edit_dist_thresh.String = num2str(gui_fig.UserData.distance_thresh);
+    expmt.parameters.distance_thresh=round(sqrt(w^2+h^2)/2*0.9*10)/10 * expmt.parameters.mm_per_pix;
+    gui_handles.edit_dist_thresh.String = num2str(expmt.parameters.distance_thresh);
 end
 
 % set min distance from previous ref locations before acquiring new ref for any given object
-trackDat.ref.thresh = gui_fig.UserData.distance_thresh * 0.2;  
+trackDat.ref.thresh = expmt.parameters.distance_thresh * 0.2;  
 
 % Initialize reference with single image
 [trackDat,expmt] = autoFrame(trackDat,expmt,gui_handles);

@@ -3114,8 +3114,7 @@ set(has_Enable,'Enable','off');
 
 axh = handles.axes_handle;
 instructions = {'Right-click in an existing ROI to delete it'...
-    ['Left-click to switch tool to draw tool, '...
-    'then left-click and drag to define new ROI'] ...
+    'Left-click to switch tool to draw tool, ...then left-click and drag to define new ROI' ...
     'Press any key to accept changes and exit'};
 text(axh,axh.XLim(2)*0.5,axh.YLim(2)*0.05,instructions,...
     'color','m','HorizontalAlignment','center');
@@ -3145,8 +3144,7 @@ if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
     
     hold on
     for i =1:length(expmt.meta.roi.centers)
-        hBounds(i) = rectangle(handles.axes_handle,...
-            'Position',expmt.meta.roi.bounds(i,:),'EdgeColor','r');
+        hBounds(i) = rectangle(handles.axes_handle,'Position',expmt.meta.roi.bounds(i,:),'EdgeColor','r');
         hNum(i) = text(handles.axes_handle,expmt.meta.roi.centers(i,1),...
             expmt.meta.roi.centers(i,2),num2str(i),'Color',[0 0 1],...
             'HorizontalAlignment','center','VerticalAlignment','middle',...
@@ -3395,7 +3393,7 @@ guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function gui_fig_CreateFcn(~, ~, ~)
+function gui_fig_CreateFcn(hObject, ~, handles)
 % hObject    handle to gui_fig (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -3425,7 +3423,7 @@ delete(hObject);
 
 
 % --------------------------------------------------------------------
-function cam_menu_Callback(hObject, eventdata, handles) %#ok<*INUSD>
+function cam_menu_Callback(hObject, eventdata, handles)
 % hObject    handle to cam_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)

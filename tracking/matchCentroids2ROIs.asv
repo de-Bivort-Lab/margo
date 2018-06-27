@@ -121,8 +121,8 @@ update_centroid = false(size(trackDat.centroid,1),1);
             % If the same ROI is matched to more than one coordinate,
             %  find the nearest one and exclude the others
             u=unique(j(~isnan(j)));                                        
-            duplicateCen = u(squeeze(histc(j,u))>1);
-            duplicateROIs = ismember(j,u(squeeze(histc(j,u))>1));    
+            duplicateCen=u(squeeze(histc(j,u))>1);
+            duplicateROIs=find(ismember(j,u(squeeze(histc(j,u))>1)));    
 
             % Calculate pairwise distances between duplicate ROIs and temp centroids
             % using the same method above
@@ -135,6 +135,8 @@ update_centroid = false(size(trackDat.centroid,1),1);
             j(duplicateROIs)=NaN;
             j(k)=duplicateCen;
 
+            % if unsorted centroids remain
+
             % Update last known centroid and orientations
             sorting_permutation = j(~isnan(j));
             sorting_permutation = squeeze(sorting_permutation);
@@ -143,13 +145,14 @@ update_centroid = false(size(trackDat.centroid,1),1);
         
           case 'bounds'  
               
-            switch expmt.parameters.roi_mode    
+            switch expmt.parameters.ROI_mode    
                case 'grid'
+                   
+                 
                  % find candidate ROIs for each centroid
                  ROI_num = arrayfun(@(x) ...
                      gridAssignROI(x,expmt.meta.roi.vec,expmt.meta.roi.shape,expmt.meta.roi.tform),...
                      num2cell(raw_cen,2),'UniformOutput',false);
-                 
                case 'auto'
                  ROI_num = cellfun(@(x) ...
                      autoAssignROI(x,expmt.meta.roi.corners),...
@@ -222,12 +225,10 @@ function ROI_num = gridAssignROI(cen,gv,shape,tf)
     in_bounds = xL & xR & yT & yB;
     ROI_num = find(in_bounds);
 
-    % use projective transform if roi shape is circular
     iscirc = strcmp(shape(ROI_num),'Circular');
+    
     if any(iscirc)
-        uc = cellfun(@(x) ...
-            transformPointsForward(x,cen),...
-            tf(ROI_num(iscirc)),'UniformOutput',false);
+        uc = cellfun(@(x) transformPointsForward(x,cen),tf(ROI_num(iscirc)),'UniformOutput',false);
         uc = cat(1,uc{1});
         if sqrt((uc(1)-0.5).^2 + (uc(2)-0.5).^2) > 0.5
             ROI_num = [];
