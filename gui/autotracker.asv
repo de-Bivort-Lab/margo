@@ -22,7 +22,7 @@ function varargout = autotracker(varargin)
 
 % Edit the above text to modify the response to help autotracker
 
-% Last Modified by GUIDE v2.5 26-Jun-2018 21:56:11
+% Last Modified by GUIDE v2.5 26-Jun-2018 21:41:57
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -2794,6 +2794,8 @@ switch expmt.meta.source
 end
 
 
+
+
 % --------------------------------------------------------------------
 function aux_com_menu_Callback(~,~,~)
 % hObject    handle to aux_com_menu (see GCBO)
@@ -2841,6 +2843,8 @@ end
 setappdata(handles.gui_fig,'expmt',expmt);  
 
 
+
+
 % --- Executes on button press in pause_togglebutton.
 function pause_togglebutton_Callback(hObject,~,~)
 % hObject    handle to pause_togglebutton (see GCBO)
@@ -2853,6 +2857,22 @@ switch hObject.Value
     case 0
         hObject.BackgroundColor = [0.502 0.7529 0.8392];
 end
+
+
+% --- Executes on button press in record_vid_radiobutton.
+function record_vid_radiobutton_Callback(~,~,~)
+% hObject    handle to record_vid_radiobutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of record_vid_radiobutton
+
+
+% --- Executes during object creation, after setting all properties.
+function record_vid_radiobutton_CreateFcn(~,~,~)
+% hObject    handle to record_vid_radiobutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
 
 % --------------------------------------------------------------------
 function record_video_menu_Callback(hObject,~,handles)
@@ -2875,7 +2895,7 @@ function edit_area_maximum_Callback(hObject, ~, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-expmt = getappdata(handles.gui_fig,'expmt');
+expmt = getappdata(handle
 expmt.parameters.area_min = str2double(hObject.String);
 guidata(hObject,handles);
 
@@ -3655,28 +3675,6 @@ expmt.parameters.area_min = str2double(hObject.String);
 % --- Executes during object creation, after setting all properties.
 function edit_area_minimum_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to edit_area_minimum (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-function edit_target_rate_Callback(hObject, eventdata, handles)
-% hObject    handle to edit_target_rate (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-expmt = getappdata(handles.gui_fig,'expmt');
-expmt.parameters.target_rate = str2double(hObject.String);
-
-
-% --- Executes during object creation, after setting all properties.
-function edit_target_rate_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit_target_rate (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 

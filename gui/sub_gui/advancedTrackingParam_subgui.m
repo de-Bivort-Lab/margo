@@ -113,6 +113,8 @@ varargout{1} = [];
 if ~expmt.meta.initialize
     set(findobj(handles.track_fig,'-depth',1,...
         'Style','radiobutton'),'Enable','off');
+    set(findobj(handles.track_fig,'-depth',1,...
+        'Style','popupmenu'),'Enable','off');
     return
 end
 
@@ -121,7 +123,6 @@ trackDat.ct = 0;
 
 % clear and prep the display
 clean_gui(gui_handles.axes_handle);
-gui_fig = gui_handles.gui_fig;
 display_menu = findobj('Tag','display_menu');
 display_menu.UserData = 1;
 
@@ -513,9 +514,6 @@ function edit_dist_thresh_Callback(hObject, eventdata, handles)
 
 gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
 expmt = getappdata(gui_fig,'expmt');
-handles.track_fig.UserData.gui_handles.edit_dist_thresh.String =...
-    get(handles.edit_dist_thresh,'string');
-
 expmt.parameters.distance_thresh=str2num(get(handles.edit_dist_thresh,'string'));
 guidata(hObject,handles);
 
@@ -531,10 +529,8 @@ function edit_speed_thresh_Callback(hObject, eventdata, handles)
 
 gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
 expmt = getappdata(gui_fig,'expmt');
-handles.track_fig.UserData.gui_handles.edit_speed_thresh.String =...
-    get(handles.edit_speed_thresh,'string');
-
-expmt.parameters.speed_thresh=str2num(get(handles.edit_speed_thresh,'string'));
+expmt.parameters.speed_thresh = ...
+    str2num(get(handles.edit_speed_thresh,'string'));
 guidata(hObject,handles);
 
 
@@ -547,6 +543,7 @@ function edit_area_max_Callback(hObject, eventdata, handles)
 gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
 expmt = getappdata(gui_fig,'expmt');
 expmt.parameters.area_max = str2num(get(hObject,'string'));
+handles.track_fig.UserData.gui_handles.edit_area_maximum.String = hObject.String;
 guidata(hObject,handles);
 
 
@@ -559,8 +556,9 @@ function edit_area_min_Callback(hObject, eventdata, handles)
 gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
 expmt = getappdata(gui_fig,'expmt');
 expmt.parameters.area_min = str2num(get(hObject,'string'));
+handles.track_fig.UserData.gui_handles.edit_area_minimum.String = hObject.String;
 guidata(hObject,handles);
-
+% 
 
 % --- Executes on button press in help_button.
 function help_button_Callback(hObject, eventdata, handles)

@@ -6,7 +6,8 @@ function gui_handles = toggleSubguis(gui_handles,state)
 % toggle between enabled and disabled states for all controls that open
 % dependent subguis
 
-gui_handles.tracking_menu.Enable = state;
+set(gui_handles.tracking_menu.Children,'Enable','off');
+gui_handles.advanced_tracking_menu.Enable = 'on';
 gui_handles.proj_settings_menu.Enable = state;
 gui_handles.exp_parameter_pushbutton.Enable = state;
 gui_handles.exp_select_popupmenu.Enable = state;

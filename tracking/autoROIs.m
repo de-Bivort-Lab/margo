@@ -56,14 +56,13 @@ stop = false;
 % Waits for "Accept Threshold" button press from user before accepting
 % automatic ROI segmentation
 
+% initialize graphics objects
 clearvars hRect hText
-
 hRect(1) = rectangle('Position',[0 0 0 0],'EdgeColor','r');
 hText(1) = text(0,0,'','Color','b','HorizontalAlignment','Center');
 delete(findobj('Type','patch'));
 hPatch = patch('Faces',[],'XData',[],'YData',[],...
     'FaceColor','none','EdgeColor','r','Parent',gui_handles.axes_handle);
-update_vignetting = false;
 nROIs = 0;
 tic
 
@@ -118,8 +117,8 @@ while stop~=1
     centers=[xCenters,yCenters];
 
     % Define a permutation vector to sort ROIs from top-right to bottom left
-    ROI_tol = gui_fig.UserData.ROI_tol;             % n stdevs from
-    [centers,ROI_coords,ROI_bounds] = sortROIs(ROI_tol,centers,ROI_coords,ROI_bounds);
+    [centers,ROI_coords,ROI_bounds] = ...
+        sortROIs(expmt.parameters.roi_tol,centers,ROI_coords,ROI_bounds);
 
     % detect assymetry about vertical axis
     mazeOri = getMazeOrientation(binaryimage,ROI_coords);
@@ -127,7 +126,6 @@ while stop~=1
     % Display ROIs
     imh.CData = binaryimage;
     hPatch = displayROIs(hPatch,ROI_coords);
-    
     if nROIs > size(ROI_coords,1)
         idx = numel(hText) - (nROIs - size(ROI_coords,1))+1:numel(hText);
         delete(hText(idx));
@@ -139,6 +137,7 @@ while stop~=1
     end
     nROIs = size(ROI_coords,1);
     
+    % update text objects
     if nROIs
         cellfun(@updateText,num2cell(hText),num2cell(centers(:,1)'),...
             num2cell(centers(:,2)'),num2cell(1:nROIs),'UniformOutput',false);
@@ -174,6 +173,8 @@ if ~isempty(ROI_coords)
 end
 
 gui_handles.auto_detect_ROIs_pushbutton.Enable = 'on';
+
+
 
 function updateText(h,x,y,i)
 

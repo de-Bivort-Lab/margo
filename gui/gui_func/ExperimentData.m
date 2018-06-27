@@ -28,7 +28,7 @@ classdef ExperimentData < handle
             % assign default meta data
             obj.meta.roi.mode = 'grid';
             obj.meta.vignette.mode = 'auto';
-            obj.meta.initialize = false;
+            obj.meta.initialize = true;
             obj.meta.finish = true;
             obj.meta.exp_id = 1;
 

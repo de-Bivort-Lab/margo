@@ -1,77 +1,39 @@
 function [varargout]= sortCentroids(raw_cen, trackDat, expmt)
 
-%   SORT CENTROID COORDINATES BASED ON DISTANCE TO KNOWN REFERENCE COORDINATES
-%   This function sorts centroid coordinates based on the pairwise distance to one or two 
-%   sets of reference coordinates and outputs a permutation vector for
-%   sorting the input centroids.
+%   This function sorts centroid coordinates based on the pairwise distance to  
+%   respective ROIs and outputs a permutation vector
 %
-%   MODES: Single Sort, Double Sort
+%   MODES: 'distance', 'grid'
 %
-%           Single Sort - [P,U] = matchCentroids2ROIs(CEN,C1)
+%   'distance'  ->  refines centroid/ROI assignments by distance to ROI center
 %
-%               Takes an Nx2 dimensional array of unsorted centroid 
-%               coordinates (CEN) and an Mx2 array of reference coordinates
-%               (C1) as inputs and finds the reference coordinate with the 
-%               shortest distance to each unsorted centroid. The function 
-%               outputs up to a permutation vector (P) that can be as large as 
-%               Mx1 but will be Nx1 if N < M. This vector is a mapping of the 
-%`              indices of CEN to their nearest neighbors in C1. If more
-%               than one centroid is matched to the same reference
-%               coordinate, the centroids are then restricted such that only 
-%               the nearest neighbor of each reference coordinate will be
-%               matched, thus ensuring that only one input centroid is
-%               sorted to each reference centroid. In addition to the
-%               permutation vector, an Mx1 logical update vector (U) is also 
-%               output that is TRUE where a reference coordinate has been
-%               matched to an unsorted centroid and false where no match
-%               was found.
+%   'bounds'    ->  refines centroid/ROI assignments by inclusion in the
+%                   bounds of the ROI. Bound inclusion is further
+%                   sub-divided into different modes depending on ROI shape  
 %
-%           INPUTS
+%   SYNTAX 
+%               ->  [permutation,update,raw] = sortCentroids(raw, trackDat, expmt)
 %
-%               CEN - unsorted Nx2 centroid coordinates output from region 
-%               props where N is the number of detected centroids
+%   INPUTS
 %
-%               C1 - Mx2 reference coordinates where M is the expected
-%               number of tracked objects. Works best if C1 is the last known
-%               coordinates of a tracked object(s).
+%   raw_cen     ->  unsorted Nx2 centroid coordinates output from region props
 %
-%           OUTPUTS
+%   trackDat    ->  tracking data struct containing last recorded position of 
+%                   each ROI trace
 %
-%               P - permutation vector that is Nx1 if N < M and Mx1 if
-%               N >= M. For example: P = [2 5 1] specifies that the second
-%               centroid in CEN is matched to the first coordinate of C1(U).
-%               The fifth centroid of CEN is matched to the second
-%               coordinate of C(U) etc. Indices 3 and 4 of CEN were not 
-%               matched with any reference coordinate and are thus
-%               excluded.
+%   expmt       -> 	master ExperimentData container containing ROI coordinates
+%                   and mode parameters
 %
-%               U - Mx1 logical update vector true where a reference
-%               coordinate has been matched to an unsorted centroid. The
-%               combination of P and U serves as a mapping between the
-%               input centroids and the reference coordinates.
+%   OUTPUTS
 %
-%                   eg. C(U,:) = CEN(P,:)
+%   permutation ->  permutation vector of indices of raw_cen to sort by ROI number
 %
-%           Double Sort - [P,U] = matchCentroids2ROIs(cen,C1,C2,thresh)
+%   update      ->  logical nROIx1 vector specifying which ROIs were
+%                   matched with a raw_cen coordinate
 %
-%               Double Sort has all the same core functionality of single
-%               sort but undergoes an additional round of filtering using a
-%               distance threshold to exclude unsorted centroids that are
-%               too far from a known landmark (eg. the center of an ROI).
+%   raw_cen     ->  updated raw_cen vector with elements unmatched to any 
+%                   ROI removed            
 %
-%           INPUTS
-%                       
-%               C2 - Mx2 reference coordinates where M is the expected
-%               number of tracked objects. Works best if C2 are the
-%               coordinates of known landmarks (eg. ROI coordinates).
-%               Must be the same dimensions as C1. Paired coordinates
-%               between C1 and C2 must be matched in order (eg. the index
-%               of the last known position of an object must be matched to
-%               the index of its the ROI position).
-%
-%               thresh - a scalar threshold value that serves as an upper
-%               bound on the allowed distance from an unsorted centroid to
-%               its matched coordinate in C2.
 %
 
 % Define placeholder data variables equal to number ROIs
@@ -194,6 +156,7 @@ update_centroid = false(size(trackDat.centroid,1),1);
     end
    
     % assign outputs
+    varargout = cell(3,1);
     for i=1:nargout
         switch i
             case 1, varargout(i) = {sorting_permutation};

@@ -29,7 +29,7 @@ function [trackDat] = autoTime(trackDat, expmt, gui_handles, varargin)
 
     %wait if necessary to achieve the target frame rate
     if nargin > 2
-        while ifi < 1/gui_handles.gui_fig.UserData.target_rate
+        while ifi < 1/expmt.parameters.target_rate
             tCurrent = toc;
             ifi = ifi + tCurrent - trackDat.tPrev;
             gui_update_t = gui_update_t + tCurrent - trackDat.tPrev;

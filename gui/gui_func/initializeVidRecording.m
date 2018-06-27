@@ -12,7 +12,7 @@ switch gui_handles.vid_compress_menu.Checked
     case 'off'
         expmt.VideoData.obj = VideoWriter(expmt.VideoData.path,'Grayscale AVI');
 end
-expmt.VideoData.FrameRate = gui_handles.gui_fig.UserData.target_rate;
+expmt.VideoData.FrameRate = expmt.parameters.target_rate;
 open(expmt.VideoData.obj);
 
 

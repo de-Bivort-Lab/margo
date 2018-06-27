@@ -113,11 +113,11 @@ switch old.meta.source
             handles.disp_ROI_thresh.Enable = 'on';
             handles.ROI_thresh_label.Enable = 'on';
             handles.auto_detect_ROIs_pushbutton.Enable = 'on';
-            handles.text45.Enable = 'on';
-            handles.text46.Enable = 'on';
+            handles.text_object_num.Enable = 'on';
+            handles.edit_object_num.Enable = 'on';
             handles.edit_target_rate.Enable = 'on';
-            handles.edit_area_minimum.Enable = 'on';
-            handles.edit_area_maximum.Enable = 'on';
+            handles.edit_area_min.Enable = 'on';
+            handles.edit_area_max.Enable = 'on';
         end         
         
 end

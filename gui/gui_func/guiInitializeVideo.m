@@ -4,8 +4,7 @@ function expmt = guiInitializeVideo(expmt, gui_handles)
     gui_handles.edit_video_dir.String = expmt.meta.video.fdir;
     gui_handles.vid_select_popupmenu.String = expmt.meta.video.fnames;
     gui_handles.edit_time_remaining.String = num2str(expmt.meta.video.nFrames);
-    gui_handles.gui_fig.UserData.target_rate = ...
-        expmt.meta.video.vid.FrameRate;
+    expmt.parameters.target_rate = expmt.meta.video.vid.FrameRate;
     
     % set downstream UI panel Enable status
     gui_handles.tracking_uipanel.ForegroundColor = [0 0 0];

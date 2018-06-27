@@ -49,8 +49,8 @@ hold off
 
 tic
 trackDat.tPrev = toc;
-old_rate = gui_handles.gui_fig.UserData.target_rate;
-gui_handles.gui_fig.UserData.target_rate = 100;
+old_rate = expmt.parameters.target_rate;
+expmt.parameters.target_rate = 100;
 
 while sample_ct < n;
 
@@ -118,7 +118,7 @@ switch expmt.meta.source
                         gui_handles.edit_time_remaining);
 end
 drawnow limitrate
-gui_handles.gui_fig.UserData.target_rate = old_rate;
+expmt.parameters.target_rate = old_rate;
 gui_notify('noise sampling complete',gui_handles.disp_note);
 
 % Assign outputs

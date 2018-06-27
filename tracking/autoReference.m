@@ -6,7 +6,7 @@ function [trackDat, expmt] = autoReference(trackDat,expmt,gui_handles)
     % If noise is above threshold: reset reference stack,
     if reset
 
-        ref_stack = repmat(trackDat.im ,1, 1, gui_handles.edit_ref_depth.Value);
+        ref_stack = repmat(trackDat.im ,1, 1, expmt.parameters.ref_depth);
         trackDat.ref.im=uint8(mean(ref_stack,3));
 
         note = gui_handles.disp_note.String{1};
@@ -22,7 +22,8 @@ function [trackDat, expmt] = autoReference(trackDat,expmt,gui_handles)
             gui_handles.disp_note.String(1) = ...
                 {[note(1:i(1)) '  noise threshold exceeded, references reset (' nmsgs 'x)']};
         else
-            gui_notify('noise threshold exceeded, references reset (1x)',gui_handles.disp_note);
+            gui_notify('noise threshold exceeded, references reset (1x)',...
+                gui_handles.disp_note);
         end
         
         % Reference vars
@@ -42,8 +43,7 @@ function [trackDat, expmt] = autoReference(trackDat,expmt,gui_handles)
            trackDat.ref.t = 0;   
            [expmt,trackDat] = refUpdateIdx(expmt,trackDat);
            
-           trackDat = refRawCrossPatch(trackDat, expmt, gui_handles);
-
+           trackDat = refRawCrossPatch(trackDat, expmt);
            trackDat.ref.update = false;
    
     end

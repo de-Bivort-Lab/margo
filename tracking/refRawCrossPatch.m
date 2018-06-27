@@ -1,4 +1,4 @@
-function trackDat = refRawCrossPatch(trackDat, expmt, gui_handles)
+function trackDat = refRawCrossPatch(trackDat, expmt)
 % patch bad areas of the reference with the raw image if possible
 
 
@@ -11,12 +11,12 @@ switch trackDat.ref.bg_mode
 end
 
 % threshold blobs by area
-inv_thresh = inv_diff > gui_handles.track_thresh_slider.Value;
+inv_thresh = inv_diff > expmt.parameters.track_thresh;
 props = regionprops(inv_thresh,'Area','PixelIdxList');
 above_min = [props.Area]  .* (expmt.parameters.mm_per_pix^2) > ...
-    gui_handles.gui_fig.UserData.area_min;
+    expmt.parameters.area_min;
 below_max = [props.Area] .* (expmt.parameters.mm_per_pix^2) <...
-    gui_handles.gui_fig.UserData.area_max;
+    expmt.parameters.area_max;
 props(~(above_min & below_max)) = [];
 
 % update reference image with target patches from the raw image
@@ -43,9 +43,9 @@ vim_thresh = ~expmt.meta.roi.mask;
 vim_thresh(cat(1,expmt.meta.roi.pixIdx{:})) = cat(1,roi_thresh{:});
 props = regionprops(vim_thresh,'Area','PixelIdxList');
 above_min = [props.Area]  .* (expmt.parameters.mm_per_pix^2) > ...
-    gui_handles.gui_fig.UserData.area_min*2;
+    expmt.parameters.area_min*2;
 below_max = [props.Area] .* (expmt.parameters.mm_per_pix^2) <...
-    gui_handles.gui_fig.UserData.area_max;
+    expmt.parameters.area_max;
 props(~(above_min & below_max)) = [];
 
 % replace targets with background

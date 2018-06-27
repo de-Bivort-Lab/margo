@@ -246,7 +246,7 @@ if strcmp(expmt.meta.vignette.mode,'auto') && ~isempty(ROI_coords)
 end
 
 % set sort mode to bounds
-gui_handles.gui_fig.UserData.sort_mode = 'bounds';
+expmt.parameters.sort_mode = 'bounds';
 
 % assign outputs
 if ~isempty(centers)

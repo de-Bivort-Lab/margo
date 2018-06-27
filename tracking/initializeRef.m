@@ -27,7 +27,6 @@ set(gui_handles.display_menu.Children,'Enable','on');
 set(gui_handles.display_menu.Children,'Checked','off');
 set(gui_handles.display_threshold_menu,'Checked','on');
 gui_handles.display_menu.UserData = 3;
-
 gui_handles.accept_track_thresh_pushbutton.Value = 0;
 
 %% Setup the camera and/or video object

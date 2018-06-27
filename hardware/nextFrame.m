@@ -11,11 +11,9 @@ if isfield(video,'fID')
 else
     
     if hasFrame(video.vid)
-
         im = readFrame(video.vid);
-
+        
     else
-
        % increment to next video
        video.ct = video.ct + 1;
 
