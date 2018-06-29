@@ -53,10 +53,26 @@ classdef RawDataField < handle
         % initialize raw data memmap from raw data file
         function obj = attach(obj)
             try        
+                
+                if ~isfield(obj.Parent.meta,'num_traces')
+                    obj.Parent.meta.num_traces = obj.Parent.meta.roi.n;
+                end
+                
+                % ensure correct dimensions
+                obj.dim(obj.dim==1)=[];
+                if obj.dim(end) ~= obj.Parent.meta.num_traces
+                    trace_dim = obj.Parent.meta.num_traces;
+                    frame_dim = obj.Parent.meta.num_frames;
+                    tmp_dim = [frame_dim ...
+                        obj.dim(obj.dim~=trace_dim & obj.dim~= frame_dim) ...
+                        trace_dim];
+                    obj.dim = tmp_dim;
+                end
+                
                 obj.raw.map = memmapfile(obj.path, ...
                                 'Format',{obj.precision,fliplr(obj.dim),'raw'});
                             
-                % resize of necessary
+                % resize if necessary
                 sz = size(obj.raw.map.Data);
                 if any(sz>1)
                     frame_num = sz(sz>1);
@@ -64,6 +80,7 @@ classdef RawDataField < handle
                     obj.raw.map = memmapfile(obj.path, ...
                         'Format',{obj.precision,fliplr(obj.dim),'raw'});
                 end
+                
             catch 
                 % try to automatically repair the file path
                 try
@@ -80,10 +97,16 @@ classdef RawDataField < handle
                     end
                 end
             end
+            obj.raw.Parent = obj;
         end
         
         function obj = detach(obj)
             obj.raw.map = [];
+        end
+        
+        function obj = reset(obj)
+            detach(obj);
+            attach(obj);
         end
         
         function out = isattached(obj)

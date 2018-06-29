@@ -40,9 +40,9 @@ if ~exist('include','var')
     include = trackProps.speed > speedthresh;
 end
 handedness.include = include;
-include = num2cell(include,2);
-body_ang = num2cell(trackProps.Theta,2);
-Direction = num2cell(trackProps.Direction,2);
+include = num2cell(include,1);
+body_ang = num2cell(trackProps.Theta,1);
+Direction = num2cell(trackProps.Direction,1);
 
 [mu,ang_hist] = cellfun(@(x,y,z) mu_score(x,y,z,bins),...
     include,body_ang,Direction,'UniformOutput',false);
@@ -64,7 +64,7 @@ h = h./sum(h);
 bw = bins(2)-bins(1);
 
 % save to expmt data struct
-hist = h';
-mu = -sin(sum(h' .* (bins' + bw/2)));
+hist = h;
+mu = -sin(sum(h .* (bins' + bw/2)));
 
 

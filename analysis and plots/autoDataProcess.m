@@ -8,14 +8,18 @@ function [varargout] = autoDataProcess(expmt,varargin)
 %% parse input properties
 
 % set defaults property values
-options.plot = false;           % plots raw centroid traces
-options.save = true;            % toggles file/figure saving
-options.raw = {};               % set fields to create raw data files for
-options.bootstrap = false;      % bootstrap metrics to generate null model
-options.slide = false;           % slide window over Circadian speed data
-options.regress = false;        % regress out camera distortion from speed data
-options.handedness = false;     % calculate handedness metrics
-options.area_threshold = false;
+if ~isfield(expmt.meta,'options')
+    options.plot = false;           % plots raw centroid traces
+    options.save = true;            % toggles file/figure saving
+    options.raw = {};               % set fields to create raw data files for
+    options.bootstrap = false;      % bootstrap metrics to generate null model
+    options.slide = false;           % slide window over Circadian speed data
+    options.regress = false;        % regress out camera distortion from speed data
+    options.handedness = false;     % calculate handedness metrics
+    options.area_threshold = false;
+else
+    options = expmt.meta.options;
+end
 
 for i = 1:length(varargin)
     
@@ -122,7 +126,9 @@ if options.regress
         gui_notify('modeling lens distortion',...
             options.handles.disp_note)
     end
-    expmt = modelLensDistortion(expmt);
+    if isfield(expmt.data,'speed')
+        expmt = modelLensDistortion(expmt);
+    end
 end
 
 expmt.meta.path.fig = [expmt.meta.path.dir 'figures_' expmt.meta.date '/'];
@@ -142,13 +148,13 @@ if isfield(expmt.data,'speed') && isattached(expmt.data.speed) ...
     end
     
     % chunk speed data into individual movement bouts
-    [block_indices, lag_thresh, speed_thresh] = blockActivity(expmt.data.speed.map);
-    expmt.data.speed.thresh = speed_thresh;
-    expmt.data.speed.bouts.thresh = lag_thresh;
-    expmt.data.speed.bouts.idx = block_indices;
+    [block_indices, lag_thresh, speed_thresh] = blockActivity(expmt.data.speed);
+    expmt.meta.speed.thresh = speed_thresh;
+    expmt.meta.speed.bouts.thresh = lag_thresh;
+    expmt.meta.speed.bouts.idx = block_indices;
     
     % bootstrap resample speed data to generate null distribution
-    [expmt.data.speed.bs,f] = bootstrap_speed_blocks(expmt,block_indices,100);
+    [expmt.meta.speed.bs,f] = bootstrap_speed_blocks(expmt,block_indices,100);
     
     % save bootstrap figure to file
     fname = [expmt.meta.path.fig expmt.meta.date '_bs_logspeed'];

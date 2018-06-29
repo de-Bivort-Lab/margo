@@ -245,11 +245,15 @@ f = handles.output.meta.fields;
 if hObject.Value
      if ~any(strcmp('speed',f))
          f = [f;{'speed'}];
+         handles.output.data.speed = RawDataField('Parent',handles.output);
      end
 else
      if any(strcmp('speed',f))
          idx = strcmp('speed',f);
          f(idx) = [];
+         if isfield(handles.output.data,'speed')
+            handles.output.data = rmfield(handles.output.data,'speed');
+         end
      end
 end
 handles.output.meta.fields = f;
@@ -265,11 +269,15 @@ f = handles.output.meta.fields;
 if hObject.Value
      if ~any(strcmp('area',f))
          f = [f;{'area'}];
+         handles.output.data.area = RawDataField('Parent',handles.output);
      end
 else
      if any(strcmp('area',f))
          idx = strcmp('area',f);
          f(idx) = [];
+         if isfield(handles.output.data,'area')
+            handles.output.data = rmfield(handles.output.data,'area');
+         end
      end
 end
 handles.output.meta.fields = f;
@@ -285,11 +293,16 @@ f = handles.output.meta.fields;
 if hObject.Value
      if ~any(strcmp('orientation',f))
          f = [f;{'orientation'}];
+         handles.output.data.orientation = ...
+             RawDataField('Parent',handles.output);
      end
 else
      if any(strcmp('orientation',f))
          idx = strcmp('orientation',f);
          f(idx) = [];
+         if isfield(handles.output.data,'orientation')
+            handles.output.data = rmfield(handles.output.data,'orientation');
+         end
      end
 end
 handles.output.meta.fields = f;
@@ -306,11 +319,17 @@ f = handles.output.meta.fields;
 if hObject.Value
      if ~any(strcmp('weightedCentroid',f))
          f = [f;{'weightedCentroid'}];
+         handles.output.data.weightedCentroid = ...
+             RawDataField('Parent',handles.output);
      end
 else
      if any(strcmp('weightedCentroid',f))
          idx = strcmp('weightedCentroid',f);
          f(idx) = [];
+         if isfield(handles.output.data,'weightedCentroid')
+             handles.output.data = ...
+                 rmfield(handles.output.data,'weightedCentroid');
+         end
      end
 end
 handles.output.meta.fields = f;
@@ -327,11 +346,17 @@ f = handles.output.meta.fields;
 if hObject.Value
      if ~any(strcmp('majorAxisLength',f))
          f = [f;{'majorAxisLength'}];
+         handles.output.data.majorAxisLength = ...
+             RawDataField('Parent',handles.output);
      end
 else
      if any(strcmp('majorAxisLength',f))
          idx = strcmp('majorAxisLength',f);
          f(idx) = [];
+         if isfield(handles.output.data,'majorAxisLength')
+            handles.output.data = ...
+                rmfield(handles.output.data,'majorAxisLength');
+         end
      end
 end
 handles.output.meta.fields = f;
@@ -346,11 +371,17 @@ f = handles.output.meta.fields;
 if hObject.Value
      if ~any(strcmp('minorAxisLength',f))
          f = [f;{'minorAxisLength'}];
+         handles.output.data.minorAxisLength = ...
+             RawDataField('Parent',handles.output);
      end
 else
      if any(strcmp('minorAxisLength',f))
          idx = strcmp('minorAxisLength',f);
          f(idx) = [];
+         if isfield(handles.output.data,'minorAxisLength')
+            handles.output.data = ...
+                rmfield(handles.output.data,'minorAxisLength');
+         end
      end
 end
 handles.output.meta.fields = f;

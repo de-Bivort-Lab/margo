@@ -60,12 +60,14 @@ if expmt.parameters.distance_thresh == 20
     heights=(expmt.meta.roi.bounds(:,4));
     w=median(widths);
     h=median(heights);
-    expmt.parameters.distance_thresh=round(sqrt(w^2+h^2)/2*0.9*10)/10 * expmt.parameters.mm_per_pix;
-    gui_handles.edit_dist_thresh.String = num2str(expmt.parameters.distance_thresh);
+    expmt.parameters.distance_thresh = ...
+        round(sqrt(w^2+h^2)/2*0.9*10)/10 * expmt.parameters.mm_per_pix;
+    gui_handles.edit_dist_thresh.String = ...
+        num2str(expmt.parameters.distance_thresh);
 end
 
 % set min distance from previous ref locations before acquiring new ref for any given object
-trackDat.ref.thresh = expmt.parameters.distance_thresh * 0.2;  
+trackDat.ref.thresh = expmt.parameters.distance_thresh * 0.5;  
 
 % Initialize reference with single image
 [trackDat,expmt] = autoFrame(trackDat,expmt,gui_handles);
@@ -111,11 +113,10 @@ trackDat.t = 0;
 tic
 trackDat.tPrev=toc;
 
-old_ref_freq = gui_handles.edit_ref_freq.Value;
-gui_handles.edit_ref_freq.Value = 1/120;
-
 while trackDat.t < expmt.parameters.duration*3600 &&...
         ~gui_handles.accept_track_thresh_pushbutton.Value
+    
+    trackDat.ref.freq = 30;
     
     % update time stamps and frame rate
     [trackDat] = autoTime(trackDat, expmt, gui_handles);
@@ -153,7 +154,7 @@ while trackDat.t < expmt.parameters.duration*3600 &&...
                 find(~isnan(trackDat.majorAxisLength),n_remain));
         end
         if ~any(isnan(blob_lengths))          
-           tmp_thresh = (mean(blob_lengths) + std(blob_lengths)*3)*0.6;
+           tmp_thresh = (mean(blob_lengths) + std(blob_lengths)*3)*1.2;
            if tmp_thresh < trackDat.ref.thresh
                 trackDat.ref.thresh = tmp_thresh;
            end
@@ -169,8 +170,7 @@ while trackDat.t < expmt.parameters.duration*3600 &&...
     if gui_handles.display_menu.UserData ~= 5
         
         % update the display
-        autoDisplay(trackDat, expmt, imh, gui_handles);
-                
+        autoDisplay(trackDat, expmt, imh, gui_handles);   
         nRefs = trackDat.ref.ct;
 
         % Update color indicator
@@ -181,8 +181,6 @@ while trackDat.t < expmt.parameters.duration*3600 &&...
 
         % Draw last known centroid for each ROI and update ref. number indicator
         hCirc.CData = color;
-
-       
     end
 
     if trackDat.ct <= size(dDifference,1)
@@ -216,7 +214,7 @@ while trackDat.t < expmt.parameters.duration*3600 &&...
     
 end
 
-gui_handles.edit_ref_freq.Value = old_ref_freq;
+
 
 %% Reset UI properties
 trackDat.t = 0;

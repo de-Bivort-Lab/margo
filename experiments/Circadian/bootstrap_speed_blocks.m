@@ -16,10 +16,11 @@ function [varargout]=bootstrap_speed_blocks(expmt,blocks,nReps)
 
 % restrict based on minimum activity
 nf = expmt.meta.num_traces;
-active = expmt.data.speed.avg>expmt.data.speed.thresh;
-speed = expmt.data.speed.raw(active,:);
+active = nanmean(expmt.data.speed.raw()) > expmt.meta.speed.thresh;
+speed = expmt.data.speed.raw(:,active);
 blocks = blocks(active);
-nBouts = cell2mat(cellfun(@size,blocks,'UniformOutput',false));
+nBouts = cellfun(@size,blocks,'UniformOutput',false);
+nBouts = cat(1,nBouts{:});
 nBouts = nBouts(:,1);
 blocks(nBouts==0) = [];
 nBouts(nBouts==0)=[];
@@ -70,7 +71,7 @@ for j = 1:nReps
     for i=1:length(ids)
         k1=blocks{ids(i)}(bouts(i),1);
         k2=blocks{ids(i)}(bouts(i),2);
-        tmp_speed(ct+1:ct+bout_length{ids(i)}(bouts(i)))=speed(ids(i),k1:k2);
+        tmp_speed(ct+1:ct+bout_length{ids(i)}(bouts(i)))=speed(k1:k2,ids(i));
         ct=ct+bout_length{ids(i)}(bouts(i));
     end
     
@@ -94,7 +95,7 @@ end
 %%
 
 dim = find(size(expmt.data.speed.raw) == expmt.meta.num_frames);
-bs.obs = log(nanmean(expmt.data.speed.raw,dim));
+bs.obs = log(nanmean(expmt.data.speed.raw(),dim));
 bs.include = active;
 bs.sim = log(bs_speeds);
 
@@ -105,21 +106,21 @@ f=figure();
 hold on
 
 % get range for density estimation
-range = [min([bs.sim(~isinf(bs.sim));bs.obs(~isinf(bs.obs))]) ...
-        max([bs.sim(~isinf(bs.sim));bs.obs(~isinf(bs.obs))])];
+range = [min([bs.sim(~isinf(bs.sim));bs.obs(~isinf(bs.obs))']) ...
+        max([bs.sim(~isinf(bs.sim));bs.obs(~isinf(bs.obs))'])];
 range(1) = floor(range(1));
 range(2) = ceil(range(2));
 
 
 [bs_kde,x1] = ksdensity(bs.sim(:),linspace(range(1),range(2),1000));
-bs_kde = bs_kde./sum(bs_kde);
+%bs_kde = bs_kde./sum(bs_kde);
 
 % plot bootstrapped trace
 plot(x1,bs_kde,'Color',[0 .45 .55],'LineWidth',2);
 
 % plot observed trace
 [obs_kde,x2] = ksdensity(bs.obs(:),linspace(range(1),range(2),1000));
-obs_kde = obs_kde./sum(obs_kde);
+%obs_kde = obs_kde./sum(obs_kde);
 plot(x2,obs_kde,'Color',[.85 0 .75],'LineWidth',2);
 set(gca,'XLim',range,'YLim',[0 max(bs_kde)*1.1]);
 xlabel('log(speed)');

@@ -41,7 +41,7 @@ classdef ExperimentData < handle
                 fpath = [obj.meta.path.dir obj.meta.path.name];
             end
             [dir,name,~] = fileparts(fpath);
-            obj.meta.path.dir   =   [dir '\'];
+            obj.meta.path.dir   =   [dir '/'];
             obj.meta.path.name  =   name;
 
             % get binary files
@@ -64,7 +64,6 @@ classdef ExperimentData < handle
                     warning('raw data file for field %s not found',f);
                     warning('on','backtrace');
                 end
-                
             end
         end
         
@@ -80,7 +79,7 @@ classdef ExperimentData < handle
         function obj = detach(obj) 
             fn = fieldnames(obj.data);
             for i=1:length(obj.meta.fields)
-                obj.data.(fn{i}).map = [];
+                obj.data.(fn{i}).raw.map = [];
             end
         end
         
@@ -141,14 +140,29 @@ classdef ExperimentData < handle
             p.dilate_sz         = 0;
         end
             
-        
-        
     end
     methods(Static)
         
         function obj = loadobj(obj)
             
             warning('off','MATLAB:m_missing_operator');
+            if exist([obj.meta.path.dir obj.meta.path.name])
+                obj = updatepaths(obj,[obj.meta.path.dir obj.meta.path.name]);
+            else
+                msg = sprintf(['\tFile path change detected, attempting to '...
+                    'repair path meta data for raw data files\n'...
+                    '\t\t\tUnsuccessful repair will result in non-functional raw '...
+                    'data maps']);
+                
+                if ~strcmp(lastwarn,msg);
+                    warning('off','backtrace');
+                    disp(sprintf('\n'))
+                    warning(msg);
+                    disp(sprintf('\n'))
+                    warning('on','backtrace');
+                end
+            end
+
             
             % auto update path         
             if isvalid(obj)
@@ -157,41 +171,146 @@ classdef ExperimentData < handle
                 catch ME
                     callStackDetails = getReport(ME);
                 end
-                callLine = regexp(callStackDetails,'(?<=Error in [^\n]*\n)[^\n]*','match','once');
+                callStr = regexp(callStackDetails,...
+                    '(?<=Error in [^\n]*\n)[^\n]*','match','once');
+                callStr = strtrim(callStr);
                 
-                if any(strfind(callLine,'load('))
-                    i = strfind(callLine,'load(');
-                    i=i(1)+5;
-                    i = [i find(callLine==')',1,'first')];
-                    callVar = callLine(i(1):i(2)-1);
-                    fpath = evalin('caller',callVar);
-                else
-                    callVars = evalin('caller','whos');
-                    for i=1:numel(callVars)
-                        varName = callVars(i).name;
-                        switch varName
-                            case 'filename'
-                                fpath = evalin('caller',varName);
-                            case 'fileAbsolutePath'
-                                fpath = evalin('caller',varName);
+                if any(strfind(callStr,'load('))
+                    i = strfind(callStr,'load(');
+                    i=i(1)+4;
+                    nest = find(callStr=='(');
+                    nest_idx = find(nest == i);
+                    j = find(callStr==')');
+                    j = j(numel(nest)-nest_idx+1);
+                    callInput = callStr(i+1:j-1);
+                    input_str = regexp(callInput,'''(.[^'']*)''','tokens');
+                    isfile = cellfun(@(p) exist(p,'file'),input_str{:});
+
+                    if any(isfile)
+                        fpath = input_str{find(isfile)};
+                        obj = updatepaths(obj,fpath);
+                        return
+                    end
+
+                    arg_splits = find(callInput==',');
+                    arg_splits = [0 arg_splits numel(callInput)+1];
+                    open_idx = find(callInput=='(');
+                    close_idx = find(callInput==')');
+                    for i = 1:numel(open_idx)
+                        sub_arg = open_idx(i) < arg_splits &...
+                                    arg_splits < close_idx(numel(open_idx)-i+1);
+                        if any(sub_arg)
+                            arg_splits(sub_arg)=[];
                         end
                     end
-                end
-                
-                if exist('fpath','var')
-                    obj = updatepaths(obj,fpath);
+
+                    callArgs = cell(numel(arg_splits)-1,1);
+                    for i=1:length(arg_splits)-1
+                        callArgs{i} = callInput(arg_splits(i)+1:arg_splits(i+1)-1);
+                    end
+                    callArgs = cellfun(@strtrim,callArgs,'UniformOutput',false);
+
+                    for i=1:length(callArgs)
+                        tmp_var = evalin('caller',callArgs{i});
+                        if exist(tmp_var,'file')==2
+                            fpath = tmp_var;
+                            obj = updatepaths(obj,fpath);
+                            return
+                        end
+                    end    
+                else
+                    try
+                        callVars = evalin('caller','whos');
+                        for i=1:numel(callVars)
+                            varName = callVars(i).name;
+                            tmp = evalin('caller',varName);
+                            if exist(tmp,'file')
+                                fpath = tmp;
+                                obj = updatepaths(obj,fpath);
+                                return
+                            end
+                        end
+                    catch
+                        callVars = evalin('base','whos');
+                        for i=1:numel(callVars)
+                            varName = callVars(i).name;
+                            tmp = evalin('caller',varName);
+                            if exist(tmp,'file')
+                                fpath = tmp;
+                                obj = updatepaths(obj,fpath);
+                                return
+                            end
+                        end
+                    end
+                    
+                    historypath = ...
+                        com.mathworks.mlservices. ...
+                        MLCommandHistoryServices.getSessionHistory;
+                    callStr = historypath(end);
+                    fpath = parseCommand(callStr);
+                    if ~isempty('fpath','var')
+                        obj = updatepaths(obj,fpath);
+                    end
                 end
             else
                 warning('automatic filepath update failed');
             end
-
+            sprintf('dir: %s\n',fpath);
             warning('on','MATLAB:m_missing_operator');
         end
         
+        
     end
-    
-    
-    
-    
-    
+end
+
+
+function fpath = parseCommand(callStr)
+
+
+callStr = callStr.toCharArray;
+callStr = callStr';
+fpath=[];
+if any(strfind(callStr,'load('))
+    i = strfind(callStr,'load(');
+    i=i(1)+4;
+    nest = find(callStr=='(');
+    nest_idx = find(nest == i);
+    j = find(callStr==')');
+    j = j(numel(nest)-nest_idx+1);
+    callInput = callStr(i+1:j-1);
+    input_str = regexp(callInput,'''(.[^'']*)''','tokens');
+    isfile = cellfun(@(p) exist(p,'file'),input_str{:});
+
+    if any(isfile)
+        fpath = input_str{find(isfile)};
+        return
+    end
+
+    arg_splits = find(callInput==',');
+    arg_splits = [0 arg_splits numel(callInput)+1];
+    open_idx = find(callInput=='(');
+    close_idx = find(callInput==')');
+    for i = 1:numel(open_idx)
+        sub_arg = open_idx(i) < arg_splits &...
+                    arg_splits < close_idx(numel(open_idx)-i+1);
+        if any(sub_arg)
+            arg_splits(sub_arg)=[];
+        end
+    end
+
+    callArgs = cell(numel(arg_splits)-1,1);
+    for i=1:length(arg_splits)-1
+        callArgs{i} = callInput(arg_splits(i)+1:arg_splits(i+1)-1);
+    end
+    callArgs = cellfun(@strtrim,callArgs,'UniformOutput',false);
+
+    for i=1:length(callArgs)
+        tmp_var = callArgs{i};
+        if exist(tmp_var,'file')==2
+            fpath = tmp_var;
+            return
+        end
+    end  
+end
+
 end

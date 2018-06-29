@@ -57,7 +57,7 @@ function [trackDat] = autoTime(trackDat, expmt, gui_handles, varargin)
     end
     
     % check reference update timer
-    trackDat.ref.update = trackDat.ref.t > gui_handles.edit_ref_freq.Value * 60;
+    trackDat.ref.update = trackDat.ref.t > (1/trackDat.ref.freq) * 60;
     
     if strcmp(expmt.meta.source,'camera') && ~no_plot
         

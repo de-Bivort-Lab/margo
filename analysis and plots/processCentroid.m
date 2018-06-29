@@ -8,8 +8,16 @@ end
 % initialize tracking properties struct
 nf = expmt.meta.num_frames;
 
+a=fopen('all');
+for i=1:numel(a)
+    fclose(a(i));
+end
+
 % initialize raw data files if necessary
+del = [];
 if ~isempty(opt.raw)
+    
+    % intialize raw data directory
     rawdir = [expmt.meta.path.dir 'raw_data/'];
     if ~exist(rawdir,'dir')
         mkdir(rawdir);
@@ -17,22 +25,27 @@ if ~isempty(opt.raw)
     for i=1:length(opt.raw)
         
         % create new raw data object
-        path = [rawdir expmt.meta.date opt.raw{i} '.bin'];
-        expmt.data.(opt.raw{i}) = RawDataField;
+        f = opt.raw{i};
+        path = [rawdir expmt.meta.date '_' f '.bin'];
         
         % delete any existing contents
-        expmt.data.(opt.raw{i}).fID = fopen(path,'w');
-        if expmt.data.(opt.raw{i}).fID ~= -1
-            fclose(expmt.data.(opt.raw{i}).fID);
+        if ~any(strcmpi(fieldnames(expmt.data),f))
+            
+            % intialize new raw file
+            expmt.data.(opt.raw{i}) = RawDataField;
+            expmt.data.(opt.raw{i}).fID = fopen(path,'w');
+            expmt.data.(opt.raw{i}).precision = 'single';
+            expmt.data.(opt.raw{i}).dim = [expmt.meta.num_traces];
+            expmt.data.(opt.raw{i}).path = path;
+        else
+            del = [del i];
         end
-        
-        % intialize new raw file
-        expmt.data.(opt.raw{i}).fID = fopen(path,'a');
-        expmt.data.(opt.raw{i}).precision = 'single';
-        expmt.data.(opt.raw{i}).dim = [expmt.meta.num_traces];
-        expmt.data.(opt.raw{i}).path = path;
     end
 end
+
+% remove existing raw data fields
+opt.raw(del)=[];
+expmt.meta.options.raw(del) = [];
         
 
 % query available memory to determine how many batches to process data in
@@ -54,14 +67,14 @@ for j = 1:nBatch
     
     % get x and y coordinates of the centroid and normalize to ROI
     if j==nBatch
-        inx = expmt.data.centroid.raw((j-1)*bsz+1:nf,:,1) - ...
+        inx = expmt.data.centroid.raw((j-1)*bsz+1:nf,1,:) - ...
             repmat(expmt.meta.roi.centers(:,1)',nf-(j-1)*bsz,1);
-        iny = expmt.data.centroid.raw((j-1)*bsz+1:nf,:,2) - ...
+        iny = expmt.data.centroid.raw((j-1)*bsz+1:nf,2,:) - ...
             repmat(expmt.meta.roi.centers(:,2)',nf-(j-1)*bsz,1);
     else
-        inx = expmt.data.centroid.raw((j-1)*bsz+1:j*bsz,:,1) - ...
+        inx = expmt.data.centroid.raw((j-1)*bsz+1:j*bsz,1,:) - ...
             repmat(expmt.meta.roi.centers(:,1)',nf-(j-1)*bsz,1);
-        iny = expmt.data.centroid.raw((j-1)*bsz+1:j*bsz,:,2) - ...
+        iny = expmt.data.centroid.raw((j-1)*bsz+1:j*bsz,2,:) - ...
             repmat(expmt.meta.roi.centers(:,2)',nf-(j-1)*bsz,1);
     end
     
@@ -95,7 +108,7 @@ for j = 1:nBatch
             case 'Radius'
                 trackProps.Radius = sqrt(inx.^2 + iny.^2);
         end
-        fwrite(expmt.data.(f).fID,trackProps.(f),expmt.data.(f).precision);
+        fwrite(expmt.data.(f).fID,trackProps.(f)',expmt.data.(f).precision);
     end
     
     clear trackProps inx iny   
@@ -133,7 +146,9 @@ if nBatch>1 && opt.handedness
         repmat((handedness.bins' + handedness.bin_width/2),1,expmt.meta.num_traces)))';
     
     expmt.meta.handedness = handedness;
-    
+
+else
+    expmt.meta.handedness = tmp;
 end
     
     

@@ -2,6 +2,17 @@ function [trackDat, expmt] = autoReference(trackDat,expmt,gui_handles)
 
     % if num pixels above thresh exceeds nine stdev
     reset = mean(trackDat.px_dev) > 7;
+    
+    if trackDat.ref.freq == expmt.parameters.ref_freq && ...
+            median(trackDat.ref.ct) < expmt.parameters.ref_depth
+        
+        trackDat.ref.freq = 60;
+        
+    elseif trackDat.ref.freq ~= expmt.parameters.ref_freq &&...
+            median(trackDat.ref.ct) >= expmt.parameters.ref_depth
+        
+        trackDat.ref.freq = expmt.parameters.ref_freq;
+    end
 
     % If noise is above threshold: reset reference stack,
     if reset

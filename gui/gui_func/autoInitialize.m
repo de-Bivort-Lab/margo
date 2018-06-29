@@ -179,6 +179,8 @@ else
 end
 
 expmt.meta.initialize = false;
+expmt.meta.finish = true;
+expmt.meta.num_traces = expmt.meta.roi.n;
 
 % initialize centroid markers
 clean_gui(gui_handles.axes_handle);

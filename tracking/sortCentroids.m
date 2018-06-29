@@ -150,7 +150,7 @@ update_centroid = false(size(trackDat.centroid,1),1);
              
              % assign outputs for sorting data
              [~,sorting_permutation] = sort(ROI_num);
-             update_centroid = ismember(1:expmt.meta.roi.n,ROI_num);
+             update_centroid = ismember((1:expmt.meta.roi.n)',ROI_num);
            
         end
     end

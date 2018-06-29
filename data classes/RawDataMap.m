@@ -3,6 +3,7 @@ classdef RawDataMap < handle
     
     properties (Hidden = true)
         map;
+        Parent;
     end
     
     methods
@@ -21,15 +22,7 @@ classdef RawDataMap < handle
                 for i=1:length(S)
                     switch S(i).type
                         case '()'
-                            out = out.map.Data.raw(S.subs{fliplr(1:numel(S.subs))});
-                            if numel(out) > 1
-                                out = permute(out,fliplr(1:ndims(out)));
-                            elseif isempty(out)
-                                warning(sprintf(['RawDataMap is empty.'...
-                                    'Must attach raw data file to access'...
-                                    ' contents. To attach raw data, run:\n'
-                                    '\tattach(RawDataField)']));
-                            end
+                            out = arrayindex(obj,S(i).subs);
                         case '.'
                             out = out.(S(i).subs);
                         case '{}'
@@ -39,7 +32,33 @@ classdef RawDataMap < handle
                 end
             end
             
-        end       
+        end
+        
+        function out = arrayindex(obj,s)
+            
+            % pull raw data from memmap using subscripts (s)
+            switch numel(s)
+                case 0
+                    out = obj.map.Data.raw(:,:,:,:,:,:);
+                    out = squeeze(permute(out,fliplr(1:ndims(out))));
+                case 1
+                    out = obj.map.Data.raw(:,:,:,:,:,:);
+                    out = squeeze(permute(out,fliplr(1:ndims(out))));
+                    out = out(s{:});
+                otherwise
+                    out = obj.map.Data.raw(s{fliplr(1:numel(s))});
+
+                    if numel(out) > 1 && sum(size(out)>1)>1 || numel(s) > 1
+                        out = squeeze(permute(out,fliplr(1:ndims(out))));
+                    elseif isempty(out)
+                        warning(sprintf(['RawDataMap is empty.'...
+                        'Must attach raw data file to access'...
+                        ' contents. To attach raw data, run:\n'
+                        '\tattach(RawDataField)']));
+                    end
+            end
+        end
+        
         function ans = display(obj)
             
             if isempty(obj.map)
@@ -75,12 +94,61 @@ classdef RawDataMap < handle
             end
         end
         
+        function out = minus(a,b)
+            switch class(a)
+                case 'RawDataMap'
+                    out = a.map.Data.raw;
+                    out = squeeze(permute(out,fliplr(1:ndims(out))));
+                    out = out - b;
+                otherwise
+                    out = b.map.Data.raw;
+                    out = squeeze(permute(out,fliplr(1:ndims(out))));
+                    out = a - out;
+            end
+        end
+        function out = plus(a,b)
+            switch class(a)
+                case 'RawDataMap'
+                    out = a.map.Data.raw;
+                    out = squeeze(permute(out,fliplr(1:ndims(out))));
+                    out = out + b;
+                otherwise
+                    out = b.map.Data.raw;
+                    out = squeeze(permute(out,fliplr(1:ndims(out))));
+                    out = a + out;
+            end
+        end
+        function out = times(a,b)
+            switch class(a)
+                case 'RawDataMap'
+                    out = a.map.Data.raw;
+                    out = squeeze(permute(out,fliplr(1:ndims(out))));
+                    out = out .* b;
+                otherwise
+                    out = b.map.Data.raw;
+                    out = squeeze(permute(out,fliplr(1:ndims(out))));
+                    out = a .* out;
+            end
+        end
+        function out = rdivide(a,b)
+           switch class(a)
+                case 'RawDataMap'
+                    out = a.map.Data.raw;
+                    out = squeeze(permute(out,fliplr(1:ndims(out))));
+                    out = out ./ b;
+                otherwise
+                    out = b.map.Data.raw;
+                    out = squeeze(permute(out,fliplr(1:ndims(out))));
+                    out = a ./ out;
+            end 
+        end
+        
         % size return functions
-        function out = size(obj)
+        function out = size(obj,varargin)
             if isempty(obj.map)
                 out  = [];
             else
-                out = fliplr(size(obj.map.Data.raw));
+                out = fliplr(size(obj.map.Data.raw,varargin{:}));
             end
         end
         function out = numel(obj)
@@ -107,8 +175,8 @@ classdef RawDataMap < handle
             end
             
         end
-                
-    end
+    end   
+
         
 end
     

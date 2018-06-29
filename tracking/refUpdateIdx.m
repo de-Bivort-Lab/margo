@@ -28,15 +28,11 @@ if isfield(expmt.meta.noise,'dist') && isfield(expmt.meta.noise,'roi_mean')
 end
 
 
-    
-
-
-
 refIdx(~include)=0;
 trackDat.ref.ct(include) = trackDat.ref.ct(include)+1;
 trackDat.ref.ct(trackDat.ref.ct>expmt.parameters.ref_depth) = ...
     expmt.parameters.ref_depth;
-trackDat.ref.last_update(include)  = 0;
+trackDat.ref.last_update(include) = 0;
 
 % group pixel indices by which sub reference they update
 pixLists = arrayfun(@(x) getPixIdxLists(x,refIdx,expmt.meta.roi.pixIdx),1:size(d,3),...

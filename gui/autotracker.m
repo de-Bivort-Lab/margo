@@ -246,7 +246,7 @@ handles.track_thresh_slider.Value = ceil(p.track_thresh);
 handles.disp_ROI_thresh.String = num2str(handles.ROI_thresh_slider.Value);
 handles.disp_track_thresh.String = num2str(handles.track_thresh_slider.Value);
 handles.edit_target_rate.String = num2str(p.target_rate);
-handles.edit_area_maximum.String = num2str(p.distance_thresh);
+handles.edit_area_maximum.String = num2str(p.area_max);
 
 % set analysis options
 [~,expmt.meta.options] = defaultAnalysisOptions;
@@ -911,6 +911,7 @@ function run_pushbutton_Callback(hObject, ~, handles)
 
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
+expmt.meta.initialize = true;
 
 % query the Enable states of objects in the gui
 handles.on_objs = findobj('Enable','on');
@@ -1145,6 +1146,7 @@ else
     
     % reset initialization
     expmt.meta.initialize = true;
+    expmt.meta.finish = true;
     
     % ensure all open files are closed
     fIDs = fopen('all');
@@ -2876,7 +2878,7 @@ function edit_area_maximum_Callback(hObject, ~, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 expmt = getappdata(handles.gui_fig,'expmt');
-expmt.parameters.area_min = str2double(hObject.String);
+expmt.parameters.area_max = str2double(hObject.String);
 guidata(hObject,handles);
 
 
@@ -3044,7 +3046,7 @@ switch hObject.Checked
     case 'off'
         hObject.Checked = 'on';
         if isfield(handles.view_menu.UserData,'hRefCen') &&...
-                ishghandle(handles.view_menu.UserData.hRefCen)
+                any(ishghandle(handles.view_menu.UserData.hRefCen))
             delete(handles.view_menu.UserData.hRefCen);
         end
         ah = handles.axes_handle;
@@ -3649,6 +3651,7 @@ function edit_area_minimum_Callback(hObject, eventdata, handles)
 
 expmt = getappdata(handles.gui_fig,'expmt');
 expmt.parameters.area_min = str2double(hObject.String);
+guidata(hObject,handles);
 
 
 

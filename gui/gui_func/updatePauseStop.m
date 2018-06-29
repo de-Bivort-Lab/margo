@@ -17,9 +17,7 @@ if gui_handles.stop_pushbutton.UserData.Value
         case 'Save'
             
             exit = true;
-            
-            % wrap up expmt and save struct
-            expmt = autoFinish(trackDat, expmt, gui_handles);
+            expmt.meta.finish = true;
             
         case 'Delete'
             

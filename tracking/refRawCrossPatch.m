@@ -1,6 +1,7 @@
 function trackDat = refRawCrossPatch(trackDat, expmt)
 % patch bad areas of the reference with the raw image if possible
 
+refin = trackDat.ref.im;
 
 % compute inverse difference image and threshold to identify target patches
 switch trackDat.ref.bg_mode

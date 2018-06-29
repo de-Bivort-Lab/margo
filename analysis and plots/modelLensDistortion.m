@@ -17,18 +17,23 @@ if rsz > msz
     return
 end
 
+detach(expmt);
+attach(expmt.data.centroid);
+
 % intialize cam center coords for distance calculation
 cc = [size(expmt.meta.ref,2)/2 size(expmt.meta.ref,1)/2]; 
 cam_dist = squeeze(sqrt((expmt.data.centroid.raw(:,1,:)-cc(1)).^2 +...
     (expmt.data.centroid.raw(:,2,:)-cc(2)).^2));
+
+detach(expmt.data.centroid);
+attach(expmt.data.speed);
 
 spd_table = table(cam_dist(:),expmt.data.speed.raw(:),...
     'VariableNames',{'Center_Distance';'speed'});
 lm = fitlm(spd_table,'speed~Center_Distance');
 
 if (lm.Coefficients{2,4})<0.05
-    expmt.data.speed.map.Writable = true;
-    expmt.data.speed.raw= expmt.data.speed.raw- lm.Coefficients{2,1}.*cam_dist;
+    expmt.meta.speed.adjusted = expmt.data.speed.raw - lm.Coefficients{2,1}.*cam_dist;
 end
 clear lm
 
@@ -41,6 +46,10 @@ if isfield(expmt,'Gravity') && isfield(expmt.Gravity,'index')
     end
         
 end
+
+% re-initialize raw data maps to free memory
+detach(expmt);
+attach(expmt);
 
 clear spd_table cam_dist lm
 

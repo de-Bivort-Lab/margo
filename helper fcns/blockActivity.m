@@ -1,4 +1,4 @@
-function [varargout] = blockActivity(s_raw)
+function [varargout] = blockActivity(spd)
 
 % blockActivity divides autotracker speed traces into discreet bouts
 %
@@ -17,10 +17,10 @@ function [varargout] = blockActivity(s_raw)
 
 % compute autocorrelation and find conservative 
 % cutoff for bout discretization
-s = s_raw;
-s = s';
-[ac] = autocorr(s(:),250);
-lag_thresh = find(diff(ac)>-0.01,1) + 1;
+reset(spd);
+s = spd.raw();
+[ac] = autocorr(s(~isnan(s)),250);
+lag_thresh = find(smooth(diff(ac),20)>-0.01,1) + 1;
 
 % median filter data by lag_thresh/2 to discretize bouts
 if (lag_thresh>1)
@@ -32,14 +32,18 @@ end
 speed_thresh = exp(intersect);
 
 % find frames where transitioned from 
-moving = s_raw > speed_thresh;
-transitions = diff(moving,1,2);
-transitions = cat(2,zeros(size(transitions,1),1,1),transitions);
-transitions = num2cell(transitions,2);
+moving = s > speed_thresh;
+transitions = diff(moving,1,1);
+transitions = cat(1,zeros(1,size(transitions,2)),transitions);
+transitions = num2cell(transitions,1);
 
 % get activity bout stops and starts
 stops = cellfun(@(x,y) find(x==-1), transitions,'UniformOutput',false);
 starts = cellfun(@(x,y) find(x==1), transitions,'UniformOutput',false);
+
+% free speed map
+reset(spd);
+clear s moving transitions
 
 % filter by bout lengths
 block_indices = arrayfun(@(x,y) ...
@@ -76,7 +80,7 @@ function idx = filterShortBouts(starts,stops,duration)
     if ~isempty(starts) && ~isempty(stops)
         bout_length = abs(starts{:}-stops{:});
         long_bout = bout_length > duration;
-        idx = [starts{:}(long_bout)' stops{:}(long_bout)'];
+        idx = [starts{:}(long_bout) stops{:}(long_bout)];
 
         if size(idx,1)>1
             % ensure that lower index comes first
