@@ -2,10 +2,7 @@ function [expmt] = initializeRef(gui_handles,expmt)
 
 
 clearvars -except gui_handles expmt
-
 gui_notify('initializing reference',gui_handles.disp_note);
-
-gui_fig = gui_handles.gui_fig;
 imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');   % image handle
 
 if isempty(imh)
@@ -52,6 +49,11 @@ trackDat.centroid=expmt.meta.roi.centers;                   	% placeholder for m
 trackDat.tStamp=zeros(nROIs,1);
 trackDat.ct = 0;
 blob_lengths = NaN(100,1);
+
+if expmt.parameters.area_min == 5 && expmt.parameters.area_max == 100
+    expmt.parameters.area_max = 600;
+    areas = cell(10,1);
+end
 
 
 % Set maximum allowable distance to center of ROI as the long axis of the ROI
@@ -139,6 +141,26 @@ while trackDat.t < expmt.parameters.duration*3600 &&...
     % track objects and sort to ROIs
     [trackDat] = autoTrack(trackDat,expmt,gui_handles);
     
+    % update area distribution
+    if exist('areas','var') && trackDat.ct < numel(areas)  
+        areas{trackDat.ct} = trackDat.area;
+    elseif exist('areas','var') && trackDat.ct == numel(areas) 
+        areas{trackDat.ct} = trackDat.area;
+        areas = cat(1,areas{:});
+        areas = areas(~isnan(areas));
+        areas = sort(areas);
+        area_cdf = cumsum(areas)./sum(areas);
+        [~,lb] = min(abs(area_cdf-0.02));
+        [~,ub] = min(abs(area_cdf-0.98));
+        expmt.meta.parameters.area_min = areas(lb);
+        expmt.meta.parameters.area_max = areas(ub);
+        gui_handles.edit_area_minimum.String = num2str(areas(lb));
+        gui_handles.edit_area_maximum.String = num2str(areas(ub));
+        gui_notify(sprintf('min blob area = %i,  max blob area = %i',...
+            areas(lb),areas(ub)), gui_handles.disp_note);
+        clear areas
+    end
+        
     % update blob length distribution
     if any(isnan(blob_lengths)) && any(~isnan(trackDat.majorAxisLength))
         n_remain = sum(isnan(blob_lengths));

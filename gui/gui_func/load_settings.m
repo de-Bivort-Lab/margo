@@ -11,6 +11,9 @@ handles.ROI_thresh_slider.Value = old.parameters.ROI_thresh;
 handles.disp_ROI_thresh.String = num2str(round(old.parameters.ROI_thresh));
 handles.track_thresh_slider.Value = old.parameters.track_thresh;
 handles.disp_track_thresh.String = num2str(round(old.parameters.track_thresh));
+handles.edit_area_minimum.String = num2str(round(old.parameters.area_min));
+handles.edit_area_maximum.String = num2str(round(old.parameters.area_max));
+handles.edit_target_rate.String = num2str(round(old.parameters.target_rate));
 
 if isfield(old.meta.path,'full')
     handles.save_path.String = old.meta.path.full;

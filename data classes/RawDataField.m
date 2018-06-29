@@ -60,7 +60,12 @@ classdef RawDataField < handle
                 
                 % ensure correct dimensions
                 obj.dim(obj.dim==1)=[];
-                if obj.dim(end) ~= obj.Parent.meta.num_traces
+                if isempty(obj.dim)
+                    obj.dim = [obj.Parent.meta.num_frames 1];
+                    
+                elseif any(obj.dim == obj.Parent.meta.num_traces) &&...
+                        obj.dim(end) ~= obj.Parent.meta.num_traces 
+                    
                     trace_dim = obj.Parent.meta.num_traces;
                     frame_dim = obj.Parent.meta.num_frames;
                     tmp_dim = [frame_dim ...

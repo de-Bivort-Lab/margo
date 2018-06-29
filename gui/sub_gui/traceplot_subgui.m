@@ -54,6 +54,8 @@ function traceplot_subgui_OpeningFcn(hObject, eventdata, handles, varargin)
 
 % get expmt struct and generate vector mask
 expmt = varargin{1};
+detach(expmt);
+attach(expmt.data.centroid);
 handles.trace_fig.UserData.expmt = expmt;
 [~,p] = memory;
 mem = p.PhysicalMemory.Available;
@@ -98,11 +100,6 @@ function varargout = traceplot_subgui_OutputFcn(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Get default command line output from handles structure
-%{
-while ishghandle(hObject)
-    pause(0.001);
-end
-%}
 varargout{1} = handles.output;
 
 
@@ -173,8 +170,8 @@ ah = handles.(['pos_axes' num2str(plot_num)]);
 lh = findobj(ah.Children,'Type','Line','-depth',1);
 expmt = handles.trace_fig.UserData.expmt;
 ii = handles.trace_fig.UserData.idx;
-x = squeeze(expmt.data.centroid.raw(idx,1,ii));
-y = squeeze(expmt.data.centroid.raw(idx,2,ii));
+x = squeeze(expmt.data.centroid.raw(ii,1,idx));
+y = squeeze(expmt.data.centroid.raw(ii,2,idx));
 handles.(['roi_num_slider' num2str(plot_num)]).Value = idx;
 handles.(['edit_ROI_num' num2str(plot_num)]).String = num2str(idx);
 

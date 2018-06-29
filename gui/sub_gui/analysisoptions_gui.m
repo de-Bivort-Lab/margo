@@ -148,16 +148,9 @@ guidata(hObject, handles);
 function varargout = analysisoptions_gui_OutputFcn(hObject, eventdata, handles) 
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
+varargout = {};
 
 
-
-% Get default command line output from handles structure
-while ishghandle(hObject)
-    handles = guidata(hObject);
-    varargout(1) = {handles.output};
-    pause(0.002);
-    drawnow
-end
 
 
 

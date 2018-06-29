@@ -916,6 +916,7 @@ expmt.meta.initialize = true;
 % query the Enable states of objects in the gui
 handles.on_objs = findobj('Enable','on');
 handles.off_objs = findobj('Enable','off');
+
 keep_gui_state = false;
 
 % check labels
@@ -938,15 +939,14 @@ elseif ~isfield(expmt.meta.noise,'dist')
     errordlg('Please run noise sampling before starting tracking');
     return
 elseif any(strcmp(expmt.meta.name,handles.parameter_subgui)) &&...
-        (~isfield(expmt.parameters,'initialized') ||...
-        ~expmt.parameters.initialized)
-    errordlg(['Parameters for the selected experiment'...
-        'must be set before tracking']);
+        (~isfield(expmt.parameters,'initialized') || ~expmt.parameters.initialized)
+    errordlg('Parameters for the selected experiment must be set before tracking');
     return
 end
 
     
 try
+
     % disable controls that are not to be accessed while expmt is running
     toggleSubguis(handles,'off');
     toggleMenus(handles,'off');
@@ -956,37 +956,103 @@ try
     switch expmt.meta.name              
         case 'Optomotor'
             expmt = run_optomotor(expmt,handles);
+            if isfield(expmt,'date')
+                expmt = analyze_optomotor(expmt,'Handles',handles,'Raw',{'speed'});
+            else
+                keep_gui_state = true;
+            end
+
 
         case 'Slow Phototaxis'
             expmt = run_slowphototaxis(expmt,handles);
+            if isfield(expmt,'date')
+                expmt = analyze_slowphototaxis(expmt,'Handles',handles,'Raw',{'speed'});
+            else
+                keep_gui_state = true;
+            end
+
 
         case 'LED Y-maze'
-            expmt = run_ledymaze(expmt,handles);
+            if isempty(expmt.hardware.COM.aux)
+                errordlg('No aux COM assigned for LED Y-maze');
+                keep_gui_state = true;
+            else
+                expmt = run_ledymaze(expmt,handles);
+                if isfield(expmt,'date')
+                    expmt = analyze_ledymaze(expmt,'Handles',handles,'Raw',{'speed'});
+                else
+                    keep_gui_state = true;
+                end
+            end
+
 
         case 'Arena Circling'
             expmt = run_arenacircling(expmt,handles);
+            if isfield(expmt,'date')
+                args = {'Handles',handles,'Raw',{'speed'},'Handedness',true};
+                expmt = analyze_arenacircling(expmt,args{:});
+            else
+                keep_gui_state = true;
+            end
+
 
         case 'Y-maze'
             expmt = run_ymaze(expmt,handles);
+            if isfield(expmt,'date')
+                args = {'Handles',handles,'Raw',{'speed'},'Handedness',true};
+                expmt = analyze_ymaze(expmt,args{:});
+            else
+                keep_gui_state = true;
+            end
+
 
         case 'Basic Tracking'
             expmt = run_basictracking(expmt,handles);     % Run expmt
+            if ~expmt.meta.finish
+                keep_gui_state = true;
+            elseif ~expmt.meta.options.disable
+                expmt = analyze_basictracking(expmt,'Handles',handles);
+            end
+
 
         case 'Circadian'
             expmt = run_circadian(expmt,handles);
+            if isfield(expmt,'date')
+                args = {'Handles',handles,'Raw',{'speed'},'Bootstrap',false,'Slide',false};
+                expmt = analyze_circadian(expmt,args{:});
+            else
+                keep_gui_state = true;
+            end
+
+        case 'Arena Blocks'
+
+            [circle,opto,photo] = run_arenablocks(expmt,handles);
+            if isfield(circle,'date')
+                expmt = analyze_arenacircling(circle,handles,'Raw',{'speed'});
+                clearvars circle
+            end
+
+            if isfield(opto,'date')
+                expmt = analyze_optomotor(opto,handles,'Raw',{'speed'});
+                clearvars opto
+            end
+
+            if isfield(photo,'date')
+                expmt = analyze_slowphototaxis(photo,handles,'Raw',{'speed'});
+                clearvars photo
+            end
 
         case 'Temporal Phototaxis'
+
             expmt = run_tempphototaxis(expmt,handles);
-    end
-    
-    % run post-processing
-    if ~expmt.meta.finish
-        keep_gui_state = true;
-    elseif ~expmt.meta.options.disable
-        expmt = autoAnalyze(expmt,'Handles',handles);
+            if isfield(expmt,'date')
+                expmt = analyze_tempphototaxis(expmt,'Handles',handles,'Raw',{'speed'});
+            else
+                keep_gui_state = true;
+            end
     end
 
-    if isfield(expmt.data,'centroid') && isattached(expmt.data.centroid)
+    if isfield(expmt,'centroid') && isattached(expmt.data.centroid)
         ttl = 'Tracking Complete';
         msg = {'ROIs, references, and noise statistics reset';...
             'Would you like to plot raw tracking data?'};
@@ -998,8 +1064,8 @@ try
         end
     end
 
-% re-establish gui state prior to tracking error is encountered
 catch ME
+
     if isfield(handles,'deviceID')
         try
         [~,status]=urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=3']);
@@ -1007,16 +1073,16 @@ catch ME
             status = false;
         end
         if ~status
-            gui_notify(['unable to connect to'...
-                ' http://lab.debivort.org'],handles.disp_note);
+            gui_notify('unable to connect to http://lab.debivort.org',handles.disp_note);
         end
     end
-    
+
     switch expmt.meta.name
         case 'Slow Phototaxis', sca;
         case 'Optomotor', sca;
         case 'Temporal Phototaxis', sca;
     end
+
     gui_notify('error encountered - tracking stopped',handles.disp_note);
     keep_gui_state = true;
     title = 'Error encountered - tracking stopped';
@@ -1025,62 +1091,68 @@ catch ME
     errordlg(msg,title);
 end
     
-if isfield(handles,'deviceID')
-    try
-    [~,status]=urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=2']);
-    catch
-        status = false;
+    if isfield(handles,'deviceID')
+        try
+        [~,status]=urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=2']);
+        catch
+            status = false;
+        end
+        if ~status
+            gui_notify('unable to connect to http://lab.debivort.org',handles.disp_note);
+        end
     end
-    if ~status
-        gui_notify('unable to connect to http://lab.debivort.org',handles.disp_note);
-    end
-end
     
-% re-Enable control set to off during experiment
-toggleSubguis(handles,'on');
-toggleMenus(handles,'on');
-      
-% remove saved rois, images, and noise statistics from prev experiment
-if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n && ~keep_gui_state
-
-    % remove tracked fields from master expmt for next run
-    expmt.meta.fields = {'centroid','time'};
-    expmt = reset(expmt);
-    [~,expmt.meta.options] = defaultAnalysisOptions;
-    note = 'ROIs, references, and noise statistics reset';
-    gui_notify(note,handles.disp_note);
-
-    % set downstream UI panel Enable status
-    handles.tracking_uipanel.ForegroundColor = [0 0 0];
-    set(findall(handles.tracking_uipanel, '-property', 'Enable'), 'Enable', 'off');
-    set(findall(handles.exp_uipanel, '-property', 'Enable'), 'Enable', 'off');
-    set(findall(handles.run_uipanel, '-property', 'Enable'), 'Enable', 'off');
-
-    if isfield(expmt.hardware.cam,'vid') && isvalid(expmt.hardware.cam.vid)
-        handles.auto_detect_ROIs_pushbutton.Enable = 'on';
-        handles.accept_ROI_thresh_pushbutton.Enable = 'on';
-        handles.ROI_thresh_slider.Enable = 'on';
-        handles.ROI_thresh_label.Enable = 'on';
-        handles.disp_ROI_thresh.Enable = 'on';
-    end
-
-elseif keep_gui_state
-
-    % restore gui to prior state
-    set(handles.on_objs(isvalid(handles.on_objs)),'Enable','on');
-    set(handles.off_objs(isvalid(handles.off_objs)),'Enable','off');   
-end
+    % re-Enable control set to off during experiment
+    handles = toggleSubguis(handles,'on');
     
-% reset initialization
-expmt.meta.initialize = true;
-expmt.meta.finish = true;
-
-% ensure all open files are closed
-fIDs = fopen('all');
-for i=1:length(fIDs)
-    fclose(fIDs(i));
-end
+    
+    % remove saved rois, images, and noise statistics from prev experiment
+    if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n && ~keep_gui_state
         
+        % remove tracked fields from master expmt for next run
+        expmt.meta.fields = {'centroid','time'};
+        expmt = reset(expmt);
+        [~,expmt.meta.options] = defaultAnalysisOptions;
+        note = 'ROIs, references, and noise statistics reset';
+        gui_notify(note,handles.disp_note);
+        
+
+
+        % set downstream UI panel Enable status
+        handles.tracking_uipanel.ForegroundColor = [0 0 0];
+        set(findall(handles.tracking_uipanel, '-property', 'Enable'), 'Enable', 'off');
+        set(findall(handles.exp_uipanel, '-property', 'Enable'), 'Enable', 'off');
+        set(findall(handles.run_uipanel, '-property', 'Enable'), 'Enable', 'off');
+        
+        if isfield(expmt.hardware.cam,'vid') && isvalid(expmt.hardware.cam.vid)
+            handles.auto_detect_ROIs_pushbutton.Enable = 'on';
+            handles.accept_ROI_thresh_pushbutton.Enable = 'on';
+            handles.ROI_thresh_slider.Enable = 'on';
+            handles.ROI_thresh_label.Enable = 'on';
+            handles.disp_ROI_thresh.Enable = 'on';
+        end
+        
+    elseif keep_gui_state
+        
+        
+        % restore gui to prior state
+        set(handles.on_objs(isvalid(handles.on_objs)),'Enable','on');
+        set(handles.off_objs(isvalid(handles.off_objs)),'Enable','off');   
+        
+    end
+    
+    % reset initialization
+    expmt.meta.initialize = true;
+    expmt.meta.finish = true;
+    
+    % ensure all open files are closed
+    fIDs = fopen('all');
+    for i=1:length(fIDs)
+        fclose(fIDs(i));
+    end
+        
+end
+
 % Store expmteriment data struct
 setappdata(handles.gui_fig,'expmt',expmt);
 

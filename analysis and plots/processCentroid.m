@@ -35,7 +35,8 @@ if ~isempty(opt.raw)
             expmt.data.(opt.raw{i}) = RawDataField;
             expmt.data.(opt.raw{i}).fID = fopen(path,'w');
             expmt.data.(opt.raw{i}).precision = 'single';
-            expmt.data.(opt.raw{i}).dim = [expmt.meta.num_traces];
+            expmt.data.(opt.raw{i}).dim = ...
+                [expmt.meta.num_frames expmt.meta.num_traces];
             expmt.data.(opt.raw{i}).path = path;
         else
             del = [del i];

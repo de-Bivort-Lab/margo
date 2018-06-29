@@ -15,8 +15,6 @@ gui_handles.auto_detect_ROIs_pushbutton.Enable = 'off';
 
 %% Define parameters - adjust parameters here to fix tracking and ROI segmentation errors
 
-gui_fig = gui_handles.gui_fig;
-
 % ROI detection parameters 
 sigma=0.47;                                 % Sigma expressed as a fraction of the image height
 kernelWeight=0.34;                          % Scalar weighting of kernel when applied to the image

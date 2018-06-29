@@ -17,7 +17,7 @@ gui_handles.grid_ROI_uipanel.Position(1) = gui_handles.run_uipanel.Position(1);
 gui_handles.grid_ROI_uipanel.Position(2) = gui_handles.run_uipanel.Position(2);
 gui_handles.grid_ROI_uipanel.Visible = 'on';
 hAdd = gui_handles.add_ROI_pushbutton;
-gui_fig = gui_handles.gui_fig;
+
 
 % Setup the camera and/or video object
 expmt = getVideoInput(expmt,gui_handles);
@@ -76,11 +76,6 @@ else
     % prompt user to draw new rectangle
     [gui_handles,hPatch]=drawGrid(1,gui_handles);
 end
-%{
-for i=1:length(gui_handles.add_ROI_pushbutton.UserData.grid)-1
-    gui_handles = update_grid_UI(gui_handles,'subtract');
-end
-%}
 
 old_dim = cell(nGrids,1);
 old_coords = cell(nGrids,1);

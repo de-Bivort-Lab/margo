@@ -26,6 +26,8 @@ classdef ExperimentData < handle
             obj.parameters = initialize_parameters(obj);
             
             % assign default meta data
+            obj.meta.path.dir = '';
+            obj.meta.path.name = '';
             obj.meta.roi.mode = 'grid';
             obj.meta.vignette.mode = 'auto';
             obj.meta.initialize = true;
@@ -45,7 +47,7 @@ classdef ExperimentData < handle
             obj.meta.path.name  =   name;
 
             % get binary files
-            rawpaths = recursiveSearch(dir,'ext','.bin');
+            rawpaths = recursiveSearch(dir,'ext','.bin','keyword',obj.meta.date);
             [~,rawnames] = cellfun(@fileparts, rawpaths, ...
                                         'UniformOutput',false);
             
@@ -65,6 +67,9 @@ classdef ExperimentData < handle
                     warning('on','backtrace');
                 end
             end
+            
+            % attach obj by default
+            attach(obj);
         end
         
         % initialize all raw data maps
@@ -146,15 +151,16 @@ classdef ExperimentData < handle
         function obj = loadobj(obj)
             
             warning('off','MATLAB:m_missing_operator');
-            if exist([obj.meta.path.dir obj.meta.path.name])
-                obj = updatepaths(obj,[obj.meta.path.dir obj.meta.path.name]);
-            else
+            if ~isfield(obj.meta.path,'dir')
+                return
+            end
+            if exist([obj.meta.path.dir obj.meta.path.name],'file') ~= 2
                 msg = sprintf(['\tFile path change detected, attempting to '...
                     'repair path meta data for raw data files\n'...
                     '\t\t\tUnsuccessful repair will result in non-functional raw '...
                     'data maps']);
                 
-                if ~strcmp(lastwarn,msg);
+                if ~strcmp(lastwarn,msg)
                     warning('off','backtrace');
                     disp(sprintf('\n'))
                     warning(msg);
@@ -170,6 +176,10 @@ classdef ExperimentData < handle
                     error('DummyError');
                 catch ME
                     callStackDetails = getReport(ME);
+                end
+                if any(strfind(callStackDetails,'uiimport')) &&...
+                     ~any(strfind(callStackDetails,'runImportdata'))
+                    return
                 end
                 callStr = regexp(callStackDetails,...
                     '(?<=Error in [^\n]*\n)[^\n]*','match','once');
@@ -188,8 +198,10 @@ classdef ExperimentData < handle
 
                     if any(isfile)
                         fpath = input_str{find(isfile)};
-                        obj = updatepaths(obj,fpath);
-                        return
+                        if testPath(fpath, obj.meta.date)
+                            obj = updatepaths(obj,fpath);
+                            return
+                        end
                     end
 
                     arg_splits = find(callInput==',');
@@ -214,8 +226,10 @@ classdef ExperimentData < handle
                         tmp_var = evalin('caller',callArgs{i});
                         if exist(tmp_var,'file')==2
                             fpath = tmp_var;
-                            obj = updatepaths(obj,fpath);
-                            return
+                            if testPath(fpath, obj.meta.date)
+                                obj = updatepaths(obj,fpath);
+                                return
+                            end
                         end
                     end    
                 else
@@ -226,8 +240,10 @@ classdef ExperimentData < handle
                             tmp = evalin('caller',varName);
                             if exist(tmp,'file')
                                 fpath = tmp;
-                                obj = updatepaths(obj,fpath);
-                                return
+                                if testPath(fpath, obj.meta.date)
+                                    obj = updatepaths(obj,fpath);
+                                    return
+                                end
                             end
                         end
                     catch
@@ -237,8 +253,10 @@ classdef ExperimentData < handle
                             tmp = evalin('caller',varName);
                             if exist(tmp,'file')
                                 fpath = tmp;
-                                obj = updatepaths(obj,fpath);
-                                return
+                                if testPath(fpath, obj.meta.date)
+                                    obj = updatepaths(obj,fpath);
+                                    return
+                                end
                             end
                         end
                     end
@@ -247,7 +265,7 @@ classdef ExperimentData < handle
                         com.mathworks.mlservices. ...
                         MLCommandHistoryServices.getSessionHistory;
                     callStr = historypath(end);
-                    fpath = parseCommand(callStr);
+                    fpath = parseCommand(callStr, obj.meta.date);
                     if ~isempty(fpath)
                         if iscell(fpath)
                             fpath = fpath{:};
@@ -267,8 +285,19 @@ classdef ExperimentData < handle
 end
 
 
-function fpath = parseCommand(callStr)
+function status = testPath(fpath, date_label)
 
+    % check for date label in path
+    if iscell(fpath)
+        fpath = fpath{1};
+    end
+    [~,name,~] = fileparts(fpath);
+    status = ~isempty(strfind(name, date_label));
+    
+end
+
+
+function fpath = parseCommand(callStr, date_label)
 
 callStr = callStr.toCharArray;
 callStr = callStr';
@@ -285,8 +314,11 @@ if any(strfind(callStr,'load('))
     isfile = cellfun(@(p) exist(p,'file'),input_str{:});
 
     if any(isfile)
-        fpath = input_str{find(isfile)};
-        return
+        tmp_path = input_str{find(isfile)};
+        if testPath(tmp_path, date_label)
+            fpath = tmp_path;
+            return
+        end
     end
 
     arg_splits = find(callInput==',');
@@ -310,8 +342,10 @@ if any(strfind(callStr,'load('))
     for i=1:length(callArgs)
         tmp_var = callArgs{i};
         if exist(tmp_var,'file')==2
-            fpath = tmp_var;
-            return
+            if testPath(tmp_var, date_label)
+                fpath = tmp_var;
+                return
+            end
         end
     end  
 end
