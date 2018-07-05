@@ -176,7 +176,7 @@ while trackDat.t < expmt.parameters.duration*3600 &&...
                 find(~isnan(trackDat.majorAxisLength),n_remain));
         end
         if ~any(isnan(blob_lengths))          
-           tmp_thresh = (mean(blob_lengths) + std(blob_lengths)*3)*1.2;
+           tmp_thresh = (mean(blob_lengths) + std(blob_lengths)*3)*0.75;
            if tmp_thresh < trackDat.ref.thresh
                 trackDat.ref.thresh = tmp_thresh;
            end

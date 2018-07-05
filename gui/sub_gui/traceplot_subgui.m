@@ -61,7 +61,7 @@ handles.trace_fig.UserData.expmt = expmt;
 mem = p.PhysicalMemory.Available;
 n = mem/(8*expmt.meta.num_frames*2*6) * expmt.meta.num_frames * 0.1;
 if expmt.meta.num_frames > n
-    frame_rate = median(expmt.data.time.raw);
+    frame_rate = median(expmt.data.time.raw());
     handles.trace_fig.UserData.idx = 1:round(frame_rate):expmt.meta.num_frames;
     if numel(handles.trace_fig.UserData.idx) > n
         handles.trace_fig.UserData.idx = floor(linspace(1,expmt.meta.num_frames,n));

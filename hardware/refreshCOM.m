@@ -23,7 +23,7 @@ end
 % automatically select light COM if detected
 if ~isempty(expmt.hardware.COM.light)
     handles.microcontroller_popupmenu.Value = ...
-        find(strcmp(expmt.hardware.COM.light,expmt.hardware.COM.light.ports));
+        find(strcmp(expmt.hardware.COM.ports,expmt.hardware.COM.light.Port));
 end
         
 

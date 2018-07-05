@@ -43,4 +43,3 @@ if ~isempty(panelNum)
 else
     lightBoard = [];
 end
-ports(panelNum)=[];
