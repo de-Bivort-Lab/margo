@@ -100,7 +100,6 @@ for i=1:6
     stp(stp>1)=1;
     sb(i).Max = cap;
     sb(i).SliderStep(1) = stp;
-    sb(i).SliderStep(2) = stp*10;
     if i <= expmt.meta.roi.n && ~strcmp(sb(i).Enable,'off')
         dispTrace(i,handles);
     end
@@ -193,17 +192,15 @@ function dispTrace(plot_num,handles)
 eb = handles.(['edit_ROI_num' num2str(plot_num)]);
 sb = handles.(['roi_num_slider' num2str(plot_num)]);
 ah = handles.(['pos_axes' num2str(plot_num)]);
-th = handles.(['fr_label' num2str(plot_num)]);
 lh = findobj(ah.Children,'Type','Line','-depth',1);
 
 % retrieve current roi number and frame range
 roi = str2double(eb.String);
-ii = ceil(round(sb.Value/1000)*1000)+1;
+ii = floor(sb.Value);
 
 expmt = handles.trace_fig.UserData.expmt;
 x = expmt.data.centroid.raw(ii:ii+9999,1,roi);
 y = expmt.data.centroid.raw(ii:ii+9999,2,roi);
-th.String = sprintf('%i\t - \t%i',ii,ii+9999);
 
 % update position plot
 if isempty(lh) || eb.UserData ~= roi
@@ -214,7 +211,6 @@ if isempty(lh) || eb.UserData ~= roi
     smpl_sz(smpl_sz>expmt.meta.num_frames) = expmt.meta.num_frames;
     smpl = randperm(expmt.meta.num_frames,smpl_sz);
     smpl = expmt.data.centroid.raw(smpl,:,roi);
-    reset(expmt.data.centroid);
     mu = nanmean(smpl);
     std = max(nanstd(smpl));
     ah.XLim = mu(1) + (std*3).*[-1 1];
@@ -249,7 +245,7 @@ else
 end
 clear s x y
 
-% update current roi number
+% 
 eb.UserData = roi;
 
 switch handles.roi_num_slider1.Value
@@ -283,13 +279,9 @@ end
 eb = findobj(handles.trace_fig,'-depth',1,'Style','edit');
 [~,p] = sort(get(eb,'Tag'));
 eb = eb(p);
-sb = findobj(handles.trace_fig,'-depth',1,'Style','slider');
-[~,p] = sort(get(sb,'Tag'));
-sb = sb(p);
 for i=1:length(eb)
     if ~strcmp(eb(i).Enable,'off')
         eb(i).String = num2str(start+i-1);
-        sb(i).Value = 1;
     end
 end
 
@@ -318,13 +310,9 @@ end
 eb = findobj(handles.trace_fig,'-depth',1,'Style','edit');
 [~,p] = sort(get(eb,'Tag'));
 eb = eb(p);
-sb = findobj(handles.trace_fig,'-depth',1,'Style','slider');
-[~,p] = sort(get(sb,'Tag'));
-sb = sb(p);
 for i=1:length(eb)
     if ~strcmp(eb(i).Enable,'off')
         eb(i).String = num2str(start+i-1);
-        sb(i).Value = 1;
     end
 end
 
