@@ -14,9 +14,14 @@ classdef RawDataMap < handle
         % indexing and return routines
         function out = subsref(obj,S)
             
-            if isempty(obj.map)
-                error(['raw data file unattached - run attach(RawDataMap)' ...
-                        ' before indexing raw data']);
+            if isempty(obj.map) || isempty(obj.map.Data.raw)
+                
+                try
+                    attach(obj.Parent);
+                catch
+                    error(['could not attach raw data mao - run '
+                        'attach(RawDataMap) before indexing raw data']);
+                end
             else
                 out = obj;
                 for i=1:length(S)

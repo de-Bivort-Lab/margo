@@ -1,4 +1,4 @@
-function [varargout] = blockActivity(spd)
+function [varargout] = blockActivity(expmt)
 
 % blockActivity divides autotracker speed traces into discreet bouts
 %
@@ -17,23 +17,52 @@ function [varargout] = blockActivity(spd)
 
 % compute autocorrelation and find conservative 
 % cutoff for bout discretization
+
+% 
+spd = expmt.data.speed;
 reset(spd);
-s = spd.raw();
+
+if spd.dim(1) < 50000
+    smpl = 1:spd.dim(1);
+else
+    smpl = 1:50000;
+end
+
+s = spd.raw(smpl,:);
 [ac] = autocorr(s(~isnan(s)),250);
 lag_thresh = find(smooth(diff(ac),20)>-0.01,1) + 1;
+
 
 % median filter data by lag_thresh/2 to discretize bouts
 if (lag_thresh>1)
     s = medfilt1(s,round(lag_thresh/2),[],1);
 end
 
+% free memory from the memory map
+reset(spd);
+
 % find speed threshold cutoff from log speed
 [intersect] = fitBimodalHist(log(s(:)));
 speed_thresh = exp(intersect);
 
 % find frames where transitioned from 
-moving = s > speed_thresh;
+[bsz, nBatch] = getBatchSize(expmt, 2);
+moving = false(spd.dim);
+for j=1:nBatch
+    if j==nBatch
+        idx = (j-1)*bsz+1:expmt.meta.num_frames;
+    else
+        idx = (j-1)*bsz+1:j*bsz;
+    end
+    s = spd.raw(idx,:);
+    moving(idx,:) = s > speed_thresh;
+    reset(spd);
+    clear s
+end
+
+
 transitions = diff(moving,1,1);
+clear moving
 transitions = cat(1,zeros(1,size(transitions,2)),transitions);
 transitions = num2cell(transitions,1);
 
@@ -42,7 +71,6 @@ stops = cellfun(@(x,y) find(x==-1), transitions,'UniformOutput',false);
 starts = cellfun(@(x,y) find(x==1), transitions,'UniformOutput',false);
 
 % free speed map
-reset(spd);
 clear s moving transitions
 
 % filter by bout lengths

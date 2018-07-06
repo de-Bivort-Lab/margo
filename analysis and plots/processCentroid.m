@@ -1,52 +1,18 @@
 function [expmt] = processCentroid(expmt,opt)
 
 
-if isempty(opt.raw) && ~opt.handedness
-    return
-end
-
 % initialize tracking properties struct
 nf = expmt.meta.num_frames;
 
-a=fopen('all');
-for i=1:numel(a)
-    fclose(a(i));
-end
-
-% initialize raw data files if necessary
-del = [];
-if ~isempty(opt.raw)
-    
-    % intialize raw data directory
-    rawdir = [expmt.meta.path.dir 'raw_data/'];
-    if ~exist(rawdir,'dir')
-        mkdir(rawdir);
-    end
-    for i=1:length(opt.raw)
-        
-        % create new raw data object
-        f = opt.raw{i};
-        path = [rawdir expmt.meta.date '_' f '.bin'];
-        
-        % delete any existing contents
-        if ~any(strcmpi(fieldnames(expmt.data),f))
-            
-            % intialize new raw file
-            expmt.data.(opt.raw{i}) = RawDataField;
-            expmt.data.(opt.raw{i}).fID = fopen(path,'w');
-            expmt.data.(opt.raw{i}).precision = 'single';
-            expmt.data.(opt.raw{i}).dim = ...
-                [expmt.meta.num_frames expmt.meta.num_traces];
-            expmt.data.(opt.raw{i}).path = path;
-        else
-            del = [del i];
-        end
-    end
-end
+del = addRawDataFiles(opt.raw, expmt);
 
 % remove existing raw data fields
 opt.raw(del)=[];
 expmt.meta.options.raw(del) = [];
+if isempty(opt.raw) && ~opt.handedness
+    return
+end
+
         
 
 % query available memory to determine how many batches to process data in
@@ -66,6 +32,8 @@ bsz = ceil(expmt.meta.num_frames/nBatch);
 %% calculate track properties
 for j = 1:nBatch
     
+    reset(expmt);
+    
     % get x and y coordinates of the centroid and normalize to ROI
     if j==nBatch
         inx = expmt.data.centroid.raw((j-1)*bsz+1:nf,1,:) - ...
@@ -74,9 +42,9 @@ for j = 1:nBatch
             repmat(expmt.meta.roi.centers(:,2)',nf-(j-1)*bsz,1);
     else
         inx = expmt.data.centroid.raw((j-1)*bsz+1:j*bsz,1,:) - ...
-            repmat(expmt.meta.roi.centers(:,1)',nf-(j-1)*bsz,1);
+            repmat(expmt.meta.roi.centers(:,1)',bsz,1);
         iny = expmt.data.centroid.raw((j-1)*bsz+1:j*bsz,2,:) - ...
-            repmat(expmt.meta.roi.centers(:,2)',nf-(j-1)*bsz,1);
+            repmat(expmt.meta.roi.centers(:,2)',bsz,1);
     end
     
     % calculate speed        
@@ -95,6 +63,11 @@ for j = 1:nBatch
     % write raw data from batch
     for i = 1:length(opt.raw)
         f = opt.raw{i};
+        if j==1
+            disp(sprintf('\n\tgenerating new %s raw data file',f));
+            disp(sprintf(['\n\tprocessing times may be slow'...
+                ' for large tracking sessions']));
+        end
         switch f
             case 'Direction',
                 if ~opt.handedness
@@ -110,11 +83,14 @@ for j = 1:nBatch
                 trackProps.Radius = sqrt(inx.^2 + iny.^2);
         end
         fwrite(expmt.data.(f).fID,trackProps.(f)',expmt.data.(f).precision);
+        trackProps.(f) = [];
     end
     
     clear trackProps inx iny   
 end
 
+% re-inititialize maps
+reset(expmt);
 
 % close raw data and initialize new memmap for raw data
 for i = 1:length(opt.raw)
@@ -144,13 +120,16 @@ if nBatch>1 && opt.handedness
         handedness.include = [handedness.include tmp(i).include];
     end
     handedness.mu = -sin(sum(handedness.angle_histogram .*...
-        repmat((handedness.bins' + handedness.bin_width/2),1,expmt.meta.num_traces)))';
+        repmat((handedness.bins' + handedness.bin_width/2),...
+            1,expmt.meta.num_traces)))';
     
     expmt.meta.handedness = handedness;
 
-else
+elseif exist('tmp','var')
     expmt.meta.handedness = tmp;
 end
+
+
     
     
 

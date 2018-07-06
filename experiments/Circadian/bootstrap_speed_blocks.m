@@ -16,8 +16,10 @@ function [varargout]=bootstrap_speed_blocks(expmt,blocks,nReps)
 
 % restrict based on minimum activity
 nf = expmt.meta.num_traces;
-active = nanmean(expmt.data.speed.raw()) > expmt.meta.speed.thresh;
-speed = expmt.data.speed.raw(:,active);
+spd = expmt.data.speed.raw();
+reset(expmt.data.speed);
+active = nanmean(spd) > expmt.meta.speed.thresh;
+active_ids = find(active);
 blocks = blocks(active);
 nBouts = cellfun(@size,blocks,'UniformOutput',false);
 nBouts = cat(1,nBouts{:});
@@ -28,59 +30,65 @@ nBouts(nBouts==0)=[];
 % get bout lengths
 bout_length = cellfun(@(x) diff(x,[],2)+1,blocks,'UniformOutput',false);
 
-avg = nanmean(cat(1,bout_length{:}));       % mean bout length
+avg = nanmean(cellfun(@nanmean,bout_length));       % mean bout length   
 target = expmt.meta.num_frames*nf;                  % target frame num
-draw_sz = round(target/avg);
+
 
 bs_speeds = NaN(nReps,nf);
+
+% get batch info
+[bsz, nBatch] = getBatchSize(expmt, 8);
+draw_sz = round(target/avg/nBatch);
 
 % create waitbar object
 h = waitbar(0,['iteration 0 out of ' num2str(nReps)]);
 h.Name = 'Bootstrap resampling speed data';
 
 %%
+
 disp(['resampling data with ' num2str(nReps) ' replicates'])
 disp('may a take a while with if number of replications is > 1000')
-for j = 1:nReps
+for i = 1:nReps
     
-    % draw IDs
-    ids = randi([1 numel(blocks)],draw_sz,1);
-    bouts = ceil(rand(size(ids)).*nBouts(ids));
-    frame_num = sum(arrayfun(@(x,y) bout_length{x}(y),ids, bouts));
-    
-    % get linear indices 
-    while frame_num < target
-        
-        d = target-frame_num;
-        sz = ceil(d/avg*1.2);
+    batch_spd = NaN(nBatch,nf);
+    for j=1:nBatch
         
         % draw IDs
-        tmp_ids = randi([1 length(blocks)],sz,1);
-        tmp_bouts = ceil(rand(size(tmp_ids)).*nBouts(tmp_ids));
-        frame_num = sum(arrayfun(@(x,y) bout_length{x}(y),tmp_ids, tmp_bouts));
-        
-        ids = [ids;tmp_ids];
-        bouts = [bouts;tmp_bouts];
-        
-        clearvars tmp_ids tmp_bouts
+        ids = randi([1 numel(blocks)],draw_sz,1);
+        bouts = ceil(rand(size(ids)).*nBouts(ids));
+        frame_num = sum(arrayfun(@(x,y) bout_length{x}(y),ids, bouts));
+
+        % get linear indices 
+        while frame_num < target/nBatch
+
+            d = target/nBatch-frame_num;
+            sz = ceil(d/avg*1.2);
+
+            % draw IDs
+            tmp_ids = randi([1 length(blocks)],sz,1);
+            tmp_bouts = ceil(rand(size(tmp_ids)).*nBouts(tmp_ids));
+            frame_num = sum(arrayfun(@(x,y) bout_length{x}(y),tmp_ids, tmp_bouts));
+
+            ids = [ids;tmp_ids];
+            bouts = [bouts;tmp_bouts];
+
+            clearvars tmp_ids tmp_bouts
+        end
+
+        % create speed vector
+        tmp_speed = arrayfun(@(id,b) ...
+            spd(blocks{id}(b,1):blocks{id}(b,2), active_ids(id)),...
+                ids, bouts, 'UniformOutput',false);
+        tmp_speed = cat(1,tmp_speed{:});
+        tmp_speed=tmp_speed(1:floor(target/nBatch/nf)*nf);
+        tmp_speed = reshape(tmp_speed,numel(tmp_speed)/nf,nf);
+        batch_spd(j,:) = nanmean(tmp_speed);
+        clear tmp_speed
     end
-    
-    % create speed vector
-    tmp_speed = single(NaN(frame_num,1));
-    ct=0;
-    for i=1:length(ids)
-        k1=blocks{ids(i)}(bouts(i),1);
-        k2=blocks{ids(i)}(bouts(i),2);
-        tmp_speed(ct+1:ct+bout_length{ids(i)}(bouts(i)))=speed(k1:k2,ids(i));
-        ct=ct+bout_length{ids(i)}(bouts(i));
-    end
-    
-    tmp_speed(target+1:end)=[];
-    tmp_speed = reshape(tmp_speed,target/nf,nf);
-    bs_speeds(j,:) = nanmean(tmp_speed);
+    bs_speeds(i,:) = nanmean(batch_spd);
     
     if ishghandle(h)
-        waitbar(j/nReps,h,['iteration ' num2str(j) ' out of ' num2str(nReps)]);
+        waitbar(i/nReps,h,['iteration ' num2str(i) ' out of ' num2str(nReps)]);
     end
 
     clearvars ids bouts tmp_speed lin_ind
@@ -138,10 +146,10 @@ vy = [obs_kde 0 obs_kde(1)];
 ph = patch(vx,vy,[.85  0 .75],'FaceAlpha',0.3);
 uistack(ph,'bottom');
 
-for i=1:nargout
-    switch i
-        case 1, varargout{i} = bs;
-        case 2, varargout{i} = f;
+for k=1:nargout
+    switch k
+        case 1, varargout{k} = bs;
+        case 2, varargout{k} = f;
     end
 end
 

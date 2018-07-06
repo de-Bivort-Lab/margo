@@ -37,7 +37,7 @@ classdef ExperimentData < handle
         end
         
         % automatically repair master container and raw data file paths
-        function obj = updatepaths(obj,fpath)
+        function obj = updatepaths(obj,fpath,varargin)
             
             if ~exist('fpath','var')
                 fpath = [obj.meta.path.dir obj.meta.path.name];
@@ -55,17 +55,21 @@ classdef ExperimentData < handle
                 
                 % match to time/date and field name
                 f = obj.meta.fields{i};
-                fmatch = cellfun(@(x) any(strfind(x,f)),rawnames);
-                tmatch = cellfun(@(x) any(strfind(x,obj.meta.date)),rawnames);
+                match = cellfun(@(x) ...
+                    any(strcmpi(x,[obj.meta.date '_' f])),rawnames);
                 
-                if any(fmatch & tmatch)
-                    match_idx = find(fmatch & tmatch,1,'first');
+                if any(match)
+                    match_idx = find(match,1,'first');
                     obj.data.(f).path = rawpaths{match_idx};
                 else
                     warning('off','backtrace');
                     warning('raw data file for field %s not found',f);
                     warning('on','backtrace');
                 end
+            end
+            
+            if ~isempty(varargin) && ~varargin{1}
+                return
             end
             
             % attach obj by default
@@ -79,7 +83,6 @@ classdef ExperimentData < handle
                 attach(obj.data.(fn{i}));
             end
         end
-        
         % de-initialize all raw data maps
         function obj = detach(obj) 
             fn = fieldnames(obj.data);
@@ -87,9 +90,14 @@ classdef ExperimentData < handle
                 obj.data.(fn{i}).raw.map = [];
             end
         end
+        % re-initialize all raw data maps
+        function obj = reset(obj)
+            detach(obj);
+            attach(obj);
+        end
         
         % reset experiment specific properties for new session
-        function obj = reset(obj)
+        function obj = reInitialize(obj)
             
             % remove roi, reference, noise and vignette data
             if ~isempty(obj.meta.roi)

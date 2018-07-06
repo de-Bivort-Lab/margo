@@ -1,19 +1,22 @@
 function updateTimeString(timeRemaining, edit_handle)
+% converts timeRemaining (sec) into hr, min, and sec and updates the GUI timer
 
+    hr = floor(timeRemaining/3600);
+    min = floor(rem(timeRemaining, 3600)/60);
+    sec = floor(timeRemaining - hr*3600 - min*60);
+    
+    % append third digit if hr > 99
+    if hr > 99
+        edit_handle.String = sprintf('%0.3d:%0.2d:%0.2d',hr,min,sec);
+    else
+        edit_handle.String = sprintf('%0.2d:%0.2d:%0.2d',hr,min,sec);
+    end
+
+    % change time display to blue if tracking is ending
     if timeRemaining < 60; 
-        set(edit_handle, 'String', ['00:00:' sprintf('%0.2d',timeRemaining)]);
-        set(edit_handle, 'BackgroundColor', [0.4 0.4 1]);
-    elseif (3600 > timeRemaining) && (timeRemaining > 60);
-        min = floor(timeRemaining/60);
-        sec = rem(timeRemaining, 60);
-        set(edit_handle, 'String', ['00:' sprintf('%0.2d',min) ':' sprintf('%0.2d',sec)]);
-        set(edit_handle, 'BackgroundColor', [1 1 1]);
-    elseif timeRemaining > 3600;
-        hr = floor(timeRemaining/3600);
-        min = floor(rem(timeRemaining, 3600)/60);
-        sec = timeRemaining - hr*3600 - min*60;
-        set(edit_handle, 'String', [sprintf('%0.2d', hr) ':' sprintf('%0.2d',min) ':' sprintf('%0.2d',sec)]);
-        set(edit_handle, 'BackgroundColor', [1 1 1]);
+        edit_handle.BackgroundColor = [0.4 0.4 1];
+    else 
+        edit_handle.BackgroundColor = [1 1 1];
     end
     
 end

@@ -74,23 +74,32 @@ classdef RawDataField < handle
                     obj.dim = tmp_dim;
                 end
                 
-                obj.raw.map = memmapfile(obj.path, ...
-                                'Format',{obj.precision,fliplr(obj.dim),'raw'});
-                            
-                % resize if necessary
-                sz = size(obj.raw.map.Data);
-                if any(sz>1)
-                    frame_num = sz(sz>1);
-                    obj.dim = [frame_num obj.dim];
-                    obj.raw.map = memmapfile(obj.path, ...
-                        'Format',{obj.precision,fliplr(obj.dim),'raw'});
+                if exist(obj.path,'file')==2
+                    
+                    fInfo = dir(obj.path);
+                    if ~fInfo(1).bytes
+                        return
+                    end
+                    
+                    obj.raw.map = ...
+                        memmapfile(obj.path, ...
+                            'Format',{obj.precision,fliplr(obj.dim),'raw'});
+
+                    % resize if necessary
+                    sz = size(obj.raw.map.Data);
+                    if any(sz>1)
+                        frame_num = sz(sz>1);
+                        obj.dim = [frame_num obj.dim];
+                        obj.raw.map = memmapfile(obj.path, ...
+                            'Format',{obj.precision,fliplr(obj.dim),'raw'});
+                    end
                 end
                 
             catch 
                 % try to automatically repair the file path
                 try
                     p = obj.Parent.meta.path;
-                    updatepaths(obj.Parent,[p.dir p.name]);
+                    updatepaths(obj.Parent,[p.dir p.name],false);
                     obj.raw.map = memmapfile(obj.path, ...
                                 'Format',{obj.precision,fliplr(obj.dim),'raw'});
                 catch ME

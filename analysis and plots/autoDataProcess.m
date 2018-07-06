@@ -148,7 +148,7 @@ if isfield(expmt.data,'speed') && isattached(expmt.data.speed) ...
     end
     
     % chunk speed data into individual movement bouts
-    [block_indices, lag_thresh, speed_thresh] = blockActivity(expmt.data.speed);
+    [block_indices, lag_thresh, speed_thresh] = blockActivity(expmt);
     expmt.meta.speed.thresh = speed_thresh;
     expmt.meta.speed.bouts.thresh = lag_thresh;
     expmt.meta.speed.bouts.idx = block_indices;
