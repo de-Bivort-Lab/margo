@@ -46,18 +46,38 @@ classdef ExperimentData < handle
             obj.meta.path.dir   =   [dir '/'];
             obj.meta.path.name  =   name;
 
+            % query raw data file status
+            path_status = cellfun(@(f) ...
+                exist(obj.data.(f).path,'file')==2,obj.meta.fields);
+            if all(path_status)
+                attach(obj);
+                return
+            end
+
             % get binary files
-            rawpaths = recursiveSearch(dir,'ext','.bin','keyword',obj.meta.date);
-            [~,rawnames] = cellfun(@fileparts, rawpaths, ...
-                                        'UniformOutput',false);
-            
-            for i=1:length(obj.meta.fields)
-                
+            rawpaths = ...
+                recursiveSearch(dir,'ext','.bin','keyword',obj.meta.date);
+            [~,rawnames] = ...
+                cellfun(@fileparts, rawpaths,'UniformOutput',false);
+                                    
+            if isempty(rawpaths)
+                prompt = sprintf(['Raw data files for %s not found, please'...
+                    ' select the raw data directory'],name);
+                rawdir = uigetdir(obj.meta.path.dir,prompt);
+                if all(~rawdir)
+                    rawdir = '';
+                end
+                rawpaths = ...
+                    recursiveSearch(rawdir,'ext','.bin','keyword',obj.meta.date);
+                [~,rawnames] = ...
+                    cellfun(@fileparts, rawpaths,'UniformOutput',false);
+            end
+                    
+            for i=1:length(obj.meta.fields) 
                 % match to time/date and field name
                 f = obj.meta.fields{i};
                 match = cellfun(@(x) ...
                     any(strcmpi(x,[obj.meta.date '_' f])),rawnames);
-                
                 if any(match)
                     match_idx = find(match,1,'first');
                     obj.data.(f).path = rawpaths{match_idx};

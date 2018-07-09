@@ -1,40 +1,36 @@
-function [expmt] = run_ymaze(expmt,gui_handles)
+function [varargout] = run_ymaze(expmt,gui_handles,varargin)
 
 
-% Initialization: Get handles and set default preferences
+%% Parse variable inputs
+
+for i = 1:length(varargin)
+    
+    arg = varargin{i};
+    
+    if ischar(arg)
+        switch arg
+            case 'Trackdat'
+                i=i+1;
+                trackDat = varargin{i};     % manually pass in trackDat rather than initializing
+        end
+    end
+end
+
+%% Initialization: Get handles and set default preferences
+
+gui_notify(['executing ' mfilename '.m'],gui_handles.disp_note);
 
 % clear memory
-clearvars -except gui_handles expmt
+clearvars -except gui_handles expmt trackDat
 
-% set MATLAB to highest priority via windows cmd line
-cmd_str = 'wmic process where name="MATLAB.exe" CALL setpriority 128';
-[~,~] = system(cmd_str);
- 
-% get handles
-gui_fig = gui_handles.gui_fig;                            % gui figure handle
-imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');   % image handle
-
-% clear any objects drawn to gui window
-clean_gui(gui_handles.axes_handle);
-
-% set colormap and enable display control
-colormap('gray');
-set(gui_handles.display_menu.Children,'Enable','on');
-set(gui_handles.display_menu.Children,'Checked','off');
-set(gui_handles.display_raw_menu,'Checked','on');
-gui_handles.display_menu.UserData = 1;
-
+% get image handle
+imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');  
 
 
 %% Experimental Setup
 
-% Initialize experiment parameters
-ref_stack = repmat(expmt.meta.ref, 1, 1, ...
-    gui_handles.edit_ref_depth.Value);                      % initialize the reference stack
-nROIs = size(expmt.meta.roi.centers,1);                          % number of ROIs
-
-% Initialize tracking variables
-trackDat.fields={'centroid';'time';'Turns'};                % properties of the tracked objects to be recorded
+% properties of the tracked objects to be recorded
+trackDat.fields={'centroid';'time';'Turns'};                 
 
 % initialize labels, files, and cam/video
 [trackDat,expmt] = autoInitialize(trackDat,expmt,gui_handles);
@@ -84,11 +80,6 @@ while ~trackDat.lastFrame
     % query next frame and optionally correct lens distortion
     [trackDat,expmt] = autoFrame(trackDat,expmt,gui_handles);
 
-    % ensure that image is mono
-    if size(trackDat.im,3)>1
-        trackDat.im=trackDat.im(:,:,2);
-    end
-
     % track, sort to ROIs, and output optional fields to sorted fields,
     % and sample the number of pixels above the image threshold
     trackDat = autoTrack(trackDat,expmt,gui_handles);
@@ -98,7 +89,8 @@ while ~trackDat.lastFrame
 
     % Create placeholder for arm change vector to write to file
     trackDat.Turns=NaN(nROIs,1);
-    trackDat.Turns(trackDat.changed_arm) = trackDat.prev_arm(trackDat.changed_arm);
+    trackDat.Turns(trackDat.changed_arm) = ...
+        trackDat.prev_arm(trackDat.changed_arm);
     nTurns(trackDat.changed_arm) = nTurns(trackDat.changed_arm)+1;
 
     % output data to binary files
@@ -112,8 +104,19 @@ while ~trackDat.lastFrame
 end
 
 
-% wrap up experiment and save master struct
-expmt = autoFinish(trackDat, expmt, gui_handles);
+%% post-experiment wrap-up
+
+% auto process data and save master struct
+if expmt.meta.finish
+    expmt = autoFinish(trackDat, expmt, gui_handles);
+end
+
+for i=1:nargout
+    switch i
+        case 1, varargout(i) = {expmt};
+        case 2, varargout(i) = {trackDat};
+    end
+end
 
 function update_turn_display(c, n, ch, h)
 
