@@ -41,7 +41,7 @@ trackDat.lastFrame = false;
 %% Y-maze specific parameters
 
 % Calculate coordinates of end of each maze arm
-trackDat.arm = zeros(nROIs,2,6);                              % Placeholder
+trackDat.arm = zeros(expmt.meta.roi.n,2,6);                              % Placeholder
 w = expmt.meta.roi.bounds(:,3);                                  % width of each ROI
 h = expmt.meta.roi.bounds(:,4);                                  % height of each ROI
 
@@ -50,17 +50,24 @@ xShift = w.*0.15;
 yShift = h.*0.15;
 
 % Coords 1-3 are for upside-down Ys
-trackDat.arm(:,:,1) = [expmt.meta.roi.corners(:,1)+xShift expmt.meta.roi.corners(:,4)-yShift];
-trackDat.arm(:,:,2) = [expmt.meta.roi.centers(:,1) expmt.meta.roi.corners(:,2)+yShift];
-trackDat.arm(:,:,3) = [expmt.meta.roi.corners(:,3)-xShift expmt.meta.roi.corners(:,4)-yShift];
+trackDat.arm(:,:,1) = ...
+    [expmt.meta.roi.corners(:,1)+xShift expmt.meta.roi.corners(:,4)-yShift];
+trackDat.arm(:,:,2) = ...
+    [expmt.meta.roi.centers(:,1) expmt.meta.roi.corners(:,2)+yShift];
+trackDat.arm(:,:,3) = ...
+    [expmt.meta.roi.corners(:,3)-xShift expmt.meta.roi.corners(:,4)-yShift];
 
 % Coords 4-6 are for right-side up Ys
-trackDat.arm(:,:,4) = [expmt.meta.roi.corners(:,1)+xShift expmt.meta.roi.corners(:,2)+yShift];
-trackDat.arm(:,:,5) = [expmt.meta.roi.centers(:,1) expmt.meta.roi.corners(:,4)-yShift];
-trackDat.arm(:,:,6) = [expmt.meta.roi.corners(:,3)-xShift expmt.meta.roi.corners(:,2)+yShift];
+trackDat.arm(:,:,4) = ...
+    [expmt.meta.roi.corners(:,1)+xShift expmt.meta.roi.corners(:,2)+yShift];
+trackDat.arm(:,:,5) = ...
+    [expmt.meta.roi.centers(:,1) expmt.meta.roi.corners(:,4)-yShift];
+trackDat.arm(:,:,6) = ...
+    [expmt.meta.roi.corners(:,3)-xShift expmt.meta.roi.corners(:,2)+yShift];
 
-trackDat.turntStamp = zeros(nROIs,1);                                % time stamp of last scored turn for each object
-trackDat.prev_arm = zeros(nROIs,1);
+% time stamp of last scored turn for each object
+trackDat.turntStamp = zeros(expmt.meta.roi.n,1);     
+trackDat.prev_arm = zeros(expmt.meta.roi.n,1);
 
 % calculate arm threshold as fraction of width and height
 expmt.parameters.arm_thresh = mean([w h],2) .* 0.2;
@@ -88,7 +95,7 @@ while ~trackDat.lastFrame
     trackDat = detectArmChange(trackDat,expmt);
 
     % Create placeholder for arm change vector to write to file
-    trackDat.Turns=NaN(nROIs,1);
+    trackDat.Turns=NaN(expmt.meta.roi.n,1);
     trackDat.Turns(trackDat.changed_arm) = ...
         trackDat.prev_arm(trackDat.changed_arm);
     nTurns(trackDat.changed_arm) = nTurns(trackDat.changed_arm)+1;
