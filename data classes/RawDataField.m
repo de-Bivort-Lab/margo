@@ -124,6 +124,17 @@ classdef RawDataField < handle
             attach(obj);
         end
         
+        function obj = attach_binary(obj)
+            
+            obj.fID = fopen(obj.path,'r');
+            
+            if obj.fID ~= -1
+                obj.raw.map.Data.raw = ...
+                    fread(obj.fID,obj.dim,'logical=>logical');
+            end
+            
+        end
+        
         function out = isattached(obj)
             out = ~isempty(size(obj.raw));
         end

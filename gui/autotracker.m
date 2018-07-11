@@ -2525,7 +2525,9 @@ end
 
 switch expmt.meta.source
     case 'camera'
-        expmt.hardware.cam = cam_copy;
+        if exist('cam_copy','var')
+            expmt.hardware.cam = cam_copy;
+        end
     case 'video'
         expmt.meta.video = vid_copy;
 end

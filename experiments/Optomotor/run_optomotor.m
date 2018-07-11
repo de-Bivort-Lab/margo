@@ -1,11 +1,4 @@
 function varargout = run_optomotor(expmt,gui_handles,varargin)
-%
-% This is a blank experimental template to serve as a framework for new
-% custom experiments. The function takes the master experiment struct
-% (expmt) and the handles to the gui (gui_handles) as inputs and outputs
-% the data assigned to out. In this example, object centroid, pixel area,
-% and the time of each frame are output to file.
-
 %% Parse variable inputs
 
 for i = 1:length(varargin)
@@ -27,15 +20,12 @@ gui_notify(['executing ' mfilename '.m'],gui_handles.disp_note);
 
 % clear memory
 clearvars -except gui_handles expmt trackDat
-% get handles
-gui_fig = gui_handles.gui_fig;                            % gui figure handle
-imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');   % image handle
+
+% get image handle
+imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');  
+
 
 %% Experimental Setup
-
-% Initialize experiment parameters
-ref_stack = repmat(expmt.meta.ref, 1, 1, gui_handles.edit_ref_depth.Value);  % initialize the reference stack
-nROIs = size(expmt.meta.roi.centers,1);                                      % number of ROIs
 
 % Initialize tracking variables
 trackDat.fields={'centroid';'Orientation';'time';...
@@ -52,8 +42,6 @@ trackDat.lastFrame = false;
 %% Initialize the psychtoolbox window and query projector properties
 bg_color=[0 0 0];          
 expmt = initialize_projector(expmt, bg_color);
-Fx = expmt.projector.Fx;
-Fy = expmt.projector.Fy;
 pause(1);
 
 set(gui_handles.display_menu.Children,'Checked','off')
@@ -95,19 +83,19 @@ contrast = expmt.parameters.contrast;
 subim_r = floor(pin_sz/2*sqrt(2)/2);
 
 % Initialize the stimulus image
-expmt.stim.im = initialize_pinwheel(pin_sz,pin_sz,nCycles,mask_r,contrast);
-imcenter = [size(expmt.stim.im,1)/2+0.5 size(expmt.stim.im,2)/2+0.5];
-expmt.stim.bounds = [imcenter(2)-subim_r imcenter(1)-subim_r imcenter(2)+subim_r imcenter(1)+subim_r];
-ssz_x = expmt.stim.bounds(3)-expmt.stim.bounds(1)+1;
-ssz_y = expmt.stim.bounds(4)-expmt.stim.bounds(2)+1;
+stim.im = initialize_pinwheel(pin_sz,pin_sz,nCycles,mask_r,contrast);
+imcenter = [size(stim.im,1)/2+0.5 size(stim.im,2)/2+0.5];
+stim.bounds = [imcenter(2)-subim_r imcenter(1)-subim_r imcenter(2)+subim_r imcenter(1)+subim_r];
+ssz_x = stim.bounds(3)-stim.bounds(1)+1;
+ssz_y = stim.bounds(4)-stim.bounds(2)+1;
 
 
 % Initialize source rect and scaling factors
-expmt.stim.bs_src = [0 0 ssz_x/2 ssz_y/2];
-expmt.stim.cen_src = CenterRectOnPointd(expmt.stim.bs_src,ssz_x/2,ssz_y/2);
-expmt.stim.scale = NaN(nROIs,2);
-expmt.stim.scale(:,1) = (ssz_x/2)./(scor(:,3)-scor(:,1));
-expmt.stim.scale(:,2) = (ssz_y/2)./(scor(:,4)-scor(:,2));
+stim.bs_src = [0 0 ssz_x/2 ssz_y/2];
+stim.cen_src = CenterRectOnPointd(stim.bs_src,ssz_x/2,ssz_y/2);
+stim.scale = NaN(nROIs,2);
+stim.scale(:,1) = (ssz_x/2)./(scor(:,3)-scor(:,1));
+stim.scale(:,2) = (ssz_y/2)./(scor(:,4)-scor(:,2));
 
 %% Slow phototaxis specific parameters
 
@@ -115,10 +103,10 @@ trackDat.local_spd = NaN(15,nROIs);
 trackDat.prev_ori = NaN(nROIs,1);
 
 % Placeholder for pinwheel textures positively/negatively rotating
-expmt.stim.pinTex_pos = ...
-    Screen('MakeTexture', expmt.hardware.screen.window, expmt.stim.im);  
-expmt.stim.pinTex_neg = ...
-    Screen('MakeTexture', expmt.hardware.screen.window, expmt.stim.im); 
+stim.pinTex_pos = ...
+    Screen('MakeTexture', expmt.hardware.screen.window, stim.im);  
+stim.pinTex_neg = ...
+    Screen('MakeTexture', expmt.hardware.screen.window, stim.im); 
 
 trackDat.StimStatus = false(nROIs,1);
 trackDat.Texture = true(nROIs,1);
@@ -126,22 +114,25 @@ trackDat.SpatialFreq = expmt.parameters.num_cycles;
 trackDat.AngularVel = expmt.parameters.ang_per_frame;
 trackDat.Contrast = expmt.parameters.contrast;
 
-expmt.stim.t = zeros(nROIs,1);
-expmt.stim.timer = zeros(nROIs,1);
-expmt.stim.ct = 0;                     % Counter for number of looming stim displayed each stimulation period
-expmt.stim.prev_ori=NaN(nROIs,1);
-expmt.stim.dir = true(nROIs,1);  % Direction of rotation for the light
-expmt.stim.angle = 0;
-expmt.stim.corners = scor;
-expmt.stim.centers = scen;
-expmt.stim.sz = pin_sz;
-expmt.projector.Fx = Fx;
-expmt.projector.Fy = Fy;
+stim.t = zeros(nROIs,1);
+stim.timer = zeros(nROIs,1);
+stim.ct = 0;                     % Counter for number of looming stim displayed each stimulation period
+stim.prev_ori=NaN(nROIs,1);
+stim.dir = true(nROIs,1);  % Direction of rotation for the light
+stim.angle = 0;
+stim.corners = scor;
+stim.centers = scen;
+stim.sz = pin_sz;
+
+% assign stim settings to ExperimentData
+expmt.meta.stim = stim;
+expmt.hardware.projector.Fx = Fx;
+expmt.hardware.projector.Fy = Fy;
 
 % set stim block timer if stim mode is sweep
 switch expmt.parameters.stim_mode
     case 'sweep'
-        expmt.sweep.t = 0;
+        expmt.meta.sweep.t = 0;
 end
 
 
@@ -183,14 +174,11 @@ end
 
 %% post-experiment wrap-up
 
-% close the psychtoolbox window
 sca;
 
+% auto process data and save master struct
 if expmt.meta.finish
-    
-    % % auto process data and save master struct
     expmt = autoFinish(trackDat, expmt, gui_handles);
-
 end
 
 for i=1:nargout
