@@ -1,6 +1,6 @@
 function expmt = initialize_projector(expmt,varargin)
 
-screen_num = expmt.reg_params.screen_num;
+screen_num = expmt.hardware.projector.reg_params.screen_num;
 background_color = [0 0 0];
 if ~isempty(varargin)
     background_color = varargin{1};
@@ -77,10 +77,10 @@ if cam_xPixels ~= reg_data.cam_xPixels || cam_yPixels ~= reg_data.cam_yPixels
     cam_y = reg_data.cam_yCoords*y_scale;
     
     % Create scattered interpolant for current camera resolution
-    expmt.projector.Fx=scatteredInterpolant(cam_x,cam_y,reg_data.proj_xCoords);
-    expmt.projector.Fy=scatteredInterpolant(cam_x,cam_y,reg_data.proj_yCoords);
+    expmt.hardware.projector.Fx=scatteredInterpolant(cam_x,cam_y,reg_data.proj_xCoords);
+    expmt.hardware.projector.Fy=scatteredInterpolant(cam_x,cam_y,reg_data.proj_yCoords);
     
 else
-    expmt.projector.Fx = reg_data.Fx;
-    expmt.projector.Fy = reg_data.Fy;
+    expmt.hardware.projector.Fx = reg_data.Fx;
+    expmt.hardware.projector.Fy = reg_data.Fy;
 end

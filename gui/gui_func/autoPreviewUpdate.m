@@ -16,7 +16,7 @@ switch gui_handles.display_menu.UserData
     % raw image
     case 1         
         hImage.CData = event.Data;
-        hImage.Parent.CLim = [0 max(event.Data(:))];
+        hImage.Parent.CLim = [0 255];
         if strcmp(hImage.CDataMapping,'direct')
             hImage.CDataMapping = 'scaled';
         end

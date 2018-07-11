@@ -1753,14 +1753,14 @@ function reg_proj_menu_Callback(hObject, ~, handles)
 
 expmt = getappdata(handles.gui_fig,'expmt');
 
-if ~isfield(expmt,'reg_params')
+if ~isfield(expmt.hardware.projector,'reg_params')
     tmp = registration_parameter_subgui(expmt);
     if ~isempty(tmp)
-        expmt.reg_params = tmp;
+        expmt.hardware.projector.reg_params = tmp;
     end
 end
 
-if isfield(expmt,'reg_params')
+if isfield(expmt.hardware.projector,'reg_params')
     % Turn infrared and white background illumination off during registration
     writeInfraredWhitePanel(expmt.hardware.COM.light,1,0);
     writeInfraredWhitePanel(expmt.hardware.COM.light,0,0);
@@ -1819,7 +1819,7 @@ function reg_params_menu_Callback(hObject, ~, handles)
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 
-if isfield(expmt,'reg_params')
+if isfield(expmt.hardware.projector,'reg_params')
     tmp = registration_parameter_subgui(expmt);
     if ~isempty(tmp)
         expmt.reg_params = tmp;
@@ -1843,7 +1843,8 @@ function reg_error_menu_Callback(hObject, ~, handles)
 
 expmt = getappdata(handles.gui_fig,'expmt');
 
-if exist([handles.gui_dir 'hardware/projector_fit/']) == 7 && isfield(expmt,'reg_params')
+if exist([handles.gui_dir 'hardware/projector_fit/']) == 7 &&...
+        isfield(expmt.hardware.projector,'reg_params')
     
     % Turn infrared and white background illumination off during registration
     expmt.hardware.COM.light = writeInfraredWhitePanel(expmt.hardware.COM.light,1,0);
