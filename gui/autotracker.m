@@ -1585,7 +1585,7 @@ catch ME
 end
 
 % Store expmteriment data struct
-expmt.meta.intialize = true;
+expmt.meta.initialize = true;
 setappdata(handles.gui_fig,'expmt',expmt);
 guidata(hObject,handles);
 

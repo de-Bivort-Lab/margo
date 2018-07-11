@@ -9,13 +9,11 @@ if any(trackDat.changed_arm)
     % Convert arm to index #
     trackDat.Turns = double(trackDat.Turns) + iShift;   
     
-    % Randomly select new LED and exclude the currently occupied arm
+    % Randomly select new LED and exclude the arm they just turned to
     newArm = rand(sum(trackDat.changed_arm)*3,1); 
     newArm(trackDat.Turns)=0;                     % 
-    newArm = reshape(newArm,3,sum(trackDat.changed_arm))'; 
-    
-    % Select new arm by picking highest random number in each row (roi)
-    [v c] = max(newArm,[],2);                      
+    newArm = reshape(newArm,3,sum(trackDat.changed_arm))';               
+    [v c] = max(newArm,[],2);                      % Select new arm by picking highest random number in each row (maze)
     newArm = c'+iShift;
     newLEDs = zeros(size(newArm,2)*3,1);
     newLEDs(newArm) = 1;

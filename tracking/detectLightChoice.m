@@ -1,7 +1,9 @@
 function lightChoice = detectLightChoice(trackDat)
 
-lightChoice=NaN(size(trackDat.changed_arm));
+lightChoice=int8(zeros(size(trackDat.changed_arm)));
+
 if sum(trackDat.changed_arm)>0
+    
     iShift=0:3:(sum(trackDat.changed_arm)-1)*3;
     turnArm=trackDat.prev_arm(trackDat.changed_arm);
     turnArm=turnArm+iShift';
@@ -12,4 +14,5 @@ if sum(trackDat.changed_arm)>0
     photoPos=tmpLED&armVec;
     photoPos=sum(reshape(photoPos,3,sum(trackDat.changed_arm))',2);
     lightChoice(trackDat.changed_arm)=photoPos;
+    
 end

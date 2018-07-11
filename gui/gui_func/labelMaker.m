@@ -112,4 +112,5 @@ for i = 1:nRows;
     iCol = 1;
 end
 
+active_fields(1) = true;
 label_table = cell2table(newLabel,'VariableNames',varnames(active_fields));

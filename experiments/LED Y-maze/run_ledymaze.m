@@ -1,27 +1,36 @@
-function [expmt] = run_ledymaze(expmt,gui_handles)
+function [expmt] = run_ledymaze(expmt,gui_handles, varargin)
 %
 
+%% Parse variable inputs
+
+for i = 1:length(varargin)
+    
+    arg = varargin{i};
+    
+    if ischar(arg)
+        switch arg
+            case 'Trackdat'
+                i=i+1;
+                trackDat = varargin{i};     % manually pass in trackDat rather than initializing
+        end
+    end
+end
 
 %% Initialization: Get handles and set default preferences
 
 gui_notify(['executing ' mfilename '.m'],gui_handles.disp_note);
 
 % clear memory
-clearvars -except gui_handles expmt
+clearvars -except gui_handles expmt trackDat
 
-% get handles
-gui_fig = gui_handles.gui_fig;                            % gui figure handle
-imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');   % image handle
+% get image handle
+imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');  
+
 
 %% Experimental Setup
 
-% Initialize experiment parameters
-ref_stack = repmat(expmt.meta.ref, 1, 1, ...
-    gui_handles.edit_ref_depth.Value);                      % initialize the reference stack
-nROIs = size(expmt.meta.roi.centers,1);                          % number of ROIs
-
-% Initialize tracking variables
-trackDat.fields={'centroid';'time';'Turns';'LightChoice'};  % properties of the tracked objects to be recorded
+% properties of the tracked objects to be recorded
+trackDat.fields={'centroid';'time';'Turns';'LightChoice'};                 
 
 % initialize labels, files, and cam/video
 [trackDat,expmt] = autoInitialize(trackDat,expmt,gui_handles);
@@ -32,7 +41,7 @@ trackDat.lastFrame = false;
 %% Y-maze specific parameters
 
 % Calculate coordinates of end of each maze arm
-trackDat.arm = zeros(nROIs,2,6);                            % Placeholder
+trackDat.arm = zeros(expmt.meta.roi.n,2,6);                              % Placeholder
 w = expmt.meta.roi.bounds(:,3);                                  % width of each ROI
 h = expmt.meta.roi.bounds(:,4);                                  % height of each ROI
 
@@ -41,17 +50,24 @@ xShift = w.*0.15;
 yShift = h.*0.15;
 
 % Coords 1-3 are for upside-down Ys
-trackDat.arm(:,:,1) = [expmt.meta.roi.corners(:,1)+xShift expmt.meta.roi.corners(:,4)-yShift];
-trackDat.arm(:,:,2) = [expmt.meta.roi.centers(:,1) expmt.meta.roi.corners(:,2)+yShift];
-trackDat.arm(:,:,3) = [expmt.meta.roi.corners(:,3)-xShift expmt.meta.roi.corners(:,4)-yShift];
+trackDat.arm(:,:,1) = ...
+    [expmt.meta.roi.corners(:,1)+xShift expmt.meta.roi.corners(:,4)-yShift];
+trackDat.arm(:,:,2) = ...
+    [expmt.meta.roi.centers(:,1) expmt.meta.roi.corners(:,2)+yShift];
+trackDat.arm(:,:,3) = ...
+    [expmt.meta.roi.corners(:,3)-xShift expmt.meta.roi.corners(:,4)-yShift];
 
 % Coords 4-6 are for right-side up Ys
-trackDat.arm(:,:,4) = [expmt.meta.roi.corners(:,1)+xShift expmt.meta.roi.corners(:,2)+yShift];
-trackDat.arm(:,:,5) = [expmt.meta.roi.centers(:,1) expmt.meta.roi.corners(:,4)-yShift];
-trackDat.arm(:,:,6) = [expmt.meta.roi.corners(:,3)-xShift expmt.meta.roi.corners(:,2)+yShift];
+trackDat.arm(:,:,4) = ...
+    [expmt.meta.roi.corners(:,1)+xShift expmt.meta.roi.corners(:,2)+yShift];
+trackDat.arm(:,:,5) = ...
+    [expmt.meta.roi.centers(:,1) expmt.meta.roi.corners(:,4)-yShift];
+trackDat.arm(:,:,6) = ...
+    [expmt.meta.roi.corners(:,3)-xShift expmt.meta.roi.corners(:,2)+yShift];
 
-trackDat.turntStamp = zeros(nROIs,1);                                % time stamp of last scored turn for each object
-trackDat.prev_arm = zeros(nROIs,1);
+% time stamp of last scored turn for each object
+trackDat.turntStamp = zeros(expmt.meta.roi.n,1);     
+trackDat.prev_arm = zeros(expmt.meta.roi.n,1);
 
 % calculate arm threshold as fraction of width and height
 expmt.parameters.arm_thresh = mean([w h],2) .* 0.2;
@@ -60,23 +76,22 @@ nTurns = zeros(size(expmt.meta.roi.centers,1),1);
 %% LED Y-maze specific setup
 
 % Detect available ports
-serialInfo = instrhwinfo('serial');
-ports=serialInfo.AvailableSerialPorts;
-objs = instrfindall;
 
-if ~any(strcmp(expmt.hardware.COM.aux{:},ports))
-    for i = 1:length(objs)
-        if strcmp(objs(i).port,expmt.hardware.COM.aux{:})
-            fclose(objs(i));
-            delete(objs(i));
-        end
-    end
+
+if ~isempty(expmt.hardware.COM.aux) && ...
+        strcmp(expmt.hardware.COM.aux.Status,'closed')
+    
+    fopen(expmt.hardware.COM.aux);
+    
+elseif isempty(expmt.hardware.COM.aux)
+    
+    error('no AUX COM object selected');
+    
 end
 
 % Initialize serial object
-serial_obj = serial(expmt.hardware.COM.aux{:});                  % Create Serial Object
+serial_obj = expmt.hardware.COM.aux;
 set(serial_obj,'BaudRate',9600);                         % Set baud rate
-fopen(serial_obj);                                       % Open the port
 
 % Set LED permutation vector that converts LED number by maze
 % into a unique address for each LED driver board on the teensy
@@ -112,12 +127,12 @@ trackDat.pLED = [1 24 2 23 3 22 4 21 5 20 6 ...
 % Flicker lights ON/OFF to indicate board is working
 trackDat.targetPWM = 1500;      % Sets the max PWM for LEDs
 for i=1:6
-    trackDat.LEDs = ones(nROIs,3).*mod(i,2);              
+    trackDat.LEDs = ones(expmt.meta.roi.n,3).*mod(i,2);              
     decWriteLEDs(serial_obj,trackDat);
     pause(0.2);
 end
 
-trackDat.LEDs = logical(ones(nROIs,3));     % Initialize LEDs to ON
+trackDat.LEDs = true(expmt.meta.roi.n,3);     % Initialize LEDs to ON
 prev_LEDs = trackDat.LEDs;
 
 %% Main Experimental Loop
@@ -142,19 +157,17 @@ while ~trackDat.lastFrame
     trackDat = detectArmChange(trackDat,expmt);
 
     % Create placeholder for arm change vector to write to file
-    trackDat.Turns=NaN(nROIs,1);
+    trackDat.Turns=int16(zeros(expmt.meta.roi.n,1));
     trackDat.Turns(trackDat.changed_arm) = trackDat.prev_arm(trackDat.changed_arm);
     nTurns(trackDat.changed_arm) = nTurns(trackDat.changed_arm)+1;
     
     % Detect choice with respect to the light
     trackDat.LightChoice = detectLightChoice(trackDat);
 
-    
     if any(trackDat.changed_arm)
         trackDat.LEDs = updateLEDs(trackDat);               % Choose a new LED for flies that just made a turn
         numActive = decWriteLEDs(serial_obj,trackDat);      % Write new LED values to teensy
     end
-
 
     % output data to binary files
     [trackDat,expmt] = autoWriteData(trackDat, expmt, gui_handles);
@@ -168,5 +181,16 @@ while ~trackDat.lastFrame
 end
 
 
-% wrap up experiment and save master struct
-expmt = autoFinish(trackDat, expmt, gui_handles);
+%% post-experiment wrap-up
+
+% auto process data and save master struct
+if expmt.meta.finish
+    expmt = autoFinish(trackDat, expmt, gui_handles);
+end
+
+for i=1:nargout
+    switch i
+        case 1, varargout(i) = {expmt};
+        case 2, varargout(i) = {trackDat};
+    end
+end
