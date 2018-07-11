@@ -66,8 +66,8 @@ y_stp=floor(yPixels/stp_sz);        % num steps in y
 white=[1 1 1];                      % color of the spot
 im_thresh=30;                       % image threshold
 subim_sz=10;                        % Radius of the extracted image ROI
-min_area = ((mean(size(ref)))*0.01)^2;
-max_area = ((mean(size(ref)))*0.05)^2;
+min_Area = ((mean(size(ref)))*0.01)^2;
+max_Area = ((mean(size(ref)))*0.05)^2;
 
 % Initialize cam/projector coord placeholders
 cam_x=NaN(y_stp,x_stp);
@@ -178,15 +178,15 @@ for i=1:x_stp
         
         im=im-ref;
         
-        % Extract centroid of spot
-        props=regionprops(im>im_thresh,'centroid','area');
-        props=props([props.area]>min_area & [props.area]<max_area);
+        % Extract Centroid of spot
+        props=regionprops(im>im_thresh,'Centroid','Area');
+        props=props([props.Area]>min_Area & [props.Area]<max_Area);
         
-        % Further process the centroid if spot detected
-        if ~isempty([props.centroid]) && length([props.centroid])==2
+        % Further process the Centroid if spot detected
+        if ~isempty([props.Centroid]) && length([props.Centroid])==2
             
             % Calculate center of mass using roi detected for the spot
-            cenDat=round([props.centroid]);
+            cenDat=round([props.Centroid]);
             yi=cenDat(2)-subim_sz:cenDat(2)+subim_sz;
             xi=cenDat(1)-subim_sz:cenDat(1)+subim_sz;
             if max(yi)<reg_yPixels+1 && min(yi)>0 && max(xi)<reg_xPixels+1 && min(xi)>1
@@ -234,21 +234,7 @@ for i=1:x_stp
         iTime(mod(iCount,length(iTime))+1)=ifi;
         if iCount >= length(iTime)
             timeRemaining = round(mean(iTime)*(x_stp*y_stp-iCount));
-                if timeRemaining < 60; 
-                    set(handles.edit_time_remaining, 'String', ['00:00:' sprintf('%0.2d',timeRemaining)]);
-                    set(handles.edit_time_remaining, 'BackgroundColor', [1 0.4 0.4]);
-                elseif (3600 > timeRemaining) && (timeRemaining > 60);
-                    minute = floor(timeRemaining/60);
-                    sec = rem(timeRemaining, 60);
-                    set(handles.edit_time_remaining, 'String', ['00:' sprintf('%0.2d',minute) ':' sprintf('%0.2d',sec)]);
-                    set(handles.edit_time_remaining, 'BackgroundColor', [1 1 1]);
-                elseif timeRemaining > 3600;
-                    hr = floor(timeRemaining/3600);
-                    minute = floor(rem(timeRemaining, 3600)/60);
-                    sec = timeRemaining - hr*3600 - minute*60;
-                    set(handles.edit_time_remaining, 'String', [sprintf('%0.2d', hr) ':' sprintf('%0.2d',minute) ':' sprintf('%0.2d',sec)]);
-                    set(handles.edit_time_remaining, 'BackgroundColor', [1 1 1]);
-                end
+            updateTimeString(timeRemaining, handles.edit_time_remaining);
         end
         clearvars im props subim
     end

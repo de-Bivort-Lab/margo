@@ -37,13 +37,5 @@ function [ROI_bounds,ROI_coords,ROI_widths,ROI_heights,binaryimage] = detect_ROI
         ROI_coords(ROI_coords<0)=0.5;
         ROI_coords(ROI_coords(:,4)>size(binaryimage,1),4)=size(binaryimage,1);
         ROI_coords(ROI_coords(:,3)>size(binaryimage,2),3)=size(binaryimage,2);
-
-        %% Exclude ROIs that are too far to the left or right edge of the image
-        width=size(binaryimage,2);
-        minEdge=ROI_coords(:,1)<0.05*width;
-        maxEdge=ROI_coords(:,3)>0.95*width;
-        exclude=minEdge|maxEdge;
-        ROI_coords(exclude,:)=[];
-        ROI_bounds(exclude,:)=[];
        
 end

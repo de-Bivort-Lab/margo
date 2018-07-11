@@ -44,6 +44,7 @@ expmt.meta.roi.mask = mask;
 function pL = getBoundsPixels(corners,dim)
 
  corners = [floor(corners(1:2)) ceil(corners(3:4))];
+ corners(corners==0) = 1;
  [x,y] = meshgrid(corners(1):corners(3),corners(2):corners(4));
  pL = [x(:) y(:)];
  pL = sub2ind(dim,pL(:,2), pL(:,1));
