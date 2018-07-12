@@ -1,4 +1,4 @@
-classdef RawDataField < handle
+classdef RawDataField < dynamicprops
 % class definition for raw data maps container
 
     properties
@@ -146,7 +146,27 @@ classdef RawDataField < handle
             end
         end
         
+        function addprops(obj,props)
+            
+            if ~iscell(props)
+                props = {props};
+            end
+            
+            % remove pre-existing properties from list
+            exclude = cellfun(@(p) isprop(obj,p), props);
+            props(exclude) = [];
+            
+            % initialize new properties
+            if ~isempty(props)
+                cellfun(@(p) addprop(obj,p), props, 'UniformOutput', false);
+            end
+            
+        end
+        
+
+        
     end
+    
     
     
     

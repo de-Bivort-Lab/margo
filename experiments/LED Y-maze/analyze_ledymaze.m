@@ -14,18 +14,29 @@ clearvars -except expmt options
 
 %% Find index of first turn for each fly and discard to eliminate tracking artifacts
 
-turn_idx = ~isnan(expmt.Turns.data);
-
-for i=1:expmt.meta.num_traces
-    col = find(turn_idx(i,:),1);
-    expmt.Turns.data(i,col)=NaN;
-end
+turns = expmt.data.Turns.raw();
+turn_idx = turns~=0;
+turn_idx = num2cell(turn_idx,1);
+first_turn_row = cellfun(@(t) find(t,1,'first'), ...
+    turn_idx,'UniformOutput',false);
+first_turn_col = find(~cellfun(@isempty,first_turn_row))';
+first_turn_row = cat(1,first_turn_row{:});
+first_turn_idx = sub2ind(size(turns),first_turn_row, first_turn_col);
+turns(first_turn_idx) = 0;
+turn_idx = cat(2,turn_idx{:});
+clear first_turn_col first_turn_idx first_turn_row
 
 %% Calculate turn probability
-expmt.Turns.n = sum(turn_idx)-1;
-expmt.Turns.sequence = NaN(max(expmt.Turns.n),expmt.meta.num_traces);
-expmt.Turns.t = NaN(max(expmt.Turns.n),expmt.meta.num_traces);
-expmt.LightChoice.sequence = NaN(max(expmt.Turns.n),expmt.meta.num_traces);
+
+props = {'n';'t';'sequence';'switchiness';'clumpiness';'rBias';'active'};
+addprops(expmt.data.Turns, props);
+props = {'n';'t';'sequence';'switchiness';'pBias';'active'};
+addprops(expmt.data.LightChoice, props);
+expmt.data.Turns.n = sum(turn_idx)-1;
+expmt.data.Turns.t = NaN(max(expmt.data.Turns.n),expmt.meta.num_traces);
+expmt.data.Turns.sequence = ...
+    NaN(max(expmt.data.Turns.n),expmt.meta.num_traces);
+expmt.data.LightChoice.sequence = NaN(max(expmt.data.Turns.n),expmt.meta.num_traces);
 
 %{
 Start by converting arm number turn sequence into compressed right turn
@@ -37,48 +48,48 @@ turns = 0.
 %}
 
 
-tElapsed = cumsum(expmt.data.time.data);
+tElapsed = cumsum(expmt.data.time.raw());
 
 for i=1:expmt.meta.num_traces
     
-    idx = ~isnan(expmt.Turns.data(:,i));        % get turn indices
-    expmt.Turns.t(1:length(tElapsed(idx)),i) = tElapsed(idx);         % record timestamps of turns
+    idx = turns(:,i) ~= 0;        % get turn indices
+    expmt.data.Turns.t(1:length(tElapsed(idx)),i) = tElapsed(idx);         % record timestamps of turns
     
     % calculate turn sequence
-    tSeq = expmt.Turns.data(idx,i);
-    lSeq = expmt.LightChoice.data(idx,i);
+    tSeq = turns(idx,i);
+    lSeq = expmt.data.LightChoice.raw(idx,i);
     tSeq=diff(tSeq);  
     if expmt.meta.roi.orientation(i)
-        expmt.Turns.sequence(1:length(tSeq),i)=tSeq==1|tSeq==-2;
+        expmt.data.Turns.sequence(1:length(tSeq),i)=tSeq==1|tSeq==-2;
     elseif ~expmt.meta.roi.orientation(i)
-        expmt.Turns.sequence(1:length(tSeq),i)=tSeq==-1|tSeq==2;
+        expmt.data.Turns.sequence(1:length(tSeq),i)=tSeq==-1|tSeq==2;
     end
     
-    expmt.LightChoice.sequence(1:length(lSeq),i) = lSeq;
+    expmt.data.LightChoice.sequence(1:length(lSeq),i) = lSeq;
     
 end
 
 % Calculate right turn probability from tSeq
-expmt.Turns.rBias = nansum(expmt.Turns.sequence)./nansum(~isnan(expmt.Turns.sequence));
+expmt.data.Turns.rBias = nansum(expmt.data.Turns.sequence)./nansum(~isnan(expmt.data.Turns.sequence));
 
 % Calculate clumpiness and switchiness
-expmt.Turns.switchiness = NaN(expmt.meta.num_traces,1);
-expmt.Turns.clumpiness = NaN(expmt.meta.num_traces,1);
+expmt.data.Turns.switchiness = NaN(expmt.meta.num_traces,1);
+expmt.data.Turns.clumpiness = NaN(expmt.meta.num_traces,1);
 for i = 1:expmt.meta.num_traces
     
-    idx = ~isnan(expmt.Turns.sequence(:,i));
-    s = expmt.Turns.sequence(idx,i);
-    r = expmt.Turns.rBias(i);
-    n = expmt.Turns.n(i);
-    t = expmt.Turns.t(idx,i);
+    idx = ~isnan(expmt.data.Turns.sequence(:,i));
+    s = expmt.data.Turns.sequence(idx,i);
+    r = expmt.data.Turns.rBias(i);
+    n = expmt.data.Turns.n(i);
+    t = expmt.data.Turns.t(idx,i);
     iti = (t(2:end) - t(1:end-1));
     
-    expmt.Turns.switchiness(i) = sum((s(1:end-1)+s(2:end))==1)/(2*r*(1-r)*n);
-    expmt.Turns.clumpiness(i) = std(iti) / mean(iti);
+    expmt.data.Turns.switchiness(i) = sum((s(1:end-1)+s(2:end))==1)/(2*r*(1-r)*n);
+    expmt.data.Turns.clumpiness(i) = std(iti) / mean(iti);
     
 end
 
-expmt.Turns.active = expmt.Turns.n > 39;
+expmt.data.Turns.active = expmt.data.Turns.n > 39;
 
 if isfield(options,'handles')
     gui_notify('processing complete',options.handles.disp_note);
@@ -87,31 +98,34 @@ end
 
 %% Calculate light choice probability
 
-expmt.LightChoice.n = sum(~isnan(expmt.LightChoice.data));
-expmt.LightChoice.pBias = sum(expmt.LightChoice.data==1)./expmt.LightChoice.n;
-expmt.LightChoice.active = expmt.LightChoice.n > 39;
-expmt.LightChoice.switchiness = NaN(expmt.meta.num_traces,1);
+expmt.data.LightChoice.n = sum(expmt.data.LightChoice.raw()~=0);
+expmt.data.LightChoice.active = expmt.data.LightChoice.n > 39;
+expmt.data.LightChoice.switchiness = NaN(expmt.meta.num_traces,1);
+expmt.data.LightChoice.pBias = ...
+    sum(expmt.data.LightChoice.raw()==1)./expmt.data.LightChoice.n;
 
 for i = 1:expmt.meta.num_traces
     
-    idx = ~isnan(expmt.Turns.sequence(:,i));
-    s = expmt.LightChoice.sequence(idx,i);
-    r = expmt.LightChoice.pBias(i);
-    n = expmt.LightChoice.n(i);
-    t = expmt.Turns.t(idx,i);
+    idx = ~isnan(expmt.data.Turns.sequence(:,i));
+    s = expmt.data.LightChoice.sequence(idx,i);
+    r = expmt.data.LightChoice.pBias(i);
+    n = expmt.data.LightChoice.n(i);
+    t = expmt.data.Turns.t(idx,i);
     iti = (t(2:end) - t(1:end-1));
     
-    expmt.LightChoice.switchiness(i) = sum((s(1:end-1)+s(2:end))==1)/(2*r*(1-r)*n);
+    expmt.data.LightChoice.switchiness(i) = ...
+        sum((s(1:end-1)+s(2:end))==1)/(2*r*(1-r)*n);
     
 end
 
-expmt.LightChoice.active = expmt.LightChoice.n > 39;
+expmt.data.LightChoice.active = expmt.data.LightChoice.n > 39;
 
 % bootstrap resample data
-if isfield(expmt.LightChoice,'active') && any(expmt.LightChoice.active)
-    [expmt.LightChoice.bs, f] = bootstrap_ledymaze(expmt,200);
-
-
+if isfield(expmt.data.LightChoice,'active') && ...
+        any(expmt.data.LightChoice.active)
+    
+    [expmt.data.LightChoice.bs, f] = bootstrap_ledymaze(expmt,200);
+    
     fname = [expmt.meta.path.fig expmt.meta.date '_bs_light'];
     if ~isempty(expmt.meta.path.fig) && options.save
         hgsave(f,fname);
@@ -122,13 +136,13 @@ end
 
 %% Create histogram plots of turn bias and light choice probability
 
-if isfield(expmt.LightChoice,'active') && any(expmt.LightChoice.active)
+if isfield(expmt.data.LightChoice,'active') && any(expmt.data.LightChoice.active)
     
 inc=0.05;
 bins=-inc/2:inc:1+inc/2;   % Bins centered from 0 to 1 
 
-c=histc(expmt.Turns.rBias(expmt.Turns.active),bins); % turn histogram
-mad(expmt.Turns.rBias(expmt.Turns.active))           % MAD of right turn prob
+c=histc(expmt.data.Turns.rBias(expmt.data.Turns.active),bins); % turn histogram
+mad(expmt.data.Turns.rBias(expmt.data.Turns.active))           % MAD of right turn prob
 c=c./(sum(c));
 c(end)=[];
 
@@ -136,8 +150,8 @@ f=figure();
 plot(c,'Linewidth',2);
 
 hold on
-c=histc(expmt.LightChoice.pBias(expmt.Turns.active),bins); % histogram
-mad(expmt.LightChoice.pBias(expmt.Turns.active))           % MAD of light choice prob
+c=histc(expmt.data.LightChoice.pBias(expmt.data.Turns.active),bins); % histogram
+mad(expmt.data.LightChoice.pBias(expmt.data.Turns.active))           % MAD of light choice prob
 c=c./(sum(c));
 c(end)=[];
 plot(c,'Linewidth',2);
@@ -157,11 +171,11 @@ else
 end
 
 legendLabel(1)={['Turn Choice: ' strain ' ' treatment ...
-    ' (u=' num2str(mean(expmt.Turns.rBias(expmt.Turns.active)))...
-    ', n=' num2str(sum(expmt.Turns.active)) ')']};
+    ' (u=' num2str(mean(expmt.data.Turns.rBias(expmt.data.Turns.active)))...
+    ', n=' num2str(sum(expmt.data.Turns.active)) ')']};
 legendLabel(2)={['Light Choice: ' strain ' ' treatment ...
-    ' (u=' num2str(mean(expmt.LightChoice.pBias(expmt.Turns.active)))...
-    ', n=' num2str(sum(expmt.Turns.active)) ')']};
+    ' (u=' num2str(mean(expmt.data.LightChoice.pBias(expmt.data.Turns.active)))...
+    ', n=' num2str(sum(expmt.data.Turns.active)) ')']};
 legend(legendLabel);
 
 title('Phototaxis and Right Turn Histogram');

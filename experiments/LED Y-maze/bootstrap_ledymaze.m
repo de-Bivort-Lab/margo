@@ -1,23 +1,22 @@
 function varargout = bootstrap_ledymaze(expmt,nReps)
 
 % get active subset of individuals
-if isfield(expmt.LightChoice,'active')
-    nf = sum(expmt.LightChoice.active);
-    a = expmt.LightChoice.active;
+if isfield(expmt.data.LightChoice,'active')
+    nf = sum(expmt.data.LightChoice.active);
+    a = expmt.data.LightChoice.active;
 else
-    a = expmt.LightChoice.n > 39;
+    a = expmt.data.LightChoice.n > 39;
     nf = sum(a);
 end
 
-nc = expmt.LightChoice.n(a);                % num choices for each individual
-p = expmt.LightChoice.pBias(a);             % light choice probability
+nc = expmt.data.LightChoice.n(a);                % num choices for each individual
+p = expmt.data.LightChoice.pBias(a);             % light choice probability
 p_all = repmat(sum(p.*nc)/sum(nc),1,nf);    % light choice probability for all the data
 
 
 %% bootstrap resample
 
 bs.sim = NaN(nReps,nf);
-
 
 for i = 1:nReps
     
@@ -29,7 +28,7 @@ end
 
 %% plot results
 
-bs.obs = expmt.LightChoice.pBias;
+bs.obs = expmt.data.LightChoice.pBias;
 
 % create histogram of choice probabilities
 binmin=0;

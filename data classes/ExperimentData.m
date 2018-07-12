@@ -1,4 +1,4 @@
-classdef ExperimentData < handle
+classdef ExperimentData < dynamicprops
 % class definition for the expmt master data container which contains
 % experiment meta data and memmaps for raw data files
     

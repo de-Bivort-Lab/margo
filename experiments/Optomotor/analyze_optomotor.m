@@ -8,7 +8,7 @@ function expmt = analyze_optomotor(expmt,varargin)
 
 %% Parse inputs, read data from hard disk, format in master struct, process centroid data
 
-[expmt,trackProps,options] = autoDataProcess(expmt,varargin{:});
+[expmt,options] = autoDataProcess(expmt,varargin{:});
 
 clearvars -except expmt options
 

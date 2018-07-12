@@ -12,7 +12,8 @@ if sum(trackDat.changed_arm)>0
     tmpLED=trackDat.LEDs(trackDat.changed_arm,:);
     tmpLED=reshape(tmpLED',sum(trackDat.changed_arm)*3,1);
     photoPos=tmpLED&armVec;
-    photoPos=sum(reshape(photoPos,3,sum(trackDat.changed_arm))',2);
+    photoPos=int8(sum(reshape(photoPos,3,sum(trackDat.changed_arm))',2));
+    photoPos(~photoPos) = -1;
     lightChoice(trackDat.changed_arm)=photoPos;
     
 end
