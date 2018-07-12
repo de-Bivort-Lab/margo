@@ -2459,7 +2459,7 @@ setappdata(handles.gui_fig,'expmt',expmt);
 
 guidata(hObject,handles);
 
-function saved_preset_Callback(hObject, ~)
+function saved_preset_Callback(hObject, ~, handles)
 
 
 gui_fig = hObject.Parent.Parent.Parent;     % get gui handles

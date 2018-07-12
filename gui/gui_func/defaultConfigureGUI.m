@@ -131,9 +131,13 @@ end
 % generate menu items for saved profiles and config their callbacks
 hParent = findobj('Tag','saved_presets_menu');
 save_path = [handles.gui_dir 'profiles/'];
+fh = @(hObject,eventdata)...
+        autotracker('saved_preset_Callback',...
+            hObject,eventdata,guidata(hObject));
+
 for i = 1:length(profiles)
     menu_items(i) = uimenu(hParent,'Label',profiles{i},...
-        'Callback',@saved_preset_Callback);
+                        'Callback',fh);
     menu_items(i).UserData.path = [save_path profiles{i} '.mat'];
     menu_items(i).UserData.index = i;
     menu_items(i).UserData.gui_handles = handles;
