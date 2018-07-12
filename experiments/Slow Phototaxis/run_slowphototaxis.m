@@ -17,7 +17,7 @@ for i = 1:length(varargin)
         switch arg
             case 'Trackdat'
                 i=i+1;
-                trackDat = varargin{i};     % manually pass in trackDat rather than initializing
+                trackDat = varargin{i};
         end
     end
 end
@@ -29,23 +29,18 @@ gui_notify(['executing ' mfilename '.m'],gui_handles.disp_note);
 % clear memory
 clearvars -except gui_handles expmt trackDat
 
-% get handles
-gui_fig = gui_handles.gui_fig;                            % gui figure handle
-imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');   % image handle
+% get image handle
+imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image'); 
 
 
 %% Experimental Setup
 
-% Initialize experiment parameters
-ref_stack = repmat(expmt.meta.ref, 1, 1, gui_handles.edit_ref_depth.Value);  % initialize the reference stack
-nROIs = size(expmt.meta.roi.centers,1);                                      % number of ROIs
-
 % Initialize tracking variables
-trackDat.fields={'centroid';'Orientation';'time';'StimAngle';'Texture'};  % properties of the tracked objects to be recorded
+trackDat.fields={'centroid';'orientation';'time';'StimAngle';'Texture'};
 
 % initialize labels, files, and cam/video
 [trackDat,expmt] = autoInitialize(trackDat,expmt,gui_handles);
-    
+
 % lastFrame = false until last frame of the last video file is reached
 trackDat.lastFrame = false;
 
@@ -53,13 +48,19 @@ trackDat.lastFrame = false;
 %% Initialize the psychtoolbox window and query projector properties
 bg_color=[0 0 0];          
 expmt = initialize_projector(expmt, bg_color);
-Fx = expmt.projector.Fx;
-Fy = expmt.projector.Fy;
+Fx = expmt.hardware.projector.Fx;
+Fy = expmt.hardware.projector.Fy;
 pause(1);
 
-%% Calculate ROI coords in the projector space and expand the edges by a small border to ensure ROI is fully covered
+set(gui_handles.display_menu.Children,'Checked','off')
+set(gui_handles.display_menu.Children,'Enable','on')
+gui_handles.display_none_menu.Checked = 'on';
+gui_handles.display_menu.UserData = 5;
+
+%% Calculate ROI coords in the projector space and expand the edges 
 
 % tmp vars
+nROIs = expmt.meta.roi.n;
 scor = NaN(size(expmt.meta.roi.corners));
 rcor = expmt.meta.roi.corners;
 scen = NaN(nROIs,2);
@@ -88,31 +89,30 @@ src_edge_length = stmsz;
 stmsz=sqrt(stmsz^2+stmsz^2);
 
 % Initialize the stimulus image
-light = initialize_photo_stim(ceil(stmsz),ceil(stmsz),expmt.parameters.divider_size,expmt.parameters.stim_contrast);
-dark = ones(size(light)); %on 171018 @ 9:19 PM I rockwell MADE A CHANGE. originally this was dark = zeros(size(light)); I wanted to test if having a white light is better
-imcenter = [size(light,1)/2+0.5 size(light,2)/2+0.5];
+light = initialize_photo_stim(ceil(stmsz),ceil(stmsz), ...
+            expmt.parameters.divider_size,expmt.parameters.stim_contrast);
+dark = ones(size(light)); 
 
 % Initialize source rect and scaling factors
-expmt.stim.base = [0 0 src_edge_length src_edge_length];
-expmt.stim.source = CenterRectOnPointd(expmt.stim.base,stmsz/2,stmsz/2);
+stim.base = [0 0 src_edge_length src_edge_length];
+stim.source = CenterRectOnPointd(stim.base,stmsz/2,stmsz/2);
 
 %% Slow phototaxis specific parameters
 
-stim_ct=0;
+stim.lightTex = Screen('MakeTexture', expmt.hardware.screen.window, light);      % texture for half-light half-dark
+stim.darkTex = Screen('MakeTexture', expmt.hardware.screen.window, dark);        % texture for all dark
 
-expmt.stim.lightTex = Screen('MakeTexture', expmt.hardware.screen.window, light);      % texture for half-light half-dark
-expmt.stim.darkTex = Screen('MakeTexture', expmt.hardware.screen.window, dark);        % texture for all dark
-
-expmt.stim.t = 0;
-expmt.stim.ct = 0;                          % Counter for number of looming stim displayed each stimulation period
+stim.t = 0;
+stim.ct = 0;                          % Counter for number of looming stim displayed each stimulation period
 trackDat.StimAngle = single(zeros(nROIs,1));        % Initialize stimulus starting angle to 0
-expmt.stim.prev_ori=NaN(nROIs,1);
-expmt.stim.dir = boolean(ones(nROIs,1));    % Direction of rotation for the light
+stim.prev_ori=NaN(nROIs,1);
+stim.dir = boolean(ones(nROIs,1));    % Direction of rotation for the light
 trackDat.Texture = boolean(1);              % active texture (dark or light)
-expmt.stim.corners = scor;
-expmt.stim.centers = scen;
-expmt.projector.Fx = Fx;
-expmt.projector.Fy = Fy;
+stim.corners = scor;
+stim.centers = scen;
+
+% assign stim to ExperimentData
+expmt.meta.stim = stim;
 
 %% Main Experimental Loop
 

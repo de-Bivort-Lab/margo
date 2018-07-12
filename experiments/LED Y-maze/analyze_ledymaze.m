@@ -30,13 +30,14 @@ clear first_turn_col first_turn_idx first_turn_row
 
 props = {'n';'t';'sequence';'switchiness';'clumpiness';'rBias';'active'};
 addprops(expmt.data.Turns, props);
-props = {'n';'t';'sequence';'switchiness';'pBias';'active'};
+props = {'n';'sequence';'switchiness';'pBias';'active'};
 addprops(expmt.data.LightChoice, props);
 expmt.data.Turns.n = sum(turn_idx)-1;
 expmt.data.Turns.t = NaN(max(expmt.data.Turns.n),expmt.meta.num_traces);
 expmt.data.Turns.sequence = ...
     NaN(max(expmt.data.Turns.n),expmt.meta.num_traces);
-expmt.data.LightChoice.sequence = NaN(max(expmt.data.Turns.n),expmt.meta.num_traces);
+expmt.data.LightChoice.sequence = ...
+    NaN(max(expmt.data.Turns.n),expmt.meta.num_traces);
 
 %{
 Start by converting arm number turn sequence into compressed right turn
@@ -70,7 +71,9 @@ for i=1:expmt.meta.num_traces
 end
 
 % Calculate right turn probability from tSeq
-expmt.data.Turns.rBias = nansum(expmt.data.Turns.sequence)./nansum(~isnan(expmt.data.Turns.sequence));
+expmt.data.Turns.rBias = ...
+    nansum(expmt.data.Turns.sequence) ./ ...
+    nansum(~isnan(expmt.data.Turns.sequence));
 
 % Calculate clumpiness and switchiness
 expmt.data.Turns.switchiness = NaN(expmt.meta.num_traces,1);
@@ -121,9 +124,10 @@ end
 expmt.data.LightChoice.active = expmt.data.LightChoice.n > 39;
 
 % bootstrap resample data
-if isfield(expmt.data.LightChoice,'active') && ...
+if isprop(expmt.data.LightChoice,'active') && ...
         any(expmt.data.LightChoice.active)
     
+    addprops(expmt.data.LightChoice,'bs');
     [expmt.data.LightChoice.bs, f] = bootstrap_ledymaze(expmt,200);
     
     fname = [expmt.meta.path.fig expmt.meta.date '_bs_light'];
@@ -136,7 +140,8 @@ end
 
 %% Create histogram plots of turn bias and light choice probability
 
-if isfield(expmt.data.LightChoice,'active') && any(expmt.data.LightChoice.active)
+if isprop(expmt.data.LightChoice,'active') &&...
+        any(expmt.data.LightChoice.active)
     
 inc=0.05;
 bins=-inc/2:inc:1+inc/2;   % Bins centered from 0 to 1 
@@ -159,12 +164,12 @@ set(gca,'Xtick',(1:2:length(c)),'XtickLabel',0:inc*2:1);
 axis([1 length(bins)-1 0 max(c)+0.05]);
 
 % Generate legend labels
-if isfield(expmt,'Strain')
+if isfield(expmt.meta,'Strain')
     strain=expmt.meta.strain;
 else
     strain = '';
 end
-if isfield(expmt,'Treatment')
+if isfield(expmt.meta,'Treatment')
     treatment=expmt.meta.treatment;
 else
     treatment = '';

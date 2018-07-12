@@ -50,7 +50,9 @@ classdef ExperimentData < dynamicprops
             path_status = cellfun(@(f) ...
                 exist(obj.data.(f).path,'file')==2,obj.meta.fields);
             if all(path_status)
-                attach(obj);
+                if isempty(varargin) ||  varargin{1}
+                    attach(obj);
+                end
                 return
             end
 

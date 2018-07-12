@@ -82,9 +82,13 @@ classdef RawDataField < dynamicprops
                         return
                     end
                     
-                    obj.raw.map = ...
-                        memmapfile(obj.path, ...
-                            'Format',{obj.precision,fliplr(obj.dim),'raw'});
+                    prcn = obj.precision;
+                    if strcmpi(prcn,'logical')
+                        attach_binary(obj);
+                    else
+                        obj.raw.map = memmapfile(obj.path,...
+                            'Format',{pcn,fliplr(obj.dim),'raw'});
+                    end
 
                     % resize if necessary
                     sz = size(obj.raw.map.Data);
@@ -126,11 +130,13 @@ classdef RawDataField < dynamicprops
         
         function obj = attach_binary(obj)
             
-            obj.fID = fopen(obj.path,'r');
-            
+            obj.fID = fopen(obj.path,'r');           
             if obj.fID ~= -1
                 obj.raw.map.Data.raw = ...
-                    fread(obj.fID,obj.dim,'logical=>logical');
+                    fread(obj.fID,fliplr(obj.dim),'logical=>logical');
+                obj.raw.map.Format = {'logical'};
+            else
+                error('invalid fileID');
             end
             
         end

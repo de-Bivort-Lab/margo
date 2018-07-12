@@ -1,4 +1,4 @@
-function [varargout] = extractOptoTraces(include,expmt,speed)
+function [varargout] = extractOptoTraces(include,expmt)
 
 dec_scale = 1;  % factor by which to decimate the data
 
@@ -22,9 +22,9 @@ iOFFr = ceil(iOFFr./dec_scale);
 win_sz = expmt.parameters.stim_int;                         % Size of the window on either side of the stimulus in sec
 win_start=NaN(size(iONr,1),expmt.meta.num_traces);
 win_stop=NaN(size(iOFFr,1),expmt.meta.num_traces);
-tElapsed = cumsum(expmt.data.time.data);                         % time elapsed @ each frame
+tElapsed = cumsum(expmt.data.time.raw());                         % time elapsed @ each frame
 tElapsed = tElapsed(mod(1:length(tElapsed),dec_scale)==0);
-search_win = round(win_sz/nanmean(expmt.data.time.data)*1.5);    % window around stim Off->On index to search for best tStamp
+search_win = round(win_sz/nanmean(expmt.data.time.raw())*1.5);    % window around stim Off->On index to search for best tStamp
 
 
 % Start by finding tStamps win_sz on either side of stim ON->OFF index
@@ -62,15 +62,16 @@ nPts=max(max(win_stop-win_start));                  % max number of frames out o
 cumang=NaN(nPts,size(win_start,1),expmt.meta.num_traces);   % intialize cumulative change in angle placeholder
 
 % get change in angle at each frame
-turning=expmt.Orientation.data;
+turning = expmt.data.orientation.raw();
 turning = turning(mod(1:length(turning),dec_scale)==0,:);
-turning=diff(turning);
+turning = diff(turning);
 turning = [zeros(1,size(turning,2));turning];       % pad first frame with zero to equal total frame number
 
 % shift all values to be between -180 and 180 (from 360->0 single frame
 % artifacts), and adjust all values to be with respect to the stimulus such
 % that all turns in the direction of the stimulus rotation are negative
-tex = expmt.Texture.data(mod(1:length(expmt.Texture.data),dec_scale)==0,:);
+tex = expmt.data.Texture.raw(...
+    mod(1:length(expmt.data.Texture.raw()),dec_scale)==0,:);
 inc = include(mod(1:length(include),dec_scale)==0,:);
 turning(turning>90) = turning(turning>90) - 180;    
 turning(turning<-90) = turning(turning<-90) + 180;
@@ -92,8 +93,8 @@ on_spd=NaN(expmt.meta.num_traces,1);
 
 for i=1:expmt.meta.num_traces
     
-    off_spd(i)=nanmean(speed(~inc(:,i),i));
-    on_spd(i)=nanmean(speed(inc(:,i),i));
+    off_spd(i)=nanmean(expmt.data.speed.raw(~inc(:,i),i));
+    on_spd(i)=nanmean(expmt.data.speed.raw(inc(:,i),i));
     
     % Integrate change in heading angle over the entire stimulus bout
     for j=1:sum(~isnan(win_start(:,i)))
@@ -105,7 +106,7 @@ for i=1:expmt.meta.num_traces
 
         if ~isempty(tmpTurn)
             tmpTurn=interp1(1:length(tmpTurn),tmpTurn,linspace(1,length(tmpTurn),nPts));
-            if nanmean(speed(win_start(j,i):win_stop(j,i),i))>0.1
+            if nanmean(expmt.data.speed.raw(win_start(j,i):win_stop(j,i),i))>0.1
             cumang(1:t0,j,i)=cumsum(tmpTurn(1:t0));
             cumang(t0+1:end,j,i)=cumsum(tmpTurn(t0+1:end));
             end

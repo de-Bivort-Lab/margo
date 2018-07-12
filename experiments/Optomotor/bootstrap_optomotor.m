@@ -17,14 +17,14 @@ function [varargout]=bootstrap_optomotor(expmt,nReps,field)
 if isfield(expmt,'nTracks')
     nf = expmt.meta.num_traces;
 else
-    nf = size(expmt.(field).sdist,2);
+    nf = size(expmt.meta.(field).sdist,2);
 end
 
-if isfield(expmt.(field),'active')
-    expmt.(field).sdist(:,~expmt.(field).active) = [];
-    expmt.(field).tdist(:,~expmt.(field).active) = [];
-    expmt.(field).n(~expmt.(field).active) = [];
-    nf = numel(expmt.(field).n);
+if isfield(expmt.meta.(field),'active')
+    expmt.meta.(field).sdist(:,~expmt.meta.(field).active) = [];
+    expmt.meta.(field).tdist(:,~expmt.meta.(field).active) = [];
+    expmt.meta.(field).n(~expmt.meta.(field).active) = [];
+    nf = numel(expmt.meta.(field).n);
 end
 
 
@@ -39,21 +39,21 @@ for j = 1:nReps
         waitbar(j/nReps,wh,['iteration ' num2str(j) ' out of ' num2str(nReps)]);
     end
     
-    n = expmt.(field).n(randi([1 nf],nf,1));
+    n = expmt.meta.(field).n(randi([1 nf],nf,1));
     ids = arrayfun(@(k) drawIDs(k,nf), n, 'UniformOutput',false);
     
-    sd = NaN(max(expmt.(field).n),nf);
-    td = NaN(max(expmt.(field).n),nf);
+    sd = NaN(max(expmt.meta.(field).n),nf);
+    td = NaN(max(expmt.meta.(field).n),nf);
     
     for i = 1:nf
         
         fly_sub = ids{i};
-        trial_sub = ceil(expmt.Optomotor.n(fly_sub).*rand(length(i),1));
+        trial_sub = ceil(expmt.meta.(field).n(fly_sub).*rand(length(i),1));
         trial_sub(trial_sub==0)=1;
-        idx = sub2ind(size(expmt.Optomotor.sdist),trial_sub,fly_sub);
-        tmp = expmt.Optomotor.sdist(idx);
+        idx = sub2ind(size(expmt.meta.(field).sdist),trial_sub,fly_sub);
+        tmp = expmt.meta.(field).sdist(idx);
         sd(1:numel(tmp),i)=tmp;
-        tmp = expmt.Optomotor.tdist(idx);
+        tmp = expmt.meta.(field).tdist(idx);
         td(1:numel(tmp),i)=tmp;
         
     end
@@ -69,13 +69,13 @@ end
 
 %%
 
-data = expmt.(field).index;
+data = expmt.meta.(field).index;
 
 % create histogram of occupancy scores
 binmin=-1;
 binmax=1;
 w = binmax - binmin;
-plt_res = w/(10^floor(log10(nf)));
+plt_res = w/(10^ceil(log10(nf)));
 bins = -1:plt_res:1;
 c = histc(opto_index,bins) ./ repmat(sum(histc(opto_index,bins)),numel(bins),1);
 [mu,~,ci95,~] = normfit(c');
@@ -86,22 +86,29 @@ f=figure();
 hold on
 
 % plot bootstrapped trace
-plot(mu,'b','LineWidth',3);
-set(gca,'Xtick',linspace(1,length(mu),11),'XtickLabel',linspace(-1,1,11),...
-    'XLim',[1 length(mu)],'YLim',[0 ceil(max(ci95(:))*100)/100]);
+[kde,x] = ksdensity(opto_index(:),linspace(binmin,binmax,100));
+
+plot(x,kde,'b','LineWidth',3);
+set(gca,'Xtick',linspace(binmin,binmax,11),...
+    'XtickLabel',linspace(binmin,binmax,11),...
+    'XLim',[binmin binmax],'YLim',[0 max(kde)*1.1]);
 
 % plot observed data
+[kde,x] = ksdensity(data,linspace(binmin,binmax,100));
+
 c = histc(data,bins) ./ sum(sum(histc(data,bins)));
-plot(c,'r','LineWidth',3);
+plot(x,kde,'r','LineWidth',3);
 legend({['bootstrapped (nReps = ' num2str(nReps) ')'];['observed (n=' num2str(nf) ')']});
 title([field ' index histogram (obs v. bootstrapped)']);
 xlabel('Optomotor index');
 
 % add confidence interval patch
+%{
 vx = [1:length(bins) fliplr(1:length(bins))];
 vy = [ci95(1,:) fliplr(ci95(2,:))];
 ph = patch(vx,vy,[0 0.9 0.9],'FaceAlpha',0.3);
 uistack(ph,'bottom');
+%}
 
 for i=1:nargout
     switch i

@@ -23,7 +23,7 @@ expmt.LightStatus.n = NaN(expmt.meta.num_traces,1);
 expmt.LightStatus.iti = NaN(expmt.meta.num_traces,1);
 for i = 1:expmt.meta.num_traces
     expmt.LightStatus.trans(i) = {r(c==i)};
-    expmt.LightStatus.iti(i) = mean(diff(expmt.LightStatus.trans{i})).*nanmean(expmt.data.time.data);
+    expmt.LightStatus.iti(i) = mean(diff(expmt.LightStatus.trans{i})).*nanmean(expmt.data.time.raw());
     expmt.Lightstatus.n(i) = length(expmt.LightStatus.trans{i});
 end
 
@@ -55,7 +55,7 @@ for i=1:expmt.meta.num_traces
     off_divider = abs(div_dist{i})>div_thresh(i)*2;                       % data mask for trials where fly is clearly in one half or the other
     include = off_divider & expmt.Texture.data;
     [occ,tOcc,tInc,tDiv,inc] = arrayfun(@(k) parseBlocks(k,include,...  % extract occupancy for each stimulus block
-        in_Light{i},expmt.data.time.data), lb, 'UniformOutput',false);
+        in_Light{i},expmt.data.time.raw()), lb, 'UniformOutput',false);
     expmt.Light.include(:,i) = inc;                                     % light status for included frames
     expmt.Light.tOcc(:,i) = tOcc;                                       % total time in the light
     expmt.Light.tInc(:,i) = tInc;                                       % time of included frames
@@ -66,7 +66,7 @@ for i=1:expmt.meta.num_traces
     % When both halfs of the arena are unlit
     include = off_divider & ~expmt.Texture.data;
     [occ,tOcc,tInc,tDiv,inc] = arrayfun(@(k) parseBlocks(k,include,...  % extract occupancy for each stimulus block
-        in_Light{i},expmt.data.time.data), bb, 'UniformOutput',false);
+        in_Light{i},expmt.data.time.raw()), bb, 'UniformOutput',false);
     expmt.Blank.include(:,i) = inc;                                     % light status for included frames
     expmt.Blank.tOcc(:,i) = tOcc;                                       % total time in the light
     expmt.Blank.tInc(:,i) = tInc;
@@ -114,7 +114,7 @@ end
 %% Generate plots
 
 % Minimum time spent off the boundary divider (hours)
-min_active_period = 0.2 * nansum(expmt.data.time.data(expmt.Texture.data))/3600;        
+min_active_period = 0.2 * nansum(expmt.data.time.raw()(expmt.Texture.data))/3600;        
 active = nanmean(trackProps.speed) > 0.1;
 tTotal = nansum(cell2mat(expmt.Light.tInc));
 btTotal = nansum(cell2mat(expmt.Blank.tInc));

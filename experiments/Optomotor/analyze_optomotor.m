@@ -16,7 +16,7 @@ clearvars -except expmt options
 
 
 [da,opto_index,nTrials,stimdir_dist,total_dist] = ...
-    extractOptoTraces(expmt.StimStatus.data,expmt,trackProps.speed);
+    extractOptoTraces(expmt.data.StimStatus.raw(),expmt);
 [v,~] = sort(da(~isnan(da)));
 llim = v(round(0.05*length(v)));
 ulim = v(round(0.95*length(v)));
@@ -26,15 +26,16 @@ a=~isnan(da);
 trialnum_thresh = 40;
 sampling =(squeeze(sum(sum(a(:,1:trialnum_thresh,:))))./(size(da,1)*size(da,2)));
 active = nTrials>trialnum_thresh & sampling > 0.01;
-expmt.Optomotor.index = opto_index;
-expmt.Optomotor.n = nTrials;
-expmt.Optomotor.active = active;
-expmt.Optomotor.sdist = stimdir_dist;
-expmt.Optomotor.tdist = total_dist;
+expmt.meta.Optomotor.index = opto_index;
+expmt.meta.Optomotor.n = nTrials;
+expmt.meta.Optomotor.active = active;
+expmt.meta.Optomotor.sdist = stimdir_dist;
+expmt.meta.Optomotor.tdist = total_dist;
 
 % bootstrap optomotor index
 nReps = 1000;
-[expmt.Optomotor.bootstrap,~,f]=bootstrap_optomotor(expmt,nReps,'Optomotor');
+[expmt.meta.Optomotor.bootstrap,~,f] = ...
+    bootstrap_optomotor(expmt,nReps,'Optomotor');
 
 fname = [expmt.meta.path.fig expmt.meta.date '_bs_opto'];
 if ~isempty(expmt.meta.path.fig) && options.save
@@ -68,7 +69,7 @@ if isfield(expmt,'sweep')
         
         % extract subset traces
         subplot(dim,3,i);
-        subset = expmt.StimStatus.data & repmat(expmt.Contrast.data == expmt.sweep.contrasts(i),1,expmt.meta.num_traces);
+        subset = expmt.data.StimStatus.raw & repmat(expmt.Contrast.data == expmt.sweep.contrasts(i),1,expmt.meta.num_traces);
         [da,opto_index,nTrials] = extractOptoTraces(subset,expmt,trackProps.speed);
         expmt.Contrast.index(i,:) = opto_index;
         
@@ -129,7 +130,7 @@ if isfield(expmt,'sweep')
         
         % extract subset traces
         subplot(dim,3,i);
-        subset = expmt.StimStatus.data & repmat(expmt.AngularVel.data == expmt.sweep.ang_vel(i),1,expmt.meta.num_traces);
+        subset = expmt.data.StimStatus.raw & repmat(expmt.AngularVel.data == expmt.sweep.ang_vel(i),1,expmt.meta.num_traces);
         [da,opto_index,nTrials] = extractOptoTraces(subset,expmt,trackProps.speed);
         
         % filter data for activity
@@ -193,7 +194,7 @@ if isfield(expmt,'sweep')
         
         % extract subset traces
         subplot(dim,3,i);
-        subset = expmt.StimStatus.data & repmat(expmt.SpatialFreq.data == expmt.sweep.spatial_freq(i),1,expmt.meta.num_traces);
+        subset = expmt.data.StimStatus.raw & repmat(expmt.SpatialFreq.data == expmt.sweep.spatial_freq(i),1,expmt.meta.num_traces);
         [da,opto_index,nTrials] = extractOptoTraces(subset,expmt,trackProps.speed);
         
         % filter data for activity
@@ -242,16 +243,6 @@ if isfield(expmt,'sweep')
     
 end
 
-
-
-%% Generate plots
-
-if isfield(options,'plot') && options.plot
-    if isfield(options,'handles')
-        gui_notify('generating plots',options.handles.disp_note)
-    end
-    plotArenaTraces(expmt);
-end
 
 clearvars -except expmt options
 
