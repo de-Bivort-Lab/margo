@@ -67,7 +67,8 @@ else
     
 end
 
-[cam_yPixels,cam_xPixels]=size(expmt.meta.ref.im);
+im = peekdata(expmt.hardware.cam.vid,1);
+[cam_yPixels,cam_xPixels]=size(im);
 
 if cam_xPixels ~= reg_data.cam_xPixels || cam_yPixels ~= reg_data.cam_yPixels
     
