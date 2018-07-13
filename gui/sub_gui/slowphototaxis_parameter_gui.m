@@ -75,9 +75,9 @@ function slowphototaxis_parameter_gui_OpeningFcn(hObject, eventdata, handles, va
     handles.scr_popupmenu.Value = 1;
     
     if isfield(expmt,'reg_params')
-        handles.scr_popupmenu.Value = expmt.reg_params.screen_num+1;
+        handles.scr_popupmenu.Value = expmt.hardware.projector.reg_params.screen_num+1;
     else
-        expmt.reg_params.screen_num = 0;
+        expmt.hardware.projector.reg_params.screen_num = 0;
     end
     
     handles.output = expmt;
