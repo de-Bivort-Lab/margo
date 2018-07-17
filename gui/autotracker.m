@@ -69,6 +69,7 @@ expmt.meta.source = 'camera';       % set the source mode to camera by default
 
 cam_dir = [handles.gui_dir '/hardware/camera_calibration/'];
 handles.cam_calibrate_menu.UserData = false;
+expmt.hardware.cam.calibrate = false;
 
 if exist(cam_dir,'dir')==7
     

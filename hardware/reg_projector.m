@@ -138,6 +138,8 @@ hMark = plot(0,0,'ro');
 hText = text(0,0,'','Color',[1 0 0],'fontsize',14);
 hold off
 
+handles.hImage = findobj(handles.gui_fig,'-depth',3,'Type','image');
+
 
 %% Registration loop
 
