@@ -1,20 +1,6 @@
 function [expmt] = run_circadian(expmt,gui_handles)
 
-% Parse variable inputs
-for i = 1:length(varargin)
-    
-    arg = varargin{i};
-    
-    if ischar(arg)
-        switch arg
-            case 'Trackdat'
-                i=i+1;
-                trackDat = varargin{i};     % manually pass in trackDat rather than initializing
-        end
-    end
-end
-
-%% Initialization: Get handles and set default preferences
+% Initialization: Get handles and set default preferences
 
 gui_notify(['executing ' mfilename '.m'],gui_handles.disp_note);
 
