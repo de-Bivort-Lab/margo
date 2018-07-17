@@ -14,124 +14,179 @@ clearvars -except expmt options
 
 %% Analyze stimulus response
 
-% reshape date so that each col is a trace
-sz=size(expmt.Texture.data);
-if sz(2) > sz(1)
-    expmt.Texture.data = expmt.Texture.data';
-end
-
 % Convert centroid data to projector space
-x=double(squeeze(expmt.data.centroid.raw(:,1,:)));
-y=double(squeeze(expmt.data.centroid.raw(:,2,:)));
-proj_x = expmt.projector.Fx(x,y);
-proj_y = expmt.projector.Fy(x,y);
+x=double(expmt.data.centroid.raw(:,1,:));
+y=double(expmt.data.centroid.raw(:,2,:));
+proj_x = expmt.hardware.projector.Fx(x,y);
+proj_y = expmt.hardware.projector.Fy(x,y);
 clearvars x y
 [div_dist,in_Light] = ...
-    parseShadeLight(expmt.StimAngle.raw, proj_x, proj_y, expmt.stim.centers, 0);
+    parseShadeLight(expmt.data.StimAngle.raw, ...
+        proj_x, proj_y, expmt.meta.stim.centers, 0);
 
 % Calculate mean distance to divider for each fly
 avg_d = cellfun(@mean,div_dist);
 
-
 % get stimulus transitions
-stim_trans = diff([1;expmt.Texture.data]);
-expmt.Light.blocks = find(stim_trans==1);
-expmt.Light.nBlocks = length(expmt.Light.blocks);
-expmt.Blank.blocks = find(stim_trans==-1);
-expmt.Blank.nBlocks = length(expmt.Blank.blocks);
+stim_trans = diff([1;expmt.data.Texture.raw(:)]);
+expmt.meta.Light.blocks = find(stim_trans==1);
+expmt.meta.Light.nBlocks = length(expmt.meta.Light.blocks);
+expmt.meta.Blank.blocks = find(stim_trans==-1);
+expmt.meta.Blank.nBlocks = length(expmt.meta.Blank.blocks);
 
 % get indices of stim endings
-iOFF = expmt.Blank.blocks - 1;
+iOFF = expmt.meta.Blank.blocks - 1;
 iOFF = iOFF(iOFF>1);
-if iOFF(end) < expmt.Light.blocks(end)
+if iOFF(end) < expmt.meta.Light.blocks(end)
     iOFF = [iOFF;length(stim_trans)];
 end
-expmt.Light.blocks = [expmt.Light.blocks iOFF];
-lb = num2cell(expmt.Light.blocks,2);
+expmt.meta.Light.blocks = [expmt.meta.Light.blocks iOFF];
+lb = num2cell(expmt.meta.Light.blocks,2);
 
-iOFF = expmt.Light.blocks(:,1) - 1;
+iOFF = expmt.meta.Light.blocks(:,1) - 1;
 iOFF = iOFF(iOFF>0);
-if iOFF(end) < expmt.Blank.blocks(end)
+if iOFF(end) < expmt.meta.Blank.blocks(end)
     iOFF = [iOFF;length(stim_trans)];
 end
-expmt.Blank.blocks = [expmt.Blank.blocks iOFF];
-bb = num2cell(expmt.Blank.blocks,2);
+expmt.meta.Blank.blocks = [expmt.meta.Blank.blocks iOFF];
+bb = num2cell(expmt.meta.Blank.blocks,2);
 
 
 % get divider distance threshold for each ROI
-div_thresh = (mean(expmt.meta.roi.bounds(:,[3 4]),2) .* expmt.parameters.divider_size * 0.5)';
+div_thresh = ...
+    (mean(expmt.meta.roi.bounds(:,[3 4]),2) .* ...
+        expmt.parameters.divider_size * 0.5)';
 
 % Initialize light occupancy variables
-expmt.Light.include = cell(expmt.Light.nBlocks,expmt.meta.num_traces);
-expmt.Light.occ = cell(expmt.Light.nBlocks,expmt.meta.num_traces);
-expmt.Light.tOcc = cell(expmt.Light.nBlocks,expmt.meta.num_traces);
-expmt.Light.tInc = cell(expmt.Light.nBlocks,expmt.meta.num_traces);
-expmt.Light.tDiv = cell(expmt.Light.nBlocks,expmt.meta.num_traces);
+expmt.meta.Light.include = cell(expmt.meta.num_traces,1);
+expmt.meta.Light.occ = cell(expmt.meta.num_traces,1);
+expmt.meta.Light.tOcc = cell(expmt.meta.num_traces,1);
+expmt.meta.Light.tInc = cell(expmt.meta.num_traces,1);
+expmt.meta.Light.tDiv = cell(expmt.meta.num_traces,1);
 
 % Initialize blank stimulus occupancy variables
-expmt.Blank.include = cell(expmt.Blank.nBlocks,expmt.meta.num_traces);
-expmt.Blank.occ = cell(expmt.Blank.nBlocks,expmt.meta.num_traces);
-expmt.Blank.tOcc = cell(expmt.Blank.nBlocks,expmt.meta.num_traces);
-expmt.Blank.tInc = cell(expmt.Blank.nBlocks,expmt.meta.num_traces);
-expmt.Blank.tDiv = cell(expmt.Blank.nBlocks,expmt.meta.num_traces);
+expmt.meta.Blank.include = cell(expmt.meta.num_traces,1);
+expmt.meta.Blank.occ = cell(expmt.meta.num_traces,1);
+expmt.meta.Blank.tOcc = cell(expmt.meta.num_traces,1);
+expmt.meta.Blank.tInc = cell(expmt.meta.num_traces,1);
+expmt.meta.Blank.tDiv = cell(expmt.meta.num_traces,1);
 
-
+reset(expmt);
 % Calculate occupancy for each fly in both blank and photo_stim conditions
 for i=1:expmt.meta.num_traces
     
     % When one half of the arena is lit
-    off_divider = abs(div_dist{i})>div_thresh(i)*2;                     % data mask for trials where fly is clearly in one half or the other
-    [expmt.Texture.data,~] = matchDim(expmt.Texture.data,off_divider);
-    include = off_divider & expmt.Texture.data;
-    [occ,tOcc,tInc,tDiv,inc] = arrayfun(@(k) parseBlocks(k,include,...  % extract occupancy for each stimulus block
-        in_Light{i},expmt.data.time.raw), lb, 'UniformOutput',false);
-    expmt.Light.include(:,i) = inc;                                     % light status for included frames
-    expmt.Light.tOcc(:,i) = tOcc;                                       % total time in the light
-    expmt.Light.tInc(:,i) = tInc;                                       % time of included frames
-    expmt.Light.tDiv(:,i) = tDiv;                                       % time on stim divider
-    expmt.Light.occ(:,i) = occ;                                         % fractional time in light of included frames
+    off_divider = abs(div_dist{i})>div_thresh(i)*2;      
+    include = off_divider & expmt.data.Texture.raw(:);
+    [occ,tOcc,tInc,tDiv,~] = ...
+        arrayfun(@(k) parseBlocks(k,include,... 
+            in_Light{i},expmt.data.time.raw(:)), lb, 'UniformOutput',false);
+    expmt.meta.Light.include{i} = include;                                
+    expmt.meta.Light.tOcc{i} = cat(1,tOcc{:});                              
+    expmt.meta.Light.tInc{i} = cat(1,tInc{:});              
+    expmt.meta.Light.tDiv{i} = cat(1,tDiv{:});         
+    expmt.meta.Light.occ{i} = cat(1,occ{:});       
     clearvars occ tOcc tInc tDiv inc
     
     % When both halfs of the arena are unlit
-    include = off_divider & ~expmt.Texture.data;
-    [occ,tOcc,tInc,tDiv,inc] = arrayfun(@(k) parseBlocks(k,include,...  % extract occupancy for each stimulus block
-        in_Light{i},expmt.data.time.raw), bb, 'UniformOutput',false);
-    expmt.Blank.include(:,i) = inc;                                     % light status for included frames
-    expmt.Blank.tOcc(:,i) = tOcc;                                       % total time in the light
-    expmt.Blank.tInc(:,i) = tInc;
-    expmt.Blank.tDiv(:,i) = tDiv;
-    expmt.Blank.occ(:,i) = occ;  
+    include = off_divider & ~expmt.data.Texture.raw(:);
+    [occ,tOcc,tInc,tDiv,~] = ...
+        arrayfun(@(k) parseBlocks(k,include,...  
+            in_Light{i},expmt.data.time.raw(:)), bb, 'UniformOutput',false);
+    expmt.meta.Blank.include{i} = include;                                
+    expmt.meta.Blank.tOcc{i} = cat(1,tOcc{:});                              
+    expmt.meta.Blank.tInc{i} = cat(1,tInc{:});              
+    expmt.meta.Blank.tDiv{i} = cat(1,tDiv{:});         
+    expmt.meta.Blank.occ{i} = cat(1,occ{:});  
     clearvars occ tOcc tInc tDiv inc
-    
 end
 
-%% Get centroid relative to stimulus
-%{
-stimang = expmt.StimAngle.raw;
-stimang(stimang>180)=stimang(stimang>180)-360;
-stimang = stimang * pi ./ 180;
-cen_theta = trackProps.theta - stimang;
-clearvars stimang
+tTotal = cellfun(@nansum, expmt.meta.Light.tInc);
+btTotal = cellfun(@nansum, expmt.meta.Blank.tInc);
+locc = cellfun(@nanmean, expmt.meta.Light.occ);
+locc = (locc - (1-locc));
+bocc = cellfun(@nanmean, expmt.meta.Blank.occ);
+bocc = (bocc - (1-bocc));
+clearvars -except expmt tTotal btTotal locc bocc options
 
-expmt.StimCen.data = NaN(size(expmt.data.centroid.raw));
-expmt.StimCen.data(:,1,:) = trackProps.r .* cos(cen_theta);
-expmt.StimCen.data(:,2,:) = trackProps.r .* sin(cen_theta);
-%}
+
+%% Get centroid relative to stimulus
+
+has_radius = any(strcmpi(expmt.meta.fields,'Radius'));
+has_theta = any(strcmpi(expmt.meta.fields,'Theta'));
+
+if has_radius && has_theta
+    
+    stimang = expmt.data.StimAngle.raw();
+    stimang(stimang>180)=stimang(stimang>180)-360;
+    stimang = stimang * pi ./ 180;
+    cen_theta = expmt.data.Theta.raw() - stimang;
+    clearvars stimang
+
+    stim_cen = NaN(size(expmt.data.centroid.raw()));
+    stim_cen(:,1,:) = expmt.data.Radius.raw() .* cos(cen_theta);
+    stim_cen(:,2,:) = expmt.data.Radius.raw() .* sin(cen_theta);
+    stim_cen = squeeze(num2cell(stim_cen,[1 2]));
+    light_sc = cellfun(@(sc,inc,r) sc(inc,:)./r, ...
+        stim_cen, expmt.meta.Light.include, ...
+        num2cell(max(expmt.data.Radius.raw()))',...
+        'UniformOutput',false);
+    blank_sc = cellfun(@(sc,inc,r) sc(inc,:)./r, ...
+        stim_cen, expmt.meta.Blank.include, ...
+        num2cell(max(expmt.data.Radius.raw()))',...
+        'UniformOutput',false);
+    clear stim_cen
+    
+    gridpts = linspace(-1,1,25);
+    [x y] = meshgrid(gridpts, gridpts);
+    gridpts = [x(:) y(:)];
+    light_densities = cellfun(@(sc) ksdensity(sc,gridpts),...
+                    light_sc, 'UniformOutput',false);
+    blank_densities = cellfun(@(sc) ksdensity(sc,gridpts),...
+                    blank_sc, 'UniformOutput',false);
+    
+    
+    
+    nCol = ceil(sqrt(numel(light_densities))*1.2);
+    nRow = ceil(numel(light_densities)/nCol);
+    fh = figure;
+    colormap('jet');
+    for i=1:numel(light_densities)
+        ah = subplot(nRow,nCol,i);
+        lhm = light_densities{i};
+        lhm = reshape(lhm,sqrt(numel(lhm)),sqrt(numel(lhm)));
+        bhm = blank_densities{i};
+        bhm = reshape(bhm,sqrt(numel(bhm)),sqrt(numel(bhm)));
+        imagesc([lhm bhm]);
+        ah.XTick = [];
+        ah.YTick = [];
+        title(sprintf('%i',i));
+        xlabel(sprintf('index = %0.2f',locc(i)));
+        axis tight equal;
+    end  
+    
+    fname = [expmt.meta.path.fig expmt.meta.date '_heatmaps'];
+    if ~isempty(expmt.meta.path.fig) && options.save
+        hgsave(fh,fname);
+        close(fh);
+    end
+end
+
 
 %% Bootstrap data to measure overdispersion
 
 nReps = 1000;
-[expmt.Light.bs,f] = bootstrap_slowphototaxis(expmt,nReps,'Light');
+[expmt.meta.Light.bs,f] = bootstrap_slowphototaxis(expmt,nReps,'Light');
 fname = [expmt.meta.path.fig expmt.meta.date '_light_bs'];
 if ~isempty(expmt.meta.path.fig) && options.save
     hgsave(f,fname);
     close(f);
 end
 
-if ~isfield(expmt.parameters,'blank_duration') || ...
-        (isfield(expmt.parameters,'blank_duration') && expmt.parameters.blank_duration > 0)
+if isfield(expmt.parameters,'blank_duration') && ...
+        expmt.parameters.blank_duration > 0
     
-    [expmt.Blank.bs,f] = bootstrap_slowphototaxis(expmt,nReps,'Blank');
+    [expmt.meta.Blank.bs,f] = bootstrap_slowphototaxis(expmt,nReps,'Blank');
     fname = [expmt.meta.path.fig expmt.meta.date '_dark_bs'];
     if ~isempty(expmt.meta.path.fig) && options.save
         hgsave(f,fname);
@@ -144,40 +199,17 @@ end
 %% Generate plots
 
 % Minimum time spent off the boundary divider (hours)
-min_active_period = 0.2 * nansum(expmt.data.time.raw(expmt.Texture.data))/3600;        
-active = expmt.data.speed.avg > 0.01;
-tTotal = nansum(cell2mat(expmt.Light.tInc));
-btTotal = nansum(cell2mat(expmt.Blank.tInc));
-locc = nanmean(cell2mat(expmt.Light.occ));
-bocc = nanmean(cell2mat(expmt.Blank.occ));
+min_active_period = 0.2 * ...
+    nansum(expmt.data.time.raw(expmt.data.Texture.raw(:)))/3600;        
+active = tTotal > min_active_period;
 
-% Histogram for stimulus ON period
-f=figure();
-bins = 0:0.05:1;
-c=histc(locc(tTotal>min_active_period&active'),bins)./sum(tTotal>min_active_period&active');
-c(end)=[];
-plot(c,'Color',[1 0 1],'Linewidth',2);
-set(gca,'Xtick',0:2:length(c),'XtickLabel',0:0.1:1);
-if ~isnan(max(c))
-    axis([0 length(c) 0 max(c)+0.05]);
-end
-n_light=sum(tTotal>min_active_period&active');
+fh = autoPlotDist(locc, active);
 
-if ~isfield(expmt.parameters,'blank_duration') || ...
-        (isfield(expmt.parameters,'blank_duration') && expmt.parameters.blank_duration > 0)
-% Histogram for blank stimulus with fake lit half
-    bins = 0:0.05:1;
-    c=histc(bocc(btTotal>min_active_period&active'),bins)./sum(btTotal>min_active_period&active');
-    c(end)=[];
-    hold on
-    plot(c,'Color',[0 0 1],'Linewidth',2);
-    set(gca,'Xtick',0:2:length(c),'XtickLabel',0:0.1:1);
-    if ~isnan(max(c))
-        axis([0 length(c) 0 max(c)+0.05]);
-    end
-    title('Light Occupancy Histogram');
-    n_blank=sum(btTotal>min_active_period&active');
-    hold off
+if isfield(expmt.parameters,'blank_duration') && ...
+        expmt.parameters.blank_duration > 0
+    
+    active = btTotal > min_active_period;
+    fh = autoPlotDist(bocc, active, gca);
 end
 
 % Generate legend labels
@@ -191,37 +223,46 @@ if isfield(expmt,'Treatment')
 end
 
 % light ON label
-light_avg_occ = round(mean(locc(tTotal>min_active_period&active'))*100)/100;
-light_mad_occ = round(mad(locc(tTotal>min_active_period&active'))*100)/100;
-n = sum(tTotal>min_active_period&active');
-legendLabel(1)={['Stim ON: ' strain ' ' treatment ' (u=' num2str(light_avg_occ)...
-    ', MAD=' num2str(light_mad_occ) ', n=' num2str(n) ')']};
+active = tTotal > min_active_period;
+light_avg = mean(locc(active));
+light_mad = mad(locc(active));
+n = sum(active);
+legendLabel = cell(2,1);
+legendLabel(2)={...
+    sprintf('Stim ON: %s (u=%0.2f, MAD=%0.2f, n=%i)',...
+        strain, light_avg, light_mad, n)...
+    };
 
-if ~isfield(expmt.parameters,'blank_duration') || ...
-        (isfield(expmt.parameters,'blank_duration') && expmt.parameters.blank_duration > 0)
+if isfield(expmt.parameters,'blank_duration') && ...
+        expmt.parameters.blank_duration > 0
     
     % light OFF label
-    blank_avg_occ = round(mean(bocc(btTotal>min_active_period&active'))*100)/100;
-    blank_mad_occ = round(mad(bocc(btTotal>min_active_period&active'))*100)/100;
-    n = sum(btTotal>min_active_period&active');
-    legendLabel(2)={['Stim OFF: ' strain ' ' treatment ' (u=' num2str(blank_avg_occ)...
-        ', MAD=' num2str(blank_mad_occ) ', n=' num2str(n) ')']};
+    active = btTotal > min_active_period;
+    blank_avg = mean(bocc(active));
+    blank_mad = mad(bocc(active));
+    n = sum(active);
+    legendLabel(1)={...
+        sprintf('Stim OFF: %s (u=%0.2f, MAD=%0.2f, n=%i)',...
+            strain, blank_avg, blank_mad, n)...
+        };
 end
 legend(legendLabel);
 shg
+xlabel('phototactic index');
+ylabel('probability density');
 
 fname = [expmt.meta.path.fig expmt.meta.date '_histogram'];
 if ~isempty(expmt.meta.path.fig) && options.save
-    hgsave(f,fname);
-    close(f);
+    hgsave(fh,fname);
+    close(fh);
 end
 
 
 % Save data to struct
-expmt.Light.avg_occ = locc;
-expmt.Blank.avg_occ = bocc;
-expmt.Light.active = tTotal>min_active_period&active';
-expmt.Blank.active = btTotal>min_active_period&active';
+expmt.meta.Light.avg_occ = locc;
+expmt.meta.Blank.avg_occ = bocc;
+expmt.meta.Light.active = tTotal>min_active_period & active;
+expmt.meta.Blank.active = btTotal>min_active_period & active;
 
 %% Extract handedness from lights ON and lights OFF periods
 %{
@@ -230,11 +271,11 @@ first_half = false(size(trackProps.speed));
 first_half(1:round(length(first_half)/2),:) = true;
 inc = first_half & trackProps.speed >0.8;
 expmt.handedness_First = getHandedness(trackProps,'Include',inc);
-inc = repmat(~expmt.Texture.data,1,expmt.meta.num_traces) & trackProps.speed >0.8;
+inc = repmat(~expmt.data.Texture.raw,1,expmt.meta.num_traces) & trackProps.speed >0.8;
 expmt.handedness_Blank = getHandedness(trackProps,'Include',inc);
  inc = ~first_half & trackProps.speed >0.8;
 expmt.handedness_Second = getHandedness(trackProps,'Include',inc);
-inc = repmat(expmt.Texture.data,1,expmt.meta.num_traces) & trackProps.speed >0.8;
+inc = repmat(expmt.data.Texture.raw,1,expmt.meta.num_traces) & trackProps.speed >0.8;
 expmt.handedness_Light = getHandedness(trackProps,'Include',inc);
 
 if isfield(options,'plot') && options.plot

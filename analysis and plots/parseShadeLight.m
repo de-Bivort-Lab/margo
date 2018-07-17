@@ -6,14 +6,15 @@ function [div_dist,in_light] = parseShadeLight(stim_angles,proj_x,proj_y,stim_ce
 
 if mode==0
     
-    px = num2cell(proj_x,2);
-    py = num2cell(proj_y,2);
-    sa = num2cell(stim_angles,2);
+    px = num2cell(proj_x,1)';
+    py = num2cell(proj_y,1)';
+    sa = num2cell(stim_angles(),1)';
     sc = num2cell(stim_centers,2);
     
     clearvars proj_x proj_y stim_angles stim_centers
     
-    [div_dist,in_light] = arrayfun(@getDistStatus,px,py,sa,sc,'UniformOutput',false);
+    [div_dist,in_light] = ...
+        arrayfun(@getDistStatus,px,py,sa,sc,'UniformOutput',false);
 
 end
 

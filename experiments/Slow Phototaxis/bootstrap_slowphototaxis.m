@@ -13,19 +13,19 @@ function varargout = bootstrap_slowphototaxis(expmt,nReps,field)
 %      random chance.
 
 %% bootstrap sample data
-nb = expmt.(field).nBlocks;
+nb = expmt.meta.(field).nBlocks;
 fly_sub = randi([1 expmt.meta.num_traces],nb*expmt.meta.num_traces*nReps,1);
 block_sub = randi([1 nb],nb*expmt.meta.num_traces*nReps,1);
-obs = cell2mat(expmt.(field).occ);
+obs = cat(2,expmt.meta.(field).occ{:});
+obs = obs - (1-obs);
 idx = sub2ind(size(obs),block_sub,fly_sub);
 occ = obs(idx);
 occ = reshape(occ,nb,expmt.meta.num_traces,nReps);
 occ = squeeze(nanmean(occ,1));
 
 % create histogram of occupancy scores
-bins = 0:0.05:1;
-c = histc(occ,bins) ./ repmat(sum(histc(occ,bins)),numel(bins),1);
-[mu,~,ci95,~] = normfit(c');
+bins = -1:0.05:1;
+%c = histc(occ,bins) ./ repmat(sum(histc(occ,bins)),numel(bins),1);
 
 %% generate plots
 
@@ -33,28 +33,30 @@ f=figure();
 hold on
 
 % plot bootstrapped trace
-plot(mu,'b','LineWidth',2);
-set(gca,'Xtick',1:2:length(mu),'XtickLabel',bins(mod(1:length(bins),2)==1),...
-    'XLim',[1 length(mu)],'YLim',[0 ceil(max(ci95(:))*100)/100]);
+[bs_kde, x1] = ksdensity(occ(:));
+plot(x1, bs_kde,'b','LineWidth',2);
+set(gca,'Xtick',-1:0.5:1,'XLim',[-1 1],'YLim',[0 max(bs_kde(:))]);
 
 % plot observed data
-c = histc(nanmean(obs),bins) ./ sum(sum(histc(nanmean(obs),bins)));
-plot(c,'r','LineWidth',2);
+obs = nanmean(obs);
+[obs_kde, x2] = ksdensity(obs(:));
+plot(x2, obs_kde,'r','LineWidth',2);
 legend({['bootstrapped (nReps = ' num2str(nReps) ')'];'observed'});
 title([field ' occupancy histogram']);
 
-% add confidence interval patch
-vx = [1:length(bins) fliplr(1:length(bins))];
-vy = [ci95(1,:) fliplr(ci95(2,:))];
-ph = patch(vx,vy,[0 0.9 0.9],'FaceAlpha',0.3);
+% add bs and obs patch
+vx = [x1 x1(end) x1(1)];
+vy = [bs_kde 0 bs_kde(1)];
+ph = patch(vx,vy,[0 0.75 0.85],'FaceAlpha',0.3);
+uistack(ph,'bottom');
+vx = [x2 x2(end) x2(1)];
+vy = [obs_kde 0 obs_kde(1)];
+ph = patch(vx,vy,[.85  0 .75],'FaceAlpha',0.3);
 uistack(ph,'bottom');
 
 % save output variablie
 bs.obs_data = obs;
-bs.obs_hist = c;
 bs.bs_data = occ;
-bs.bs_hist = mu;
-bs.bs_ci95 = ci95;
 bs.nReps = nReps;
 bs.bins = bins;
 
