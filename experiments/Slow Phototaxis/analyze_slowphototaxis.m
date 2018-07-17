@@ -107,7 +107,9 @@ locc = cellfun(@nanmean, expmt.meta.Light.occ);
 locc = (locc - (1-locc));
 bocc = cellfun(@nanmean, expmt.meta.Blank.occ);
 bocc = (bocc - (1-bocc));
-clearvars -except expmt tTotal btTotal locc bocc options
+min_active_period = 0.2 * ...
+    nansum(expmt.data.time.raw(expmt.data.Texture.raw(:)))/3600; 
+clearvars -except expmt tTotal btTotal locc bocc options min_active_period
 
 
 %% Get centroid relative to stimulus
@@ -140,18 +142,19 @@ if has_radius && has_theta
     gridpts = linspace(-1,1,25);
     [x y] = meshgrid(gridpts, gridpts);
     gridpts = [x(:) y(:)];
+    active = tTotal > min_active_period &  btTotal > min_active_period;
     light_densities = cellfun(@(sc) ksdensity(sc,gridpts),...
-                    light_sc, 'UniformOutput',false);
+                    light_sc(active), 'UniformOutput',false);
     blank_densities = cellfun(@(sc) ksdensity(sc,gridpts),...
-                    blank_sc, 'UniformOutput',false);
-    
+                    blank_sc(active), 'UniformOutput',false);
     
     
     nCol = ceil(sqrt(numel(light_densities))*1.2);
     nRow = ceil(numel(light_densities)/nCol);
     fh = figure;
     colormap('jet');
-    for i=1:numel(light_densities)
+    idx = find(active);
+    for i=1:numel(idx)
         ah = subplot(nRow,nCol,i);
         lhm = light_densities{i};
         lhm = reshape(lhm,sqrt(numel(lhm)),sqrt(numel(lhm)));
@@ -160,8 +163,8 @@ if has_radius && has_theta
         imagesc([lhm bhm]);
         ah.XTick = [];
         ah.YTick = [];
-        title(sprintf('%i',i));
-        xlabel(sprintf('index = %0.2f',locc(i)));
+        title(sprintf('%i',idx(i)));
+        xlabel(sprintf('index = %0.2f',locc(idx(i))));
         axis tight equal;
     end  
     
@@ -198,9 +201,7 @@ end
 
 %% Generate plots
 
-% Minimum time spent off the boundary divider (hours)
-min_active_period = 0.2 * ...
-    nansum(expmt.data.time.raw(expmt.data.Texture.raw(:)))/3600;        
+% Minimum time spent off the boundary divider (hours)       
 active = tTotal > min_active_period;
 
 fh = autoPlotDist(locc, active);

@@ -107,6 +107,8 @@ locc = cellfun(@nanmean, expmt.meta.Light.occ);
 locc = (locc - (1-locc));
 bocc = cellfun(@nanmean, expmt.meta.Blank.occ);
 bocc = (bocc - (1-bocc));
+min_active_period = 0.2 * ...
+    nansum(expmt.data.time.raw(expmt.data.Texture.raw(:)))/3600; 
 clearvars -except expmt tTotal btTotal locc bocc options
 
 
@@ -140,11 +142,11 @@ if has_radius && has_theta
     gridpts = linspace(-1,1,25);
     [x y] = meshgrid(gridpts, gridpts);
     gridpts = [x(:) y(:)];
+    active = tTotal > min_active_period &  btTotal > min_active_period;
     light_densities = cellfun(@(sc) ksdensity(sc,gridpts),...
-                    light_sc, 'UniformOutput',false);
+                    light_sc(active), 'UniformOutput',false);
     blank_densities = cellfun(@(sc) ksdensity(sc,gridpts),...
-                    blank_sc, 'UniformOutput',false);
-    
+                    blank_sc(active), 'UniformOutput',false);
     
     
     nCol = ceil(sqrt(numel(light_densities))*1.2);
@@ -198,9 +200,7 @@ end
 
 %% Generate plots
 
-% Minimum time spent off the boundary divider (hours)
-min_active_period = 0.2 * ...
-    nansum(expmt.data.time.raw(expmt.data.Texture.raw(:)))/3600;        
+% Minimum time spent off the boundary divider (hours)       
 active = tTotal > min_active_period;
 
 fh = autoPlotDist(locc, active);
@@ -227,7 +227,8 @@ active = tTotal > min_active_period;
 light_avg = mean(locc(active));
 light_mad = mad(locc(active));
 n = sum(active);
-legendLabel(1)={...
+legendLabel = cell(2,1);
+legendLabel(2)={...
     sprintf('Stim ON: %s (u=%0.2f, MAD=%0.2f, n=%i)',...
         strain, light_avg, light_mad, n)...
     };
@@ -240,13 +241,15 @@ if isfield(expmt.parameters,'blank_duration') && ...
     blank_avg = mean(bocc(active));
     blank_mad = mad(bocc(active));
     n = sum(active);
-    legendLabel(2)={...
+    legendLabel(1)={...
         sprintf('Stim OFF: %s (u=%0.2f, MAD=%0.2f, n=%i)',...
             strain, blank_avg, blank_mad, n)...
         };
 end
 legend(legendLabel);
 shg
+xlabel('phototactic index');
+ylabel('probability density');
 
 fname = [expmt.meta.path.fig expmt.meta.date '_histogram'];
 if ~isempty(expmt.meta.path.fig) && options.save
