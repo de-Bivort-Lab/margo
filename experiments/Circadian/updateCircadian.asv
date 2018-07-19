@@ -37,7 +37,8 @@ if trackDat.light.stat && t(1)==expmt.parameters.lights_OFF(1)
         trackDat.ramp.stat = -1;
         trackDat.ramp.t = toc;
         trackDat.ramp.ct = 1;
-        trackDat.ramp.int = zeros(1,expmt.hardware.light.white);
+        level = double(expmt.hardware.light.white);
+trackDat.ramp.int = zeros(1,expmt.hardware.light.white);
         gui_notify('lights ramping down',gui_handles.disp_note);
     end
 % Turn light ON if light's OFF and t > lightsON time

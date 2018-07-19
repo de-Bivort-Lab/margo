@@ -257,7 +257,7 @@ expmt = getappdata(gui_fig,'expmt');
 
 n = handles.circ_fig.UserData.pulse_num;
 amp = handles.circ_fig.UserData.pulse_amp;
-writeVibrationalMotors(expmt.hardware.COM,6,1,1,n,amp);
+writeVibrationalMotors(expmt.hardware.COM.light,6,1,1,n,amp);
 
 guidata(hObject, handles);
 
