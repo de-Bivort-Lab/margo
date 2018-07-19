@@ -22,7 +22,7 @@ function varargout = label_subgui(varargin)
 
 % Edit the above text to modify the response to help label_subgui
 
-% Last Modified by GUIDE v2.5 15-Dec-2016 11:19:02
+% Last Modified by GUIDE v2.5 19-Jul-2018 15:46:55
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -68,28 +68,28 @@ if ~isempty(expmt.meta.labels)
     handles.output=label_data;
     set(handles.labels_table, 'Data', label_data);
 else
-    label_data = handles.labels_table.Data;
-    label_data(1,4) = {1};
-    label_data(1,5) = {size(expmt.meta.roi.centers,1)};
-    label_data(1,6) = {1};
-    label_data(1,7) = {size(expmt.meta.roi.centers,1)};
-    label_data(1,8) = {1};
+    label_data = defaultLabels(expmt);
     set(handles.labels_table, 'Data', label_data);
     handles.output=hObject.Children(3).Data;
 end
 
+if numel(varargin)>1
+    status = varargin{2};
+    handles.label_fig.Visible = status;
+end
+
 gui_fig = findobj('Name','autotracker');
 light_panel = findobj('Tag','cam_uipanel');
-handles.figure1.Position(1) = gui_fig.Position(1) + ...
+handles.label_fig.Position(1) = gui_fig.Position(1) + ...
     light_panel.Position(1);
-handles.figure1.Position(2) = gui_fig.Position(2) + ...
-    sum(light_panel.Position([2 4])) - handles.figure1.Position(4) - 25;
+handles.label_fig.Position(2) = gui_fig.Position(2) + ...
+    sum(light_panel.Position([2 4])) - handles.label_fig.Position(4) - 25;
 
 % Update handles structure
 guidata(hObject, handles);
 
 % UIWAIT makes optomotor_parameter_gui wait for user response (see UIRESUME)
-uiwait(handles.figure1);
+uiwait(handles.label_fig);
 
 
 % --- Outputs from this function are returned to the command line.
@@ -102,7 +102,7 @@ function varargout = label_subgui_OutputFcn(hObject, eventdata, handles)
 % Get default command line output from handles structure
 if isfield(handles,'output')
     varargout{1} = handles.output;
-    close(handles.figure1);
+    close(handles.label_fig);
 else
     varargout{1} = [];
     delete(hObject);
@@ -141,7 +141,7 @@ function accept_label_pushbutton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 handles.output=handles.labels_table.Data;
 guidata(hObject, handles);
-uiresume(handles.figure1);
+uiresume(handles.label_fig);
 
 
 % --- Executes on button press in clear_label_pushbutton.
@@ -156,9 +156,9 @@ set(handles.labels_table, 'Data', data);
 guidata(hObject, handles);
 
 
-% --- Executes when user attempts to close figure1.
-function figure1_CloseRequestFcn(hObject, eventdata, handles)
-% hObject    handle to figure1 (see GCBO)
+% --- Executes when user attempts to close label_fig.
+function label_fig_CloseRequestFcn(hObject, eventdata, handles)
+% hObject    handle to label_fig (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 

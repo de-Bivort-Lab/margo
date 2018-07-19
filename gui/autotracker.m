@@ -780,14 +780,13 @@ handles.off_objs = findobj('Enable','off');
 keep_gui_state = false;
 
 % check labels
-hasLabelData = ~isempty(expmt.meta.labels);
+if isempty(expmt.meta.labels)
+    expmt.meta.labels = defaultLabels(expmt);
+end
 
 % check setup before initializing tracking
 if ~isfield(expmt.meta.path,'full')
     errordlg('Please specify Save Location')
-    return
-elseif ~hasLabelData
-    errordlg('Please set labels before running experiment')
     return
 elseif ~isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
     errordlg('Please run ROI detection before starting tracking');
