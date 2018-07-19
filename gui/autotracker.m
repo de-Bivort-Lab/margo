@@ -1555,7 +1555,14 @@ try
     
         case 'grid'    
         expmt.meta.roi.mode = 'grid';
-        expmt = gridROIs(handles,expmt);     
+        expmt = gridROIs(handles,expmt);   
+        if ~isfield(expmt.meta.roi,'centers')
+            msg = 'grid ROI detection aborted';
+            gui_notify(msg,handles.disp_note);
+            toggleMenus(handles, 'on');
+            hObject.Enable = 'on';
+            return
+        end
             
     end
     
