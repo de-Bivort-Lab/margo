@@ -30,6 +30,7 @@ classdef ExperimentData < dynamicprops
             obj.meta.path.name = '';
             obj.meta.roi.mode = 'grid';
             obj.meta.vignette.mode = 'auto';
+            obj.meta.track_mode = 'single';
             obj.meta.initialize = true;
             obj.meta.finish = true;
             obj.meta.exp_id = 1;

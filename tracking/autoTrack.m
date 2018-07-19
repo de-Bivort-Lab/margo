@@ -22,6 +22,9 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
     if ~any(strcmpi('area',in_fields))
         in_fields = [in_fields; {'area'}];
     end
+    if ~any(strcmpi('PixelList',in_fields))
+        in_fields = [in_fields; {'PixelList'}];
+    end
     
     % add BoundingBox as a field if dilate/erode mode
     if isfield(expmt.parameters,'dilate_element')
@@ -99,11 +102,16 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
         props(~(above_min & below_max)) = [];
 
 
-        raw_cen = reshape([props.Centroid],2,length([props.Centroid])/2)';
-
-
-        % Match centroids to last known centroid positions
-        [permutation,update,raw_cen] = sortCentroids(raw_cen,trackDat,expmt);
+        switch expmt.meta.track_mode
+            case 'single'
+                
+                raw_cen = reshape([props.Centroid],2,length([props.Centroid])/2)';
+                % Match centroids to last known centroid positions
+                [permutation,update,raw_cen] = sortCentroids(raw_cen,trackDat,expmt);
+            case 'multitrack'
+                
+                [trackDat, expmt] = multiTrack(props, trackDat, expmt);
+        end
 
         % Apply speed threshold to centroid tracking
         speed = NaN(size(update));
