@@ -44,9 +44,6 @@ for i = 1:length(varargin)
             case 'Raw'
                 i=i+1;
                 options.raw = varargin{i};
-                if ~iscell(options.raw)
-                    options.raw = {options.raw};
-                end
             case 'Bootstrap'
                 i=i+1;
                 options.bootstrap = varargin{i};
@@ -64,6 +61,11 @@ for i = 1:length(varargin)
                 options.area_threshold = varargin{i};
         end
     end
+end
+
+if ~iscell(options.raw)
+    expmt.meta.options.raw = {options.raw};
+    options.raw = {options.raw};
 end
 
 % print gui update
@@ -140,27 +142,30 @@ if options.save
 end
 
 if isfield(expmt.data,'speed') && isattached(expmt.data.speed) ...
-        && options.bootstrap
     
     if isfield(options,'handles')
         gui_notify('resampling speed data, may take a few minutes',...
             options.handles.disp_note)
     end
     
-    % chunk speed data into individual movement bouts
-    [block_indices, lag_thresh, speed_thresh] = blockActivity(expmt);
-    expmt.meta.speed.thresh = speed_thresh;
-    expmt.meta.speed.bouts.thresh = lag_thresh;
-    expmt.meta.speed.bouts.idx = block_indices;
+    if options.bouts || options.bootstrap
+        % chunk speed data into individual movement bouts
+        [block_indices, lag_thresh, speed_thresh] = blockActivity(expmt);
+        expmt.meta.speed.thresh = speed_thresh;
+        expmt.meta.speed.bouts.thresh = lag_thresh;
+        expmt.meta.speed.bouts.idx = block_indices;
+    end
     
-    % bootstrap resample speed data to generate null distribution
-    [expmt.meta.speed.bs,f] = bootstrap_speed_blocks(expmt,block_indices,100);
-    
-    % save bootstrap figure to file
-    fname = [expmt.meta.path.fig expmt.meta.date '_bs_logspeed'];
-    if ~isempty(expmt.meta.path.fig) && options.save
-        hgsave(f,fname);
-        close(f);
+    if options.bootstrap
+        % bootstrap resample speed data to generate null distribution
+        [expmt.meta.speed.bs,f] = bootstrap_speed_blocks(expmt,block_indices,100);
+
+        % save bootstrap figure to file
+        fname = [expmt.meta.path.fig expmt.meta.date '_bs_logspeed'];
+        if ~isempty(expmt.meta.path.fig) && options.save
+            hgsave(f,fname);
+            close(f);
+        end
     end
 
 end

@@ -119,6 +119,7 @@ has_theta = any(strcmpi(expmt.meta.fields,'Theta'));
 
 if has_radius && has_theta
     
+    
     stimang = expmt.data.StimAngle.raw();
     stimang(stimang>180)=stimang(stimang>180)-360;
     stimang = stimang * pi ./ 180;
@@ -142,14 +143,41 @@ if has_radius && has_theta
     gridpts = linspace(-1,1,25);
     [x y] = meshgrid(gridpts, gridpts);
     gridpts = [x(:) y(:)];
-    active = tTotal > min_active_period &  btTotal > min_active_period;
+    active = tTotal > min_active_period &  btTotal > min_active_period*.1;
+    %active = true(48,1);
     light_densities = cellfun(@(sc) ksdensity(sc,gridpts),...
                     light_sc(active), 'UniformOutput',false);
     blank_densities = cellfun(@(sc) ksdensity(sc,gridpts),...
                     blank_sc(active), 'UniformOutput',false);
+      
+    
+    if isfield(expmt.meta,'speed') && isfield(expmt.meta.speed,'bouts')
+        [expmt, n, ft] = excludeTrialBoundaryBouts(expmt);
+        n = cat(1,n{:});
+        ft = cat(1,ft{:});
+    end
+    
+    stim_cen = NaN(size(expmt.data.centroid.raw()));
+    stim_cen(:,1,:) = expmt.data.Radius.raw() .* cos(cen_theta);
+    stim_cen(:,2,:) = expmt.data.Radius.raw() .* sin(cen_theta);
+    stim_cen = squeeze(num2cell(stim_cen,[1 2]));
+    light_sc = cellfun(@(sc,inc,r) sc(inc,:)./r, ...
+        stim_cen, expmt.meta.Light.include, ...
+        num2cell(max(expmt.data.Radius.raw()))',...
+        'UniformOutput',false);
+    blank_sc = cellfun(@(sc,inc,r) sc(inc,:)./r, ...
+        stim_cen, expmt.meta.Blank.include, ...
+        num2cell(max(expmt.data.Radius.raw()))',...
+        'UniformOutput',false);
+    clear stim_cen
+    
+    ld = cellfun(@(sc) ksdensity(sc,gridpts),...
+                    light_sc(active), 'UniformOutput',false);
+    bd = cellfun(@(sc) ksdensity(sc,gridpts),...
+                    blank_sc(active), 'UniformOutput',false);
     
     
-    nCol = ceil(sqrt(numel(light_densities))*1.2);
+    nCol = ceil(sqrt(numel(light_densities))*1.8);
     nRow = ceil(numel(light_densities)/nCol);
     fh = figure;
     colormap('jet');
@@ -157,14 +185,24 @@ if has_radius && has_theta
     for i=1:numel(idx)
         ah = subplot(nRow,nCol,i);
         lhm = light_densities{i};
+        lhm = lhm ./ sum(lhm);
         lhm = reshape(lhm,sqrt(numel(lhm)),sqrt(numel(lhm)));
         bhm = blank_densities{i};
+        bhm = bhm ./ sum(bhm);
         bhm = reshape(bhm,sqrt(numel(bhm)),sqrt(numel(bhm)));
-        imagesc([lhm bhm]);
+        ldhm = ld{i};
+        ldhm = ldhm ./ sum(ldhm);
+        ldhm = reshape(ldhm,sqrt(numel(ldhm)),sqrt(numel(ldhm)));
+        bdhm = bd{i};
+        bdhm = bdhm ./ sum(bdhm);
+        bdhm = reshape(bdhm,sqrt(numel(bdhm)),sqrt(numel(bdhm)));
+        imagesc([lhm bhm; ldhm bdhm]);
         ah.XTick = [];
         ah.YTick = [];
-        title(sprintf('%i',idx(i)));
-        xlabel(sprintf('index = %0.2f',locc(idx(i))));
+        %title(sprintf('%i',idx(i)));
+        ylabel(sprintf('%0.2f',locc(idx(i))));
+        xlabel(sprintf('%0.2f \t %0.2f\n(%0.1G) \t (%0.1G)',...
+            ft(idx(i),1),ft(idx(i),2),n(idx(i),1),n(idx(i),2)));
         axis tight equal;
     end  
     

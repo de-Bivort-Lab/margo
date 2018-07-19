@@ -14,29 +14,27 @@ classdef RawDataMap < handle
         % indexing and return routines
         function out = subsref(obj,S)
             
-            if isempty(obj.map) || isempty(obj.map.Data.raw)
-                
+            if isempty(obj.map) || isempty(obj.map.Data.raw)  
                 try
                     attach(obj.Parent);
                 catch
-                    error(['could not attach raw data mao - run '
+                    warning(['could not attach raw data map - run '
                         'attach(RawDataMap) before indexing raw data']);
                 end
-            else
-                out = obj;
-                for i=1:length(S)
-                    switch S(i).type
-                        case '()'
-                            out = arrayindex(obj,S(i).subs);
-                        case '.'
-                            out = out.(S(i).subs);
-                        case '{}'
-                            error(['Cell contents reference '...
-                                'from a non-cell array object']);
-                    end
-                end
             end
-            
+
+            out = obj;
+            for i=1:length(S)
+                switch S(i).type
+                    case '()'
+                        out = arrayindex(obj,S(i).subs);
+                    case '.'
+                        out = out.(S(i).subs);
+                    case '{}'
+                        error(['Cell contents reference '...
+                            'from a non-cell array object']);
+                end
+            end        
         end
         
         function out = arrayindex(obj,s)

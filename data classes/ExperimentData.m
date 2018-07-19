@@ -101,6 +101,8 @@ classdef ExperimentData < dynamicprops
         % initialize all raw data maps
         function obj = attach(obj) 
             fn = fieldnames(obj.data);
+            no_data = cellfun(@(f) ~any(strcmpi(f,fn)), obj.meta.fields);
+            obj.meta.fields(no_data) = [];
             for i=1:length(obj.meta.fields)
                 attach(obj.data.(fn{i}));
             end
@@ -113,6 +115,7 @@ classdef ExperimentData < dynamicprops
             end
         end
         % re-initialize all raw data maps
+        
         function obj = reset(obj)
             detach(obj);
             attach(obj);

@@ -29,9 +29,13 @@ if gui_handles.stop_pushbutton.UserData.Value
             delete([expmt.meta.path.dir expmt.meta.path.name '.mat']);
             
             % close fileIDs
+            fclose('all');
             for i = 1:length(trackDat.fields)                           
-                fclose(expmt.data.(trackDat.fields{i}).fID);
                 delete(expmt.data.(trackDat.fields{i}).path);
+            end
+            
+            if isfield(expmt.meta,'VideoData')
+                close(expmt.meta.VideoData.obj);
             end
             
             switch expmt.meta.source
@@ -48,6 +52,7 @@ if gui_handles.stop_pushbutton.UserData.Value
                 rmdir(expmt.meta.path.dir,'s');
             end
             
+            detach(expmt);
             expmt.meta.data = [];
             expmt.meta.path.name = [];
             

@@ -23,10 +23,22 @@ if ~isempty(new_fields)
         f = new_fields{i};
         path = [rawdir expmt.meta.date '_' f '.bin'];
         
-        % existsete any existing contents
-        if ~any(strcmpi(fieldnames(expmt.data),f))
+        % delete any existing contents
+        if ~any(strcmpi(fieldnames(expmt.data),f))      
+            initialize = true;     
             
-            % intialize new raw file
+        elseif exist(path,'file')==2
+            
+            finfo = dir(path);
+            if finfo.bytes
+                initialize = false;
+            else
+                initialize = true;
+            end
+        end
+        
+        if initialize
+
             expmt.data.(new_fields{i}) = RawDataField('Parent',expmt);
             expmt.data.(new_fields{i}).fID = fopen(path,'w');
             expmt.data.(new_fields{i}).precision = 'single';

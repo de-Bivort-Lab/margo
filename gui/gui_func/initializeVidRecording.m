@@ -1,26 +1,18 @@
-function [trackDat,expmt] = initializeVidRecording(trackDat,expmt,gui_handles)
+function expmt = initializeVidRecording(expmt,gui_handles)
 
 % initialize video recording file if record video menu item is checked
-trackDat.fields = [trackDat.fields;{'VideoIndex'}];
 
-expmt.VideoData.path = ...
-    [expmt.meta.path.dir expmt.meta.path.name '_VideoData.avi'];
+expmt.meta.VideoData.path = ...
+    [expmt.meta.path.dir expmt.meta.path.name '_VideoData'];
 
 switch gui_handles.vid_compress_menu.Checked
     case 'on'
-        expmt.VideoData.obj = VideoWriter(expmt.VideoData.path,'MPEG-4');
+        expmt.meta.VideoData.obj = VideoWriter(expmt.meta.VideoData.path,'MPEG-4');
     case 'off'
-        expmt.VideoData.obj = VideoWriter(expmt.VideoData.path,'Grayscale AVI');
+        expmt.meta.VideoData.obj = VideoWriter(expmt.meta.VideoData.path,'Grayscale AVI');
 end
-expmt.VideoData.FrameRate = expmt.parameters.target_rate;
-open(expmt.VideoData.obj);
-
-
-expmt.VideoIndex.path = ...
-    [expmt.meta.path.dir expmt.meta.path.name '_VideoIndex.bin'];
-    fopen(expmt.VideoIndex.path,'w');
-    
-expmt.VideoIndex.fID = fopen(expmt.VideoIndex.path,'w');
+expmt.meta.VideoData.FrameRate = expmt.parameters.target_rate;
+open(expmt.meta.VideoData.obj);
 
 % query resolution and precision and save to first four values to video file
 im = peekdata(expmt.hardware.cam.vid,1);
@@ -45,10 +37,9 @@ switch c
         sign = 0;
 end
 
-%fwrite(expmt.VideoData.fID,[res;prcn;sign],'double');
-expmt.VideoData.prcn = prcn;
-expmt.VideoData.sign = sign;
-expmt.VideoData.res = res;
+expmt.meta.VideoData.prcn = prcn;
+expmt.meta.VideoData.sign = sign;
+expmt.meta.VideoData.res = res;
 
 
 

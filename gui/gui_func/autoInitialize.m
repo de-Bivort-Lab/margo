@@ -173,7 +173,7 @@ expmt = getVideoInput(expmt,gui_handles);
 % initialize video recording if enabled
 if strcmp(expmt.meta.source,'camera') && ...
         strcmp(gui_handles.record_video_menu.Checked,'on')
-    [trackDat,expmt] = initializeVidRecording(trackDat,expmt,gui_handles);
+    expmt = initializeVidRecording(expmt,gui_handles);
 else
    gui_handles.record_video_menu.Checked = 'off'; 
 end

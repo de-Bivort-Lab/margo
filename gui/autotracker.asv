@@ -239,12 +239,8 @@ if ~isempty(expmt.hardware.cam)
     
     if ~isfield(expmt.hardware.cam,'DeviceInfo') ||...
             isempty(expmt.hardware.cam.DeviceInfo)
-        
-        [expmt.hardware.cam,handles.cam_list] = ...
-            refresh_cam_list(handles);  
-    end
     
-    if ~isempty(expmt.hardware.cam.DeviceInfo)
+    if ~isempty(expmt.hardware.cam)
         
         % query the Enable states of objects in the gui
         clean_gui(handles.axes_handle);

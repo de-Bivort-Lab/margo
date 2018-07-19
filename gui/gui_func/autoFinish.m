@@ -19,8 +19,9 @@ function expmt = autoFinish(trackDat, expmt, gui_handles)
             expmt.meta.num_frames = trackDat.ct;
             
             % close .avi file if one exists
-            if isfield(expmt,'VideoData') && isfield(expmt.VideoData,'obj') 
-                close(expmt.VideoData.obj);
+            if isfield(expmt.meta,'VideoData') && ...
+                    isfield(expmt.meta.VideoData,'obj') 
+                close(expmt.meta.VideoData.obj);
             end
 
             % close fileIDs

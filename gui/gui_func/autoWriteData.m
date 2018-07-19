@@ -12,8 +12,7 @@ if trackDat.ct == 1 && ~expmt.meta.initialize
     end
     
     expmt.meta.fields = trackDat.fields;
-    save([expmt.meta.path.dir expmt.meta.path.name '.mat'],'expmt','-v7.3');
-    
+    save([expmt.meta.path.dir expmt.meta.path.name '.mat'],'expmt','-v7.3');  
 end
 
 % write raw data to binary files
@@ -24,9 +23,9 @@ for i = 1:length(trackDat.fields)
 end
 
 % optional: save vid data to file if record video menu item is checked
-if ~isfield(expmt,'VideoData') && ...
+if ~isfield(expmt.meta,'VideoData') && ...
         strcmp(gui_handles.record_video_menu.Checked,'on')
-    [trackDat,expmt] = initializeVidRecording(trackDat,expmt,gui_handles);
-elseif isfield(expmt,'VideoData')
-    writeVideo(expmt.VideoData.obj,trackDat.im);
+    expmt = initializeVidRecording(expmt,gui_handles);
+elseif isfield(expmt.meta,'VideoData')
+    writeVideo(expmt.meta.VideoData.obj,trackDat.im);
 end
