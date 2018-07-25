@@ -43,6 +43,10 @@ classdef ExperimentData < dynamicprops
             if ~exist('fpath','var')
                 fpath = [obj.meta.path.dir obj.meta.path.name];
             end
+            if iscell(fpath)
+                fpath = fpath{1};
+            end
+            
             [dir,name,~] = fileparts(fpath);
             obj.meta.path.dir   =   [dir '/'];
             obj.meta.path.name  =   name;

@@ -1,8 +1,7 @@
 function [expmt,trackDat] = refUpdateIdx(expmt,trackDat)
 
-disp('updating');
 % Calculate distance to previous locations where references were taken
-nref = expmt.parameters.ref_depth;
+nref = 1:expmt.parameters.ref_depth;
 tcen = cellfun(@(c) repmat(c.centroid,1,1,nref),...
     trackDat.traces,'UniformOutput',false);
 
@@ -64,7 +63,7 @@ end
     
 function pL = getPixIdxLists(refNum,refIdx,pixIdx)
     pL = pixIdx(refIdx==refNum);
-    pL = cat(1,pL{:});
+    pL = cat(1,pL(:));
 
 
 function ref = updateSubRef(pL,ref,im)

@@ -16,19 +16,36 @@ writeInfraredWhitePanel(expmt.hardware.COM.light,0,...
 % clear any objects drawn to gui window
 clean_gui(gui_handles.axes_handle);
 
-% Initialize tracking variables
-trackDat.centroid = ...
-    single(expmt.meta.roi.centers);                         % last known centroid of the object in each ROI
+% initialize tracking variables
 trackDat.tStamp = ...
-    single(zeros(size(expmt.meta.roi.centers(:,1),1),1));   % time stamps of centroid updates
-trackDat.t = 0;                                             % time elapsed, initialize to zero
+    repmat({zeros(1)}, expmt.meta.roi.n, 1);                               % time stamps of centroid updates
+
+%%
+% create new "trace" fields trackDat.traces and trackDat.candidates
+trackDat.traces.centroid = cell(expmt.meta.roi.n,1);
+trackDat.traces.centroid(:) = {NaN(expmt.meta.roi.num_traces,2)};
+trackDat.traces.t = cell(expmt.meta.roi.n,1);
+trackDat.traces.updated = repmat({ones(expmt.meta.roi.num_traces,1)...
+                                  .*expmt.parameters.max_trace_duration},...
+                                  expmt.meta.roi.n, 1);
+trackDat.traces.duration = cell(expmt.meta.roi.n,1);
+
+trackDat.candidates.centroid = cell(expmt.meta.roi.n,1);
+trackDat.candidates.t = cell(expmt.meta.roi.n,1);
+trackDat.candidates.updated = cell(expmt.meta.roi.n,1);
+trackDat.candidates.duration = cell(expmt.meta.roi.n,1);
+trackDat.centroid = cat(1,trackDat.traces.centroid{:});
+
+
+
+trackDat.t = 0;                                                            % time elapsed, initialize to zero
 trackDat.tPrev = 0;
-trackDat.ct = 0;                                            % frame count
+trackDat.ct = 0;                                                           % frame count
 trackDat.drop_ct = ...
-    zeros(size(expmt.meta.roi.centers(:,1),1),1);           % number of frames dropped for each obj
-trackDat.ref = expmt.meta.ref;                              % referencing properties
-trackDat.px_dist = zeros(10,1);                             % distribution of pixels over threshold  
-trackDat.pix_dev = zeros(10,1);                             % stdev of pixels over threshold
+    zeros(size(expmt.meta.roi.centers(:,1),1),1);                          % number of frames dropped for each obj
+trackDat.ref = expmt.meta.ref;                                             % referencing properties
+trackDat.px_dist = zeros(10,1);                                            % distribution of pixels over threshold  
+trackDat.pix_dev = zeros(10,1);                                            % stdev of pixels over threshold
 trackDat.lastFrame = false;
 
 cam_center = repmat(fliplr(size(expmt.meta.ref)./2),...
@@ -194,3 +211,4 @@ hold off
 tic;
 trackDat.tPrev = toc;
 gui_notify('tracking initialized',gui_handles.disp_note);
+

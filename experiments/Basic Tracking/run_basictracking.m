@@ -36,8 +36,8 @@ imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');
 
 % properties of the tracked objects to be recorded
 trackDat.fields={'centroid';'time'};   
-%expmt.meta.roi.num_traces
-%expmt.parameters.max_trace_duration
+expmt.meta.roi.num_traces = 20;
+expmt.parameters.max_trace_duration = 10;
 expmt.meta.track_mode = 'multitrack';
 
 % initialize labels, files, and cam/video
@@ -64,13 +64,13 @@ while ~trackDat.lastFrame
     trackDat = autoTrack(trackDat,expmt,gui_handles);
 
     % output data tracked fields to binary files
-    [trackDat,expmt] = autoWriteData(trackDat, expmt, gui_handles);
+    %[trackDat,expmt] = autoWriteData(trackDat, expmt, gui_handles);
 
     % update ref at the reference frequency or reset if noise thresh is exceeded
-    [trackDat, expmt] = autoReference(trackDat, expmt, gui_handles);  
+    %[trackDat, expmt] = autoReference(trackDat, expmt, gui_handles);  
 
     % update current image and display object positions 
-    [trackDat, expmt] = autoDisplay(trackDat, expmt, imh, gui_handles);
+    %[trackDat, expmt] = autoDisplay(trackDat, expmt, imh, gui_handles);
     
 
 end

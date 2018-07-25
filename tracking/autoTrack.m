@@ -103,55 +103,57 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
 
 
         switch expmt.meta.track_mode
+            case 'multitrack'
+                
+                [trackDat, expmt] = multiTrack(props, trackDat, expmt);
+                
             case 'single'
                 
                 raw_cen = reshape([props.Centroid],2,length([props.Centroid])/2)';
                 % Match centroids to last known centroid positions
                 [permutation,update,raw_cen] = sortCentroids(raw_cen,trackDat,expmt);
-            case 'multitrack'
-                
-                [trackDat, expmt] = multiTrack(props, trackDat, expmt);
-        end
 
-        % Apply speed threshold to centroid tracking
-        speed = NaN(size(update));
+                % Apply speed threshold to centroid tracking
+                speed = NaN(size(update));
 
-        if any(update)
-            
-            % calculate distance and convert from pix to mm
-            d = sqrt((raw_cen(permutation,1)-trackDat.centroid(update,1)).^2 ...
-                     + (raw_cen(permutation,2)-trackDat.centroid(update,2)).^2);
-            d = d .* expmt.parameters.mm_per_pix;
-            
-            % time elapsed since each centroid was last updated
-            dt = trackDat.t - trackDat.tStamp(update);
-            
-            % calculate speed and exclude centroids over speed threshold
-            tmp_spd = d./dt;
-            above_spd_thresh = tmp_spd > expmt.parameters.speed_thresh;
-            permutation(above_spd_thresh)=[];
-            update(update) = ~above_spd_thresh;
-            speed(update) = tmp_spd(~above_spd_thresh);
-            
-        end
+                if any(update)
 
-        % Use permutation vector to sort raw centroid data and update
-        % vector to specify which centroids are reliable and should be updated
-        trackDat.centroid(update,:) = single(raw_cen(permutation,:));
-        trackDat.tStamp(update) = trackDat.t;
-        if isfield(props,'WeightedCentroid')
-            raw_cen = reshape([props.WeightedCentroid],2,...
-                length([props.WeightedCentroid])/2)';
-            trackDat.weightedCentroid(update,:) = ...
-                single(raw_cen(permutation,:));
-        end
+                    % calculate distance and convert from pix to mm
+                    d = sqrt((raw_cen(permutation,1)-trackDat.centroid(update,1)).^2 ...
+                             + (raw_cen(permutation,2)-trackDat.centroid(update,2)).^2);
+                    d = d .* expmt.parameters.mm_per_pix;
+
+                    % time elapsed since each centroid was last updated
+                    dt = trackDat.t - trackDat.tStamp(update);
+
+                    % calculate speed and exclude centroids over speed threshold
+                    tmp_spd = d./dt;
+                    above_spd_thresh = tmp_spd > expmt.parameters.speed_thresh;
+                    permutation(above_spd_thresh)=[];
+                    update(update) = ~above_spd_thresh;
+                    speed(update) = tmp_spd(~above_spd_thresh);
+
+                end
+
+                % Use permutation vector to sort raw centroid data and update
+                % vector to specify which centroids are reliable and should be updated
+                trackDat.centroid(update,:) = single(raw_cen(permutation,:));
+                trackDat.tStamp(update) = trackDat.t;
+                if isfield(props,'WeightedCentroid')
+                    raw_cen = reshape([props.WeightedCentroid],2,...
+                        length([props.WeightedCentroid])/2)';
+                    trackDat.weightedCentroid(update,:) = ...
+                        single(raw_cen(permutation,:));
+                end
+
+                % update centroid drop count for objects not updated this frame
+                if isfield(trackDat,'drop_ct')
+                    trackDat.drop_ct(~update) = trackDat.drop_ct(~update) + 1;
+                end
+
+                trackDat.update = update;
         
-        % update centroid drop count for objects not updated this frame
-        if isfield(trackDat,'drop_ct')
-            trackDat.drop_ct(~update) = trackDat.drop_ct(~update) + 1;
         end
-        
-        trackDat.update = update;
     
     else
         
