@@ -33,6 +33,7 @@ expmt = getVideoInput(expmt,gui_handles);
 %% Assign parameters and placeholders
 
 % tracking vars
+expmt.meta.track_mode = 'multitrack';
 expmt.parameters.max_trace_duration = 10;
 expmt.meta.roi.num_traces = 20;
 trackDat.fields={'centroid';'area';'majorAxisLength'};  % Define fields for regionprops
@@ -42,8 +43,8 @@ trackDat.candidates = struct('centroid',{NaN(0,2)},'t',{NaN(0,1)},...
     'updated', {false(0,1)}, 'duration', {NaN(0,1)});
 trackDat.traces = num2cell(repmat(trackDat.traces, expmt.meta.roi.n, 1));
 trackDat.candidates = num2cell(repmat(trackDat.candidates, expmt.meta.roi.n, 1));
-cen = cat(1,trackDat.traces{:});
-trackDat.centroid = cat(1,cen.centroid);                   	% placeholder for most recent non-NaN centroids
+trackDat.centroid = NaN(expmt.meta.roi.num_traces*expmt.meta.roi.n,2);
+%trackDat.centroid = expmt.meta.roi.centers;                   	% placeholder for most recent non-NaN centroids
 
 
 % Reference vars
@@ -115,6 +116,7 @@ color(:,1) = 1;
 hCirc = scatter(expmt.meta.roi.corners(:,1),expmt.meta.roi.corners(:,2),...
     'o','filled','LineWidth',2);
 hCirc.CData = color;
+trackDat.hMark = plot(trackDat.centroid(:,1),trackDat.centroid(:,2),'ro');
 
 hold off
 
@@ -128,7 +130,6 @@ trackDat.tPrev=toc;
 
 while trackDat.t < expmt.parameters.duration*3600 &&...
         ~gui_handles.accept_track_thresh_pushbutton.Value
-    
     trackDat.ref.freq = 30;
     
     % update time stamps and frame rate
@@ -150,7 +151,9 @@ while trackDat.t < expmt.parameters.duration*3600 &&...
     end
 
     % track objects and sort to ROIs
+    
     [trackDat] = autoTrack(trackDat,expmt,gui_handles);
+    
     
     % update area distribution
     if exist('areas','var') && trackDat.ct < numel(areas)  

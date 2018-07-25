@@ -92,8 +92,8 @@ if gui_handles.display_menu.UserData ~= 5
             ishghandle(gui_handles.gui_fig.UserData.cenText(1)) &&...
             strcmp(gui_handles.gui_fig.UserData.cenText(1).Visible,'on')
 
-        arrayfun(@updateText,gui_handles.gui_fig.UserData.cenText,...
-            num2cell(trackDat.centroid,2));
+%         arrayfun(@updateText,gui_handles.gui_fig.UserData.cenText,...
+%             num2cell(trackDat.centroid,2));
     end
     if isfield(trackDat,'hMark') && ishghandle(trackDat.hMark(1))
         trackDat.hMark.XData = trackDat.centroid(:,1);
@@ -118,7 +118,12 @@ end
 
 function updateText(h,pos)
 
-h.Position = pos{:};
+if ~isnan(pos{1}(1))
+    h.Position = pos{:};
+elseif ~strcmp(h.String,'')
+    h.String = '';
+    h.Position = pos{:};
+end
 
 
 

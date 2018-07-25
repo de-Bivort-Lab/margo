@@ -1445,14 +1445,14 @@ function reference_pushbutton_Callback(hObject, ~, handles)
 expmt = getappdata(handles.gui_fig,'expmt');
 
 if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
-    try
+    %try
         toggleMenus(handles, 'off');
         expmt.meta.initialize = false;
         expmt = initializeRef(handles,expmt);
         handles.sample_noise_pushbutton.Enable = 'on';
-    catch
+    %catch
         toggleMenus(handles, 'on');
-    end
+    %end
     expmt.meta.initialize = true;
 else
     errordlg('Either ROI detection has not been run or no ROIs were detected.')

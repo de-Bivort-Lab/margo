@@ -34,6 +34,7 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
 %% Track objects
 
     trackDat.ct = trackDat.ct + 1;
+    trackDat.in_fields = in_fields;
 
     % calculate difference image and current for vignetting
     switch trackDat.ref.bg_mode
@@ -105,7 +106,11 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
         switch expmt.meta.track_mode
             case 'multitrack'
                 
-                [trackDat, expmt] = multiTrack(props, trackDat, expmt);
+                [trackDat, expmt, props] = multiTrack(props, trackDat, expmt);
+                traces = cat(1,trackDat.traces{:});
+                trackDat.centroid = cat(1,traces.centroid);
+                update = cat(1,traces.updated);
+                permutation = cat(2,trackDat.permutation{:})';
                 
             case 'single'
                 
@@ -229,6 +234,7 @@ end
 if any(strcmpi('VideoIndex',out_fields))
     trackDat.VideoIndex = trackDat.ct;
 end
+
 
 
 
