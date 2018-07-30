@@ -16,29 +16,20 @@ end
 
 % Histogram for stimulus ON period
 if min(data) > 0
-    mm = nanmean(data) + nanstd(data)*4;
-    inc = (10^(ceil(log10(mm))-1));
-    ub = ceil(mm/inc)*inc;
-    lb = (nanmean(data) - nanstd(data)*4);
-    lb = floor(lb/inc)*inc;
-    bins = 0:inc:ub;
+    mm = max(data);
+    ub = mm/(10^(ceil(log10(mm))-1))
+    bins = 0:0.1:1;
 else
-    lb = -1;
-    ub = 1;
     bins = -1:0.2:1;
 end
 
 data = data(filter,:);
-[kde, x] = ksdensity(data, linspace(lb,ub,1000));
-
+[kde, x] = ksdensity(data);
 
 lh = plot(x, kde,'Linewidth',2);
 set(gca, 'Xtick',bins, 'XLim', [bins(1) bins(end)],...
     'Ylim', [0 max(kde)*1.1], 'TickLength', [0 0]);
-ylabel('probability density');
 % add bs and obs patch
-x = [x(1) x];
-kde = [0 kde];
 vx = [x x(end) x(1)];
 vy = [kde 0 kde(1)];
 ph = patch(vx,vy,lh.Color,'FaceAlpha',0.3);

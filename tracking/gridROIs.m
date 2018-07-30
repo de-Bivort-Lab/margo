@@ -74,7 +74,12 @@ if nGrids > 0 && ~isempty(hAdd.UserData.grid(1).polypos)
     end
 else
     % prompt user to draw new rectangle
-    [gui_handles,hPatch]=drawGrid(1,gui_handles);
+    [gui_handles,hPatch]=drawGrid(1,gui_handles); 
+    if isempty(hPatch)
+        % hide the grid settings panel
+        gui_handles.grid_ROI_uipanel.Visible = 'off';
+        return
+    end
 end
 
 old_dim = cell(nGrids,1);
@@ -106,16 +111,24 @@ while ~gui_handles.accept_ROI_thresh_pushbutton.Value
     elseif nGrids < gui_handles.add_ROI_pushbutton.UserData.nGrids
         
         % draw new grid
-        [gui_handles,hPatch(nGrids+1)]=...
+        [gui_handles, hp]=...
             drawGrid(gui_handles.add_ROI_pushbutton.UserData.nGrids,gui_handles);
-        nGrids = gui_handles.add_ROI_pushbutton.UserData.nGrids;
         
-        % initialize starting row/col dimensions and interactible polygon coords
-        old_dim(nGrids) = ...
-            {[hAdd.UserData.grid(nGrids).nRows hAdd.UserData.grid(nGrids).nCols]};
-        old_coords(nGrids) = ...
-            {getPosition(gui_handles.add_ROI_pushbutton.UserData.grid(nGrids).hp)};
-        old_shape(nGrids) = {hAdd.UserData.grid(nGrids).shape};
+        if ~isempty(hp)
+            nGrids = gui_handles.add_ROI_pushbutton.UserData.nGrids;
+            hPatch(nGrids+1) = hp;
+            
+            % initialize starting row/col dimensions and interactible polygon coords
+            old_dim(nGrids) = ...
+                {[hAdd.UserData.grid(nGrids).nRows ...
+                hAdd.UserData.grid(nGrids).nCols]};
+            old_coords(nGrids) = ...
+                {getPosition(...
+                    gui_handles.add_ROI_pushbutton.UserData.grid(nGrids).hp)};
+            old_shape(nGrids) = {hAdd.UserData.grid(nGrids).shape};
+        else
+            gui_handles = update_grid_UI(gui_handles,'subtract');
+        end
     end
     nGrids = gui_handles.add_ROI_pushbutton.UserData.nGrids;
     

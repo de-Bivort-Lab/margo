@@ -15,6 +15,13 @@ set(findall(gui_handles.gui_fig, '-property', 'enable'), 'enable', 'off');
 
 % get drawn rectangle from user outlining well plate boundary
 roi = getrect();
+if any(~roi(3:4))
+    hPatch = [];
+    set(on_objs,'Enable','on');
+    cellfun(@delete,hNote);
+    return
+end
+
 nRow = gui_handles.add_ROI_pushbutton.UserData.grid(grid_idx).nRows;
 nCol = gui_handles.add_ROI_pushbutton.UserData.grid(grid_idx).nCols;
 
