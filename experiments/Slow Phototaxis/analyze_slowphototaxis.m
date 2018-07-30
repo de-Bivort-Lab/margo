@@ -155,7 +155,16 @@ if has_radius && has_theta
         [expmt, n, ft] = excludeTrialBoundaryBouts(expmt);
         n = cat(1,n{:});
         ft = cat(1,ft{:});
+        [fh, expmt] = stimBoutDistibutions(expmt);
+        
+        fname = [expmt.meta.path.fig expmt.meta.date '_boutlength_dist'];
+        if ~isempty(expmt.meta.path.fig) && options.save
+            hgsave(fh,fname);
+            close(fh);
+        end
+
     end
+    
     
     stim_cen = NaN(size(expmt.data.centroid.raw()));
     stim_cen(:,1,:) = expmt.data.Radius.raw() .* cos(cen_theta);

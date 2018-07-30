@@ -113,13 +113,7 @@ function idx = filterShortBouts(starts,stops,duration)
         if size(idx,1)>1
             % ensure that lower index comes first
             [~,i]=min(idx,[],2);
-            idx(i==2,:) = idx(i==2,[2 1]);
-
-            % shift indices to get bouts
-            idx = [idx;[idx(1:length(idx)-1,2) idx(2:end,1)]];
-
-            bout_length = idx(:,2)-idx(:,1);
-            idx(bout_length<duration,:)=[];
+            idx(i==2,:)=[];
         end
     else
         idx = [];
