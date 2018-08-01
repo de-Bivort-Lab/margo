@@ -1,6 +1,5 @@
 function [expmt,trackDat] = refUpdateIdx(expmt,trackDat)
 
-disp('updating');
 % Calculate distance to previous locations where references were taken
 nref = expmt.parameters.ref_depth;
 tcen = cellfun(@(c) repmat(c.centroid,1,1,nref),...

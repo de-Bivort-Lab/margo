@@ -15,7 +15,7 @@ else
 end
 
 % Histogram for stimulus ON period
-if min(data) > 0
+if min(data) >= 0
     mm = nanmean(data) + nanstd(data)*4;
     inc = (10^(ceil(log10(mm))-1));
     ub = ceil(mm/inc)*inc;
@@ -29,7 +29,7 @@ else
 end
 
 data = data(filter,:);
-[kde, x] = ksdensity(data, linspace(lb,ub,1000));
+[kde, x] = ksdensity(data, linspace(lb,ub,100));
 
 
 lh = plot(x, kde,'Linewidth',2);

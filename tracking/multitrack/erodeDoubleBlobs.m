@@ -37,8 +37,7 @@ new_props = cellfun(@(x) regionprops(x, trackDat.in_fields),...
 no_blobs = cellfun(@isempty,new_props);
 new_props(no_blobs) = [];
 bounds_min(no_blobs) = [];
-raw_cen = [];
-raw_area = [];
+
 
 if ~isempty(new_props)
     raw_cen = cellfun(@(x) cat(1,x.Centroid), ...

@@ -26,10 +26,10 @@ switch sort_mode
         tar_cen = traces_in.centroid;
         can_cen = blob_cen;
         targets_assigned = false(size(tar_cen,1),1);
+        trace_updated = targets_assigned;
         candidates_assigned = false(size(can_cen,1),1);
         targets_assigned(isnan(traces_in.centroid(:,1))) = true;
         tar_cen(targets_assigned,:) = [];
-        trace_updated = targets_assigned;
         blob_assigned = candidates_assigned;
         
     case 'blob_sort'
@@ -37,13 +37,14 @@ switch sort_mode
         can_cen = traces_in.centroid;
         targets_assigned = false(size(tar_cen,1),1);
         candidates_assigned = false(size(can_cen,1),1);
+        trace_updated = candidates_assigned;
         candidates_assigned(isnan(traces_in.centroid(:,1))) = true;
         can_cen(candidates_assigned,:) = [];
-        trace_updated = candidates_assigned;
         blob_assigned = targets_assigned;
 end
 
 % exit early if there is nothing to sort
+traces_out.updated = trace_updated;
 if isempty(tar_cen)
     return;
 end
@@ -156,9 +157,10 @@ traces_out.t(above_spd,:) = traces_in.t(above_spd,:);
 traces_out.updated = trace_updated & ~above_spd;
 blob_permutation(ismember(trace_permutation,find(above_spd))) = [];
 
-if size(traces_out.updated,1) ~= size(traces_out.centroid,1)
-    disp();
+if sum(traces_out.updated) ~= numel(blob_permutation)
+    disp('pause');
 end
+
 
 
 

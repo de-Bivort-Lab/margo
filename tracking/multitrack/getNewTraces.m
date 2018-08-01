@@ -1,4 +1,4 @@
-function [new_traces, can] = getNewTraces(candidate_ROI_cen, can, ...
+function [new_traces, is_newtrace, can] = getNewTraces(candidate_ROI_cen, can, ...
                 blob_assigned, max_ct, t_elapsed)
 
             
@@ -24,6 +24,7 @@ end
 
 is_newtrace = can.duration == max_ct;
 new_traces = can.centroid(is_newtrace,:);
+
 
 
 can.centroid(is_newtrace,:) = [];

@@ -1,4 +1,4 @@
-function [fh, expmt] = stimBoutDistibutions(expmt)
+function [fh1, fh2, expmt] = stimBoutDistibutions(expmt)
 
 expmt.meta.Light.bouts = cell(expmt.meta.num_traces,1);
 expmt.meta.Blank.bouts = cell(expmt.meta.num_traces,1);
@@ -22,7 +22,17 @@ expmt.meta.Blank.bout_lengths = cellfun(@(bb) diff(bb,1,2), ...
 all_light = cat(1,expmt.meta.Light.bout_lengths{:});
 all_blank = cat(1,expmt.meta.Blank.bout_lengths{:});
 
-fh = autoPlotDist(all_light, true(size(all_light)));
-autoPlotDist(all_blank, true(size(all_blank)),fh.Children);
+fh1 = autoPlotDist(all_light, true(size(all_light)));
+autoPlotDist(all_blank, true(size(all_blank)),fh1.Children);
 xlabel('bout length');
+legend({'full light';'light/dark'});
+
+expmt.meta.Light.bout_num = cellfun(@(lb) size(lb,1), ...
+    expmt.meta.Light.bouts);
+expmt.meta.Blank.bout_num = cellfun(@(bb) size(bb,1), ...
+    expmt.meta.Blank.bouts);
+
+fh2 = autoPlotDist(expmt.meta.Light.bout_num, true(size(expmt.meta.Light.bout_num)));
+autoPlotDist(expmt.meta.Blank.bout_num, true(size(expmt.meta.Blank.bout_num)),fh2.Children);
+xlabel('bout number');
 legend({'full light';'light/dark'});

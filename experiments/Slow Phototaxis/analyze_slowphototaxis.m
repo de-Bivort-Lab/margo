@@ -155,12 +155,18 @@ if has_radius && has_theta
         [expmt, n, ft] = excludeTrialBoundaryBouts(expmt);
         n = cat(1,n{:});
         ft = cat(1,ft{:});
-        [fh, expmt] = stimBoutDistibutions(expmt);
+        [fh1, fh2, expmt] = stimBoutDistibutions(expmt);
         
         fname = [expmt.meta.path.fig expmt.meta.date '_boutlength_dist'];
         if ~isempty(expmt.meta.path.fig) && options.save
-            hgsave(fh,fname);
-            close(fh);
+            hgsave(fh1,fname);
+            close(fh1);
+        end
+        
+        fname = [expmt.meta.path.fig expmt.meta.date '_boutnum_dist'];
+        if ~isempty(expmt.meta.path.fig) && options.save
+            hgsave(fh2,fname);
+            close(fh2);
         end
 
     end

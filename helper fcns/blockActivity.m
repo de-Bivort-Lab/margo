@@ -30,7 +30,7 @@ end
 
 s = spd.raw(smpl,:);
 [ac] = autocorr(s(~isnan(s)),250);
-lag_thresh = find(smooth(diff(ac),20)>-0.01,1)*2 + 1;
+lag_thresh = find(smooth(diff(ac),20)>-0.01,1)*1.8 + 1;
 
 
 % median filter data by lag_thresh/2 to discretize bouts
