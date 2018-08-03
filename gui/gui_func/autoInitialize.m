@@ -22,22 +22,14 @@ trackDat.tStamp = ...
 
 %%
 % create new "trace" fields trackDat.traces and trackDat.candidates
-trackDat.traces.centroid = cell(expmt.meta.roi.n,1);
-trackDat.traces.centroid(:) = {NaN(expmt.meta.roi.num_traces,2)};
-trackDat.traces.t = cell(expmt.meta.roi.n,1);
-trackDat.traces.updated = repmat({ones(expmt.meta.roi.num_traces,1)...
-                                  .*expmt.parameters.max_trace_duration},...
-                                  expmt.meta.roi.n, 1);
-trackDat.traces.duration = cell(expmt.meta.roi.n,1);
 
-trackDat.candidates.centroid = cell(expmt.meta.roi.n,1);
-trackDat.candidates.t = cell(expmt.meta.roi.n,1);
-trackDat.candidates.updated = cell(expmt.meta.roi.n,1);
-trackDat.candidates.duration = cell(expmt.meta.roi.n,1);
-trackDat.centroid = cat(1,trackDat.traces.centroid{:});
-
-
-
+% tracking vars
+nt = expmt.meta.roi.num_traces;
+nr = expmt.meta.roi.n;
+md = expmt.parameters.max_trace_duration;
+trackDat.traces = TracePool(nr, nt, md);
+trackDat.candidates = TracePool(nr, 0, md, 'Bounded', false);
+trackDat.centroid = cat(1,trackDat.traces.cen);
 trackDat.t = 0;                                                            % time elapsed, initialize to zero
 trackDat.tPrev = 0;
 trackDat.ct = 0;                                                           % frame count

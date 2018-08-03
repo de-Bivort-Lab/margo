@@ -1,4 +1,4 @@
-function traces = addNewTraces(new_traces, traces, max_ct, t_elapsed)
+function traces = addNewTraces(new_traces, traces, t_elapsed)
 
 if ~isempty(new_traces)
     nan_idx = find(isnan(traces.centroid(:,1)), size(new_traces,1), 'first');

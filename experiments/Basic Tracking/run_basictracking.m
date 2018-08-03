@@ -36,9 +36,6 @@ imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');
 
 % properties of the tracked objects to be recorded
 trackDat.fields={'centroid';'time'};   
-expmt.meta.roi.num_traces = 20;
-expmt.parameters.max_trace_duration = 10;
-expmt.meta.track_mode = 'multitrack';
 
 % initialize labels, files, and cam/video
 [trackDat,expmt] = autoInitialize(trackDat,expmt,gui_handles);

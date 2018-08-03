@@ -2,7 +2,7 @@ function [expmt,trackDat] = refUpdateIdx(expmt,trackDat)
 
 % Calculate distance to previous locations where references were taken
 nref = expmt.parameters.ref_depth;
-tcen = cellfun(@(c) repmat(c.centroid,1,1,nref),...
+tcen = arrayfun(@(c) repmat(c.cen,1,1,nref),...
     trackDat.traces,'UniformOutput',false);
 
 d = cellfun(@(x,y) abs(sqrt(dot((x-y),...
@@ -38,7 +38,7 @@ refIdx(~include)=0;
 trackDat.ref.ct(include) = trackDat.ref.ct(include)+1;
 trackDat.ref.ct(trackDat.ref.ct > nref) = nref;
                       
-trackDat.ref.last_update = trackDat.ref.last_update(include)==0;
+trackDat.ref.last_update(include) = 0;
                                    
 % group pixel indices by which sub reference they update
 
@@ -54,10 +54,10 @@ trackDat.ref.im = median(cat(3,trackDat.ref.stack{:}),3);
 % update reference centroid positions
 if any(include)
 
-    trackDat.ref.cen = cellfun(@(rc, t, inc, ref_idx) ...
-        updateRefCen(rc, t, inc, ref_idx), trackDat.ref.cen,...
-        trackDat.traces, num2cell(include), num2cell(refIdx),...
-        'UniformOutput', false);
+    trackDat.ref.cen = arrayfun(@(rc, t, inc, ref_idx) ...
+        updateRefCen(rc, t, inc, ref_idx),...
+            trackDat.ref.cen, trackDat.traces, include, refIdx,...
+            'UniformOutput', false);
 end
 
     
@@ -71,8 +71,9 @@ function ref = updateSubRef(pL,ref,im)
         
 function ref_cen = updateRefCen(ref_cen, trace, inc, ref_idx)
 
+ref_cen = ref_cen{1};
 if inc
-    ref_cen(:,:,ref_idx) = trace.centroid;
+    ref_cen(:,:,ref_idx) = trace.cen;
 end
 
 

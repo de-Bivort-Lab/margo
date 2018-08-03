@@ -1,21 +1,22 @@
 
-function [traces_out, blob_assigned, blob_permutation] = ...
-             sortROI_multitrack(traces_in, blob_cen, t_curr, spd_thresh)
+function [blob_assigned, blob_permutation] = ...
+             sortROI_multitrack(traces_out, blob_cen, t_curr, spd_thresh)
 %% sort ROIs in multitracking mode
 % inputs
 %   -> prev_cen:  all trace coords for previous frame of a single ROI
 %   -> can_cen:   all blob coords assigned to ROI for current frame
 
-traces_out = traces_in;
+traces_in = copy(traces_out);
+blob_cen = blob_cen{:};
 trace_permutation = [];
 blob_permutation = [];
 
-if isempty(traces_in.centroid)
-    traces_in.centroid = zeros(0,1);
+if isempty(traces_in.cen)
+    traces_in.cen = zeros(0,1);
 end
 
 % define sorting mode
-if sum(~isnan(traces_in.centroid(:,1))) <= size(blob_cen,1)
+if sum(~isnan(traces_in.cen(:,1))) <= size(blob_cen,1)
     sort_mode = 'trace_sort';
 else
     sort_mode = 'blob_sort';
@@ -23,22 +24,22 @@ end
 
 switch sort_mode
     case 'trace_sort'
-        tar_cen = traces_in.centroid;
+        tar_cen = traces_in.cen;
         can_cen = blob_cen;
         targets_assigned = false(size(tar_cen,1),1);
         trace_updated = targets_assigned;
         candidates_assigned = false(size(can_cen,1),1);
-        targets_assigned(isnan(traces_in.centroid(:,1))) = true;
+        targets_assigned(isnan(traces_in.cen(:,1))) = true;
         tar_cen(targets_assigned,:) = [];
         blob_assigned = candidates_assigned;
         
     case 'blob_sort'
         tar_cen = blob_cen;
-        can_cen = traces_in.centroid;
+        can_cen = traces_in.cen;
         targets_assigned = false(size(tar_cen,1),1);
         candidates_assigned = false(size(can_cen,1),1);
         trace_updated = candidates_assigned;
-        candidates_assigned(isnan(traces_in.centroid(:,1))) = true;
+        candidates_assigned(isnan(traces_in.cen(:,1))) = true;
         can_cen(candidates_assigned,:) = [];
         blob_assigned = targets_assigned;
 end
@@ -69,13 +70,13 @@ while any(~targets_assigned)
 
     switch sort_mode
         case 'blob_sort'
-            traces_out.centroid(can_idx(match_idx(no_dup)),:) = tar_cen(no_dup,:);
-           traces_in.t_out(can_idx(match_idx(no_dup))) = t_curr;
+            traces_out.cen(can_idx(match_idx(no_dup)),:) = tar_cen(no_dup,:);
+            traces_in.t(can_idx(match_idx(no_dup))) = t_curr;
             trace_permutation = [trace_permutation; can_idx(match_idx(no_dup))];
             blob_permutation = [blob_permutation; tar_idx(no_dup)];
         case 'trace_sort'
-            traces_out.centroid(tar_idx(no_dup),:) = can_cen(match_idx(no_dup),:);
-           traces_in.t_out(tar_idx(no_dup)) = t_curr;
+            traces_out.cen(tar_idx(no_dup),:) = can_cen(match_idx(no_dup),:);
+            traces_in.t(tar_idx(no_dup)) = t_curr;
             trace_permutation = [trace_permutation; tar_idx(no_dup)];
             blob_permutation = [blob_permutation; can_idx(match_idx(no_dup))];
     end
@@ -104,14 +105,14 @@ while any(~targets_assigned)
 
         switch sort_mode
             case 'blob_sort'
-                traces_out.centroid(can_idx(best_match),:) = tar_cen(best_match,:);
-               traces_in.t_out(can_idx(best_match)) = t_curr;
+                traces_out.cen(can_idx(best_match),:) = tar_cen(best_match,:);
+                traces_in.t(can_idx(best_match)) = t_curr;
                 trace_permutation = [trace_permutation; can_idx(best_match)];
                 blob_permutation = [blob_permutation; tar_idx(best_match)];
             case 'trace_sort'
-                traces_out.centroid(tar_idx(best_match),:) = can_cen ...
+                traces_out.cen(tar_idx(best_match),:) = can_cen ...
                                                    (unique(match_idx),:);
-               traces_in.t_out(tar_idx(best_match)) = t_curr;
+                traces_in.t(tar_idx(best_match)) = t_curr;
                 trace_permutation = [trace_permutation; tar_idx(best_match)];
                 blob_permutation = [blob_permutation; can_idx(best_match)];
         end
@@ -137,29 +138,27 @@ end
 [~,p] = sort(trace_permutation);
 blob_permutation = blob_permutation(p);
 
-trace_updated(isnan(traces_out.centroid(:,1))) = false;
+trace_updated(isnan(traces_out.cen(:,1))) = false;
 
 %% apply speed threshold to centroid tracking
 % calculate distance and convert from pix to mm
-d = sqrt((traces_out.centroid(:,1)-traces_in.centroid(:,1)).^2 + ...
-         (traces_out.centroid(:,2)-traces_in.centroid(:,2)).^2);
+d = sqrt((traces_out.cen(:,1)-traces_in.cen(:,1)).^2 + ...
+         (traces_out.cen(:,2)-traces_in.cen(:,2)).^2);
 d = d .* 1;
 
 % time elapsed since each centroid was last updated
-dt = t_curr -traces_in.t;
+dt = t_curr - traces_out.t;
 
 % calculate speed and remove centroids over threshold
 spd = d./dt;
 above_spd = spd > spd_thresh;
-traces_out.centroid(above_spd,:) = traces_in.centroid(above_spd,:);
+traces_out.cen(above_spd,:) = traces_in.cen(above_spd,:);
 traces_out.t(above_spd,:) = traces_in.t(above_spd,:);
 
 traces_out.updated = trace_updated & ~above_spd;
 blob_permutation(ismember(trace_permutation,find(above_spd))) = [];
 
-if sum(traces_out.updated) ~= numel(blob_permutation)
-    disp('pause');
-end
+
 
 
 

@@ -181,6 +181,7 @@ classdef ExperimentData < dynamicprops
             p.roi_tol           = 2.5000;
             p.edit_rois         = 0;
             p.dilate_sz         = 0;
+            p.traces_per_roi    = 1;
         end
             
     end

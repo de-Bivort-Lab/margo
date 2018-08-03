@@ -2978,13 +2978,9 @@ function gui_fig_KeyPressFcn(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 kp = eventdata.Key;
-disp(kp);
 
-switch kp
-    case 'return'
-        handles.gui_fig.UserData.edit_rois = false;
-    case 'shift'
-        handles.gui_fig.UserData.kp = kp;
+s
+    handles.gui_fig.UserData.edit_rois = false;
 end
 
 guidata(hObject,handles);

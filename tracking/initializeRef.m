@@ -33,17 +33,15 @@ expmt = getVideoInput(expmt,gui_handles);
 %% Assign parameters and placeholders
 
 % tracking vars
-expmt.meta.track_mode = 'multitrack';
-expmt.parameters.max_trace_duration = 10;
-expmt.meta.roi.num_traces = 20;
+expmt.parameters.max_trace_duration = 20;
+expmt.meta.roi.num_traces = 1;
 trackDat.fields={'centroid';'area';'majorAxisLength'};  % Define fields for regionprops
-trackDat.traces = struct('centroid',{NaN(20,2)},'t',{NaN(20,1)},...
-    'updated', {false(20,1)}, 'duration', {NaN(20,1)});
-trackDat.candidates = struct('centroid',{NaN(0,2)},'t',{NaN(0,1)},...
-    'updated', {false(0,1)}, 'duration', {NaN(0,1)});
-trackDat.traces = num2cell(repmat(trackDat.traces, expmt.meta.roi.n, 1));
-trackDat.candidates = num2cell(repmat(trackDat.candidates, expmt.meta.roi.n, 1));
-trackDat.centroid = NaN(expmt.meta.roi.num_traces*expmt.meta.roi.n,2);
+nt = expmt.meta.roi.num_traces;
+nr = expmt.meta.roi.n;
+md = expmt.parameters.max_trace_duration;
+trackDat.traces = TracePool(nr, nt, md);
+trackDat.candidates = TracePool(nr, 0, md, 'Bounded', false);
+trackDat.centroid = cat(1,trackDat.traces.cen);
 %trackDat.centroid = expmt.meta.roi.centers;                   	% placeholder for most recent non-NaN centroids
 
 
@@ -51,7 +49,7 @@ trackDat.centroid = NaN(expmt.meta.roi.num_traces*expmt.meta.roi.n,2);
 nROIs = size(expmt.meta.roi.corners, 1);             % total number of ROIs
 depth = gui_handles.edit_ref_depth.Value;       % number of rolling sub references
 trackDat.ref.cen = cell(expmt.meta.roi.n,1);
-trackDat.ref.cen(:) = {NaN(20,2,depth)};          % placeholder for cen. coords where references are taken
+trackDat.ref.cen(:) = {NaN(nt,2,depth)};          % placeholder for cen. coords where references are taken
 trackDat.ref.ct = zeros(nROIs, 1);              % Reference number placeholder
 trackDat.ref.t = 0;                             % reference time stamp
 trackDat.ref.last_update = zeros(nROIs,1);
@@ -117,7 +115,6 @@ hCirc = scatter(expmt.meta.roi.corners(:,1),expmt.meta.roi.corners(:,2),...
     'o','filled','LineWidth',2);
 hCirc.CData = color;
 trackDat.hMark = plot(trackDat.centroid(:,1),trackDat.centroid(:,2),'ro');
-
 hold off
 
 

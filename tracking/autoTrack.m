@@ -105,13 +105,11 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
 
         switch expmt.meta.track_mode
             case 'multitrack'
-                
                 [trackDat, expmt, props] = multiTrack(props, trackDat, expmt);
-                traces = cat(1,trackDat.traces{:});
-                trackDat.centroid = cat(1,traces.centroid);
-                update = cat(1,traces.updated);
+                trackDat.centroid = cat(1,trackDat.traces.cen);
+                update = cat(1,trackDat.traces.updated);
                 permutation = cat(2,trackDat.permutation{:})';
-                
+       
             case 'single'
                 
                 raw_cen = reshape([props.Centroid],2,length([props.Centroid])/2)';

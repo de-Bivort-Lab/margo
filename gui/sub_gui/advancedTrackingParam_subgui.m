@@ -22,7 +22,7 @@ function varargout = advancedTrackingParam_subgui(varargin)
 
 % Edit the above text to modify the response to help advancedTrackingParam_subgui
 
-% Last Modified by GUIDE v2.5 05-Apr-2018 17:06:31
+% Last Modified by GUIDE v2.5 03-Aug-2018 11:43:53
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -74,6 +74,20 @@ set(handles.edit_area_min,'string',round(10*param.area_min)/10);
 set(handles.edit_area_max,'string',round(10*param.area_max)/10);
 set(handles.edit_ROI_cluster_tolerance,'string',round(100*param.roi_tol)/100);
 set(handles.edit_dilate_sz,'string',round(param.dilate_sz));
+handles.edit_num_traces.String = num2str(param.traces_per_roi,1);
+
+switch expmt.meta.track_mode
+    case 'single'
+        handles.trackingmode_popupmenu.Value = 1;
+        handles.edit_num_traces.Enable = 'off';
+        handles.num_traces_pushbutton.Enable = 'off';
+        handles.text47.Enable = 'off';
+    case 'multitrack'
+        handles.trackingmode_popupmenu.Value = 2;
+        handles.edit_num_traces.Enable = 'on';
+        handles.num_traces_pushbutton.Enable = 'on';
+        handles.text47.Enable = 'on';
+end
 
 % find idx of active mode in menu and set it in gui
 handles.sort_mode_popupmenu.Value = ...
@@ -851,4 +865,85 @@ function edit_dilate_sz_CreateFcn(hObject, eventdata, handles)
 %       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on selection change in trackingmode_popupmenu.
+function trackingmode_popupmenu_Callback(hObject, eventdata, handles)
+% hObject    handle to trackingmode_popupmenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
+expmt = getappdata(gui_fig,'expmt');
+expmt.meta.track_mode = hObject.String{hObject.Value};
+switch expmt.meta.track_mode
+    case 'single'
+        handles.edit_num_traces.Enable = 'off';
+        handles.num_traces_pushbutton.Enable = 'off';
+        handles.text47.Enable = 'off';
+    case 'multitrack'
+        handles.edit_num_traces.Enable = 'on';
+        handles.num_traces_pushbutton.Enable = 'on';
+        handles.text47.Enable = 'on';
+end
+guidata(hObject,handles);
+
+
+% --- Executes during object creation, after setting all properties.
+function trackingmode_popupmenu_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to trackingmode_popupmenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_num_traces_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_num_traces (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
+expmt = getappdata(gui_fig,'expmt');
+num_traces = str2double(hObject.String);
+expmt.parameters.traces_per_roi = num_traces;
+if isfield(expmt.meta.roi,'n')
+    expmt.meta.roi.num_traces = repmat(num_traces,expmt.meta.roi.n,1);
+end
+guidata(hObject,handles);
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_num_traces_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_num_traces (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in num_traces_pushbutton.
+function num_traces_pushbutton_Callback(hObject, eventdata, handles)
+% hObject    handle to num_traces_pushbutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+expmt = getappdata(handles.track_fig.UserData.gui_handles.gui_fig,'expmt');
+
+if isfield(expmt.meta.roi,'n')
+    if ~isfield(expmt.meta.roi,'num_traces')
+       expmt.meta.roi.num_traces = ...
+           ones(expmt.meta.roi.n,1).*expmt.parameters.traces_per_roi;
+    end
+    expmt = editTracesPerROI(expmt, handles.track_fig.UserData.gui_handles);
 end

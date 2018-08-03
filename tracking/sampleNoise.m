@@ -26,12 +26,22 @@ pixelDist=NaN(pixDistSize,1);               % Distribution of total number of pi
 roiDist=NaN(pixDistSize,expmt.meta.roi.n);       % Distribution of total number of pixels above image threshold
 
 % tracking vars
-trackDat.centroid = expmt.meta.roi.centers;     % placeholder for most recent non-NaN centroids
 trackDat.fields = {'centroid';'area'};     % Define fields for regionprops
 trackDat.tStamp = zeros(size(expmt.meta.roi.centers(:,1),1),1);
 trackDat.t = 0;
 trackDat.ct = 0;
 trackDat.ref = expmt.meta.ref;
+
+% tracking vars
+expmt.parameters.max_trace_duration = 20;
+expmt.meta.roi.num_traces = 1;
+nt = expmt.meta.roi.num_traces;
+nr = expmt.meta.roi.n;
+md = expmt.parameters.max_trace_duration;
+trackDat.traces = TracePool(nr, nt, md);
+trackDat.candidates = TracePool(nr, 0, md, 'Bounded', false);
+trackDat.centroid = cat(1,trackDat.traces.cen);
+
 
 %% Initalize camera and axes
 

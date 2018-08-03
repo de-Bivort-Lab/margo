@@ -16,7 +16,7 @@ vx = c(1)+dx.*[-1 -1 1 1 -1];
 vy = c(2)+dy.*[-1 1 1 -1 -1];
 
 % draw new patch
-ph = patch('XData',vx,'YData',vy,'FaceColor',[1 1 1],...
+ph = patch(ax,'XData',vx,'YData',vy,'FaceColor',[1 1 1],...
     'FaceAlpha',0.35,'EdgeColor','none');
 uistack(ph,'down');
 
