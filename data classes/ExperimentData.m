@@ -130,25 +130,21 @@ classdef ExperimentData < dynamicprops
         function obj = reInitialize(obj)
             
             % remove roi, reference, noise and vignette data
-            if ~isempty(obj.meta.roi)
+            es = struct;
+            if ~nofields(obj.meta.roi)
                 m = obj.meta.roi.mode;
-                obj.meta.roi = [];
+                obj.meta.roi = es;
                 obj.meta.roi.mode = m;
             end
-            if ~isempty(obj.meta.ref)
-                obj.meta.ref= [];
-            end
-            if ~isempty(obj.meta.noise)
-                obj.meta.noise = [];
-            end
-            if ~isempty(obj.meta.vignette)
+            if ~nofields(obj.meta.vignette)
                 m = obj.meta.vignette.mode;
-                obj.meta.vignette = [];
+                obj.meta.vignette = es;
                 obj.meta.vignette.mode = m;
             end
-            if ~isempty(obj.meta.labels)
-                obj.meta.labels = [];
-            end
+
+            obj.meta.labels = es;
+            obj.meta.ref= es;
+            obj.meta.noise = es;
             
             % re-initialize data fields
             f = obj.meta.fields;
@@ -391,4 +387,8 @@ if any(strfind(callStr,'load('))
     end  
 end
 
+end
+
+function out = nofields(strct)
+    out = isempty(fieldnames(strct));
 end

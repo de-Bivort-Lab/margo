@@ -1,6 +1,5 @@
 function [trackDat, expmt, props] = multiTrack(props, trackDat, expmt)
 
-t1=toc;
 props = erodeDoubleBlobs(props, trackDat);
                 
 % apply area threshold before assigning centroids
@@ -11,42 +10,29 @@ props(~above_min,:) = [];
 % assign each blob in props to an ROI
 [candidate_ROI_cen, blob_num] = assignROI(cat(1,props.Centroid), expmt);
 
+trackDat.permutation = cell(expmt.meta.roi.n,1);
 
-blob_assigned = cell(expmt.meta.roi.n,1);
-blob_permutation = cell(expmt.meta.roi.n,1);
 for i=1:expmt.meta.roi.n
-    [blob_assigned{i}, blob_permutation{i}] = ...
-        sortROI_multitrack(trackDat.traces(i), candidate_ROI_cen(i), ...
-            trackDat.t, expmt.parameters.speed_thresh);
-end   
-
+    
+[blob_assigned, blob_permutation] = ...
+    sortROI_multitrack(trackDat.traces(i), candidate_ROI_cen{i}, ...
+        trackDat.t, expmt.parameters.speed_thresh);
+    
+updateDuration(trackDat.traces(i));
             
-arrayfun(@(t) updateDuration(t), trackDat.traces);
-            
-trackDat.permutation = cellfun(@(bn,bp) bn(bp), blob_num, blob_permutation,...
-                    'UniformOutput',false);
-                
+trackDat.permutation{i} = blob_num{i}(blob_permutation);
 
-unassigned_blobs = cellfun(@(cr,ba) cr(~ba,:), candidate_ROI_cen, ... 
-                       blob_assigned, 'UniformOutput', false);
-%add_nums = cellfun(@(ba) find(~ba), blob_assigned, 'UniformOutput', false);
+unassigned_blobs = candidate_ROI_cen{i}(~blob_assigned,:);
 
 [blob_assigned, ~] = ...
-    arrayfun(@(trace, blob) sortROI_multitrack(trace, blob, ...
-        trackDat.t, expmt.parameters.speed_thresh), ...
-        trackDat.candidates, unassigned_blobs,'UniformOutput', false);  
-    
+    sortROI_multitrack(trackDat.candidates(i), unassigned_blobs, ...
+        trackDat.t, expmt.parameters.speed_thresh);
 
+updateDuration(trackDat.candidates(i));
 
-arrayfun(@(t) updateDuration(t), trackDat.candidates);
-
-new_cen = arrayfun(@(ub, can, ba) getNewTraces(ub, can, ba, trackDat.t),...
-    unassigned_blobs, trackDat.candidates, blob_assigned,...
-    'UniformOutput', false);
+new_cen = getNewTraces(unassigned_blobs, ...
+    trackDat.candidates(i), blob_assigned, trackDat.t);
               
+reviveTrace(trackDat.traces(i), new_cen, trackDat.t);
 
-arrayfun(@(trace, cen) ...
-    reviveTrace(trace, cen, trackDat.t), trackDat.traces, new_cen);
-      
-t2=toc;
-fprintf('%0.2f\n',(t2-t1)*1000);
+end   

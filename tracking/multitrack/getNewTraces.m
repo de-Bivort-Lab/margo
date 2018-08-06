@@ -1,8 +1,7 @@
 function new_traces = getNewTraces(candidate_ROI_cen, can, ...
                 blob_assigned, t_elapsed)
 
-candidate_ROI_cen = candidate_ROI_cen{1};
-blob_assigned = blob_assigned{1};
+
 if any(~blob_assigned)
     
     if size(can.duration,2) == 0

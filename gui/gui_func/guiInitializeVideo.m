@@ -16,17 +16,7 @@ function expmt = guiInitializeVideo(expmt, gui_handles)
     gui_handles.vid_preview_togglebutton.Enable = 'on';
     gui_handles.select_video_label.Enable = 'on';
     
-    if isfield(expmt.meta.ref,'im')
-        expmt.meta.ref = [];
-    end
-    
-    if isfield(expmt.meta.noise,'dist')
-       expmt.meta.noise = [];
-    end
-    
-    if isfield(expmt.meta.vignette,'im')
-        expmt.meta.vignette = rmfield(expmt.meta.vignette,'im');
-    end
+    reInitialize(expmt);
 
     gui_notify('cam settings confirmed',gui_handles.disp_note);
 
@@ -55,12 +45,5 @@ function expmt = guiInitializeVideo(expmt, gui_handles)
         colormap(gui_handles.axes_handle,'gray');
         drawnow
     end
-    
-    if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
-        expmt.meta.roi = [];
-        msgbox(['New video loaded: any saved ROIs, references and ' ...
-            'noise statistics have been discarded.']);
-        note = 'ROIs, references, and noise statistics reset';
-        gui_notify(note,gui_handles.disp_note);
-    end
+   
     

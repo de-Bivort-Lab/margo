@@ -8,7 +8,6 @@ function [blob_assigned, blob_permutation] = ...
 
 
 traces_in = copy(traces_out);
-blob_cen = blob_cen{:};
 trace_permutation = [];
 blob_permutation = [];
 
