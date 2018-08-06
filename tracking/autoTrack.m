@@ -109,9 +109,10 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
                 trackDat.centroid = cat(1,trackDat.traces.cen);
                 update = cat(1,trackDat.traces.updated);
                 permutation = cat(2,trackDat.permutation{:})';
+
        
             case 'single'
-                
+                t1 = toc;
                 raw_cen = reshape([props.Centroid],2,length([props.Centroid])/2)';
                 % Match centroids to last known centroid positions
                 [permutation,update,raw_cen] = sortCentroids(raw_cen,trackDat,expmt);
@@ -155,7 +156,8 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
                 end
 
                 trackDat.update = update;
-        
+                t2 = toc;
+                disp(t2-t1);
         end
     
     else

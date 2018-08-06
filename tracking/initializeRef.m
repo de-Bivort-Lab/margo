@@ -32,39 +32,15 @@ expmt = getVideoInput(expmt,gui_handles);
 
 %% Assign parameters and placeholders
 
-% tracking vars
-expmt.parameters.max_trace_duration = 20;
-expmt.meta.roi.num_traces = 1;
-trackDat.fields={'centroid';'area';'majorAxisLength'};  % Define fields for regionprops
-nt = expmt.meta.roi.num_traces;
-nr = expmt.meta.roi.n;
-md = expmt.parameters.max_trace_duration;
-trackDat.traces = TracePool(nr, nt, md);
-trackDat.candidates = TracePool(nr, 0, md, 'Bounded', false);
-trackDat.centroid = cat(1,trackDat.traces.cen);
-%trackDat.centroid = expmt.meta.roi.centers;                   	% placeholder for most recent non-NaN centroids
-
-
-% Reference vars
-nROIs = size(expmt.meta.roi.corners, 1);             % total number of ROIs
-depth = gui_handles.edit_ref_depth.Value;       % number of rolling sub references
-trackDat.ref.cen = cell(expmt.meta.roi.n,1);
-trackDat.ref.cen(:) = {NaN(nt,2,depth)};          % placeholder for cen. coords where references are taken
-trackDat.ref.ct = zeros(nROIs, 1);              % Reference number placeholder
-trackDat.ref.t = 0;                             % reference time stamp
-trackDat.ref.last_update = zeros(nROIs,1);
-trackDat.ref.bg_mode = 'light';                 % set reference mode to dark
-                                                % obj on light background
-trackDat.tStamp=zeros(nROIs,1);
-trackDat.ct = 0;
-
+% intialize trackDat frame to frame tracking data
+trackDat = initializeTrackDat(expmt);
+trackDat.fields={'centroid';'area';'majorAxisLength'};
 
 blob_lengths = NaN(100,1);
 if expmt.parameters.area_min == 5 && expmt.parameters.area_max == 100
     expmt.parameters.area_max = 600;
     areas = cell(10,1);
 end
-
 
 % Set maximum allowable distance to center of ROI as the long axis of the ROI
 if expmt.parameters.distance_thresh == 20
@@ -85,6 +61,8 @@ trackDat.ref.thresh = expmt.parameters.distance_thresh * 0.5;
 [trackDat,expmt] = autoFrame(trackDat,expmt,gui_handles);
 trackDat.ref.im = trackDat.im;
 tmp_ref = trackDat.ref.im;
+depth = expmt.parameters.ref_depth;
+nROIs = expmt.meta.roi.n;
 trackDat.ref.stack = squeeze(num2cell(repmat(trackDat.ref.im,1,1,depth),[1 2]));
 pause(0.1);
 

@@ -1,11 +1,14 @@
 
-function [blob_assigned, blob_permutation] = ...
+function [blob_assigned, blob_permutation, tt] = ...
              sortROI_multitrack(traces_out, blob_cen, t_curr, spd_thresh)
 %% sort ROIs in multitracking mode
 % inputs
 %   -> prev_cen:  all trace coords for previous frame of a single ROI
 %   -> can_cen:   all blob coords assigned to ROI for current frame
 
+tt.pwd = 0;
+tt.s1 = 0;
+tt.s2 = 0;
 
 traces_in = copy(traces_out);
 blob_cen = blob_cen{:};
@@ -45,11 +48,14 @@ switch sort_mode
         blob_assigned = targets_assigned;
 end
 
+tt.mode  = sort_mode;
+
 % exit early if there is nothing to sort
 traces_out.updated = trace_updated;
 if isempty(tar_cen)
     return;
 end
+
 
 while any(~targets_assigned)
     
@@ -61,14 +67,20 @@ while any(~targets_assigned)
     % get the min distance for each target to closest candidate and return
     % the index of the closest candidate
     [min_dist, match_idx] = min(d,[],3);
-
+    t2 = toc;
+    tt.s1 = tt.s1 + t2 - t1;
+    t1 = toc;
 
     % find candidate indices that are assigned to more than one target
     has_dup = find(histc(match_idx,1:size(can_cen,1))>1);
+
+
     no_dup = ~ismember(match_idx,has_dup);
     can_idx = find(~candidates_assigned);
     tar_idx = find(~targets_assigned);
-
+    t2 = toc;
+    tt.s2 = tt.s2 + t2 - t1;
+    t1 = toc;
     
     switch sort_mode
         case 'blob_sort'
@@ -149,7 +161,6 @@ d = sqrt((traces_out.cen(:,1)-traces_in.cen(:,1)).^2 + ...
          (traces_out.cen(:,2)-traces_in.cen(:,2)).^2);
 d = d .* 1;
 
-
 % time elapsed since each centroid was last updated
 dt = t_curr - traces_out.t;
 
@@ -158,9 +169,9 @@ spd = d./dt;
 above_spd = spd > spd_thresh;
 traces_out.cen(above_spd,:) = traces_in.cen(above_spd,:);
 traces_out.t(above_spd,:) = traces_in.t(above_spd,:);
+
 traces_out.updated = trace_updated & ~above_spd;
 blob_permutation(ismember(trace_permutation,find(above_spd))) = [];
-
 
 
 

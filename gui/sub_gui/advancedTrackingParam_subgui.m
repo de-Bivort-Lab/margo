@@ -22,7 +22,7 @@ function varargout = advancedTrackingParam_subgui(varargin)
 
 % Edit the above text to modify the response to help advancedTrackingParam_subgui
 
-% Last Modified by GUIDE v2.5 03-Aug-2018 11:43:53
+% Last Modified by GUIDE v2.5 03-Aug-2018 18:22:11
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -63,30 +63,26 @@ handles.track_fig.UserData.expmt = expmt;
 gui_fig = in_handles.gui_fig;
 
 
-
 % Set GUI strings with input parameters
-set(handles.edit_speed_thresh,'string',round(10*param.speed_thresh)/10);
-set(handles.edit_dist_thresh,'string',round(10*param.distance_thresh)/10);
-set(handles.edit_target_rate,'string',round(10*param.target_rate)/10);
-set(handles.edit_vignette_sigma,'string',round(10*param.vignette_sigma)/10);
-set(handles.edit_vignette_weight,'string',round(10*param.vignette_weight)/10);
-set(handles.edit_area_min,'string',round(10*param.area_min)/10);
-set(handles.edit_area_max,'string',round(10*param.area_max)/10);
-set(handles.edit_ROI_cluster_tolerance,'string',round(100*param.roi_tol)/100);
-set(handles.edit_dilate_sz,'string',round(param.dilate_sz));
-handles.edit_num_traces.String = num2str(param.traces_per_roi,1);
+handles.edit_speed_thresh.String = sprintf('%0.1f',param.speed_thresh);
+handles.edit_dist_thresh.String = sprintf('%0.1f',param.distance_thresh);
+handles.edit_target_rate.String = sprintf('%0.1f',param.target_rate);
+handles.edit_vignette_sigma.String = sprintf('%0.1f',param.vignette_sigma);
+handles.edit_vignette_weight.String = sprintf('%0.1f',param.vignette_weight);
+handles.edit_area_min.String = sprintf('%i',param.area_min);
+handles.edit_area_max.String = sprintf('%i',param.area_max);
+handles.edit_ROI_cluster_tolerance.String = sprintf('%0.1f',param.roi_tol);
+handles.edit_dilate_sz.String = sprintf('%i',param.dilate_sz);
+handles.edit_num_traces.String = sprintf('%i',param.traces_per_roi);
+handles.edit_max_duration.String = sprintf('%i',param.max_trace_duration);
 
 switch expmt.meta.track_mode
     case 'single'
         handles.trackingmode_popupmenu.Value = 1;
-        handles.edit_num_traces.Enable = 'off';
-        handles.num_traces_pushbutton.Enable = 'off';
-        handles.text47.Enable = 'off';
+        set(handles.multi_uipanel.Children,'Enable','off');
     case 'multitrack'
         handles.trackingmode_popupmenu.Value = 2;
-        handles.edit_num_traces.Enable = 'on';
-        handles.num_traces_pushbutton.Enable = 'on';
-        handles.text47.Enable = 'on';
+        set(handles.multi_uipanel.Children,'Enable','on');
 end
 
 % find idx of active mode in menu and set it in gui
@@ -165,9 +161,13 @@ switch expmt.meta.source
         end
 end
 
+if ~display
+    return
+end
+
 imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');
 
-if display && isempty(imh)
+if isempty(imh)
     
     % Take single frame
     if strcmp(expmt.meta.source,'camera')
@@ -184,23 +184,16 @@ if display && isempty(imh)
     imh = image(trackDat.im,'Parent',gui_handles.axes_handle);
     % adjust aspect ratio of plot to match camera
     colormap(gui_handles.axes_handle,'gray');       
-    gui_handles.hImage.CDataMapping = 'scaled';   
+    gui_handles.hImage.CDataMapping = 'scaled';
 end
 
 %% Tracking setup
 
-% initialize tracking variables if any parameter display is ticked
-trackDat.fields={'centroid';'area';'speed'};     % Define fields autoTrack output
-if isfield(expmt.meta.ref,'im')
-    trackDat.ref = expmt.meta.ref;
-end
 
-if isfield(expmt.meta.roi,'centers')
-    trackDat.centroid = expmt.meta.roi.centers;     % placeholder for most recent non-NaN centroids
-else
-    midpoint(1) = sum(gui_handles.axes_handle.XLim)/2;
-    midpoint(2) = sum(gui_handles.axes_handle.YLim)/2;
-    trackDat.centroid = [midpoint(1) midpoint(2)];
+trackDat = initializeTrackDat(expmt);
+trackDat.fields={'centroid';'area';'speed'}; 
+if ~isfield(trackDat,'centroid') || all(isnan(trackDat.centroid(:,1)))
+    trackDat.centroid = fliplr(size(imh.CData)./2);
 end
 
 % initialize coords
@@ -232,19 +225,15 @@ end
 roll_speed = NaN(size(trackDat.centroid,1),500);
 roll_area = NaN(size(trackDat.centroid,1),500);
 
-% initialize timer
+% initialize timer 
 tic
-trackDat.t=0;
 tPrev = toc;
-trackDat.tStamp = zeros(size(trackDat.centroid,1),1);
-
 
 %% Tracking loop
 
-
 while ishghandle(hObject) && display
 
-    pause(0.002);
+    pause(0.001);
     
     % update timer
     if isfield(trackDat,'t')
@@ -391,7 +380,6 @@ while ishghandle(hObject) && display
 
     % update the display
     autoDisplay(trackDat, expmt, imh, gui_handles);
-    drawnow limitrate
             
 end
 
@@ -418,15 +406,15 @@ display_menu.UserData = 1;
 %update speed text display
 function updateSpeed(h,pos,spd)
 
-    % update display
-    h.Position = [pos{:}(1) pos{:}(2)+5];
-    if isnan(round(nanmean(spd{:})*10)/10)
-        h.String = '';
-    else
-        u = num2str(round(nanmean(spd{:})*10)/100);
-        st_dev = num2str(round(nanstd(spd{:})*10)/10);
-        h.String = [u ' ' char(177) ' ' st_dev];
-    end
+% update display
+h.Position = [pos{:}(1) pos{:}(2)+5];
+if isnan(round(nanmean(spd{:})*10)/10)
+    h.String = '';
+else
+    u = num2str(round(nanmean(spd{:})*10)/100);
+    st_dev = num2str(round(nanstd(spd{:})*10)/10);
+    h.String = [u ' ' char(177) ' ' st_dev];
+end
 
     
 % update distance circle display bounds
@@ -438,16 +426,16 @@ h.Position = bounds{:};
 % update area circle display bounds and text
 function updateArea(hmi,hma,ht,pos,minb,maxb,area)
 
-    hmi.Position = minb{:};
-    hma.Position = maxb{:};
-    ht.Position = [pos{:}(1) pos{:}(2)+20];
-    if isnan(round(nanmean(area{:})*10)/10)
-        ht.String = '';
-    else
-        u = num2str(round(nanmean(area{:})*10)/10);
-        st_dev = num2str(round(nanstd(area{:})*10)/10);
-        ht.String = [u ' ' char(177) ' ' st_dev];
-    end
+hmi.Position = minb{:};
+hma.Position = maxb{:};
+ht.Position = [pos{:}(1) pos{:}(2)+20];
+if isnan(round(nanmean(area{:})*10)/10)
+    ht.String = '';
+else
+    u = num2str(round(nanmean(area{:})*10)/10);
+    st_dev = num2str(round(nanstd(area{:})*10)/10);
+    ht.String = [u ' ' char(177) ' ' st_dev];
+end
 
 
 
@@ -879,13 +867,9 @@ expmt = getappdata(gui_fig,'expmt');
 expmt.meta.track_mode = hObject.String{hObject.Value};
 switch expmt.meta.track_mode
     case 'single'
-        handles.edit_num_traces.Enable = 'off';
-        handles.num_traces_pushbutton.Enable = 'off';
-        handles.text47.Enable = 'off';
+        set(handles.multi_uipanel.Children,'Enable','off');
     case 'multitrack'
-        handles.edit_num_traces.Enable = 'on';
-        handles.num_traces_pushbutton.Enable = 'on';
-        handles.text47.Enable = 'on';
+        set(handles.multi_uipanel.Children,'Enable','on');
 end
 guidata(hObject,handles);
 
@@ -946,4 +930,50 @@ if isfield(expmt.meta.roi,'n')
            ones(expmt.meta.roi.n,1).*expmt.parameters.traces_per_roi;
     end
     expmt = editTracesPerROI(expmt, handles.track_fig.UserData.gui_handles);
+end
+
+
+
+function edit_max_duration_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_max_duration (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_max_duration as text
+%        str2double(get(hObject,'String')) returns contents of edit_max_duration as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_max_duration_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_max_duration (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on selection change in auto_estimate_popupmenu.
+function auto_estimate_popupmenu_Callback(hObject, eventdata, handles)
+% hObject    handle to auto_estimate_popupmenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns auto_estimate_popupmenu contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from auto_estimate_popupmenu
+
+
+% --- Executes during object creation, after setting all properties.
+function auto_estimate_popupmenu_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to auto_estimate_popupmenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
 end

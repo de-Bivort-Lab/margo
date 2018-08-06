@@ -1587,6 +1587,11 @@ try
     if isfield(expmt.meta.roi,'centers')
         expmt.meta.roi.n = size(expmt.meta.roi.centers,1);
         expmt = setROImask(expmt);
+        
+        if ~isfield(expmt.meta.roi,'num_traces')
+            expmt.meta.roi.num_traces = ...
+                repmat(expmt.parameters.traces_per_roi, expmt.meta.roi.n, 1);
+        end
     end
     
     % re-enable controls

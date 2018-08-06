@@ -12,7 +12,7 @@ classdef ExperimentData < dynamicprops
         % construct new ExperimentData obj with default values
         function obj = ExperimentData
             
-            es = struct();
+            es = struct;
             obj.data = struct('centroid',RawDataField('Parent',obj),...
                 'time',RawDataField('Parent',obj));
             obj.meta = struct('name','Basic Tracking','fields',[],'path',es,...
@@ -162,26 +162,28 @@ classdef ExperimentData < dynamicprops
         
         function p = initialize_parameters(~)
             p = struct();
-            p.duration          = 2;
-            p.ref_depth         = 3;
-            p.ref_freq          = 0.5000;
-            p.roi_thresh        = 45.5000;
-            p.track_thresh      = 15;
-            p.speed_thresh      = 95;
-            p.distance_thresh   = 60;
-            p.vignette_sigma    = 0.4700;
-            p.vignette_weight   = 0.3500;
-            p.area_min          = 4;
-            p.area_max          = 100;
-            p.target_rate       = 30;
-            p.mm_per_pix        = 1;
-            p.units             = 'pixels';
-            p.roi_mode          = 'grid';
-            p.sort_mode         = 'bounds';
-            p.roi_tol           = 2.5000;
-            p.edit_rois         = 0;
-            p.dilate_sz         = 0;
-            p.traces_per_roi    = 1;
+            p.duration              = 2;
+            p.ref_depth             = 3;
+            p.ref_freq              = 0.5000;
+            p.roi_thresh            = 45.5000;
+            p.track_thresh          = 15;
+            p.speed_thresh          = 95;
+            p.distance_thresh       = 60;
+            p.vignette_sigma        = 0.4700;
+            p.vignette_weight       = 0.3500;
+            p.area_min              = 4;
+            p.area_max              = 100;
+            p.target_rate           = 30;
+            p.mm_per_pix            = 1;
+            p.units                 = 'pixels';
+            p.roi_mode              = 'grid';
+            p.sort_mode             = 'bounds';
+            p.roi_tol               = 2.5000;
+            p.edit_rois             = 0;
+            p.dilate_sz             = 0;
+            p.traces_per_roi        = 1;
+            p.estimate_trace_num    = false;
+            p.max_trace_duration    = 20;
         end
             
     end

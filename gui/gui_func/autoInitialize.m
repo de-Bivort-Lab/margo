@@ -24,21 +24,7 @@ trackDat.tStamp = ...
 % create new "trace" fields trackDat.traces and trackDat.candidates
 
 % tracking vars
-nt = expmt.meta.roi.num_traces;
-nr = expmt.meta.roi.n;
-md = expmt.parameters.max_trace_duration;
-trackDat.traces = TracePool(nr, nt, md);
-trackDat.candidates = TracePool(nr, 0, md, 'Bounded', false);
-trackDat.centroid = cat(1,trackDat.traces.cen);
-trackDat.t = 0;                                                            % time elapsed, initialize to zero
-trackDat.tPrev = 0;
-trackDat.ct = 0;                                                           % frame count
-trackDat.drop_ct = ...
-    zeros(size(expmt.meta.roi.centers(:,1),1),1);                          % number of frames dropped for each obj
-trackDat.ref = expmt.meta.ref;                                             % referencing properties
-trackDat.px_dist = zeros(10,1);                                            % distribution of pixels over threshold  
-trackDat.pix_dev = zeros(10,1);                                            % stdev of pixels over threshold
-trackDat.lastFrame = false;
+trackDat = initializeTrackDat(expmt);
 
 cam_center = repmat(fliplr(size(expmt.meta.ref)./2),...
                 size(expmt.meta.roi.centers));
