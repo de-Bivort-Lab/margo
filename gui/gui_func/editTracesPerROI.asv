@@ -1,19 +1,5 @@
 function expmt = editTracesPerROI(expmt, handles)
 
-if ~isfield(expmt.meta.roi,'num_traces')
-    expmt.meta.roi.num_traces = ...
-        repmat(expmt.parameters.traces_per_roi, expmt.meta.roi.n, 1);
-elseif numel(expmt.meta.roi.num_traces) > expmt.meta.roi.n
-    expmt.meta.roi.num_traces = ...
-        expmt.meta.roi.num_traces(1:expmt.meta.roi.n);
-elseif numel(expmt.meta.roi.num_traces) < expmt.meta.roi.n
-    expmt.meta.roi.num_traces = ...
-        [expmt.meta.roi.num_traces; ...
-        repmat(expmt.parameters.traces_per_roi, ...
-        expmt.meta.roi.n-numel(expmt.meta.roi.num_traces), 1)];
-end
-
-
 all_obj = findall(handles.axes_handle,'-property','Visible');
 is_vis = all_obj(strcmp(get(all_obj,'Visible'),'on'));
 set(is_vis,'Visible','off');
@@ -25,7 +11,6 @@ on_obj = has_Enable(strcmp(Enable_states,'on'));
 set(has_Enable,'Enable','off');
 
 axh = handles.axes_handle;
-axh.Visible = 'on';
 
 set(handles.axes_handle,'ButtonDownFcn',@mouse_click_Callback);
 handles.hImage.HitTest = 'off';
@@ -40,7 +25,7 @@ end
 
 % set display to ROI image and label ROIs
 handles.hImage.CData = trackDat.im;
-handles.hImage.Visible = 'on';
+handles.hImage.Vis
 feval(handles.view_roi_bounds_menu.Callback,...
             handles.view_roi_bounds_menu,[]);
 cen = expmt.meta.roi.centers;

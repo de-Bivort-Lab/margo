@@ -5,7 +5,7 @@ function [ROI_cen, blob_num] = assignROI(raw_cen, expmt)
 ROI_num = cellfun(@(x) subAssignROI(x,expmt.meta.roi.corners),...
      num2cell(raw_cen,2),'UniformOutput',false);
 ROI_num = cat(1,ROI_num{:});
-blob_num = 1:size(raw_cen,1);
+blob_num = 1:size(raw_cen,1)';
  
 ROI_cen = arrayfun(@(x) raw_cen(ROI_num==x,:), 1:expmt.meta.roi.n,...
             'UniformOutput',false)';

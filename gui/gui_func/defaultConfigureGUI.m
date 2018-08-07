@@ -4,20 +4,6 @@ warning('off','MATLAB:JavaEDTAutoDelegation');
 warning('off','imaq:peekdata:tooManyFramesRequested');
 set(handles.gui_fig,'doublebuffer','off');
 
-
-% get gui directory and ensure all dependencies are added to path
-handles.gui_dir = which('autotracker');
-[par_dir,~,~] = fileparts(handles.gui_dir);
-[par_dir,~,~] = fileparts(par_dir);
-handles.gui_dir = [par_dir '/'];
-addpath(genpath(handles.gui_dir));
-if ~exist([handles.gui_dir 'profiles/'],'dir')
-    mkdir([handles.gui_dir 'profiles/']);
-end
-if ~exist([handles.gui_dir 'hardware/projector_fit/'],'dir')
-    mkdir([handles.gui_dir 'hardware/projector_fit/']);
-end
-
 if exist([handles.gui_dir 'profiles/deviceID.txt'],'file')
     fID = fopen([handles.gui_dir 'profiles/deviceID.txt']);
     handles.deviceID=char(fread(fID))';

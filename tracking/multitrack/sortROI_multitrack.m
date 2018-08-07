@@ -178,9 +178,12 @@ above_spd = spd > spd_thresh;
 traces_out.cen(above_spd,:) = traces_in.cen(above_spd,:);
 traces_out.t(above_spd,:) = traces_in.t(above_spd,:);
 traces_out.updated = trace_updated & ~above_spd;
+traces_out.speed(traces_out.updated) = spd(traces_out.updated);
 blob_permutation(ismember(trace_permutation,find(above_spd))) = [];
-trace_permutation(isnan(trace_permutation))=[];
 blob_permutation(isnan(blob_permutation))=[];
+if isempty(blob_permutation)
+    blob_permutation = [];
+end
 
 
 

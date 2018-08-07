@@ -2729,8 +2729,7 @@ switch hObject.Checked
         hObject.Checked = 'off';
         
         if isfield(handles.view_menu.UserData,'hBounds')
-            f=isvalid(handles.view_menu.UserData.hBounds);
-            set(handles.view_menu.UserData.hBounds(f),'Visible','off');
+            set(handles.view_menu.UserData.hBounds,'Visible','off');
         end
 end
 
@@ -3035,6 +3034,7 @@ function gui_fig_KeyPressFcn(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 kp = eventdata.Key;
+disp(kp);
 
 switch kp
     case 'return'

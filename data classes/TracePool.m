@@ -4,6 +4,7 @@ classdef TracePool < matlab.mixin.Copyable
     properties
         cen;
         t;
+        speed;
         duration;
         updated;
     end
@@ -93,6 +94,7 @@ classdef TracePool < matlab.mixin.Copyable
             
             obj.cen = single(NaN(max_num,2));
             obj.t = single(NaN(max_num,1));
+            obj.speed = single(NaN(max_num,1));
             obj.duration = single(NaN(max_num,1));
             obj.updated = false(max_num,1);
             obj.max_num = max_num;

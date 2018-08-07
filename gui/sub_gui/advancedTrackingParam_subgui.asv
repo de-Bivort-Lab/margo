@@ -197,9 +197,9 @@ if ~isfield(expmt.meta.roi,'n')
 end
 
 % initialize coords
-d_bounds = zeros(size(trackDat.centroid,1),4);
-mi_bounds = d_bounds;
-ma_bounds = d_bounds;
+d_bounds = zeros(expmt.meta.roi.n;
+mi_bounds = centerRect(trackDat.centroid,sqrt(expmt.parameters.area_min/pi));
+ma_bounds = centerRect(trackDat.centroid,sqrt(expmt.parameters.area_max/pi));
 
 % initialize handles with position set to bounds
 for i = 1:size(trackDat.centroid,1)
@@ -316,7 +316,7 @@ while ishghandle(hObject) && display
 
         % convert real distance to pixel for proper display
         px_r = expmt.parameters.distance_thresh/expmt.parameters.mm_per_pix;
-        if isfield(expmt.meta.roi,'n')
+        if isfield(expmt,'ROI') && isfield(expmt.meta.roi,'centers')
             d_bounds = centerRect(expmt.meta.roi.centers,px_r);
         else
             mid(1) = sum(gui_handles.axes_handle.XLim)/2;
@@ -421,18 +421,14 @@ end
 % update distance circle display bounds
 function updateDistance(h,bounds)
 
-if ~any(isnan(bounds{:}))
-    h.Position = bounds{:};
-end
+h.Position = bounds{:};
 
 
 % update area circle display bounds and text
 function updateArea(hmi,hma,ht,pos,minb,maxb,area)
 
-if ~any(isnan(minb{:}))
-    hmi.Position = minb{:};
-    hma.Position = maxb{:};
-end
+hmi.Position = minb{:};
+hma.Position = maxb{:};
 ht.Position = [pos{:}(1) pos{:}(2)+20];
 if isnan(round(nanmean(area{:})*10)/10)
     ht.String = '';

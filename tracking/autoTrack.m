@@ -61,7 +61,7 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
     if isfield(trackDat,'px_dist')
         
         trackDat.px_dist(mod(trackDat.ct,length(trackDat.px_dist))+1) =...
-            sum(sum(thresh_im));
+            sum(thresh_im(:));
         trackDat.px_dev((mod(trackDat.ct,length(trackDat.px_dist))+1)) =...
             ((nanmean(trackDat.px_dist) - ...
                 expmt.meta.noise.mean)/expmt.meta.noise.std);
@@ -177,7 +177,11 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
 
 if any(strcmpi('speed',out_fields))
     if record
-        trackDat.speed = single(speed);
+        if exist('speed','var')
+            trackDat.speed = single(speed);
+        else
+            trackDat.speed = cat(1,trackDat.traces.speed);
+        end
     else
         trackDat.speed = single(NaN(size(trackDat.centroid,1),1)); 
     end

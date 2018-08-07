@@ -127,7 +127,6 @@ while trackDat.t < expmt.parameters.duration*3600 &&...
     end
 
     % track objects and sort to ROIs
-    
     [trackDat] = autoTrack(trackDat,expmt,gui_handles);
     
     

@@ -188,7 +188,7 @@ classdef ExperimentData < dynamicprops
         function obj = loadobj(obj)
             
             warning('off','MATLAB:m_missing_operator');
-            if ~isfield(obj.meta.path,'dir')
+            if ~isfield(obj.meta.path,'dir') || isempty(obj.meta.path.name)
                 return
             end
             if exist([obj.meta.path.dir obj.meta.path.name],'file') ~= 2
@@ -231,7 +231,12 @@ classdef ExperimentData < dynamicprops
                     j = j(numel(nest)-nest_idx+1);
                     callInput = callStr(i+1:j-1);
                     input_str = regexp(callInput,'''(.[^'']*)''','tokens');
-                    isfile = cellfun(@(p) exist(p,'file'),input_str{:});
+                    
+                    if numel(input_str)
+                        isfile = cellfun(@(p) exist(p,'file'),input_str{:});
+                    else
+                        isfile = false;
+                    end
 
                     if any(isfile)
                         fpath = input_str{find(isfile)};
