@@ -1,19 +1,16 @@
 
-function [blob_assigned, blob_permutation, tt] = ...
+function [blob_assigned, blob_permutation] = ...
              sortROI_multitrack(traces_out, blob_cen, t_curr, spd_thresh)
 %% sort ROIs in multitracking mode
 % inputs
 %   -> prev_cen:  all trace coords for previous frame of a single ROI
 %   -> can_cen:   all blob coords assigned to ROI for current frame
 
-tt.pwd = 0;
-tt.s1 = 0;
-tt.s2 = 0;
 
-traces_in = copy(traces_out);
-blob_cen = blob_cen{:};
-trace_permutation = [];
-blob_permutation = [];
+traces_in.t = traces_out.t;
+traces_in.cen = traces_out.cen;
+trace_permutation = NaN(100,1);
+blob_permutation = NaN(100,1);
 
 if isempty(traces_in.cen)
     traces_in.cen = zeros(0,1);
@@ -48,14 +45,11 @@ switch sort_mode
         blob_assigned = targets_assigned;
 end
 
-tt.mode  = sort_mode;
-
 % exit early if there is nothing to sort
 traces_out.updated = trace_updated;
 if isempty(tar_cen)
     return;
 end
-
 
 while any(~targets_assigned)
     
@@ -67,32 +61,34 @@ while any(~targets_assigned)
     % get the min distance for each target to closest candidate and return
     % the index of the closest candidate
     [min_dist, match_idx] = min(d,[],3);
-    t2 = toc;
-    tt.s1 = tt.s1 + t2 - t1;
-    t1 = toc;
+
 
     % find candidate indices that are assigned to more than one target
     has_dup = find(histc(match_idx,1:size(can_cen,1))>1);
-
-
     no_dup = ~ismember(match_idx,has_dup);
     can_idx = find(~candidates_assigned);
     tar_idx = find(~targets_assigned);
-    t2 = toc;
-    tt.s2 = tt.s2 + t2 - t1;
-    t1 = toc;
+
     
     switch sort_mode
         case 'blob_sort'
             traces_out.cen(can_idx(match_idx(no_dup)),:) = tar_cen(no_dup,:);
             traces_in.t(can_idx(match_idx(no_dup))) = t_curr;
-            trace_permutation = [trace_permutation; can_idx(match_idx(no_dup))];
-            blob_permutation = [blob_permutation; tar_idx(no_dup)];
+            idx = find(isnan(trace_permutation),1);
+            idx = idx : idx + numel(can_idx(match_idx(no_dup))) - 1;
+            trace_permutation(idx) = can_idx(match_idx(no_dup));
+            idx = find(isnan(blob_permutation),1);
+            idx = idx: idx + numel(tar_idx(no_dup)) - 1;
+            blob_permutation(idx) = tar_idx(no_dup);
         case 'trace_sort'
             traces_out.cen(tar_idx(no_dup),:) = can_cen(match_idx(no_dup),:);
             traces_in.t(tar_idx(no_dup)) = t_curr;
-            trace_permutation = [trace_permutation; tar_idx(no_dup)];
-            blob_permutation = [blob_permutation; can_idx(match_idx(no_dup))];
+            idx = find(isnan(trace_permutation),1);
+            idx = idx : idx + numel(tar_idx(no_dup)) - 1;
+            trace_permutation(idx) = tar_idx(no_dup);
+            idx = find(isnan(blob_permutation),1);
+            idx = idx : idx + numel(can_idx(match_idx(no_dup))) - 1;
+            blob_permutation(idx) = [blob_permutation; can_idx(match_idx(no_dup))];
     end
 
     candidates_assigned(can_idx(match_idx(no_dup))) = true;
@@ -121,7 +117,11 @@ while any(~targets_assigned)
             case 'blob_sort'
                 traces_out.cen(can_idx(best_match),:) = tar_cen(best_match,:);
                 traces_in.t(can_idx(best_match)) = t_curr;
-                trace_permutation = [trace_permutation; can_idx(best_match)];
+                idx = find(isnan(trace_permutation),1);
+                idx = idx : idx + numel(can_idx(best_match)) - 1;
+                trace_permutation(idx) = can_idx(best_match);
+                idx = find(isnan(blob_permutation),1);
+                idx = idx : idx + numel(tar_idx(best_match)) - 1;
                 blob_permutation = [blob_permutation; tar_idx(best_match)];
             case 'trace_sort'
                 traces_out.cen(tar_idx(best_match),:) = can_cen ...
@@ -161,6 +161,7 @@ d = sqrt((traces_out.cen(:,1)-traces_in.cen(:,1)).^2 + ...
          (traces_out.cen(:,2)-traces_in.cen(:,2)).^2);
 d = d .* 1;
 
+
 % time elapsed since each centroid was last updated
 dt = t_curr - traces_out.t;
 
@@ -169,9 +170,9 @@ spd = d./dt;
 above_spd = spd > spd_thresh;
 traces_out.cen(above_spd,:) = traces_in.cen(above_spd,:);
 traces_out.t(above_spd,:) = traces_in.t(above_spd,:);
-
 traces_out.updated = trace_updated & ~above_spd;
 blob_permutation(ismember(trace_permutation,find(above_spd))) = [];
+
 
 
 

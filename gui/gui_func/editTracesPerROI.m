@@ -3,9 +3,9 @@ function expmt = editTracesPerROI(expmt, handles)
 clean_gui(handles.axes_handle);
 handles.hImage = findobj(handles.axes_handle,'-depth',3,'Type','Image');
 
-% has_Enable = findall(handles.gui_fig, '-property', 'Enable');
-% Enable_states = get(has_Enable,'Enable');
-% set(has_Enable,'Enable','off');
+has_Enable = findall(handles.gui_fig, '-property', 'Enable');
+Enable_states = get(has_Enable,'Enable');
+set(has_Enable,'Enable','off');
 
 axh = handles.axes_handle;
 
@@ -84,6 +84,7 @@ cellfun(@(h) delete(h), hNote);
 feval(handles.view_roi_bounds_menu.Callback,...
             handles.view_roi_bounds_menu,[]);
 delete(th);
+set(has_Enable,'Enable',Enable_states);
 expmt.meta.roi.num_traces = ntrace;
     
     

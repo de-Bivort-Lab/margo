@@ -50,22 +50,27 @@ classdef TracePool < matlab.mixin.Copyable
         function updateDuration(obj)
             
             mm = obj.max_duration;
-            obj.duration(obj.updated) = obj.duration(obj.updated) + 1;
-            obj.duration(~obj.updated) = obj.duration(~obj.updated) - 1;
-            obj.duration(obj.duration > mm) = mm;
-            obj.duration(obj.duration == 0) = NaN;
-            active = obj.duration > 0;
+            d = obj.duration;
+            u = obj.updated;
+            d(u) = d(u) + 1;
+            d(~obj.updated) = d(~u) - 1;
+            d(d > mm) = mm;
+            d(d == 0) = NaN;
+            active = d > 0;
             
             if obj.bounded
                 obj.cen(~active,:) = NaN;
                 obj.t(~active,:) = NaN;
-                obj.updated(~active) = false;
+                u(~active) = false;
             else
                 obj.cen(~active,:) = [];
                 obj.t(~active) = [];
-                obj.updated(~active) = [];
-                obj.duration(~active) = [];
+                u(~active) = [];
+                d(~active) = [];
             end
+            
+            obj.duration = d;
+            obj.updated = u;
         end
         
         function reviveTrace(obj, new_cen, new_t)

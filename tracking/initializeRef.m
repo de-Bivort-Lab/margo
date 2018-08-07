@@ -33,6 +33,7 @@ expmt = getVideoInput(expmt,gui_handles);
 %% Assign parameters and placeholders
 
 % intialize trackDat frame to frame tracking data
+expmt.meta.ref = struct;
 trackDat = initializeTrackDat(expmt);
 trackDat.fields={'centroid';'area';'majorAxisLength'};
 
