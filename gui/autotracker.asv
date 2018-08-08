@@ -868,9 +868,8 @@ try
             'buttons',buttons,'icon',false);
         if strcmp(plot_traces,'OK')
             instr = {'close trace plots to resume'};
-            hNote = gui_axes_notify(handles.axes_handle,istr);
+            gui_axes_notify(handles.axes_handle,)
             plotTraces(expmt);
-            cellfun(@delete,hNote);
         end
     end
 

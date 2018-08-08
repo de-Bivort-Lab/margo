@@ -134,6 +134,9 @@ for i = 1:length(append_fields)
         expmt.data.(f{i}) = RawDataField('Parent',expmt);
     end
 end
+if size(expmt.meta.fields,2) > 1
+    expmt.meta.fields = expmt.meta.fields';
+end
 expmt.meta.fields = [expmt.meta.fields; f(append_fields)];
 trackDat.fields = expmt.meta.fields;
 
@@ -175,7 +178,8 @@ end
 
 expmt.meta.initialize = false;
 expmt.meta.finish = true;
-expmt.meta.num_traces = expmt.meta.roi.n;
+expmt.meta.num_traces = sum(expmt.meta.roi.num_traces);
+sum(expmt.meta.roi.num_traces)
 
 % initialize centroid markers
 clean_gui(gui_handles.axes_handle);

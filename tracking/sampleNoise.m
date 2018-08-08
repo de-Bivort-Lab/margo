@@ -26,6 +26,7 @@ pixelDist=NaN(pixDistSize,1);               % Distribution of total number of pi
 roiDist=NaN(pixDistSize,expmt.meta.roi.n);       % Distribution of total number of pixels above image threshold
 
 % tracking vars
+expmt.meta.noise = struct;
 trackDat = initializeTrackDat(expmt);
 
 
@@ -48,6 +49,8 @@ tic
 trackDat.tPrev = toc;
 old_rate = expmt.parameters.target_rate;
 expmt.parameters.target_rate = 100;
+[trackDat,expmt] = autoFrame(trackDat,expmt,gui_handles);
+trackDat = refRawCrossPatch(trackDat, expmt);
 
 while trackDat.ct < pixDistSize;
 
@@ -76,12 +79,10 @@ while trackDat.ct < pixDistSize;
 
    % Create distribution for num pixels above imageThresh
    % Image statistics used later during acquisition to detect noise
-   diffim = (trackDat.ref.im - expmt.meta.vignette.im) - ...
-       (trackDat.im - expmt.meta.vignette.im);
-   thresh_im = diffim(:) > gui_handles.track_thresh_slider.Value;
-   pixelDist(mod(trackDat.ct-1,pixDistSize)+1) = nansum(thresh_im);
-   roiDist(mod(trackDat.ct-1,pixDistSize)+1,:) = ...
-       cellfun(@(x) sum(thresh_im(x)),expmt.meta.roi.pixIdx);
+   idx = mod(trackDat.ct-1,pixDistSize)+1;
+   pixelDist(idx) = sum(trackDat.thresh_im(:));
+   roiDist(idx,:) = ...
+       cellfun(@(x) sum(trackDat.thresh_im(x)),expmt.meta.roi.pixIdx);
    
 end
 
