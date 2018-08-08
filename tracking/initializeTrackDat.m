@@ -3,6 +3,7 @@ function trackDat = initializeTrackDat(expmt)
 trackDat.fields={'centroid';'area';'time'};  % Define fields for regionprops
 trackDat.t = 0;
 trackDat.ct = 0;
+trackDat.drop_ct = 0;
 trackDat.lastFrame = false;
 
 if isfield(expmt.meta.roi,'n')
@@ -17,18 +18,18 @@ end
 
 trackDat.traces = TracePool(nr, nt, md);
 trackDat.candidates = TracePool(nr, 0, md, 'Bounded', false);
-switch expmt.meta.track_mode
-    case 'multitrack'
-        trackDat.centroid = cat(1,trackDat.traces.cen);
-    case 'single'
-        trackDat.centroid = expmt.meta.roi.centers;
-end
 
 % Reference vars
 depth = expmt.parameters.ref_depth;       % number of rolling sub references
 if ~isempty(fieldnames(expmt.meta.ref))
     trackDat.ref = expmt.meta.ref;
 else
+    if strcmp(expmt.meta.track_mode,'multitrack') && ...
+            expmt.parameters.estimate_trace_num 
+        nt = repmat(100,nr,1);
+        expmt.meta.roi.num_traces = nt;
+        trackDat.traces = TracePool(nr, nt, md);
+    end
     trackDat.ref.cen = cell(expmt.meta.roi.n,1);
     trackDat.ref.cen = arrayfun(@(n) NaN(n,2,depth), nt, 'UniformOutput', false);        
     trackDat.ref.ct = zeros(nROIs, 1);              % Reference number placeholder
@@ -42,5 +43,13 @@ end
 if ~isempty(fieldnames(expmt.meta.noise))
     trackDat.px_dist = zeros(10,1);      % distribution of pixels over threshold  
     trackDat.pix_dev = zeros(10,1);      % stdev of pixels over threshold
+end
+
+
+switch expmt.meta.track_mode
+    case 'multitrack'
+        trackDat.centroid = cat(1,trackDat.traces.cen);
+    case 'single'
+        trackDat.centroid = expmt.meta.roi.centers;
 end
 

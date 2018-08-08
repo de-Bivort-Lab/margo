@@ -142,7 +142,7 @@ classdef ExperimentData < dynamicprops
                 obj.meta.vignette.mode = m;
             end
 
-            obj.meta.labels = es;
+            obj.meta.labels = {};
             obj.meta.ref= es;
             obj.meta.noise = es;
             
@@ -154,6 +154,8 @@ classdef ExperimentData < dynamicprops
             for i = 1:numel(f)
                 obj.data.(f{i}) = RawDataField('Parent',obj);
             end
+            
+            obj = trimParameters(obj);
         end
         
         function p = initialize_parameters(~)
@@ -180,6 +182,20 @@ classdef ExperimentData < dynamicprops
             p.traces_per_roi        = 1;
             p.estimate_trace_num    = false;
             p.max_trace_duration    = 20;
+        end
+        
+        function obj = trimParameters(obj)
+            % trim parameters property of ExperimentData to core tracking
+            % parameters and properties
+
+            dummy_obj = ExperimentData;
+            defaultParams = fieldnames(dummy_obj.parameters);
+            currentParams = fieldnames(obj.parameters);
+            non_default = currentParams(cellfun(@(p) ...
+                ~any(strcmp(p,defaultParams)), currentParams));
+            for i = 1:numel(non_default)
+               obj.parameters = rmfield(obj.parameters,non_default{i}); 
+            end
         end
             
     end

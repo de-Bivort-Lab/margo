@@ -934,7 +934,7 @@ if isfield(expmt.meta.roi,'n')
        expmt.meta.roi.num_traces = ...
            ones(expmt.meta.roi.n,1).*expmt.parameters.traces_per_roi;
     end
-    expmt = editTracesPerROI(expmt, handles.track_fig.UserData.gui_handles);
+    editTracesPerROI(expmt, handles.track_fig.UserData.gui_handles);
 end
 
 
@@ -963,12 +963,14 @@ end
 
 % --- Executes on selection change in auto_estimate_popupmenu.
 function auto_estimate_popupmenu_Callback(hObject, eventdata, handles)
-% hObject    handle to auto_estimate_popupmenu (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
 
-% Hints: contents = cellstr(get(hObject,'String')) returns auto_estimate_popupmenu contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from auto_estimate_popupmenu
+expmt = getappdata(handles.track_fig.UserData.gui_handles.gui_fig,'expmt');
+switch hObject.String{hObject.Value}
+    case 'on'
+        expmt.parameters.estimate_trace_num = true;
+    case 'off'     
+        expmt.parameters.estimate_trace_num = false;
+end
 
 
 % --- Executes during object creation, after setting all properties.
@@ -982,3 +984,23 @@ function auto_estimate_popupmenu_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+function track_fig_KeyPressFcn(hObject, eventdata, handles)
+% hObject    handle to gui_fig (see GCBO)
+% eventdata  structure with the following fields (see MATLAB.UI.FIGURE)
+%	Key: name of the key that was pressed, in lower case
+%	Character: character interpretation of the key(s) that was pressed
+%	Modifier: name(s) of the modifier key(s) (i.e., control, shift) pressed
+% handles    structure with handles and user data (see GUIDATA)
+
+kp = eventdata.Key;
+gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
+switch kp
+    case 'return'
+        gui_fig.UserData.edit_rois = false;
+    case 'shift'
+        gui_fig.UserData.kp = kp;
+end
+
+guidata(hObject,handles);

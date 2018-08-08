@@ -61,13 +61,13 @@ while ~trackDat.lastFrame
     trackDat = autoTrack(trackDat,expmt,gui_handles);
 
     % output data tracked fields to binary files
-    %[trackDat,expmt] = autoWriteData(trackDat, expmt, gui_handles);
+    [trackDat,expmt] = autoWriteData(trackDat, expmt, gui_handles);
 
     % update ref at the reference frequency or reset if noise thresh is exceeded
-    %[trackDat, expmt] = autoReference(trackDat, expmt, gui_handles);  
+    [trackDat, expmt] = autoReference(trackDat, expmt, gui_handles);  
 
     % update current image and display object positions 
-    %[trackDat, expmt] = autoDisplay(trackDat, expmt, imh, gui_handles);
+    [trackDat, expmt] = autoDisplay(trackDat, expmt, imh, gui_handles);
     
 
 end

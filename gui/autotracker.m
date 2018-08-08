@@ -1032,10 +1032,10 @@ function exp_select_popupmenu_Callback(hObject, ~, handles)
 expmt = getappdata(handles.gui_fig,'expmt');
 
 if expmt.meta.exp_id ~= handles.exp_select_popupmenu.Value
-    expmt.meta.exp_id = get(handles.exp_select_popupmenu,'Value');        % index of the experiment in exp list
+    expmt.meta.exp_id = get(handles.exp_select_popupmenu,'Value');  % index of the experiment in exp list
     names = get(handles.exp_select_popupmenu,'string');             % name of the experiment
-    expmt.meta.name = names{expmt.meta.exp_id};                                % store name in master struct
-    expmt.parameters = trimParameters(expmt.parameters, handles);   % remove all experiment specific parameters
+    expmt.meta.name = names{expmt.meta.exp_id};                     % store name in master struct
+    expmt = trimParameters(expmt);   % remove all experiment specific parameters
 end
 
 % Enable Experiment Parameters pushbutton if expID has an associated subgui
@@ -2516,7 +2516,7 @@ expmt = load_settings(expmt,expmt_new,hObject.UserData.gui_handles); %#ok<NODEF>
 % save loaded settings to master struct
 setappdata(gui_fig,'expmt',expmt);  
 
-guidata(gui_fig,hObject.UserData.gui_handles);
+guidata(hObject,handles);
 
 
 % --------------------------------------------------------------------

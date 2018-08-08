@@ -112,7 +112,6 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
 
        
             case 'single'
-                t1 = toc;
                 raw_cen = reshape([props.Centroid],2,length([props.Centroid])/2)';
                 % Match centroids to last known centroid positions
                 [permutation,update,raw_cen] = sortCentroids(raw_cen,trackDat,expmt);
@@ -156,16 +155,12 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
                 end
 
                 trackDat.update = update;
-                t2 = toc;
-                disp(t2-t1);
         end
     
     else
         
-        % icrement drop count for all objects if entire frame is dropped
-        if isfield(trackDat,'drop_ct')
-            trackDat.drop_ct = trackDat.drop_ct + 1;
-        end
+        % increment drop count for all objects if entire frame is dropped
+        trackDat.drop_ct = trackDat.drop_ct + 1;
         
     end
     

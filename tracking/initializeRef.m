@@ -232,6 +232,16 @@ trackDat.t = 0;
 tic
 trackDat.tPrev = toc;
 autoTime(trackDat, expmt, gui_handles);
+
+if expmt.parameters.estimate_trace_num
+    
+    expmt.meta.roi.num_traces = ...
+        arrayfun(@(t) sum(~isnan(t.t)), trackDat.traces);
+    trackDat.ref.cen = ...
+        cellfun(@(refc,nt) refc(1:nt,:,:), ...
+            trackDat.ref.cen, num2cell(expmt.meta.roi.num_traces),...
+            'UniformOutput', false);
+end
 expmt.meta.ref = trackDat.ref;
 
 
