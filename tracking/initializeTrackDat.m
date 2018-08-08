@@ -23,6 +23,13 @@ trackDat.candidates = TracePool(nr, 0, md, 'Bounded', false);
 depth = expmt.parameters.ref_depth;       % number of rolling sub references
 if ~isempty(fieldnames(expmt.meta.ref))
     trackDat.ref = expmt.meta.ref;
+    tmp = trackDat.ref.cen;
+    tmp_n = cellfun(@(t) size(t,1), tmp);
+    trackDat.ref.cen = ...
+        arrayfun(@(n) NaN(n,2,3), nt, 'UniformOutput', false);
+    for i=1:numel(tmp)
+        trackDat.ref.cen{i}(1:tmp_n(i),:,:) = tmp{i};
+    end
 else
     if strcmp(expmt.meta.track_mode,'multitrack') && ...
             expmt.parameters.estimate_trace_num 
@@ -31,7 +38,8 @@ else
         trackDat.traces = TracePool(nr, nt, md);
     end
     trackDat.ref.cen = cell(expmt.meta.roi.n,1);
-    trackDat.ref.cen = arrayfun(@(n) NaN(n,2,depth), nt, 'UniformOutput', false);        
+    trackDat.ref.cen = ...
+        arrayfun(@(n) NaN(n,2,depth), nt, 'UniformOutput', false);        
     trackDat.ref.ct = zeros(nROIs, 1);              % Reference number placeholder
     trackDat.ref.t = 0;                             % reference time stamp
     trackDat.ref.last_update = zeros(nROIs,1);

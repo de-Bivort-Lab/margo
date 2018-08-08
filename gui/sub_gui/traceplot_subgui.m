@@ -22,7 +22,7 @@ function varargout = traceplot_subgui(varargin)
 
 % Edit the above text to modify the response to help traceplot_subgui
 
-% Last Modified by GUIDE v2.5 18-Apr-2018 16:04:42
+% Last Modified by GUIDE v2.5 08-Aug-2018 18:17:28
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -121,8 +121,7 @@ handles.output = hObject;
 % Update handles structure
 guidata(hObject, handles);
 
-% UIWAIT makes traceplot_subgui wait for user response (see UIRESUME)
-% uiwait(handles.trace_fig);
+uiwait(hObject);
 
 
 % --- Outputs from this function are returned to the command line.
@@ -133,7 +132,7 @@ function varargout = traceplot_subgui_OutputFcn(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Get default command line output from handles structure
-varargout{1} = handles.output;
+varargout{1} = [];
 
 
 % --- Executes on slider movement.
@@ -348,3 +347,13 @@ for i = 1:6
         dispTrace(i,handles);
     end
 end
+
+
+% --- Executes when user attempts to close trace_fig.
+function trace_fig_CloseRequestFcn(hObject, eventdata, handles)
+% hObject    handle to trace_fig (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+uiresume(hObject);
+delete(hObject);

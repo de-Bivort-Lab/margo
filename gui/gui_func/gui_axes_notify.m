@@ -1,7 +1,7 @@
 function note_handles = gui_axes_notify(ax,msg)
 
 c = [ax.XLim(2)*0.5 ax.YLim(2)*0.035];
-th = text(ax,c(1),c(2),msg,'color','m',...
+th = text(ax,c(1),c(2),msg,'color','k',...
     'HorizontalAlignment','center','FontWeight','bold');
 
 if ~iscell(msg)
@@ -17,7 +17,7 @@ vy = c(2)+dy.*[-1 1 1 -1 -1];
 
 % draw new patch
 ph = patch(ax,'XData',vx,'YData',vy,'FaceColor',[1 1 1],...
-    'FaceAlpha',0.35,'EdgeColor','none');
+    'FaceAlpha',0.5,'EdgeColor','none');
 uistack(ph,'down');
 
 note_handles = {ph;th};

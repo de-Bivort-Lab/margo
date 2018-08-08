@@ -55,7 +55,8 @@ classdef RawDataField < dynamicprops
             try        
                 
                 if ~isfield(obj.Parent.meta,'num_traces')
-                    obj.Parent.meta.num_traces = obj.Parent.meta.roi.n;
+                    obj.Parent.meta.num_traces = ...
+                        sum(obj.Parent.meta.roi.num_traces);
                 end
                 
                 % ensure correct dimensions

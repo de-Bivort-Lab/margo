@@ -1,7 +1,8 @@
-function [new_props] = erodeDoubleBlobs(props, trackDat)
+function props = erodeDoubleBlobs(props, trackDat)
 
 areas = cat(1,props.Area);
-abv_areas = areas > trackDat.ref.thresh^2*.6;
+abv_areas = areas > trackDat.ref.thresh^2*.5;
+strel_sz = ceil(trackDat.ref.thresh*0.18);
 dbl_blobs = props(abv_areas);
 props(abv_areas) = [];
 
@@ -25,9 +26,8 @@ blob_im = cellfun(@(x,y) drawBlob(x,y), lin_idx, blank_im, ...
                   'UniformOutput', false);
 
               
-erodel = arrayfun(@(x) strel('disk',ceil(sqrt(x.Area)*0.07),0), dbl_blobs, ...
-                  'UniformOutput', false);
-erode_im = cellfun(@(x,y) imerode(x, y), blob_im, erodel, ...
+erodel = strel('disk',strel_sz, 8);
+erode_im = cellfun(@(x) imerode(x, erodel), blob_im, ...
                    'UniformOutput', false);
                
 new_props = cellfun(@(x) regionprops(x, trackDat.in_fields),...
@@ -47,9 +47,8 @@ if ~isempty(new_props)
     new_props = cat(1, new_props{:});
     raw_cen = cat(1, raw_cen{:});
     new_props = arrayfun(@updateProps,new_props,num2cell(raw_cen,2));
+    props = cat(1, props, new_props);
 end
-
-new_props = cat(1, props, new_props);
                  
 function blob_im = drawBlob(lin_idx, blob_im)
 blob_im(lin_idx) = true;

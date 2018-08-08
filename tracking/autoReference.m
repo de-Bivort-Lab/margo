@@ -1,7 +1,7 @@
 function [trackDat, expmt] = autoReference(trackDat,expmt,gui_handles)
 
     % if num pixels above thresh exceeds nine stdev
-    reset = mean(trackDat.px_dev) > 7;
+    reset = mean(trackDat.px_dev) > 9;
     
     if trackDat.ref.freq == expmt.parameters.ref_freq && ...
             median(trackDat.ref.ct) < expmt.parameters.ref_depth
@@ -40,8 +40,9 @@ function [trackDat, expmt] = autoReference(trackDat,expmt,gui_handles)
         % Reference vars
         nROIs = size(expmt.meta.roi.corners, 1);         % total number of ROIs
         depth = gui_handles.edit_ref_depth.Value;   % number of rolling sub references
-        trackDat.ref.cen = ...                      % placeholder for cen. coords where
-            repmat(trackDat.centroid,1,1,depth);    % references are taken
+        trackDat.ref.cen = ...
+            arrayfun(@(n) NaN(n,2,depth), ...
+            expmt.meta.roi.num_traces, 'UniformOutput', false);
         trackDat.ref.ct = zeros(nROIs, 1);          % Reference number placeholder
         trackDat.ref.t = 0;                         % reference time stamp
                 

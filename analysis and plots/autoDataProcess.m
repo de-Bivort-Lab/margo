@@ -73,8 +73,6 @@ if isfield(options,'handles')
     gui_notify('importing and processing data...',options.handles.disp_note)
 end
 
-expmt.meta.num_traces = size(expmt.meta.roi.centers,1);
-
 %% initialize raw data memmap files
 
 % query available memory
