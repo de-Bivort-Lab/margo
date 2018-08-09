@@ -1,14 +1,17 @@
 
-function ROI_num = assignROI(raw_cen, expmt)
+function [ROI_cen, blob_num] = assignROI(raw_cen, expmt)
 
               
-switch expmt.parameters.sort_mode  
+switch expmt.parameters.roi_mode  
     case 'bounds'
         ROI_num = cellfun(@(x) ...
             bounds_AssignROI(x,expmt.meta.roi.corners),...
             num2cell(raw_cen,2),'UniformOutput',false);
     case 'distance'
-        ROI_num = distance_assignROI(raw_cen, expmt.meta.roi.centers);
+
+        dist = abs(sqrt(dot(raw_cen'-expmt.meta.roi.centers',...
+            expmt.meta.roi.centers'-raw_cen')))';
+        [~,ROI_num] = min(dist);
     case 'grid'
         % find candidate ROIs for each centroid
         ROI_num = arrayfun(@(x) grid_AssignROI(...
@@ -18,7 +21,13 @@ switch expmt.parameters.sort_mode
 end
             
 
-
+ROI_num = cat(1,ROI_num{:});
+blob_num = 1:size(raw_cen,1);
+ 
+ROI_cen = arrayfun(@(x) raw_cen(ROI_num==x,:), 1:expmt.meta.roi.n,...
+            'UniformOutput',false)';
+blob_num = arrayfun(@(x) blob_num(ROI_num==x), 1:expmt.meta.roi.n,...
+            'UniformOutput',false)';
 
 % assign ROIs to centroids
 function ROI_num = bounds_AssignROI(cen,b)
@@ -62,11 +71,9 @@ if any(iscirc)
 end
 
 
-function ROI_num = distance_assignROI(raw_cen, roi_centers)
+function distance_assignROI(raw_cen, roi_centers)
 
-tmp_raw = permute(repmat(raw_cen,1,1,size(roi_centers,1)),[3 2 1]);
-tmp_roi = repmat(roi_centers,1,1,size(raw_cen,1));
+tmp_raw = permute(repmat(raw_cen,1,1,expmt.meta.roi.n),[3 2 1]);
+tmp_roi = repmat(expmt.meta.roi.centers,1,1,size(raw_cen,1));
 dist = abs(sqrt(dot(tmp_raw - tmp_roi, tmp_roi - tmp_raw,2)));
-[~,ROI_num] = min(dist);
-ROI_num = num2cell(ROI_num);
     

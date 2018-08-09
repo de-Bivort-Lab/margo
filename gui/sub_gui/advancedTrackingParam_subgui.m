@@ -817,6 +817,7 @@ switch expmt.parameters.roi_mode
         handles.sort_mode_popupmenu.Enable = 'off';
         activemode = find(strcmp('bounds',handles.sort_mode_popupmenu.String));
         handles.sort_mode_popupmenu.Value = activemode;
+        expmt.parameters.sort_mode = 'grid';
 end
 guidata(hObject,handles);
 

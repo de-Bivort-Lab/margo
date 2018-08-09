@@ -1,5 +1,12 @@
 function [trackDat, expmt, props] = multiTrack(props, trackDat, expmt)
 
+blob_num = 1:size(raw_cen,1);
+ 
+ROI_cen = arrayfun(@(x) raw_cen(ROI_num==x,:), 1:expmt.meta.roi.n,...
+            'UniformOutput',false)';
+blob_num = arrayfun(@(x) blob_num(ROI_num==x), 1:expmt.meta.roi.n,...
+            'UniformOutput',false)';
+
 props = erodeDoubleBlobs(props, trackDat);
                 
 % apply area threshold before assigning centroids
@@ -8,14 +15,8 @@ above_min = cat(1,props.Area) .* (expmt.parameters.mm_per_pix^2) > ...
 props(~above_min,:) = [];
 
 % assign each blob in props to an ROI
-raw_cen = cat(1,props.Centroid);
-ROI_num = assignROI(raw_cen, expmt);
-ROI_num = cat(1,ROI_num{:});
-blob_num = 1:size(raw_cen,1);
-candidate_ROI_cen = arrayfun(@(x) ...
-    raw_cen(ROI_num==x,:), 1:expmt.meta.roi.n, 'UniformOutput',false)';
-blob_num = arrayfun(@(x) ...
-    blob_num(ROI_num==x), 1:expmt.meta.roi.n, 'UniformOutput',false)';
+[candidate_ROI_cen, blob_num] = assignROI(cat(1,props.Centroid), expmt);
+
 trackDat.permutation = cell(expmt.meta.roi.n,1);
 
 for i=1:expmt.meta.roi.n
