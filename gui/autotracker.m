@@ -868,8 +868,10 @@ try
             'buttons',buttons,'icon',false);
         if strcmp(plot_traces,'OK')
             instr = {'close trace plots to resume'};
-            hNote = gui_axes_notify(handles.axes_handle,istr);
+            hNote = gui_axes_notify(handles.axes_handle,instr);
+            set(handles.on_objs(isvalid(handles.on_objs)),'Enable','off');
             plotTraces(expmt);
+            set(handles.on_objs(isvalid(handles.on_objs)),'Enable','on');
             cellfun(@delete,hNote);
         end
     end
@@ -1460,14 +1462,14 @@ function reference_pushbutton_Callback(hObject, ~, handles)
 expmt = getappdata(handles.gui_fig,'expmt');
 
 if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
-    try
+    %try
         toggleMenus(handles, 'off');
         expmt.meta.initialize = false;
         expmt = initializeRef(handles,expmt);
         handles.sample_noise_pushbutton.Enable = 'on';
-    catch
+    %catch
         toggleMenus(handles, 'on');
-    end
+    %end
     expmt.meta.initialize = true;
 else
     errordlg('Either ROI detection has not been run or no ROIs were detected.')

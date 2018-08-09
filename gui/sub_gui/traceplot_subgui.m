@@ -71,8 +71,8 @@ else
 end
 
 % disable extra controls if there are too few rois
-max_roi = expmt.meta.roi.n;
-all_ctls = findobj(handles.trace_fig,'-depth',1);
+max_roi = expmt.meta.num_traces;
+all_ctls = findobj(handles.trace_fig,'-depth',1,'-property','Enable');
 all_tags = get(all_ctls,'Tag');
 ctl_nums = cellfun(@(s) regexp(s,'\d','match'),all_tags,'UniformOutput',false);
 enable_ctl = cellfun(@(s) isempty(s) || str2num(s{1})<=max_roi, ctl_nums);
@@ -101,7 +101,7 @@ for i=1:6
     stp2 = stp*10;
     stp2(stp2>1) = 1;
     sb(i).Max = cap;
-    if i <= expmt.meta.roi.n && ~strcmp(sb(i).Enable,'off')
+    if i <= expmt.meta.num_traces && ~strcmp(sb(i).Enable,'off')
         dispTrace(i,handles);
     end
     if stp == 1
@@ -213,7 +213,9 @@ else
     ii = ii:ii+9999;
 end
 
-
+if isempty(ii)
+    return
+end
 x = expmt.data.centroid.raw(ii,1,roi);
 y = expmt.data.centroid.raw(ii,2,roi);
 th.String = sprintf('%i\t - \t%i',ii(1),ii(end));
@@ -277,7 +279,7 @@ function prev_pushbutton_Callback(hObject, eventdata, handles)
 
 % query value of first plot
 expmt = handles.trace_fig.UserData.expmt;
-max_idx = expmt.meta.roi.n;
+max_idx = expmt.meta.num_traces;
 start = str2double(handles.edit_ROI_num1.String);
 min_idx = 1;
 if start < max_idx
@@ -318,7 +320,7 @@ function next_pushbutton_Callback(hObject, eventdata, handles)
 % query value of virst plot
 start = str2double(handles.edit_ROI_num1.String);
 expmt = handles.trace_fig.UserData.expmt;
-max_idx = expmt.meta.roi.n;
+max_idx = expmt.meta.num_traces;
 start = start+6;
 if start + 5 >= max_idx
     start = start - (start + 5 - max_idx);

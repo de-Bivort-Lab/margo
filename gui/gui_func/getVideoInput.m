@@ -35,7 +35,7 @@ elseif strcmp(expmt.meta.source,'video')
     % set current file to first file in list
     gui_handles.vid_select_popupmenu.Value = 1;
     
-    if isfield(expmt.meta,'video') && isfield(expmt.meta.video,'fID')
+    if isfield(expmt.meta,'video')
         
         % open video object from file
         expmt.meta.video.vid = ...

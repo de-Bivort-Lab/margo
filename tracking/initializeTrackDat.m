@@ -3,7 +3,6 @@ function trackDat = initializeTrackDat(expmt)
 trackDat.fields={'centroid';'area';'time'};  % Define fields for regionprops
 trackDat.t = 0;
 trackDat.ct = 0;
-trackDat.drop_ct = 0;
 trackDat.lastFrame = false;
 
 if isfield(expmt.meta.roi,'n')
@@ -51,6 +50,7 @@ end
 if ~isempty(fieldnames(expmt.meta.noise))
     trackDat.px_dist = zeros(10,1);      % distribution of pixels over threshold  
     trackDat.pix_dev = zeros(10,1);      % stdev of pixels over threshold
+    trackDat.drop_ct = zeros(sum(nt),1);
 end
 
 
