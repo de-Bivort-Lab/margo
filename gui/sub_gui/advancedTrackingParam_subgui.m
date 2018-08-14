@@ -22,7 +22,7 @@ function varargout = advancedTrackingParam_subgui(varargin)
 
 % Edit the above text to modify the response to help advancedTrackingParam_subgui
 
-% Last Modified by GUIDE v2.5 03-Aug-2018 18:22:11
+% Last Modified by GUIDE v2.5 14-Aug-2018 18:58:17
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -83,6 +83,17 @@ switch expmt.meta.track_mode
     case 'multitrack'
         handles.trackingmode_popupmenu.Value = 2;
         set(handles.multi_uipanel.Children,'Enable','on');
+end
+
+if expmt.parameters.bg_auto
+   handles.bg_mode_popupmenu.Value = 1;
+else
+   switch expmt.parameters.bg_mode
+       case 'light'
+           handles.bg_mode_popupmenu.Value = 2;
+       case 'dark'
+          handles.bg_mode_popupmenu.Value = 3;
+   end
 end
 
 % find idx of active mode in menu and set it in gui
@@ -910,7 +921,7 @@ guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function edit_num_traces_CreateFcn(hObject, eventdata, handles)
+function edit_num_traces_CreateFcn(hObject, eventdata, handles) %#ok<*INUSD,*DEFNU>
 % hObject    handle to edit_num_traces (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -1005,3 +1016,35 @@ switch kp
 end
 
 guidata(hObject,handles);
+
+
+% --- Executes on selection change in bg_mode_popupmenu.
+function bg_mode_popupmenu_Callback(hObject, eventdata, handles)
+
+expmt = getappdata(handles.track_fig.UserData.gui_handles.gui_fig,'expmt');
+
+switch hObject.String{hObject.Value}
+    case 'auto'
+        expmt.parameters.bg_auto = true;
+    case 'light'
+        expmt.parameters.bg_mode = 'light';
+        expmt.parameters.bg_auto = false;
+    case 'dark'
+        expmt.parameters.bg_mode = 'dark';
+        expmt.parameters.bg_auto = false;
+end
+
+
+
+
+% --- Executes during object creation, after setting all properties.
+function bg_mode_popupmenu_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to bg_mode_popupmenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end

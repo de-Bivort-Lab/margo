@@ -194,9 +194,11 @@ while trackDat.t < expmt.parameters.duration*3600 &&...
         hCirc.CData = color;
     end
 
-    if trackDat.ct <= size(dDifference,1)
+    if trackDat.ct <= size(dDifference,1) && expmt.parameters.bg_auto
         % compute frame to frame change in the magnitude of the difference of
         % the difference image with bg_mode = 'light' and bg_mode = 'dark'
+        trackDat.im(~expmt.meta.roi.mask) = 0;
+        tmp_ref(~expmt.meta.roi.mask) = 0;
         diffStack{1}(:,:,mod(trackDat.ct-1,2)+1) = tmp_ref - trackDat.im;
         diffStack{2}(:,:,mod(trackDat.ct-1,2)+1) = trackDat.im - tmp_ref;
         tmp_dDif = cellfun(@(x) ...
@@ -210,12 +212,16 @@ while trackDat.t < expmt.parameters.duration*3600 &&...
             avg_deltaDiff = nanmean(dDifference);
             if avg_deltaDiff(1) > avg_deltaDiff(2)
                 trackDat.ref.bg_mode = 'light';
+                expmt.parameters.bg_mode = 'light';
+                expmt.parameters.bg_auto = false;
                 gui_notify('detected dark objects on light background',...
                     gui_handles.disp_note);
             else
                 trackDat.ref.bg_mode = 'dark';
                 gui_notify('detected light objects on dark background',...
                     gui_handles.disp_note);
+                expmt.parameters.bg_mode = 'dark';
+                expmt.parameters.bg_auto = false;
             end
             
         end

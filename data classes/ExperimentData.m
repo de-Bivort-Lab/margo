@@ -182,6 +182,8 @@ classdef ExperimentData < dynamicprops
             p.traces_per_roi        = 1;
             p.estimate_trace_num    = false;
             p.max_trace_duration    = 20;
+            p.bg_mode               = 'light';
+            p.bg_auto               = true;
         end
         
         function obj = trimParameters(obj)

@@ -1559,7 +1559,7 @@ end
 
 
 % run ROI detection
-try 
+%try 
     
     expmt.meta.initialize = false;
     toggleMenus(handles, 'off');
@@ -1624,12 +1624,12 @@ try
     % re-enable controls
     set(on_objs, 'Enable', 'on');
     
-catch ME
-    toggleMenus(handles, 'on');
-    hObject.Enable = 'on';
-    msg=getReport(ME,'extended');
-    errordlg(msg);
-end
+% catch ME
+%     toggleMenus(handles, 'on');
+%     hObject.Enable = 'on';
+%     msg=getReport(ME,'extended');
+%     errordlg(msg);
+% end
 
 % Store expmteriment data struct
 expmt.meta.initialize = true;

@@ -122,20 +122,20 @@ while any(~targets_assigned)
                 traces_in.t(can_idx(best_match)) = t_curr;
                 idx = find(isnan(trace_permutation),1);
                 idx = idx : idx + numel(can_idx(best_match)) - 1;
-                trace_permutation(idx) = can_idx(best_match);
+                trace_permutation(idx) = can_idx(best_match(1:numel(idx)));
                 idx = find(isnan(blob_permutation),1);
                 idx = idx : idx + numel(tar_idx(best_match)) - 1;
-                blob_permutation(idx) = tar_idx(best_match);
+                blob_permutation(idx) = tar_idx(best_match(1:numel(idx)));
             case 'trace_sort'
                 traces_out.cen(tar_idx(best_match),:) = can_cen ...
                                                    (unique(match_idx),:);
                 traces_in.t(tar_idx(best_match)) = t_curr;
                 idx = find(isnan(trace_permutation),1);
                 idx = idx : idx + numel(tar_idx(best_match)) - 1;
-                trace_permutation(idx) = tar_idx(best_match);
+                trace_permutation(idx) = tar_idx(best_match(1:numel(idx)));
                 idx = find(isnan(blob_permutation),1);
                 idx = idx : idx + numel(can_idx(best_match)) - 1;
-                blob_permutation(idx) =  can_idx(best_match);
+                blob_permutation(idx) =  can_idx(best_match(1:numel(idx)));
         end
 
         candidates_assigned(can_idx(best_match)) = true;

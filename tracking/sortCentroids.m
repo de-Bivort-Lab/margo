@@ -62,28 +62,28 @@ raw_cen(filt,:)=[];
 ROI_num(filt)=[];            
 
 % check for centroids with more than one ROI assigned
-% dupROIs = cellfun(@length,ROI_num)>1;
-% if any(dupROIs)
-% 
-%  % find ROI with nearest last centroid to each raw_cen                
-%  ROI_num(dupROIs) = ...
-%      cellfun(@(x,y) closestCentroid(x,y,trackDat.centroid),...
-%         num2cell(raw_cen(dupROIs,:),2),...
-%         ROI_num(dupROIs),'UniformOutput',false);
-% 
-% end   
+dupROIs = cellfun(@length,ROI_num)>1;
+if any(dupROIs)
+
+% find ROI with nearest last centroid to each raw_cen                
+ROI_num(dupROIs) = ...
+     cellfun(@(x,y) closestCentroid(x,y,expmt.meta.roi.centers),...
+        num2cell(raw_cen(dupROIs,:),2),...
+        ROI_num(dupROIs),'UniformOutput',false);
+
+end   
 
 % find ROIs with more than one centroid assignment
-ROI_num = cat(2,ROI_num{:});    
+ROI_num = cat(1,ROI_num{:});    
 hasDupCen = find(histc(ROI_num,1:expmt.meta.roi.n)>1);
 if ~isempty(hasDupCen)
     dupCenIdx = arrayfun(@(x) find(ismember(ROI_num,x)),...
                     hasDupCen,'UniformOutput',false);
     [~,discard] = cellfun(@(x,y) closestCentroid(x,y,raw_cen),...
                         num2cell(trackDat.centroid(hasDupCen,:),2),...
-                        dupCenIdx','UniformOutput',false);
-    ROI_num(cat(2,discard{:}))=[];
-    raw_cen((cat(2,discard{:})),:)=[];
+                        dupCenIdx,'UniformOutput',false);
+    ROI_num(cat(1,discard{:}))=[];
+    raw_cen((cat(1,discard{:})),:)=[];
 end
 
 % assign outputs for sorting data

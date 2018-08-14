@@ -1,6 +1,6 @@
 function expmt = setROImask(expmt)
 
-% create a single mask for all ROIs in the image
+%% create a single mask for all ROIs in the image
 switch expmt.meta.roi.mode    
     case 'grid'
        
@@ -75,6 +75,11 @@ pi = [pi; x yT];
 x = (floor(c(3,1)):ceil(c(4,1)))';      % bottom line
 yB = round(vec(1,3,1).*x + vec(1,3,2));
 pi = [pi; x yB];
+pi(pi<1)=1;
+oob = pi(:,2) > dim(1);
+pi(oob,2) = dim(1);
+oob = pi(:,1) > dim(2);
+pi(oob,1) = dim(2);
 pi = sub2ind(dim,pi(:,2),pi(:,1));
 
 mask = false(dim);

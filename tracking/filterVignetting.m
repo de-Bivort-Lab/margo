@@ -55,6 +55,12 @@ end
 
 % extract roi image and find luminance threshold
 roi_coords = round(roi_coords);
+dim = size(ref_im);
+roi_coords(roi_coords < 1) = 1;
+oob = roi_coords(:,3) > dim(2);
+roi_coords(oob,3) = dim(2);
+oob = roi_coords(:,4) > dim(1);
+roi_coords(oob,4) = dim(1);
 sub_im=ref_im(roi_coords(2):roi_coords(4),roi_coords(1):roi_coords(3));
 switch expmt.meta.roi.mode
     

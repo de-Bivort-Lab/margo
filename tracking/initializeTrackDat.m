@@ -22,6 +22,7 @@ trackDat.candidates = TracePool(nr, 0, md, 'Bounded', false);
 depth = expmt.parameters.ref_depth;       % number of rolling sub references
 if ~isempty(fieldnames(expmt.meta.ref))
     trackDat.ref = expmt.meta.ref;
+    trackDat.ref.bg_mode = expmt.parameters.bg_mode;
     tmp = trackDat.ref.cen;
     tmp_n = cellfun(@(t) size(t,1), tmp);
     trackDat.ref.cen = ...
@@ -42,7 +43,7 @@ else
     trackDat.ref.ct = zeros(nROIs, 1);              % Reference number placeholder
     trackDat.ref.t = 0;                             % reference time stamp
     trackDat.ref.last_update = zeros(nROIs,1);
-    trackDat.ref.bg_mode = 'light';                 % set reference mode to dark
+    trackDat.ref.bg_mode = expmt.parameters.bg_mode;                 % set reference mode to dark
                                                     % obj on light background
 end
 

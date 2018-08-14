@@ -1,20 +1,20 @@
 
 function ROI_num = assignROI(raw_cen, expmt)
 
-              
-switch expmt.parameters.sort_mode  
-    case 'bounds'
-        ROI_num = cellfun(@(x) ...
-            bounds_AssignROI(x,expmt.meta.roi.corners),...
-            num2cell(raw_cen,2),'UniformOutput',false);
-    case 'distance'
-        ROI_num = distance_assignROI(raw_cen, expmt.meta.roi.centers);
-    case 'grid'
-        % find candidate ROIs for each centroid
-        ROI_num = arrayfun(@(x) grid_AssignROI(...
-            x,expmt.meta.roi.vec,expmt.meta.roi.shape,expmt.meta.roi.tform),...
-            num2cell(raw_cen,2),'UniformOutput',false);
-     
+if strcmp(expmt.parameters.roi_mode,'grid')
+    % find candidate ROIs for each centroid
+    ROI_num = arrayfun(@(x) grid_AssignROI(...
+        x,expmt.meta.roi.vec,expmt.meta.roi.shape,expmt.meta.roi.tform),...
+        num2cell(raw_cen,2),'UniformOutput',false);
+else
+    switch expmt.parameters.sort_mode  
+        case 'bounds'
+            ROI_num = cellfun(@(x) ...
+                bounds_AssignROI(x,expmt.meta.roi.corners),...
+                num2cell(raw_cen,2),'UniformOutput',false);
+        case 'distance'
+            ROI_num = distance_assignROI(raw_cen, expmt.meta.roi.centers);   
+    end
 end
             
 
@@ -59,6 +59,10 @@ if any(iscirc)
     if sqrt((uc(1)-0.5).^2 + (uc(2)-0.5).^2) > 0.5
         ROI_num = [];
     end
+end
+
+if numel(ROI_num) > 1
+    ROI_num = ROI_num(1);
 end
 
 
