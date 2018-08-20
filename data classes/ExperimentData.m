@@ -284,7 +284,7 @@ classdef ExperimentData < dynamicprops
 
                     for i=1:length(callArgs)
                         tmp_var = evalin('caller',callArgs{i});
-                        if exist(tmp_var,'file')==2
+                        if ischar(tmp) && exist(tmp_var,'file')==2
                             fpath = tmp_var;
                             if testPath(fpath, obj.meta.date)
                                 obj = updatepaths(obj,fpath);

@@ -65,13 +65,6 @@ end
 % configure the figure window, display, and handles
 handles = defaultConfigureGUI(handles);
 
-% initialize array indicating expIDs for experiments with an associated
-% parameter subgui. NOTE: any custom experiments with an experiment
-% parameters subgui must be added to this list.
-handles.parameter_subgui = {'Circadian';'Optomotor';'Slow Phototaxis';...
-    'Temporal Phototaxis';'Arena Blocks'};
-
-
 % initialize ExperimentData obj
 expmt = ExperimentData;
 
@@ -826,36 +819,15 @@ try
     handles.run_pushbutton.Enable = 'off';
 
     % Execute the appropriate script for the selected experiment
-    switch expmt.meta.name              
-        case 'Optomotor'
-            expmt = run_optomotor(expmt,handles);
-
-        case 'Slow Phototaxis'
-            expmt = run_slowphototaxis(expmt,handles);
-
-        case 'LED Y-maze'
-            expmt = run_ledymaze(expmt,handles);
-
-        case 'Arena Circling'
-            expmt = run_arenacircling(expmt,handles);
-
-        case 'Y-maze'
-            expmt = run_ymaze(expmt,handles);
-
-        case 'Basic Tracking'
-            expmt = run_basictracking(expmt,handles);     % Run expmt
-
-        case 'Circadian'
-            expmt = run_circadian(expmt,handles);
-
-        case 'Temporal Phototaxis'
-            expmt = run_tempphototaxis(expmt,handles);
-    end
+    exp_idx = find(arrayfun(@(e) ...
+        strcmpi(expmt.meta.name,e.name),handles.experiments));
+    expmt = feval(handles.experiments(exp_idx).run, expmt, handles);
     
     % run post-processing
     if ~expmt.meta.finish
         keep_gui_state = true;
     elseif ~expmt.meta.options.disable
+        if ~isempty(feval(handles.experiments(exp_idx).run
         expmt = autoAnalyze(expmt,'Handles',handles);
     end
 
@@ -868,12 +840,15 @@ try
             'buttons',buttons,'icon',false);
         if strcmp(plot_traces,'OK')
             instr = {'close trace plots to resume'};
-            gui_axes_notify(handles.axes_handle,)
+            hNote = gui_axes_notify(handles.axes_handle,instr);
+            set(handles.on_objs(isvalid(handles.on_objs)),'Enable','off');
             plotTraces(expmt);
+            set(handles.on_objs(isvalid(handles.on_objs)),'Enable','on');
+            cellfun(@delete,hNote);
         end
     end
 
-% re-establish gui state prior to tracking error is encountered
+%re-establish gui state prior to tracking error is encountered
 catch ME
     if isfield(handles,'deviceID')
         try
@@ -1459,14 +1434,14 @@ function reference_pushbutton_Callback(hObject, ~, handles)
 expmt = getappdata(handles.gui_fig,'expmt');
 
 if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
-    try
+    %try
         toggleMenus(handles, 'off');
         expmt.meta.initialize = false;
         expmt = initializeRef(handles,expmt);
         handles.sample_noise_pushbutton.Enable = 'on';
-    catch
+    %catch
         toggleMenus(handles, 'on');
-    end
+    %end
     expmt.meta.initialize = true;
 else
     errordlg('Either ROI detection has not been run or no ROIs were detected.')
@@ -1556,7 +1531,7 @@ end
 
 
 % run ROI detection
-try 
+%try 
     
     expmt.meta.initialize = false;
     toggleMenus(handles, 'off');
@@ -1621,12 +1596,12 @@ try
     % re-enable controls
     set(on_objs, 'Enable', 'on');
     
-catch ME
-    toggleMenus(handles, 'on');
-    hObject.Enable = 'on';
-    msg=getReport(ME,'extended');
-    errordlg(msg);
-end
+% catch ME
+%     toggleMenus(handles, 'on');
+%     hObject.Enable = 'on';
+%     msg=getReport(ME,'extended');
+%     errordlg(msg);
+% end
 
 % Store expmteriment data struct
 expmt.meta.initialize = true;

@@ -18,7 +18,7 @@ classdef RawDataMap < handle
                 try
                     attach(obj.Parent);
                 catch
-                    warning(['could not attach raw data map - run '
+                    warning(['could not attach raw data map - run '...
                         'attach(RawDataMap) before indexing raw data']);
                 end
             end

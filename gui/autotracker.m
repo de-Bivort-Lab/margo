@@ -65,13 +65,6 @@ end
 % configure the figure window, display, and handles
 handles = defaultConfigureGUI(handles);
 
-% initialize array indicating expIDs for experiments with an associated
-% parameter subgui. NOTE: any custom experiments with an experiment
-% parameters subgui must be added to this list.
-handles.parameter_subgui = {'Circadian';'Optomotor';'Slow Phototaxis';...
-    'Temporal Phototaxis';'Arena Blocks'};
-
-
 % initialize ExperimentData obj
 expmt = ExperimentData;
 
@@ -819,44 +812,24 @@ elseif any(strcmp(expmt.meta.name,handles.parameter_subgui)) &&...
 end
 
     
-%try
+try
     % disable controls that are not to be accessed while expmt is running
     toggleSubguis(handles,'off');
     toggleMenus(handles,'off');
     handles.run_pushbutton.Enable = 'off';
 
     % Execute the appropriate script for the selected experiment
-    switch expmt.meta.name              
-        case 'Optomotor'
-            expmt = run_optomotor(expmt,handles);
-
-        case 'Slow Phototaxis'
-            expmt = run_slowphototaxis(expmt,handles);
-
-        case 'LED Y-maze'
-            expmt = run_ledymaze(expmt,handles);
-
-        case 'Arena Circling'
-            expmt = run_arenacircling(expmt,handles);
-
-        case 'Y-maze'
-            expmt = run_ymaze(expmt,handles);
-
-        case 'Basic Tracking'
-            expmt = run_basictracking(expmt,handles);     % Run expmt
-
-        case 'Circadian'
-            expmt = run_circadian(expmt,handles);
-
-        case 'Temporal Phototaxis'
-            expmt = run_tempphototaxis(expmt,handles);
-    end
+    exp_idx = find(arrayfun(@(e) ...
+        strcmpi(expmt.meta.name,e.name),handles.experiments));
+    expmt = feval(handles.experiments(exp_idx).run, expmt, handles);
     
     % run post-processing
     if ~expmt.meta.finish
         keep_gui_state = true;
     elseif ~expmt.meta.options.disable
-        expmt = autoAnalyze(expmt,'Handles',handles);
+        if ~isempty(handles.experiments(exp_idx).analyze)
+            expmt = feval(handles.experiments(exp_idx).analyze, expmt);
+        end
     end
 
     if isfield(expmt.data,'centroid') && isattached(expmt.data.centroid)
@@ -876,32 +849,32 @@ end
         end
     end
 
-% re-establish gui state prior to tracking error is encountered
-% catch ME
-%     if isfield(handles,'deviceID')
-%         try
-%         [~,status]=urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=3']);
-%         catch
-%             status = false;
-%         end
-%         if ~status
-%             gui_notify(['unable to connect to'...
-%                 ' http://lab.debivort.org'],handles.disp_note);
-%         end
-%     end
-%     
-%     switch expmt.meta.name
-%         case 'Slow Phototaxis', sca;
-%         case 'Optomotor', sca;
-%         case 'Temporal Phototaxis', sca;
-%     end
-%     gui_notify('error encountered - tracking stopped',handles.disp_note);
-%     keep_gui_state = true;
-%     title = 'Error encountered - tracking stopped';
-%     msg=getReport(ME,'extended','hyperlinks','off');
-%     errordlg(msg,title);
-%     error(getReport(ME));
-% end
+%re-establish gui state prior to tracking error is encountered
+catch ME
+    if isfield(handles,'deviceID')
+        try
+        [~,status]=urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=3']);
+        catch
+            status = false;
+        end
+        if ~status
+            gui_notify(['unable to connect to'...
+                ' http://lab.debivort.org'],handles.disp_note);
+        end
+    end
+    
+    switch expmt.meta.name
+        case 'Slow Phototaxis', sca;
+        case 'Optomotor', sca;
+        case 'Temporal Phototaxis', sca;
+    end
+    gui_notify('error encountered - tracking stopped',handles.disp_note);
+    keep_gui_state = true;
+    title = 'Error encountered - tracking stopped';
+    msg=getReport(ME,'extended','hyperlinks','off');
+    errordlg(msg,title);
+    error(getReport(ME));
+end
     
 if isfield(handles,'deviceID')
     try
@@ -1052,7 +1025,7 @@ end
 
 % if experiment parameters are set, Enable experiment run panel
 % if experiment parameters are set, Enable experiment run panel
-if expmt.meta.exp_id > 1 && ~isempty(handles.save_path.String)
+if ~isempty(handles.save_path.String)
     set(findall(handles.run_uipanel, '-property', 'Enable'),'Enable','on');
     eb = findall(handles.run_uipanel, 'Style', 'edit');
     set(eb,'Enable','inactive','BackgroundColor',[.87 .87 .87]);

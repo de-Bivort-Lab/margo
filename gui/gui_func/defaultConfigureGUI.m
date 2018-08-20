@@ -128,3 +128,43 @@ for i = 1:length(profiles)
     menu_items(i).UserData.index = i;
     menu_items(i).UserData.gui_handles = handles;
 end
+
+% get experiment nums and function handles
+experiments = struct('name','','run','','analyze','','sub_gui','');
+par_dir = [handles.gui_dir 'experiments'];
+dinfo = dir(par_dir);
+dinfo(arrayfun(@(d) any(d.name=='.'), dinfo)) = [];
+experiments = repmat(experiments, numel(dinfo), 1);
+del = [];
+handles.parameter_subgui = {};
+for i=1:numel(experiments)
+    
+    experiments(i).name = dinfo(i).name;
+    exp_dir = [par_dir '/' dinfo(i).name];
+    run = recursiveSearch(exp_dir,'keyword','run_','ext','.m');
+    if ~isempty(run)
+        [~,run,~] = fileparts(run{1});
+        experiments(i).run = str2func(run);
+    else
+        del = [del i];
+    end
+    analyze = recursiveSearch(exp_dir,'keyword','analyze_','ext','.m');
+    if ~isempty(analyze)
+        [~,analyze,~] = fileparts(analyze{1});
+        experiments(i).analyze = str2func(analyze);
+    end  
+    sub_gui = recursiveSearch(exp_dir,'keyword','gui','ext','.m');
+    if ~isempty(sub_gui)
+        [~,sub_gui,~] = fileparts(sub_gui{1});
+        experiments(i).sub_gui = str2func(sub_gui);
+        handles.parameter_subgui = [handles.parameter_subgui; {dinfo(i).name}];
+    end  
+end
+
+% delete improperly formatted experiments from the list
+experiments(del) = [];
+handles.experiments = experiments;
+handles.exp_select_popupmenu.String = ...
+    arrayfun(@(e) e.name, experiments, 'UniformOutput', false);
+
+
