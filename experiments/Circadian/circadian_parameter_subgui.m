@@ -56,7 +56,6 @@ function circadian_parameter_subgui_OpeningFcn(hObject, eventdata, handles, vara
 
     expmt = varargin{1};
     p = expmt.parameters;
-    gui_handles = varargin{2};
     handles.circ_fig.UserData = p;
     
     if isfield(p,'lights_ON')

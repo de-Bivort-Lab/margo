@@ -22,7 +22,7 @@ function varargout = autotracker(varargin)
 
 % Edit the above text to modify the response to help autotracker
 
-% Last Modified by GUIDE v2.5 26-Jun-2018 21:56:11
+% Last Modified by GUIDE v2.5 20-Aug-2018 13:12:18
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -54,6 +54,7 @@ handles.gui_dir = which('autotracker');
 [par_dir,~,~] = fileparts(handles.gui_dir);
 [par_dir,~,~] = fileparts(par_dir);
 handles.gui_dir = [par_dir '/'];
+handles.gui_dir = unixify(handles.gui_dir);
 addpath(genpath(handles.gui_dir));
 if ~exist([handles.gui_dir 'profiles/'],'dir')
     mkdir([handles.gui_dir 'profiles/']);
@@ -130,7 +131,7 @@ function varargout = autotracker_OutputFcn(hObject, ~, handles)
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 % Get default command line output from handles structure
 varargout{1} = [];
@@ -150,7 +151,7 @@ varargout{1} = [];
 function cam_select_popupmenu_Callback(hObject, ~, handles)
 % hObject    handle to cam_select_popupmenu (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 % import expmteriment variables
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -188,10 +189,10 @@ guidata(hObject,handles);
 function cam_select_popupmenu_CreateFcn(hObject,~,~)
 % hObject    handle to cam_select_popupmenu (see GCBO)
 
-% handles    empty - handles not created until after all CreateFcns called
+
 
 % Hint: popupmenu controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
+
 if ispc && isequal(get(hObject,'BackgroundColor'), ...
         get(0,'defaultUicontrolBackgroundColor'))
     
@@ -204,7 +205,7 @@ end
 function cam_mode_popupmenu_Callback(hObject, ~, handles)
 % hObject    handle to cam_mode_popupmenu (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 expmt = getappdata(handles.gui_fig,'expmt');
 
@@ -221,10 +222,10 @@ guidata(hObject,handles);
 function cam_mode_popupmenu_CreateFcn(hObject,~,~)
 % hObject    handle to cam_mode_popupmenu (see GCBO)
 
-% handles    empty - handles not created until after all CreateFcns called
+
 
 % Hint: popupmenu controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
+
 if ispc && isequal(get(hObject,'BackgroundColor'), ...
         get(0,'defaultUicontrolBackgroundColor'))
     
@@ -236,7 +237,7 @@ end
 function Cam_confirm_pushbutton_Callback(hObject, ~, handles)
 % hObject    handle to Cam_confirm_pushbutton (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -381,7 +382,7 @@ guidata(hObject,handles);
 % --- Executes on button press in Cam_preview_togglebutton.
 function Cam_preview_togglebutton_Callback(hObject, ~, handles)
 % hObject    handle to Cam_preview_togglebutton (see GCBO)
-% handles    structure with handles and user data (see GUIDATA)
+
 
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -499,12 +500,7 @@ guidata(hObject,handles);
 
 % --- Executes during object creation, after setting all properties.
 function microcontroller_popupmenu_CreateFcn(hObject,~,~)
-% hObject    handle to microcontroller_popupmenu (see GCBO)
 
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: popupmenu controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), ...
         get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
@@ -513,9 +509,7 @@ end
 
 
 function edit_IR_intensity_Callback(hObject, ~, handles)
-% hObject    handle to edit_IR_intensity (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
 % Initialize light panel at default values
 
 % import expmteriment data struct
@@ -535,21 +529,13 @@ setappdata(handles.gui_fig,'expmt',expmt);
 
 % --- Executes during object creation, after setting all properties.
 function edit_IR_intensity_CreateFcn(hObject,~,~)
-% hObject    handle to edit_IR_intensity (see GCBO)
 
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), ...
         get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
 
 function edit_White_intensity_Callback(hObject, ~, handles)
-% hObject    handle to edit_White_intensity (see GCBO)
-
-% handles    structure with handles and user data (see GUIDATA)
 
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -569,12 +555,7 @@ guidata(hObject,handles);
 
 % --- Executes during object creation, after setting all properties.
 function edit_White_intensity_CreateFcn(hObject,~,~)
-% hObject    handle to edit_White_intensity (see GCBO)
 
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
@@ -582,9 +563,6 @@ end
 
 % --- Executes on button press in save_path_button1.
 function save_path_button1_Callback(hObject, ~, handles)
-% hObject    handle to save_path_button1 (see GCBO)
-
-% handles    structure with handles and user data (see GUIDATA)
 
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -622,17 +600,10 @@ guidata(hObject,handles);
 function save_path_Callback(~,~,~)
 % hObject    handle to save_path (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
-
 
 % --- Executes during object creation, after setting all properties.
 function save_path_CreateFcn(hObject,~,~)
-% hObject    handle to save_path (see GCBO)
 
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
@@ -640,9 +611,6 @@ end
 
 % --- Executes during object creation, after setting all properties.
 function labels_uitable_CreateFcn(hObject, ~, handles)
-% hObject    handle to labels_uitable (see GCBO)
-
-% handles    empty - handles not created until after all CreateFcns called
 
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -659,14 +627,6 @@ guidata(hObject,handles);
 
 % --- Executes when entered data in editable cell(s) in labels_uitable.
 function labels_uitable_CellEditCallback(hObject, ~, handles)
-% hObject    handle to labels_uitable (see GCBO)
-% eventdata  structure with the following fields (see UITABLE)
-%	Indices: row and column indices of the cell(s) edited
-%	PreviousData: previous data for the cell(s) edited
-%	EditData: string(s) entered by the user
-%	NewData: EditData or its converted form set on the Data property. Empty if Data was not changed
-%	Error: error string when failed to convert EditData to appropriate value for Data
-% handles    structure with handles and user data (see GUIDATA)
 
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -681,9 +641,6 @@ guidata(hObject,handles);
 
 
 function edit_ref_depth_Callback(hObject, ~, handles)
-% hObject    handle to edit_ref_depth (see GCBO)
-
-% handles    structure with handles and user data (see GUIDATA)
 
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -699,21 +656,13 @@ guidata(hObject,handles);
 
 % --- Executes during object creation, after setting all properties.
 function edit_ref_depth_CreateFcn(hObject,~,~)
-% hObject    handle to edit_ref_depth (see GCBO)
 
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
 
 
 function edit_ref_freq_Callback(hObject, ~, handles)
-% hObject    handle to edit_ref_freq (see GCBO)
-
-% handles    structure with handles and user data (see GUIDATA)
 
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -729,21 +678,13 @@ guidata(hObject,handles);
 
 % --- Executes during object creation, after setting all properties.
 function edit_ref_freq_CreateFcn(hObject,~,~)
-% hObject    handle to edit_ref_freq (see GCBO)
 
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
 
 
 function edit_exp_duration_Callback(hObject, ~, handles)
-% hObject    handle to edit_exp_duration (see GCBO)
-
-% handles    structure with handles and user data (see GUIDATA)
 
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -759,12 +700,7 @@ end
 
 % --- Executes during object creation, after setting all properties.
 function edit_exp_duration_CreateFcn(hObject,~,~)
-% hObject    handle to edit_exp_duration (see GCBO)
 
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
@@ -772,9 +708,6 @@ end
 
 % --- Executes on button press in run_pushbutton.
 function run_pushbutton_Callback(hObject, ~, handles)
-% hObject    handle to run_pushbutton (see GCBO)
-
-% handles    structure with handles and user data (see GUIDATA)
 
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -827,8 +760,9 @@ try
     if ~expmt.meta.finish
         keep_gui_state = true;
     elseif ~expmt.meta.options.disable
-        if ~isempty(feval(handles.experiments(exp_idx).run
-        expmt = autoAnalyze(expmt,'Handles',handles);
+        if ~isempty(handles.experiments(exp_idx).analyze)
+            expmt = feval(handles.experiments(exp_idx).analyze, expmt);
+        end
     end
 
     if isfield(expmt.data,'centroid') && isattached(expmt.data.centroid)
@@ -952,11 +886,7 @@ guidata(hObject,handles);
 
 % --- Executes during object creation, after setting all properties.
 function ROI_thresh_slider_CreateFcn(hObject,~,~)
-% hObject    handle to ROI_thresh_slider (see GCBO)
 
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: slider controls usually have a light gray background.
 if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor',[.9 .9 .9]);
 end
@@ -964,9 +894,6 @@ end
 
 % --- Executes on button press in accept_ROI_thresh_pushbutton.
 function accept_ROI_thresh_pushbutton_Callback(hObject, ~, handles) %#ok<*DEFNU>
-% hObject    handle to accept_ROI_thresh_pushbutton (see GCBO)
-
-% handles    structure with handles and user data (see GUIDATA)
 
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -982,18 +909,10 @@ guidata(hObject,handles);
 function edit_frame_rate_Callback(~, ~, ~)
 % hObject    handle to edit_frame_rate (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
-
-
 
 % --- Executes during object creation, after setting all properties.
 function edit_frame_rate_CreateFcn(hObject, ~, ~)
-% hObject    handle to edit_frame_rate (see GCBO)
 
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
@@ -1001,9 +920,6 @@ end
 
 % --- Executes on selection change in exp_select_popupmenu.
 function exp_select_popupmenu_Callback(hObject, ~, handles)
-% hObject    handle to exp_select_popupmenu (see GCBO)
-
-% handles    structure with handles and user data (see GUIDATA)
 
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -1023,8 +939,7 @@ else
 end
 
 % if experiment parameters are set, Enable experiment run panel
-% if experiment parameters are set, Enable experiment run panel
-if expmt.meta.exp_id > 1 && ~isempty(handles.save_path.String)
+if ~isempty(handles.save_path.String)
     set(findall(handles.run_uipanel, '-property', 'Enable'),'Enable','on');
     eb = findall(handles.run_uipanel, 'Style', 'edit');
     set(eb,'Enable','inactive','BackgroundColor',[.87 .87 .87]);
@@ -1034,18 +949,10 @@ end
 setappdata(handles.gui_fig,'expmt',expmt);
 guidata(hObject,handles);
 
-% Hints: contents = cellstr(get(hObject,'String')) returns exp_select_popupmenu contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from exp_select_popupmenu
-
 
 % --- Executes during object creation, after setting all properties.
 function exp_select_popupmenu_CreateFcn(hObject, ~, ~)
-% hObject    handle to exp_select_popupmenu (see GCBO)
 
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: popupmenu controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
@@ -1054,19 +961,10 @@ end
 function edit_time_remaining_Callback(~, ~, ~)
 % hObject    handle to edit_time_remaining (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
-
-
-
 
 % --- Executes during object creation, after setting all properties.
 function edit_time_remaining_CreateFcn(hObject, ~, ~)
-% hObject    handle to edit_time_remaining (see GCBO)
 
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
@@ -1074,86 +972,24 @@ end
 
 % --- Executes on button press in exp_parameter_pushbutton.
 function exp_parameter_pushbutton_Callback(hObject, ~, handles)
-% hObject    handle to exp_parameter_pushbutton (see GCBO)
-
-% handles    structure with handles and user data (see GUIDATA)
 
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 
-if expmt.meta.exp_id<2
-    errordlg('Please select an experiment first')
-else
-    switch expmt.meta.name
-
-        case 'Optomotor'
-            
-                tmp_param = optomotor_parameter_gui(expmt);
-                if ~isempty(tmp_param)
-                    expmt = tmp_param;
-                    expmt.parameters.initialized = true;
-                end
-
-             
-        case 'Slow Phototaxis'                     
-
-                tmp_param = slowphototaxis_parameter_gui(expmt);
-                if ~isempty(tmp_param)
-                    expmt = tmp_param;
-                    expmt.parameters.initialized = true;
-                end
-                
-        case 'Circadian'
-            
-                tmp_param = circadian_parameter_subgui(expmt,handles);
-                if ~isempty(tmp_param)
-                    expmt.parameters = tmp_param;
-                    expmt.parameters.initialized = true;
-                end
-                
-        case 'Arena Blocks'
-            
-                % arena block expmt parameters
-                tmp_param = arenablock_parameter_gui(expmt);
-                if ~isempty(tmp_param)
-                    expmt = tmp_param;
-                    expmt.parameters.initialized = true;
-                 
-                
-                    % also query optomotor and slowphototaxis parameters
-                    % if those experiments are selected as well
-
-                    if isfield(expmt,'block') && any(strcmp(expmt.block.fields,'Optomotor'))
-                        tmp_param = optomotor_parameter_gui(expmt);
-                        if ~isempty(tmp_param)
-                            expmt.opto_parameters = tmp_param.parameters;
-                            expmt.parameters.initialized = true;
-                        end  
-                    end
-
-                    if isfield(expmt,'block') && any(strcmp(expmt.block.fields,'Slow Phototaxis'))
-                        tmp_param = slowphototaxis_parameter_gui(expmt);
-                        if ~isempty(tmp_param)
-                            expmt.photo_parameters = tmp_param.parameters;
-                            expmt.parameters.initialized = true;
-                        end
-                    end
-                
-                end
-
-            case 'Temporal Phototaxis'                  
-
-            tmp_param = slowphototaxis_parameter_gui(expmt);
-            if ~isempty(tmp_param)
-                expmt = tmp_param;
-                expmt.parameters.initialized = true;
-            end
+idx = find(arrayfun(@(e) strcmpi(e.name,expmt.meta.name), handles.experiments));    
+if ~isempty(handles.experiments(idx).sub_gui)
+    
+    tmp_param = feval(handles.experiments(idx).sub_gui,expmt);
+    if ~isempty(tmp_param)
+        expmt.parameters = tmp_param;
+        expmt.parameters.intialized = true;
     end
-    
-    
+else
+    error(['\nno sub gui detected for %s - '...
+        'ensure that the sub gui script is located in \n%s'...
+        'and contains "subgui" in the file name\n'],expmt.meta.name, ...
+        [handles.gui_dir 'experiments/' expmt.meta.name '/']);
 end
-
-
 
 % Store expmteriment data struct
 setappdata(handles.gui_fig,'expmt',expmt);
@@ -1164,10 +1000,6 @@ guidata(hObject,handles);
 
 % --- Executes on button press in refresh_COM_pushbutton.
 function refresh_COM_pushbutton_Callback(hObject, ~, handles)
-% hObject    handle to refresh_COM_pushbutton (see GCBO)
-
-% handles    structure with handles and user data (see GUIDATA)
-% Refresh items on the COM ports
 
 refresh_COM_menu_Callback(handles.refresh_COM_menu,[],handles);
 
@@ -1175,9 +1007,6 @@ refresh_COM_menu_Callback(handles.refresh_COM_menu,[],handles);
 
 % --- Executes on button press in enter_labels_pushbutton.
 function enter_labels_pushbutton_Callback(hObject, ~, handles)
-% hObject    handle to enter_labels_pushbutton (see GCBO)
-
-% handles    structure with handles and user data (see GUIDATA)
 
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -1211,12 +1040,6 @@ guidata(hObject,handles);
 
 % --- Executes on slider movement.
 function track_thresh_slider_Callback(hObject, ~, handles)
-% hObject    handle to track_thresh_slider (see GCBO)
-
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'Value') returns position of slider
-%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
 
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -1235,9 +1058,9 @@ guidata(hObject,handles);
 
 % --- Executes during object creation, after setting all properties.
 function track_thresh_slider_CreateFcn(hObject, ~, ~)
-% hObject    handle to track_thresh_slider (see GCBO)
 
-% handles    empty - handles not created until after all CreateFcns called
+
+
 
 % Hint: slider controls usually have a light gray background.
 if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
@@ -1249,7 +1072,7 @@ end
 function accept_track_thresh_pushbutton_Callback(hObject, ~, handles)
 % hObject    handle to accept_track_thresh_pushbutton (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -1264,22 +1087,16 @@ guidata(hObject,handles);
 
 
 function edit_numObj_Callback(~, ~, ~)
-% hObject    handle to edit_numObj (see GCBO)
-
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of edit_numObj as text
-%        str2double(get(hObject,'String')) returns contents of edit_numObj as a double
 
 
 % --- Executes during object creation, after setting all properties.
 function edit_numObj_CreateFcn(hObject, ~, ~)
 % hObject    handle to edit_numObj (see GCBO)
 
-% handles    empty - handles not created until after all CreateFcns called
 
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
+
+
+
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
@@ -1288,7 +1105,7 @@ end
 function edit_object_num_Callback(~, ~, ~)
 % hObject    handle to edit_object_num (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 % Hints: get(hObject,'String') returns contents of edit_object_num as text
 %        str2double(get(hObject,'String')) returns contents of edit_object_num as a double
@@ -1298,10 +1115,10 @@ function edit_object_num_Callback(~, ~, ~)
 function edit_object_num_CreateFcn(hObject, ~, ~)
 % hObject    handle to edit_object_num (see GCBO)
 
-% handles    empty - handles not created until after all CreateFcns called
 
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
+
+
+
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
@@ -1311,7 +1128,7 @@ end
 function reg_test_pushbutton_Callback(~, ~, ~)
 % hObject    handle to reg_test_pushbutton (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 
 
@@ -1319,7 +1136,7 @@ function reg_test_pushbutton_Callback(~, ~, ~)
 function param_prof_popupmenu_Callback(hObject, ~, handles)
 % hObject    handle to param_prof_popupmenu (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 if get(handles.param_prof_popupmenu,'value') ~= 1
     profiles = get(handles.param_prof_popupmenu,'string');
@@ -1340,10 +1157,10 @@ guidata(hObject,handles);
 function param_prof_popupmenu_CreateFcn(hObject,~,~)
 % hObject    handle to param_prof_popupmenu (see GCBO)
 
-% handles    empty - handles not created until after all CreateFcns called
+
 
 % Hint: popupmenu controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
+
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
@@ -1378,7 +1195,7 @@ end
 function save_params_pushbutton_Callback(hObject, ~, handles)
 % hObject    handle to save_params_pushbutton (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');  %#ok<NASGU>
@@ -1421,14 +1238,14 @@ end
 function ROI_thresh_slider_DeleteFcn(~,~,~)
 % hObject    handle to ROI_thresh_slider (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 
 % --- Executes on button press in reference_pushbutton.
 function reference_pushbutton_Callback(hObject, ~, handles)
 % hObject    handle to reference_pushbutton (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 % import expmteriment variables
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -1458,7 +1275,7 @@ guidata(hObject,handles);
 function sample_noise_pushbutton_Callback(hObject, ~, handles)
 % hObject    handle to sample_noise_pushbutton (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 % import expmteriment variables
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -1480,15 +1297,13 @@ try
     handles.exp_parameter_pushbutton.Enable = state;
 
     % if experiment parameters are set, Enable experiment run panel
-    if expmt.meta.exp_id > 1
-        if ~isempty(handles.save_path.String)
+    if ~isempty(handles.save_path.String)
 
-            set(findall(handles.run_uipanel, ...
-                '-property', 'Enable'),'Enable','on');
-        end
-        if any(strcmp(expmt.meta.name,handles.parameter_subgui))
-            handles.exp_parameter_pushbutton.Enable = 'on';
-        end
+        set(findall(handles.run_uipanel, ...
+            '-property', 'Enable'),'Enable','on');
+    end
+    if any(strcmp(expmt.meta.name,handles.parameter_subgui))
+        handles.exp_parameter_pushbutton.Enable = 'on';
     end
 
 catch
@@ -1506,7 +1321,7 @@ guidata(hObject,handles);
 function auto_detect_ROIs_pushbutton_Callback(hObject, ~, handles)
 % hObject    handle to auto_detect_ROIs_pushbutton (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 % import expmteriment variables
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -1620,21 +1435,21 @@ guidata(hObject,handles);
 function hardware_props_menu_Callback(~,~,~)
 % hObject    handle to hardware_props_menu (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 
 % --------------------------------------------------------------------
 function display_menu_Callback(~,~,~)
 % hObject    handle to display_menu (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 
 % --------------------------------------------------------------------
 function cam_settings_menu_Callback(hObject, ~, handles)
 % hObject    handle to cam_settings_menu (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 % import expmteriment variables
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -1653,14 +1468,14 @@ guidata(hObject,handles);
 function proj_settings_menu_Callback(~,~,~)
 % hObject    handle to proj_settings_menu (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 
 % --------------------------------------------------------------------
 function file_menu_Callback(~,~,~)
 % hObject    handle to file_menu (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 
 
@@ -1669,7 +1484,7 @@ function file_menu_Callback(~,~,~)
 function display_difference_menu_Callback(hObject, ~, handles)
 % hObject    handle to display_difference_menu (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 chk = get(hObject,'checked');
 
@@ -1689,7 +1504,7 @@ guidata(hObject,handles);
 function display_raw_menu_Callback(hObject, ~, handles)
 % hObject    handle to display_raw_menu (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 chk = get(hObject,'checked');
 
@@ -1709,7 +1524,7 @@ guidata(hObject,handles);
 function display_threshold_menu_Callback(hObject, ~, handles)
 % hObject    handle to display_threshold_menu (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 chk = get(hObject,'checked');
 
@@ -1728,7 +1543,7 @@ guidata(hObject,handles);
 function display_reference_menu_Callback(hObject, ~, handles)
 % hObject    handle to display_reference_menu (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 chk = get(hObject,'checked');
 
@@ -1748,7 +1563,7 @@ guidata(hObject,handles);
 function display_none_menu_Callback(hObject, ~, handles)
 % hObject    handle to display_none_menu (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 chk = get(hObject,'checked');
 
@@ -1768,7 +1583,7 @@ guidata(hObject,handles);
 function reg_proj_menu_Callback(hObject, ~, handles)
 % hObject    handle to reg_proj_menu (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 expmt = getappdata(handles.gui_fig,'expmt');
 
@@ -1858,7 +1673,7 @@ setappdata(handles.gui_fig,'expmt',expmt);
 function reg_error_menu_Callback(hObject, ~, handles)
 % hObject    handle to reg_error_menu (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 expmt = getappdata(handles.gui_fig,'expmt');
 
@@ -1908,14 +1723,14 @@ guidata(hObject, handles);
 function tracking_menu_Callback(~,~,~)
 % hObject    handle to tracking_menu (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 
 % --------------------------------------------------------------------
 function advanced_tracking_menu_Callback(hObject, ~, handles)
 % hObject    handle to advanced_tracking_menu (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -1932,7 +1747,7 @@ setappdata(handles.gui_fig,'expmt',expmt);
 function distance_scale_menu_Callback(hObject, ~, handles)
 % hObject    handle to distance_scale_menu (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -1987,42 +1802,42 @@ setappdata(handles.gui_fig,'expmt',expmt);
 function Untitled_4_Callback(~,~,~)
 % hObject    handle to Untitled_4 (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 
 % --------------------------------------------------------------------
 function speed_thresh_menu_Callback(~,~,~)
 % hObject    handle to speed_thresh_menu (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 
 % --------------------------------------------------------------------
 function ROI_distance_thresh_menu_Callback(~,~,~)
 % hObject    handle to ROI_distance_thresh_menu (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 
 % --------------------------------------------------------------------
 function Untitled_7_Callback(~,~,~)
 % hObject    handle to Untitled_7 (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 
 % --------------------------------------------------------------------
 function Untitled_8_Callback(~,~,~)
 % hObject    handle to Untitled_8 (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 
 % --- Executes when gui_fig is resized.
 function gui_fig_SizeChangedFcn(hObject, ~, handles)
 % hObject    handle to gui_fig (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 % calculate delta width and height
 if isfield(handles,'fig_size')
@@ -2099,21 +1914,21 @@ guidata(hObject,handles);
 function load_video_menu_Callback(~,~,~)
 % hObject    handle to load_video_menu (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 
 % --------------------------------------------------------------------
 function saved_presets_menu_Callback(~,~,~)
 % hObject    handle to saved_presets_menu (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 
 % --- Executes on button press in vid_preview_togglebutton.
 function vid_preview_togglebutton_Callback(hObject, ~, handles)
 % hObject    handle to vid_preview_togglebutton (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 % update button appearance
 if hObject.Value
@@ -2187,14 +2002,14 @@ end
 function pushbutton23_Callback(~,~,~)
 % hObject    handle to pushbutton23 (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 
 % --- Executes on selection change in vid_select_popupmenu.
 function vid_select_popupmenu_Callback(hObject, ~, handles)
 % hObject    handle to vid_select_popupmenu (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 % get expmt data struct
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -2216,10 +2031,10 @@ setappdata(handles.gui_fig,'expmt',expmt);
 function vid_select_popupmenu_CreateFcn(hObject,~,~)
 % hObject    handle to vid_select_popupmenu (see GCBO)
 
-% handles    empty - handles not created until after all CreateFcns called
+
 
 % Hint: popupmenu controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
+
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
@@ -2229,7 +2044,7 @@ end
 function edit_video_dir_Callback(~,~,~)
 % hObject    handle to edit_video_dir (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 % Hints: get(hObject,'String') returns contents of edit_video_dir as text
 %        str2double(get(hObject,'String')) returns contents of edit_video_dir as a double
@@ -2239,10 +2054,10 @@ function edit_video_dir_Callback(~,~,~)
 function edit_video_dir_CreateFcn(hObject,~,~)
 % hObject    handle to edit_video_dir (see GCBO)
 
-% handles    empty - handles not created until after all CreateFcns called
 
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
+
+
+
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
@@ -2252,7 +2067,7 @@ end
 function video_files_pushbutton_Callback(hObject, ~, handles)
 % hObject    handle to video_files_pushbutton (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 % get expmt data struct
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -2278,14 +2093,14 @@ setappdata(handles.gui_fig,'expmt',expmt);
 function select_source_menu_Callback(~,~,~)
 % hObject    handle to select_source_menu (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 
 % --------------------------------------------------------------------
 function source_camera_menu_Callback(hObject, ~, handles)
 % hObject    handle to source_camera_menu (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 % get expmt data struct
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -2334,7 +2149,7 @@ setappdata(handles.gui_fig,'expmt',expmt);
 function source_video_menu_Callback(hObject, ~, handles)
 % hObject    handle to source_video_menu (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 % get expmt data struct
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -2500,7 +2315,7 @@ guidata(hObject,handles);
 function save_new_preset_menu_Callback(hObject, ~, handles)
 % hObject    handle to save_new_preset_menu (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -2556,7 +2371,7 @@ end
 function aux_com_menu_Callback(~,~,~)
 % hObject    handle to aux_com_menu (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 
 % --------------------------------------------------------------------
@@ -2603,7 +2418,7 @@ setappdata(handles.gui_fig,'expmt',expmt);
 function pause_togglebutton_Callback(hObject,~,~)
 % hObject    handle to pause_togglebutton (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 switch hObject.Value
     case 1
@@ -2616,7 +2431,7 @@ end
 function record_video_menu_Callback(hObject,~,handles)
 % hObject    handle to record_video_menu (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 switch hObject.Checked
     case 'off'
@@ -2631,7 +2446,7 @@ end
 function edit_area_maximum_Callback(hObject, ~, handles)
 % hObject    handle to edit_area_maximum (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 expmt = getappdata(handles.gui_fig,'expmt');
 expmt.parameters.area_max = str2double(hObject.String);
@@ -2642,10 +2457,10 @@ guidata(hObject,handles);
 function edit_area_maximum_CreateFcn(hObject,~,~)
 % hObject    handle to edit_area_maximum (see GCBO)
 
-% handles    empty - handles not created until after all CreateFcns called
 
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
+
+
+
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
@@ -2655,7 +2470,7 @@ end
 function view_menu_Callback(~,~,~)
 % hObject    handle to view_menu (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 
 
@@ -2663,7 +2478,7 @@ function view_menu_Callback(~,~,~)
 function view_roi_bounds_menu_Callback(hObject, ~, handles)
 % hObject    handle to view_roi_bounds_menu (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 expmt = getappdata(handles.gui_fig,'expmt');
 
@@ -2716,7 +2531,7 @@ end
 function view_roi_num_menu_Callback(hObject, ~, handles)
 % hObject    handle to view_roi_num_menu (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 expmt = getappdata(handles.gui_fig,'expmt');
 
@@ -2752,7 +2567,7 @@ end
 function view_roi_ori_menu_Callback(hObject, ~, handles)
 % hObject    handle to view_roi_ori_menu (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -2792,9 +2607,6 @@ end
 
 % --------------------------------------------------------------------
 function view_ref_cen_menu_Callback(hObject, eventdata, handles)
-% hObject    handle to view_ref_cen_menu (see GCBO)
-
-% handles    structure with handles and user data (see GUIDATA)
 
 expmt = getappdata(handles.gui_fig,'expmt');
 
@@ -2827,9 +2639,6 @@ end
 
 % --------------------------------------------------------------------
 function man_edit_roi_menu_Callback(hObject, ~, handles)
-% hObject    handle to man_edit_roi_menu (see GCBO)
-
-% handles    structure with handles and user data (see GUIDATA)
 
 expmt = getappdata(handles.gui_fig,'expmt');
 
@@ -2982,8 +2791,6 @@ elseif numel(expmt.meta.roi.num_traces) < expmt.meta.roi.n
 
 end
 
-
-
 % re-Enable objects that were Enabled before selecting manual edit
 for i = 1:length(has_Enable)
     has_Enable(i).Enable = Enable_states{i};
@@ -3009,7 +2816,6 @@ function gui_fig_KeyPressFcn(hObject, eventdata, handles)
 %	Key: name of the key that was pressed, in lower case
 %	Character: character interpretation of the key(s) that was pressed
 %	Modifier: name(s) of the modifier key(s) (i.e., control, shift) pressed
-% handles    structure with handles and user data (see GUIDATA)
 
 kp = eventdata.Key;
 
@@ -3025,20 +2831,10 @@ guidata(hObject,handles);
 
 % --- Executes on key press with focus on gui_fig or any of its controls.
 function gui_fig_WindowKeyPressFcn(~,~,~)
-% hObject    handle to gui_fig (see GCBO)
-% eventdata  structure with the following fields (see MATLAB.UI.FIGURE)
-%	Key: name of the key that was pressed, in lower case
-%	Character: character interpretation of the key(s) that was pressed
-%	Modifier: name(s) of the modifier key(s) (i.e., control, shift) pressed
-% handles    structure with handles and user data (see GUIDATA)
-
 
 
 % --- Executes during object creation, after setting all properties.
 function pause_togglebutton_CreateFcn(hObject, ~, handles)
-% hObject    handle to pause_togglebutton (see GCBO)
-
-% handles    empty - handles not created until after all CreateFcns called
 
 hObject.Units = 'Pixels';
 w = hObject.Position(3);
@@ -3068,10 +2864,6 @@ guidata(hObject,handles);
 
 % --- Executes on button press in stop_pushbutton.
 function stop_pushbutton_Callback(hObject, ~, handles)
-% hObject    handle to stop_pushbutton (see GCBO)
-
-% handles    structure with handles and user data (see GUIDATA)
-
 
 if hObject.Value
         hObject.UserData.Value = 1;
@@ -3084,9 +2876,6 @@ guidata(hObject,handles);
 
 % --- Executes during object creation, after setting all properties.
 function run_pushbutton_CreateFcn(hObject, ~, handles)
-% hObject    handle to run_pushbutton (see GCBO)
-
-% handles    empty - handles not created until after all CreateFcns called
 
 hObject.Units = 'Pixels';
 w = hObject.Position(3);
@@ -3116,9 +2905,6 @@ guidata(hObject,handles);
 
 % --- Executes during object creation, after setting all properties.
 function stop_pushbutton_CreateFcn(hObject, ~, handles)
-% hObject    handle to stop_pushbutton (see GCBO)
-
-% handles    empty - handles not created until after all CreateFcns called
 
 hObject.Units = 'Pixels';
 w = hObject.Position(3);
@@ -3148,9 +2934,6 @@ guidata(hObject,handles);
 
 % --------------------------------------------------------------------
 function unlock_controls_menu_Callback(hObject, ~, handles)
-% hObject    handle to unlock_controls_menu (see GCBO)
-
-% handles    structure with handles and user data (see GUIDATA)
 
 set(findall(handles.gui_fig,'-property','Enable'),'Enable','on');
 guidata(hObject,handles);
@@ -3160,16 +2943,10 @@ guidata(hObject,handles);
 function gui_fig_CreateFcn(~, ~, ~)
 % hObject    handle to gui_fig (see GCBO)
 
-% handles    empty - handles not created until after all CreateFcns called
-
-
 
 
 % --- Executes when user attempts to close gui_fig.
 function gui_fig_CloseRequestFcn(hObject, ~, handles)
-% hObject    handle to gui_fig (see GCBO)
-
-% handles    structure with handles and user data (see GUIDATA)
 
 if isfield(handles,'deviceID')
     try
@@ -3190,14 +2967,9 @@ delete(hObject);
 function cam_menu_Callback(hObject, eventdata, handles) %#ok<*INUSD>
 % hObject    handle to cam_menu (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
-
 
 % --------------------------------------------------------------------
 function cam_calibrate_menu_Callback(hObject, eventdata, handles)
-% hObject    handle to cam_calibrate_menu (see GCBO)
-
-% handles    structure with handles and user data (see GUIDATA)
 
 expmt = getappdata(handles.gui_fig,'expmt');
 
@@ -3218,15 +2990,10 @@ guidata(hObject,handles);
 
 % --- Executes on button press in add_ROI_pushbutton.
 function add_ROI_pushbutton_Callback(hObject, eventdata, handles)
-% hObject    handle to add_ROI_pushbutton (see GCBO)
-
-% handles    structure with handles and user data (see GUIDATA)
 
 if hObject.UserData.nGrids < 10
-    
     hObject.UserData.nGrids = hObject.UserData.nGrids + 1;
     handles = update_grid_UI(handles,'add');
-    
 end
 
 guidata(hObject,handles);
@@ -3234,14 +3001,9 @@ guidata(hObject,handles);
 
 % --- Executes on button press in remove_ROI_pushbutton.
 function remove_ROI_pushbutton_Callback(hObject, eventdata, handles)
-% hObject    handle to remove_ROI_pushbutton (see GCBO)
-
-% handles    structure with handles and user data (see GUIDATA)
 
 if handles.add_ROI_pushbutton.UserData.nGrids > 1
-    
-    handles = update_grid_UI(handles,'subtract');
-    
+    handles = update_grid_UI(handles,'subtract'); 
 end
 
 guidata(hObject,handles);
@@ -3249,9 +3011,6 @@ guidata(hObject,handles);
 
 % --- Executes on selection change in ROI_shape_popupmenu1.
 function ROI_shape_popupmenu1_Callback(hObject, eventdata, handles)
-% hObject    handle to ROI_shape_popupmenu1 (see GCBO)
-
-% handles    structure with handles and user data (see GUIDATA)
 
 n = hObject.UserData;
 handles.add_ROI_pushbutton.UserData.grid(n).shape = hObject.String{hObject.Value};
@@ -3260,12 +3019,8 @@ guidata(hObject,handles);
 
 % --- Executes during object creation, after setting all properties.
 function ROI_shape_popupmenu1_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to ROI_shape_popupmenu1 (see GCBO)
 
-% handles    empty - handles not created until after all CreateFcns called
 
-% Hint: popupmenu controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
@@ -3276,9 +3031,6 @@ guidata(hObject,handles);
 
 
 function row_num_edit1_Callback(hObject, eventdata, handles)
-% hObject    handle to row_num_edit1 (see GCBO)
-
-% handles    structure with handles and user data (see GUIDATA)
 
 n = hObject.Value;
 handles.add_ROI_pushbutton.UserData.grid(n).nRows = str2double(hObject.String);
@@ -3287,12 +3039,7 @@ guidata(hObject,handles);
 
 % --- Executes during object creation, after setting all properties.
 function row_num_edit1_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to row_num_edit1 (see GCBO)
 
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
@@ -3303,9 +3050,6 @@ guidata(hObject,handles);
 
 
 function col_num_edit1_Callback(hObject, eventdata, handles)
-% hObject    handle to row_num_edit1 (see GCBO)
-
-% handles    structure with handles and user data (see GUIDATA)
 
 n = hObject.Value;
 handles.add_ROI_pushbutton.UserData.grid(n).nCols = str2double(hObject.String);
@@ -3315,12 +3059,8 @@ guidata(hObject,handles);
 
 % --- Executes during object creation, after setting all properties.
 function col_num_edit1_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to row_num_edit1 (see GCBO)
 
-% handles    empty - handles not created until after all CreateFcns called
 
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
@@ -3331,9 +3071,6 @@ guidata(hObject,handles);
 
 % --- Executes during object creation, after setting all properties.
 function add_ROI_pushbutton_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to add_ROI_pushbutton (see GCBO)
-
-% handles    empty - handles not created until after all CreateFcns called
 
 hObject.UserData.nGrids = 1;
 hObject.UserData.grid = struct('shape','Quadrilateral','nRows',8,'nCols',12,...
@@ -3346,9 +3083,6 @@ guidata(hObject,handles);
 
 % --- Executes during object creation, after setting all properties.
 function grid_ROI_uipanel_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to grid_ROI_uipanel (see GCBO)
-
-% handles    empty - handles not created until after all CreateFcns called
 
 hObject.Visible = 'off';
 guidata(hObject,handles);
@@ -3358,9 +3092,7 @@ guidata(hObject,handles);
 
 % --------------------------------------------------------------------
 function view_cen_num_Callback(hObject, eventdata, handles)
-% hObject    handle to view_cen_num (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
 
 switch hObject.Checked
     case 'off'
@@ -3398,19 +3130,15 @@ guidata(hObject,handles);
 
 
 
-
-
 % --------------------------------------------------------------------
 function video_menu_Callback(hObject, eventdata, handles)
 % hObject    handle to video_menu (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
+
 
 
 % --------------------------------------------------------------------
 function vid_compress_menu_Callback(hObject, eventdata, handles)
-% hObject    handle to vid_compress_menu (see GCBO)
-
 
 switch hObject.Checked
     case 'off'
@@ -3431,9 +3159,6 @@ analysisoptions_gui(expmt);
 
 
 function edit_area_minimum_Callback(hObject, eventdata, handles)
-% hObject    handle to edit_area_minimum (see GCBO)
-
-% handles    structure with handles and user data (see GUIDATA)
 
 expmt = getappdata(handles.gui_fig,'expmt');
 expmt.parameters.area_min = str2double(hObject.String);
@@ -3443,12 +3168,7 @@ guidata(hObject,handles);
 
 % --- Executes during object creation, after setting all properties.
 function edit_area_minimum_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit_area_minimum (see GCBO)
 
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
@@ -3457,20 +3177,29 @@ end
 function edit_target_rate_Callback(hObject, eventdata, handles)
 % hObject    handle to edit_target_rate (see GCBO)
 
-% handles    structure with handles and user data (see GUIDATA)
-
 expmt = getappdata(handles.gui_fig,'expmt');
 expmt.parameters.target_rate = str2double(hObject.String);
 
 
 % --- Executes during object creation, after setting all properties.
 function edit_target_rate_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit_target_rate (see GCBO)
 
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --------------------------------------------------------------------
+function create_new_expmt_menu_Callback(hObject, eventdata, handles)
+
+name = new_custom_expmt;
+if ~isempty(name)
+    makeExperiment(name, handles);
+    new_dir = [handles.gui_dir 'experiments/' name '/'];
+    msg = sprintf(['new experiment templates initialized in:\n %s\n'...
+        'See
+    waitfor(msgbox(message,msg_title));
+end
+
+
+
