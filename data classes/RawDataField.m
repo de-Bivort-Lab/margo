@@ -143,7 +143,11 @@ classdef RawDataField < dynamicprops
         end
         
         function out = isattached(obj)
-            out = ~any(~size(obj.raw));
+            try
+                out = ~any(~size(obj.raw));
+            catch
+                out = false;
+            end
         end
         
         function out  = size(obj)

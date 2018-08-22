@@ -148,14 +148,14 @@ classdef RawDataMap < handle
         
         % size return functions
         function out = size(obj,varargin)
-            if isempty(obj.map)
-                out  = [0 1];
-            else
-                out = fliplr(size(obj.map.Data.raw,varargin{:})); 
-                if out(1)==1
-                    out = fliplr(out);
+                if isempty(obj.map)
+                    out  = [0 1];
+                else
+                    out = fliplr(size(obj.map.Data.raw,varargin{:})); 
+                    if out(1)==1
+                        out = fliplr(out);
+                    end
                 end
-            end
         end
         function out = numel(obj)
             if isempty(obj.map)
