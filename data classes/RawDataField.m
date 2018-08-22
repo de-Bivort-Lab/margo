@@ -60,19 +60,21 @@ classdef RawDataField < dynamicprops
                 end
                 
                 % ensure correct dimensions
-                obj.dim(obj.dim==1)=[];
+                nTraces = obj.Parent.meta.num_traces;
+                nFrames = obj.Parent.meta.num_frames;
+                valid_dim = [2 nTraces nFrames];
+                obj.dim(~ismember(obj.dim,valid_dim)) = [];
                 if isempty(obj.dim)
-                    obj.dim = [obj.Parent.meta.num_frames 1];
-                    
+                    obj.dim = [nFrames 1];
+                elseif numel(obj.dim) == 1 && obj.dim == nFrames;
+                    obj.dim = [nFrames 1];
                 elseif (any(obj.dim == obj.Parent.meta.num_traces) &&...
-                        obj.dim(end) ~= obj.Parent.meta.num_traces) || ...
-                        ~any(obj.dim == obj.Parent.meta.num_frames)
-                    
-                    trace_dim = obj.Parent.meta.num_traces;
-                    frame_dim = obj.Parent.meta.num_frames;
+                        obj.dim(end) ~= nTraces) || ...
+                        ~any(obj.dim == nFrames)
+    
                     tmp_dim = [frame_dim ...
-                        obj.dim(obj.dim~=trace_dim & obj.dim~= frame_dim) ...
-                        trace_dim];
+                        obj.dim(obj.dim~=nTraces & obj.dim~= nFrames) ...
+                        nTraces];
                     obj.dim = tmp_dim;
                 end
                 
@@ -116,6 +118,9 @@ classdef RawDataField < dynamicprops
                                 '\t%s'],obj.path);
                     end
                 end
+            end
+            if ~isattached(obj)
+                error('failed to attach raw data map');
             end
             obj.raw.Parent = obj;
         end
