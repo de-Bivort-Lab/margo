@@ -3110,10 +3110,10 @@ if isfield(handles.gui_fig.UserData,'cenText') && ishghandle(handles.gui_fig.Use
             set(handles.gui_fig.UserData.cenText,'Visible','off');
     end
     
-else
+elseif isfield(expmt.meta.roi,'num_traces'
 
     expmt = getappdata(handles.gui_fig,'expmt');
-    lblstr = arrayfun(@num2str,1:length(expmt.meta.roi.centers(:,1)),'UniformOutput',false);
+    n = sum(expmt.meta.roi.num_traces);
     handles.gui_fig.UserData.cenText = text(expmt.meta.roi.centers(:,1),expmt.meta.roi.centers(:,2),lblstr,...
         'Color','m','FontSmoothing','off','HorizontalAlignment','center','Visible','off');
     
@@ -3196,9 +3196,10 @@ name = new_custom_expmt;
 if ~isempty(name)
     makeExperiment(name, handles);
     new_dir = [handles.gui_dir 'experiments/' name '/'];
-    msg = sprintf(['new experiment templates initialized in:\n %s\n'...
-        'See
-    waitfor(msgbox(message,msg_title));
+    msg = sprintf(['New experiment templates initialized in: %s'...
+        'See manual for additional information on editing templates to create'...
+        ' a custom experiment.'], new_dir);
+    waitfor(msgbox(msg,'Custom experiment template created'));
 end
 
 

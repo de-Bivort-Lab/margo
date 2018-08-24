@@ -3088,11 +3088,8 @@ hObject.Visible = 'off';
 guidata(hObject,handles);
 
 
-
-
 % --------------------------------------------------------------------
 function view_cen_num_Callback(hObject, eventdata, handles)
-
 
 switch hObject.Checked
     case 'off'
@@ -3101,29 +3098,32 @@ switch hObject.Checked
         hObject.Checked = 'off';
 end
 
+expmt = getappdata(handles.gui_fig,'expmt');
 if isfield(handles.gui_fig.UserData,'cenText') && ishghandle(handles.gui_fig.UserData.cenText(1))
     
-    switch handles.view_cen_num.Checked
+    switch hObject.Checked
         case 'on'
             set(handles.gui_fig.UserData.cenText,'Visible','on');
         case 'off'
             set(handles.gui_fig.UserData.cenText,'Visible','off');
     end
     
+elseif isfield(expmt.meta.roi,'num_traces')
+ 
+    n = sum(expmt.meta.roi.num_traces);
+    c = zeros(n,1);
+    handles.gui_fig.UserData.cenText = text(c,c,'','Color','m',...
+        'FontSmoothing','off','HorizontalAlignment','center','Visible','off');
+    switch hObject.Checked
+        case 'on'
+            set(handles.gui_fig.UserData.cenText,'Visible','on');
+        case 'off'
+            set(handles.gui_fig.UserData.cenText,'Visible','off');
+    end   
 else
-
-    expmt = getappdata(handles.gui_fig,'expmt');
-    lblstr = arrayfun(@num2str,1:length(expmt.meta.roi.centers(:,1)),'UniformOutput',false);
-    handles.gui_fig.UserData.cenText = text(expmt.meta.roi.centers(:,1),expmt.meta.roi.centers(:,2),lblstr,...
-        'Color','m','FontSmoothing','off','HorizontalAlignment','center','Visible','off');
-    
-    switch handles.view_cen_num.Checked
-        case 'on'
-            set(handles.gui_fig.UserData.cenText,'Visible','on');
-        case 'off'
-            set(handles.gui_fig.UserData.cenText,'Visible','off');
-    end
-    
+    msg = {'cannot display centroid numbers';'no traces initialized'};
+    gui_notify(msg,handles.disp_note);
+    hObject.Checked = 'off';
 end
 
 guidata(hObject,handles);
