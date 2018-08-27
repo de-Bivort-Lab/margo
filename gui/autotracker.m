@@ -583,7 +583,7 @@ expmt.meta.path.full = fpath;
 set(handles.save_path,'string',fpath);
 
 % if experiment parameters are set, Enable experiment run panel
-if expmt.meta.exp_id > 1 && ~isempty(handles.save_path.String)
+if ~isempty(handles.save_path.String)
     set(findall(handles.run_uipanel, '-property', 'Enable'),'Enable','on');
     eb = findall(handles.run_uipanel, 'Style', 'edit');
     set(eb,'Enable','inactive','BackgroundColor',[.87 .87 .87]);
@@ -1298,7 +1298,6 @@ try
 
     % if experiment parameters are set, Enable experiment run panel
     if ~isempty(handles.save_path.String)
-
         set(findall(handles.run_uipanel, ...
             '-property', 'Enable'),'Enable','on');
     end

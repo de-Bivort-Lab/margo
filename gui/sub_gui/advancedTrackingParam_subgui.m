@@ -885,8 +885,17 @@ expmt.meta.track_mode = hObject.String{hObject.Value};
 switch expmt.meta.track_mode
     case 'single'
         set(handles.multi_uipanel.Children,'Enable','off');
+        if isfield(expmt.meta.roi,'num_traces')
+            expmt.meta.roi.num_traces = ones(expmt.meta.roi.n,1);
+            expmt.parameters.traces_per_roi = 1;
+            expmt.meta.num_traces = expmt.meta.roi.n;
+        end
     case 'multitrack'
         set(handles.multi_uipanel.Children,'Enable','on');
+        if isfield(expmt.meta.roi,'num_traces')
+            expmt.meta.roi.num_traces = ...
+                ones(expmt.meta.roi.n,1).*expmt.parameters.traces_per_roi;
+        end
 end
 guidata(hObject,handles);
 
