@@ -2542,7 +2542,8 @@ switch hObject.Checked
                 handles.view_menu.UserData.hNum(i) =...
                     text(handles.axes_handle,expmt.meta.roi.centers(i,1),...
                     expmt.meta.roi.centers(i,2),num2str(i),'Color',[0 0 1],...
-                    'HorizontalAlignment','center','VerticalAlignment','middle');
+                    'HorizontalAlignment','center','VerticalAlignment','middle',...
+                    'HitTest','off');
             end
             hold off
         else
@@ -2554,7 +2555,8 @@ switch hObject.Checked
         hObject.Checked = 'off';
         
         if isfield(handles.view_menu.UserData,'hNum')
-            set(handles.view_menu.UserData.hNum,'Visible','off');
+            h_valid = isvalid(handles.view_menu.UserData.hNum);
+            arrayfun(@(h) delete(h),handles.view_menu.UserData.hNum(h_valid));
         end
 end
 
@@ -2751,10 +2753,7 @@ if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
                 handles.view_roi_num_menu,[]);
             feval(handles.view_roi_num_menu.Callback,...
                 handles.view_roi_num_menu,[]);
-            drawnow
-
-
-
+            drawnow limitrate
         end
     end
     cellfun(@(h) delete(h), hNote);
@@ -2778,6 +2777,9 @@ elseif numel(expmt.meta.roi.num_traces) < expmt.meta.roi.n
 
 end
 
+% clear drawn objects from the axes
+clean_gui(handles.axes_handle);
+
 % re-acquire ROI masks
 expmt = setROImask(expmt);
 
@@ -2785,9 +2787,6 @@ expmt = setROImask(expmt);
 for i = 1:length(has_Enable)
     has_Enable(i).Enable = Enable_states{i};
 end
-
-% clear drawn objects from the axes
-clean_gui(handles.axes_handle);
 
 % save changes to master struct and gui data
 setappdata(handles.gui_fig,'expmt',expmt);
