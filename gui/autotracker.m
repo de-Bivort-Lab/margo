@@ -2705,15 +2705,22 @@ if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
                 
                 % case for left-click
                 case 1
-                    r = getrect(handles.axes_handle);
-                    if r(3) > 0.1*median(roi.bounds(3)) &&...
-                            r(4) > 0.1*median(roi.bounds(4))
-                        
-                        roi.bounds = [roi.bounds; r];
-                        r(3) = r(1) + r(3);
-                        r(4) = r(2) + r(4);
-                        roi.corners = [roi.corners; r];
-                        
+                    
+                    if strcmp(expmt.meta.roi.mode,'auto')
+                        r = getrect(handles.axes_handle);
+                        if r(3) > 0.1*median(roi.bounds(3)) &&...
+                                r(4) > 0.1*median(roi.bounds(4))
+
+                            roi.bounds = [roi.bounds; r];
+                            r(3) = r(1) + r(3);
+                            r(4) = r(2) + r(4);
+                            roi.corners = [roi.corners; r];
+
+                        end
+                    else
+                        msg = {'grid ROI mode only supports manual ROI subtraction';...
+                            'select Detect ROIs to define additional grids'};
+                        gui_notify(msg,handles.disp_note);
                     end
                     
                 % case for right-click
