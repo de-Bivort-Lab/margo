@@ -2671,22 +2671,15 @@ if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
     handles.hImage.CData = trackDat.im;
     handles.axes_handle.CLim = [0 255];
     
-    
-    hold on
-    for i =1:length(expmt.meta.roi.centers)
-        hBounds(i) = rectangle(handles.axes_handle,...
-            'Position',expmt.meta.roi.bounds(i,:),'EdgeColor','r');
-        hNum(i) = text(handles.axes_handle,expmt.meta.roi.centers(i,1),...
-            expmt.meta.roi.centers(i,2),num2str(i),'Color',[0 0 1],...
-            'HorizontalAlignment','center','VerticalAlignment','middle',...
-            'HitTest','off');
-    end
-    hold off
+    feval(handles.view_roi_bounds_menu.Callback,...
+            handles.view_roi_bounds_menu,[]);
+    feval(handles.view_roi_num_menu.Callback,...
+        handles.view_roi_num_menu,[]);
     
     instructions = {'Right-click in an existing ROI to delete it'...
     ['Left-click to switch tool to draw tool, '...
     'then left-click and drag to define new ROI'] ...
-    'Press any key to accept changes and exit'};
+    'Press Enter accept changes and exit'};
     hNote = gui_axes_notify(axh, instructions);
 
     while handles.gui_fig.UserData.edit_rois
@@ -2705,79 +2698,70 @@ if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
                 
                 % case for left-click
                 case 1
-                    
-                    if strcmp(expmt.meta.roi.mode,'auto')
-                        r = getrect(handles.axes_handle);
-                        if r(3) > 0.1*median(roi.bounds(3)) &&...
-                                r(4) > 0.1*median(roi.bounds(4))
-
-                            roi.bounds = [roi.bounds; r];
-                            r(3) = r(1) + r(3);
-                            r(4) = r(2) + r(4);
-                            roi.corners = [roi.corners; r];
-
-                        end
-                    else
-                        msg = {'grid ROI mode only supports manual ROI subtraction';...
-                            'select Detect ROIs to define additional grids'};
-                        gui_notify(msg,handles.disp_note);
+                    r = getrect(handles.axes_handle);
+                    if r(3) > 0.1*median(roi.bounds(3)) &&...
+                            r(4) > 0.1*median(roi.bounds(4))
+                        
+                        roi.bounds = [roi.bounds; r];
+                        r(3) = r(1) + r(3);
+                        r(4) = r(2) + r(4);
+                        
+                        switch roi.mode
+                            case 'auto'
+                                roi = addROI(roi, r);
+                            case 'grid'
+                                msg = {'failed to manually add ROI...';...
+                                    'grid ROI mode only supports manual subtraction';...
+                                    'select Detect ROIs to manually add a grid'};
+                                gui_notify(msg, handles.disp_note);
+                        end        
                     end
-                    
                 % case for right-click
                 case 3
                     
                     % check to see if click occured in ROI
-                    x_bounded = c(1) > roi.bounds(:,1) &...
-                        c(1) < sum(roi.bounds(:,[1 3]),2);
-                    y_bounded = c(2) > roi.bounds(:,2) &...
-                        c(2) < sum(roi.bounds(:,[2 4]),2);
+                    roi_num = assignROI(c(1:2), expmt);
+                    idx = roi_num{1};
                     
                     % delete targeted ROI
-                    idx = find(x_bounded & y_bounded);
-                    delete(hBounds(x_bounded & y_bounded));
-                    roi.bounds(idx,:) = [];
-                    roi.centers(idx,:) = [];
-                    roi.orientation(idx,:) = [];
-                    roi.corners(idx,:) = [];
-                    roi.pixIdx(idx) = [];
-                    roi.n = roi.n - numel(idx);
-                    
-                    if isfield(roi,'num_traces')
-                        roi.num_traces(idx) = [];
+                    if idx
+                        roi = subtractROI(roi, idx);
+                        if strcmp(expmt.meta.roi.mode,'grid')
+                            grids = handles.add_ROI_pushbutton.UserData.grid;
+                            grid_idx = expmt.meta.roi.grid(idx);
+                            nper = arrayfun(@(g) size(g.XData,2), grids);
+                            sub = idx - sum(nper(1:(grid_idx-1)));
+                            grids(grid_idx).XData(:,sub) = [];
+                            grids(grid_idx).YData(:,sub) = [];
+                            handles.add_ROI_pushbutton.UserData.grid = grids;
+                        end
                     end
-                    
             end
             
             % remove click data
             handles.gui_fig.UserData = rmfield(handles.gui_fig.UserData,'click');
             
-            % re-sort and label ROIs
-            [x,y] = ROIcenters(roi.im,roi.corners);
-            roi.centers = [x,y];
-            tol = expmt.parameters.roi_tol;
-            [roi.centers,roi.corners,roi.bounds] = ...
-                sortROIs(tol,roi.centers,roi.corners,roi.bounds);
-            roi.orientation = getMazeOrientation(roi.im,roi.corners);
-            
             % re-draw ROIs
-            delete(hBounds);
-            delete(hNum);
-            hold on
-            for i =1:length(roi.centers)
-                hBounds(i) = ...
-                    rectangle(handles.axes_handle,...
-                        'Position',roi.bounds(i,:),'EdgeColor','r');
-                hNum(i) = text(handles.axes_handle,roi.centers(i,1),...
-                    roi.centers(i,2),num2str(i),'Color',[0 0 1],...
-                    'HorizontalAlignment','center','VerticalAlignment','middle',...
-                    'HitTest','off');
-            end
-            hold off
             expmt.meta.roi = roi;
+            feval(handles.view_roi_bounds_menu.Callback,...
+                handles.view_roi_bounds_menu,[]);
+            feval(handles.view_roi_bounds_menu.Callback,...
+                handles.view_roi_bounds_menu,[]);
+            feval(handles.view_roi_num_menu.Callback,...
+                handles.view_roi_num_menu,[]);
+            feval(handles.view_roi_num_menu.Callback,...
+                handles.view_roi_num_menu,[]);
+            drawnow
+
+
 
         end
     end
     cellfun(@(h) delete(h), hNote);
+    feval(handles.view_roi_bounds_menu.Callback,...
+        handles.view_roi_bounds_menu,[]);
+    feval(handles.view_roi_num_menu.Callback,...
+        handles.view_roi_num_menu,[]);
 end
 
 if ~isfield(expmt.meta.roi,'num_traces')
@@ -2793,6 +2777,9 @@ elseif numel(expmt.meta.roi.num_traces) < expmt.meta.roi.n
         expmt.meta.roi.n-numel(expmt.meta.roi.num_traces), 1)];
 
 end
+
+% re-acquire ROI masks
+expmt = setROImask(expmt);
 
 % re-Enable objects that were Enabled before selecting manual edit
 for i = 1:length(has_Enable)
