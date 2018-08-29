@@ -2445,21 +2445,21 @@ end
 function edit_area_maximum_Callback(hObject, ~, handles)
 % hObject    handle to edit_area_maximum (see GCBO)
 
-
-
 expmt = getappdata(handles.gui_fig,'expmt');
 expmt.parameters.area_max = str2double(hObject.String);
+track_param_fig = findobj('Type','figure','Tag','track_fig');
+if ~isempty(track_param_fig) && ishghandle(track_param_fig)
+    hmax = findobj(track_param_fig,'-depth',2,'Tag','edit_area_max');
+    if ~isempty(hmax) && ishghandle( hmax)
+         hmax.String = hObject.String;
+    end
+end
 guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.
 function edit_area_maximum_CreateFcn(hObject,~,~)
 % hObject    handle to edit_area_maximum (see GCBO)
-
-
-
-
-
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
@@ -2468,9 +2468,6 @@ end
 % --------------------------------------------------------------------
 function view_menu_Callback(~,~,~)
 % hObject    handle to view_menu (see GCBO)
-
-
-
 
 
 % --------------------------------------------------------------------
@@ -3161,6 +3158,13 @@ function edit_area_minimum_Callback(hObject, eventdata, handles)
 
 expmt = getappdata(handles.gui_fig,'expmt');
 expmt.parameters.area_min = str2double(hObject.String);
+track_param_fig = findobj('Type','figure','Tag','track_fig');
+if ~isempty(track_param_fig) && ishghandle(track_param_fig)
+    hmin = findobj(track_param_fig,'-depth',2,'Tag','edit_area_min');
+    if ~isempty(hmin) && ishghandle(hmin)
+         hmin.String = hObject.String;
+    end
+end
 guidata(hObject,handles);
 
 
@@ -3178,6 +3182,13 @@ function edit_target_rate_Callback(hObject, eventdata, handles)
 
 expmt = getappdata(handles.gui_fig,'expmt');
 expmt.parameters.target_rate = str2double(hObject.String);
+track_param_fig = findobj('Type','figure','Tag','track_fig');
+if ~isempty(track_param_fig) && ishghandle(track_param_fig)
+    htarget_rate = findobj(track_param_fig,'-depth',2,'Tag','edit_target_rate');
+    if ~isempty(htarget_rate) && ishghandle(htarget_rate)
+        htarget_rate.String = hObject.String;
+    end
+end
 
 
 % --- Executes during object creation, after setting all properties.

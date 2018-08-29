@@ -583,7 +583,7 @@ expmt.meta.path.full = fpath;
 set(handles.save_path,'string',fpath);
 
 % if experiment parameters are set, Enable experiment run panel
-if expmt.meta.exp_id > 1 && ~isempty(handles.save_path.String)
+if ~isempty(handles.save_path.String)
     set(findall(handles.run_uipanel, '-property', 'Enable'),'Enable','on');
     eb = findall(handles.run_uipanel, 'Style', 'edit');
     set(eb,'Enable','inactive','BackgroundColor',[.87 .87 .87]);
@@ -1298,7 +1298,6 @@ try
 
     % if experiment parameters are set, Enable experiment run panel
     if ~isempty(handles.save_path.String)
-
         set(findall(handles.run_uipanel, ...
             '-property', 'Enable'),'Enable','on');
     end
@@ -3088,11 +3087,8 @@ hObject.Visible = 'off';
 guidata(hObject,handles);
 
 
-
-
 % --------------------------------------------------------------------
 function view_cen_num_Callback(hObject, eventdata, handles)
-
 
 switch hObject.Checked
     case 'off'
@@ -3101,29 +3097,32 @@ switch hObject.Checked
         hObject.Checked = 'off';
 end
 
+expmt = getappdata(handles.gui_fig,'expmt');
 if isfield(handles.gui_fig.UserData,'cenText') && ishghandle(handles.gui_fig.UserData.cenText(1))
     
-    switch handles.view_cen_num.Checked
+    switch hObject.Checked
         case 'on'
             set(handles.gui_fig.UserData.cenText,'Visible','on');
         case 'off'
             set(handles.gui_fig.UserData.cenText,'Visible','off');
     end
     
-elseif isfield(expmt.meta.roi,'num_traces'
-
-    expmt = getappdata(handles.gui_fig,'expmt');
+elseif isfield(expmt.meta.roi,'num_traces')
+ 
     n = sum(expmt.meta.roi.num_traces);
-    handles.gui_fig.UserData.cenText = text(expmt.meta.roi.centers(:,1),expmt.meta.roi.centers(:,2),lblstr,...
-        'Color','m','FontSmoothing','off','HorizontalAlignment','center','Visible','off');
-    
-    switch handles.view_cen_num.Checked
+    c = zeros(n,1);
+    handles.gui_fig.UserData.cenText = text(c,c,'','Color','m',...
+        'FontSmoothing','off','HorizontalAlignment','center','Visible','off');
+    switch hObject.Checked
         case 'on'
             set(handles.gui_fig.UserData.cenText,'Visible','on');
         case 'off'
             set(handles.gui_fig.UserData.cenText,'Visible','off');
-    end
-    
+    end   
+else
+    msg = {'cannot display centroid numbers';'no traces initialized'};
+    gui_notify(msg,handles.disp_note);
+    hObject.Checked = 'off';
 end
 
 guidata(hObject,handles);
@@ -3179,6 +3178,11 @@ function edit_target_rate_Callback(hObject, eventdata, handles)
 
 expmt = getappdata(handles.gui_fig,'expmt');
 expmt.parameters.target_rate = str2double(hObject.String);
+track_param_fig = findobj('Type','figure','Tag','track_fig');
+if ~isempty(track_param_fig) && ishghandle(track_param_fig)
+    htarget_rate = findobj(track_param_fig,'-depth',2,'Tag','edit_target_rate');
+    ~isempty(track_param_fig) && ishghandle(track_param_fig)
+end
 
 
 % --- Executes during object creation, after setting all properties.
