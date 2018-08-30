@@ -982,7 +982,7 @@ if ~isempty(handles.experiments(idx).sub_gui)
     tmp_param = feval(handles.experiments(idx).sub_gui,expmt);
     if ~isempty(tmp_param)
         expmt.parameters = tmp_param;
-        expmt.parameters.intialized = true;
+        expmt.parameters.initialized = true;
     end
 else
     error(['\nno sub gui detected for %s - '...
@@ -1655,12 +1655,12 @@ expmt = getappdata(handles.gui_fig,'expmt');
 if isfield(expmt.hardware.projector,'reg_params')
     tmp = registration_parameter_subgui(expmt);
     if ~isempty(tmp)
-        expmt.reg_params = tmp;
+        expmt.hardware.projector.reg_params = tmp;
     end
 else
         tmp = registration_parameter_subgui();
     if ~isempty(tmp)
-        expmt.reg_params = tmp;
+        expmt.hardware.projector.reg_params = tmp;
     end
 end
 

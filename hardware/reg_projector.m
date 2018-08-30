@@ -67,7 +67,7 @@ white=[1 1 1];                      % color of the spot
 im_thresh=30;                       % image threshold
 subim_sz=10;                        % Radius of the extracted image ROI
 min_Area = ((mean(size(ref)))*0.01)^2;
-max_Area = ((mean(size(ref)))*0.05)^2;
+max_Area = ((mean(size(ref)))*0.1)^2;
 
 % Initialize cam/projector coord placeholders
 cam_x=NaN(y_stp,x_stp);
