@@ -1590,6 +1590,10 @@ if ~isfield(expmt.hardware.projector,'reg_params')
     tmp = registration_parameter_subgui(expmt);
     if ~isempty(tmp)
         expmt.hardware.projector.reg_params = tmp;
+    else
+        msg = 'registration parameters not set, registration failed';
+        gui_notify(msg,handles.disp_note);
+        return
     end
 end
 
@@ -1652,17 +1656,11 @@ function reg_params_menu_Callback(hObject, ~, handles)
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 
-if isfield(expmt.hardware.projector,'reg_params')
-    tmp = registration_parameter_subgui(expmt);
-    if ~isempty(tmp)
-        expmt.hardware.projector.reg_params = tmp;
-    end
-else
-        tmp = registration_parameter_subgui();
-    if ~isempty(tmp)
-        expmt.hardware.projector.reg_params = tmp;
-    end
+tmp = registration_parameter_subgui(expmt);
+if ~isempty(tmp)
+    expmt.hardware.projector.reg_params = tmp;
 end
+
 
 % Store expmteriment data struct
 setappdata(handles.gui_fig,'expmt',expmt);
@@ -1672,11 +1670,9 @@ setappdata(handles.gui_fig,'expmt',expmt);
 function reg_error_menu_Callback(hObject, ~, handles)
 % hObject    handle to reg_error_menu (see GCBO)
 
-
-
 expmt = getappdata(handles.gui_fig,'expmt');
 
-if exist([handles.gui_dir 'hardware/projector_fit/']) == 7 &&...
+if exist([handles.gui_dir 'hardware/projector_fit/'],'dir') == 7 &&...
         isfield(expmt.hardware.projector,'reg_params')
     
     % Turn infrared and white background illumination off during registration
@@ -1729,8 +1725,6 @@ function tracking_menu_Callback(~,~,~)
 function advanced_tracking_menu_Callback(hObject, ~, handles)
 % hObject    handle to advanced_tracking_menu (see GCBO)
 
-
-
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 
@@ -1747,46 +1741,44 @@ function distance_scale_menu_Callback(hObject, ~, handles)
 % hObject    handle to distance_scale_menu (see GCBO)
 
 
-
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 
 % grab a frame if a camera or video object exists
-if (isfield(expmt.hardware.cam,'vid') && strcmp(expmt.hardware.cam.vid.Running,'on')) ||...
-    isfield(expmt.meta.video,'vid')
+if (isfield(expmt.hardware.cam,'vid') && ...
+        strcmp(expmt.hardware.cam.vid.Running,'on')) ||...
+        isfield(expmt.meta.video,'vid')
 
     % query next frame and optionally correct lens distortion
     trackDat = [];
-    [trackDat,expmt] = autoFrame(trackDat,expmt,handles);
+    [~,expmt] = autoFrame(trackDat,expmt,handles);
     
-elseif (isfield(expmt.hardware.cam,'vid') && strcmp(expmt.hardware.cam.vid.Running,'off'))
+elseif (isfield(expmt.hardware.cam,'vid') && ...
+        strcmp(expmt.hardware.cam.vid.Running,'off'))
 
     % restart camera
     start(expmt.hardware.cam.vid);
     
     % query next frame and optionally correct lens distortion
     trackDat = [];
-    [trackDat,expmt] = autoFrame(trackDat,expmt,handles); 
+    [~,expmt] = autoFrame(trackDat,expmt,handles); 
     
 end
 
 tmp=setDistanceScale_subgui(handles,expmt.parameters);
 delete(findobj('Tag','imline'));
 if ~isempty(tmp)
+    
     expmt.parameters.distance_scale = tmp;
+    p = expmt.parameters;
     
     % update speed, distance, and area thresholds
-    expmt.parameters.speed_thresh =...
-        expmt.parameters.speed_thresh .* tmp.mm_per_pixel ./ expmt.parameters.mm_per_pix;
-    expmt.parameters.distance_thresh =...
-        expmt.parameters.distance_thresh .* tmp.mm_per_pixel ./ expmt.parameters.mm_per_pix;
-    expmt.parameters.area_min =...
-        expmt.parameters.area_min .* ((tmp.mm_per_pixel./expmt.parameters.mm_per_pix)^2);
-    expmt.parameters.area_max =...
-        expmt.parameters.area_max .* ((tmp.mm_per_pixel./expmt.parameters.mm_per_pix)^2);
-    
-    % set new parameter
-    expmt.parameters.mm_per_pix = tmp.mm_per_pixel;
+    p.speed_thresh = p.speed_thresh .* tmp.mm_per_pixel ./ pmm_per_pix;
+    p.distance_thresh = p.distance_thresh .* tmp.mm_per_pixel ./ pmm_per_pix;
+    p.area_min = p.area_min .* ((tmp.mm_per_pixel./pmm_per_pix)^2);
+    p.area_max = p.area_max .* ((tmp.mm_per_pixel./pmm_per_pix)^2);
+    p.mm_per_pix = tmp.mm_per_pixel;
+    expmt.parameters = p;
     
     if expmt.parameters.mm_per_pix ~= 1
         expmt.parameters.units = 'millimeters';
@@ -1798,38 +1790,13 @@ setappdata(handles.gui_fig,'expmt',expmt);
 
 
 % --------------------------------------------------------------------
-function Untitled_4_Callback(~,~,~)
-% hObject    handle to Untitled_4 (see GCBO)
-
-
-
-
-% --------------------------------------------------------------------
 function speed_thresh_menu_Callback(~,~,~)
 % hObject    handle to speed_thresh_menu (see GCBO)
-
-
 
 
 % --------------------------------------------------------------------
 function ROI_distance_thresh_menu_Callback(~,~,~)
 % hObject    handle to ROI_distance_thresh_menu (see GCBO)
-
-
-
-
-% --------------------------------------------------------------------
-function Untitled_7_Callback(~,~,~)
-% hObject    handle to Untitled_7 (see GCBO)
-
-
-
-
-% --------------------------------------------------------------------
-function Untitled_8_Callback(~,~,~)
-% hObject    handle to Untitled_8 (see GCBO)
-
-
 
 
 % --- Executes when gui_fig is resized.
@@ -2008,8 +1975,6 @@ function pushbutton23_Callback(~,~,~)
 function vid_select_popupmenu_Callback(hObject, ~, handles)
 % hObject    handle to vid_select_popupmenu (see GCBO)
 
-
-
 % get expmt data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 
@@ -2021,18 +1986,9 @@ expmt.meta.video.vid = ...
 setappdata(handles.gui_fig,'expmt',expmt);
 
 
-
-% Hints: contents = cellstr(get(hObject,'String')) returns vid_select_popupmenu contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from vid_select_popupmenu
-
-
 % --- Executes during object creation, after setting all properties.
 function vid_select_popupmenu_CreateFcn(hObject,~,~)
-% hObject    handle to vid_select_popupmenu (see GCBO)
 
-
-
-% Hint: popupmenu controls usually have a white background on Windows.
 
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
@@ -2045,17 +2001,8 @@ function edit_video_dir_Callback(~,~,~)
 
 
 
-% Hints: get(hObject,'String') returns contents of edit_video_dir as text
-%        str2double(get(hObject,'String')) returns contents of edit_video_dir as a double
-
-
 % --- Executes during object creation, after setting all properties.
 function edit_video_dir_CreateFcn(hObject,~,~)
-% hObject    handle to edit_video_dir (see GCBO)
-
-
-
-
 
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
@@ -2064,9 +2011,6 @@ end
 
 % --- Executes on button press in video_files_pushbutton.
 function video_files_pushbutton_Callback(hObject, ~, handles)
-% hObject    handle to video_files_pushbutton (see GCBO)
-
-
 
 % get expmt data struct
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -2093,13 +2037,8 @@ function select_source_menu_Callback(~,~,~)
 % hObject    handle to select_source_menu (see GCBO)
 
 
-
-
 % --------------------------------------------------------------------
 function source_camera_menu_Callback(hObject, ~, handles)
-% hObject    handle to source_camera_menu (see GCBO)
-
-
 
 % get expmt data struct
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -2142,13 +2081,8 @@ expmt.meta.source = 'camera';
 setappdata(handles.gui_fig,'expmt',expmt);
 
 
-
-
 % --------------------------------------------------------------------
 function source_video_menu_Callback(hObject, ~, handles)
-% hObject    handle to source_video_menu (see GCBO)
-
-
 
 % get expmt data struct
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -2201,7 +2135,6 @@ expmt.meta.source = 'video';
 
 % set expmt data struct
 setappdata(handles.gui_fig,'expmt',expmt);
-
 
 
 % --------------------------------------------------------------------
@@ -2312,8 +2245,6 @@ guidata(hObject,handles);
 
 % --------------------------------------------------------------------
 function save_new_preset_menu_Callback(hObject, ~, handles)
-% hObject    handle to save_new_preset_menu (see GCBO)
-
 
 
 % import expmteriment data struct
@@ -2417,8 +2348,6 @@ setappdata(handles.gui_fig,'expmt',expmt);
 function pause_togglebutton_Callback(hObject,~,~)
 % hObject    handle to pause_togglebutton (see GCBO)
 
-
-
 switch hObject.Value
     case 1
         hObject.BackgroundColor = [0.85 0.65 0.65];
@@ -2428,9 +2357,6 @@ end
 
 % --------------------------------------------------------------------
 function record_video_menu_Callback(hObject,~,handles)
-% hObject    handle to record_video_menu (see GCBO)
-
-
 
 switch hObject.Checked
     case 'off'
@@ -2472,9 +2398,6 @@ function view_menu_Callback(~,~,~)
 
 % --------------------------------------------------------------------
 function view_roi_bounds_menu_Callback(hObject, ~, handles)
-% hObject    handle to view_roi_bounds_menu (see GCBO)
-
-
 
 expmt = getappdata(handles.gui_fig,'expmt');
 
@@ -2525,9 +2448,6 @@ end
 
 % --------------------------------------------------------------------
 function view_roi_num_menu_Callback(hObject, ~, handles)
-% hObject    handle to view_roi_num_menu (see GCBO)
-
-
 
 expmt = getappdata(handles.gui_fig,'expmt');
 
@@ -2563,9 +2483,6 @@ end
 
 % --------------------------------------------------------------------
 function view_roi_ori_menu_Callback(hObject, ~, handles)
-% hObject    handle to view_roi_ori_menu (see GCBO)
-
-
 
 
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -2848,9 +2765,6 @@ hObject.Units = 'Points';
 guidata(hObject,handles);
 
 
-
-
-
 % --- Executes on button press in stop_pushbutton.
 function stop_pushbutton_Callback(hObject, ~, handles)
 
@@ -2859,8 +2773,6 @@ if hObject.Value
 end
 
 guidata(hObject,handles);
-
-
 
 
 % --- Executes during object creation, after setting all properties.

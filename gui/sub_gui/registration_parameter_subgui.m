@@ -70,21 +70,23 @@ handles.scr_popupmenu.Value = 1;
 
 if ~isempty(varargin)
     expmt = varargin{1};
+    if isfield(expmt.hardware.projector,'reg_params')
+        reg_params = expmt.hardware.projector.reg_params;
+    end
 end
 
-if exist('expmt','var') && isfield(expmt,'reg_params')
-    reg_params = expmt.reg_params;
+if exist('reg_params','var')
     
     if isfield(reg_params,'pixel_step_size')
         set(handles.edit_pixel_step_size,'string',reg_params.pixel_step_size);
     else
-        reg_params.pixel_step_size = str2num(get(handles.edit_pixel_step_size,'string'));
+        reg_params.pixel_step_size = str2double(get(handles.edit_pixel_step_size,'string'));
     end
         
     if isfield(reg_params,'spot_r')
         set(handles.edit_spot_r,'string',reg_params.spot_r);
     else
-        reg_params.spot_r=str2num(get(handles.edit_spot_r,'string'));
+        reg_params.spot_r=str2double(get(handles.edit_spot_r,'string'));
     end
         
     handles.scr_popupmenu.Value = reg_params.screen_num+1;
@@ -93,8 +95,10 @@ if exist('expmt','var') && isfield(expmt,'reg_params')
 else
     handles.output = [];
     handles.output.name = 'Registration Parameters';
-    handles.output.pixel_step_size=str2num(get(handles.edit_pixel_step_size,'string'));
-    handles.output.spot_r=str2num(get(handles.edit_spot_r,'string'));
+    handles.output.pixel_step_size = ...
+        str2double(get(handles.edit_pixel_step_size,'string'));
+    handles.output.spot_r = ...
+        str2double(get(handles.edit_spot_r,'string'));
     handles.output.screen_num = 0;
 end
 
@@ -103,8 +107,6 @@ guidata(hObject, handles);
 
 % UIWAIT makes registration_parameter_subgui wait for user response (see UIRESUME)
 uiwait(handles.figure1);
-
-
 
 
 % --- Outputs from this function are returned to the command line.
@@ -124,7 +126,6 @@ else
 end
 
 
-
 % --- Executes when user attempts to close figure1.
 function figure1_CloseRequestFcn(hObject, eventdata, handles)
 % hObject    handle to figure1 (see GCBO)
@@ -140,7 +141,7 @@ function edit_spot_r_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-handles.output.spot_r=str2num(get(handles.edit_spot_r,'string'));
+handles.output.spot_r=str2double(get(handles.edit_spot_r,'string'));
 guidata(hObject,handles);
 
 
@@ -169,22 +170,14 @@ uiresume(handles.figure1);
 
 
 function edit_step_interval_Callback(hObject, eventdata, handles)
-% hObject    handle to edit_step_interval (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
 
-handles.output.step_interval=str2num(get(handles.edit_step_interval,'string'));
+handles.output.step_interval=str2double(get(handles.edit_step_interval,'string'));
 guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.
 function edit_step_interval_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit_step_interval (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
 
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
@@ -192,22 +185,14 @@ end
 
 
 function edit_pixel_step_size_Callback(hObject, eventdata, handles)
-% hObject    handle to edit_pixel_step_size (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
 
-handles.output.pixel_step_size=str2num(get(handles.edit_pixel_step_size,'string'));
+handles.output.pixel_step_size=str2double(get(handles.edit_pixel_step_size,'string'));
 guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.
 function edit_pixel_step_size_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit_pixel_step_size (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
 
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
@@ -215,9 +200,6 @@ end
 
 % --- Executes on selection change in scr_popupmenu.
 function scr_popupmenu_Callback(hObject, eventdata, handles)
-% hObject    handle to scr_popupmenu (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
 
 handles.output.screen_num = handles.scr_popupmenu.Value-1;
 guidata(hObject,handles);
@@ -225,12 +207,7 @@ guidata(hObject,handles);
 
 % --- Executes during object creation, after setting all properties.
 function scr_popupmenu_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to scr_popupmenu (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
 
-% Hint: popupmenu controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end

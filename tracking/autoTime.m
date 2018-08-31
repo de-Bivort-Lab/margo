@@ -3,16 +3,7 @@ function [trackDat] = autoTime(trackDat, expmt, gui_handles, varargin)
 
     % check last frame against block duration if running in block mode
     % otherwise, check against the experiment duration
-    if isfield(expmt,'block')
-        switch expmt.meta.name
-            case 'Arena Circling'
-                trackDat.lastFrame = (trackDat.t - expmt.block.t) > expmt.block.arena_duration * 60;
-            case 'Optomotor'
-                trackDat.lastFrame = (trackDat.t - expmt.block.t) > expmt.block.opto_duration * 60;
-            case 'Slow Phototaxis'
-                trackDat.lastFrame = (trackDat.t - expmt.block.t) > expmt.block.photo_duration * 60;
-        end
-    elseif strcmp(expmt.meta.source,'camera')
+    if strcmp(expmt.meta.source,'camera')
         trackDat.lastFrame = trackDat.t > gui_handles.edit_exp_duration.Value * 3600;
     end
     
