@@ -749,12 +749,13 @@ try
     % disable controls that are not to be accessed while expmt is running
     toggleSubguis(handles,'off');
     toggleMenus(handles,'off');
-    handles.run_pushbutton.Enable = 'off';
+    hObject.Enable = 'off';
 
     % Execute the appropriate script for the selected experiment
     exp_idx = find(arrayfun(@(e) ...
         strcmpi(expmt.meta.name,e.name),handles.experiments));
     expmt = feval(handles.experiments(exp_idx).run, expmt, handles);
+    expmt = autoFinish(expmt,handles);
     
     % run post-processing
     if ~expmt.meta.finish
@@ -796,10 +797,9 @@ catch ME
         end
     end
     
-    switch expmt.meta.name
-        case 'Slow Phototaxis', sca;
-        case 'Optomotor', sca;
-        case 'Temporal Phototaxis', sca;
+    try
+        sca;
+    catch
     end
     gui_notify('error encountered - tracking stopped',handles.disp_note);
     keep_gui_state = true;
@@ -858,12 +858,6 @@ end
 % reset initialization
 expmt.meta.initialize = true;
 expmt.meta.finish = true;
-
-% ensure all open files are closed
-fIDs = fopen('all');
-for i=1:length(fIDs)
-    fclose(fIDs(i));
-end
         
 % Store expmteriment data struct
 setappdata(handles.gui_fig,'expmt',expmt);

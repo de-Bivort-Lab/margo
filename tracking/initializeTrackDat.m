@@ -17,6 +17,8 @@ end
 
 trackDat.traces = TracePool(nr, nt, md);
 trackDat.candidates = TracePool(nr, 0, md, 'Bounded', false);
+trackDat.drop_ct = zeros(sum(nt),1);
+
 
 % Reference vars
 depth = expmt.parameters.ref_depth;       % number of rolling sub references
@@ -51,7 +53,6 @@ end
 if ~isempty(fieldnames(expmt.meta.noise))
     trackDat.px_dist = zeros(10,1);      % distribution of pixels over threshold  
     trackDat.pix_dev = zeros(10,1);      % stdev of pixels over threshold
-    trackDat.drop_ct = zeros(sum(nt),1);
 end
 
 

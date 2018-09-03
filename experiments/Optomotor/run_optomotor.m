@@ -176,21 +176,6 @@ while ~trackDat.lastFrame
 end
 
 
-%% post-experiment wrap-up
-
-sca;
-
-% auto process data and save master struct
-if expmt.meta.finish
-    expmt = autoFinish(trackDat, expmt, gui_handles);
-end
-
-for i=1:nargout
-    switch i
-        case 1, varargout(i) = {expmt};
-        case 2, varargout(i) = {trackDat};
-    end
-end
 
 
 function updateText(h,pos,val)

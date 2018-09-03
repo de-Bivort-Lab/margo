@@ -4,8 +4,6 @@ function [trackDat,expmt] = autoInitialize(trackDat,expmt,gui_handles)
 %% house-keeping intialization - executes even with initialization flag set OFF
 
 % reset the handles state of the gui
-%set(gui_handles.on_objs,'Enable','on');
-%set(gui_handles.off_objs,'Enable','off');
 
 % Initialize infrared and white illuminators
 writeInfraredWhitePanel(expmt.hardware.COM.light,1,...
@@ -24,7 +22,13 @@ trackDat.tStamp = ...
 % create new "trace" fields trackDat.traces and trackDat.candidates
 
 % tracking vars
-trackDat = initializeTrackDat(expmt);
+if isfield(trackDat,'fields')
+    ff = trackDat.fields;
+    trackDat = initializeTrackDat(expmt);
+    trackDat.fields = ff;
+else
+    trackDat = initializeTrackDat(expmt);
+end
 
 cam_center = repmat(fliplr(size(expmt.meta.ref)./2),...
                 size(expmt.meta.roi.centers));

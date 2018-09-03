@@ -152,22 +152,4 @@ while ~trackDat.lastFrame
  
 end
 
-%% post-experiment wrap-up
-
-% close the psychtoolbox window
-sca;
-
-if expmt.meta.finish
-    
-    % % auto process data and save master struct
-    expmt = autoFinish(trackDat, expmt, gui_handles);
-
-end
-
-for i=1:nargout
-    switch i
-        case 1, varargout(i) = {expmt};
-        case 2, varargout(i) = {trackDat};
-    end
-end
 
