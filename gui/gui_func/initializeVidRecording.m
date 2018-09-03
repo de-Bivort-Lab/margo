@@ -7,7 +7,8 @@ expmt.meta.VideoData.path = ...
 
 switch gui_handles.vid_compress_menu.Checked
     case 'on'
-        expmt.meta.VideoData.obj = VideoWriter(expmt.meta.VideoData.path,'MPEG-4');
+        expmt.meta.VideoData.obj = VideoWriter(expmt.meta.VideoData.path,'Motion JPEG AVI');
+        expmt.meta.VideoData.obj.Quality = 75;
     case 'off'
         expmt.meta.VideoData.obj = VideoWriter(expmt.meta.VideoData.path,'Grayscale AVI');
 end

@@ -13,7 +13,9 @@ if isfield(camInfo,'settings')
     set_names = fieldnames(camInfo.settings);
     
     for i = 1:length(i_src)
-        src.(names{i_src(i)}) = camInfo.settings.(set_names{i_set(i)});
+        if ~isempty(camInfo.settings.(set_names{i_set(i)}))
+            src.(names{i_src(i)}) = camInfo.settings.(set_names{i_set(i)});
+        end
     end
     
 end
