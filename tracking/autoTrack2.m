@@ -1,35 +1,7 @@
 function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
-% This function is the core tracking routine of MARGO and consists of:
-% 
-%   A. Image Processing:
-%
-%       1. Vignette correct current frame and background reference
-%       2. Subtract background to create difference image
-%       3. Binarize by thresholding difference image
-%       4. Use ROI masks to set non-ROI parts of image to zero
-%       5. Blob dilation/erosion (optional) to stitch neighboring blobs
-%
-%   B. Noise Measurement:
-%
-%       1. Count above-threshold pixel number
-%       2. Compare to baseline pixel distribution during noise sampling
-%       3. Skip current frame if above threshold pixel number is too far
-%          above baseline (7 standard deviations)
-%
-%   C. Tracking:
-%
-%       1. Extract blob areas and remove blobs too small or big
-%       2. Get blob features via regionprops (features specified by in_fields)
-%       3. Find blob to trace index permutation according to one of two modes:
-%           - Single Track:   max one tracked object per ROI
-%           - Multi Track:    up to nTracesPerROI objects in each ROI
-%       4. Apply permutation to all output fields and update data to record
-%          in trackDat
-%
-% ----------------------------------------------------------------------%
 
-    % Split fields into fields going into regionprops and fields 
-    % being updated in trackDat
+%% Parse fields
+
     out_fields = trackDat.fields;
     in_fields = trackDat.fields;
     
@@ -38,7 +10,7 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
         'ConvexImage';'Eccentricity';'EquivDiameter';'EulerNumber';'Extent';...
         'Extrema';'Filledarea';'FilledImage';'Image';'majorAxisLength';...
         'minorAxisLength';'orientation';'Perimeter';'pixelIdxList';'PixelList';...
-        'Solidity';'SubarrayIdx'};
+        'Solidity';'SubarrayIdx';'weightedCentroid'};
     remove = ~ismember(in_fields,prop_fields);
     in_fields(remove) = [];
     
@@ -47,11 +19,11 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
             ~any(strcmpi('weightedCentroid',in_fields))
         in_fields = [in_fields; {'centroid'}];
     end
-    if any(strcmpi('area',in_fields))
-        in_fields(strcmpi('area',in_fields)) = [];
+    if ~any(strcmpi('area',in_fields))
+        in_fields = [in_fields; {'area'}];
     end
-    if any(strcmpi('PixelList',in_fields))
-        in_fields(strcmpi('PixelList',in_fields)) = [];
+    if ~any(strcmpi('PixelList',in_fields))
+        in_fields = [in_fields; {'PixelList'}];
     end
     
     % add BoundingBox as a field if dilate/erode mode
@@ -59,8 +31,8 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
         in_fields = [in_fields; {'BoundingBox'}];
     end
     
+%% Track objects
 
-    % increment frame counter
     trackDat.ct = trackDat.ct + 1;
     trackDat.in_fields = in_fields;
 
@@ -96,11 +68,9 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
             record = false;
         end
     end
-    
-    % do tracking if frame is clean
-    if record
         
-        % check optional blob dilation/erosion
+    if record  
+        
         if isfield(expmt.parameters,'dilate_sz') &&...
                 expmt.parameters.dilate_sz > 0
             
@@ -116,38 +86,30 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
             thresh_im = eim;            
             
             clearvars dim eim mim
+            
         end
             
         % get region properties
-        cc = bwconncomp(thresh_im, 8);
-        area = cellfun(@numel,cc.PixelIdxList);
-        
-        % threshold blobs by area
-        below_min = area  .* (expmt.parameters.mm_per_pix^2) < ...
-            expmt.parameters.area_min;
-        above_max = area .* (expmt.parameters.mm_per_pix^2) >...
-            expmt.parameters.area_max;
-        
-        oob = below_min | above_max;
-        if any(oob)
-            cc.PixelIdxList(oob) = [];
-            cc.NumObjects = cc.NumObjects - sum(oob);
-            area(oob) = [];
-        end
-        props=regionprops(cc, in_fields);
+        props=regionprops(thresh_im,trackDat.im, in_fields);
         trackDat.thresh_im = thresh_im;
 
-        % track objects
+        % threshold blobs by area
+        above_min = [props.Area]  .* (expmt.parameters.mm_per_pix^2) > ...
+            expmt.parameters.area_min;
+        below_max = [props.Area] .* (expmt.parameters.mm_per_pix^2) <...
+            expmt.parameters.area_max;
+        props(~(above_min & below_max)) = [];
+        
+
+
         switch expmt.meta.track_mode
-            
-            % track multiple objects per roi
             case 'multitrack'
                 [trackDat, expmt, props] = multiTrack(props, trackDat, expmt);
                 trackDat.centroid = cat(1,trackDat.traces.cen);
                 update = cat(1,trackDat.traces.updated);
                 permutation = cat(2,trackDat.permutation{:})';
 
-            % track one object per roi
+       
             case 'single'
                 raw_cen = reshape([props.Centroid],2,length([props.Centroid])/2)';
                 % Match centroids to last known centroid positions
@@ -157,6 +119,7 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
                 speed = NaN(size(update));
 
                 if any(update)
+
                     % calculate distance and convert from pix to mm
                     d = sqrt((raw_cen(permutation,1)-trackDat.centroid(update,1)).^2 ...
                              + (raw_cen(permutation,2)-trackDat.centroid(update,2)).^2);
@@ -171,6 +134,7 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
                     permutation(above_spd_thresh)=[];
                     update(update) = ~above_spd_thresh;
                     speed(update) = tmp_spd(~above_spd_thresh);
+
                 end
 
                 % Use permutation vector to sort raw centroid data and update
@@ -218,11 +182,11 @@ if any(strcmpi('speed',out_fields))
 end
 
 if any(strcmpi('area',out_fields))
-    tmp_area = NaN(size(trackDat.centroid,1),1);
+    area = NaN(size(trackDat.centroid,1),1);
     if record
-        tmp_area(update) = area(permutation);
+        area(update) = [props(permutation).Area];
     end
-    trackDat.area = single(tmp_area .* (expmt.parameters.mm_per_pix^2));
+    trackDat.area = single(area .* (expmt.parameters.mm_per_pix^2));
 end
 
 if any(strcmpi('Orientation',out_fields))
@@ -268,3 +232,9 @@ end
 if any(strcmpi('VideoIndex',out_fields))
     trackDat.VideoIndex = trackDat.ct;
 end
+
+
+
+
+
+            

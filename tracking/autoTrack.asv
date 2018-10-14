@@ -140,14 +140,14 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
         % track objects
         switch expmt.meta.track_mode
             
-            % track multiple objects per roi
+            % t
             case 'multitrack'
                 [trackDat, expmt, props] = multiTrack(props, trackDat, expmt);
                 trackDat.centroid = cat(1,trackDat.traces.cen);
                 update = cat(1,trackDat.traces.updated);
                 permutation = cat(2,trackDat.permutation{:})';
 
-            % track one object per roi
+       
             case 'single'
                 raw_cen = reshape([props.Centroid],2,length([props.Centroid])/2)';
                 % Match centroids to last known centroid positions
@@ -157,6 +157,7 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
                 speed = NaN(size(update));
 
                 if any(update)
+
                     % calculate distance and convert from pix to mm
                     d = sqrt((raw_cen(permutation,1)-trackDat.centroid(update,1)).^2 ...
                              + (raw_cen(permutation,2)-trackDat.centroid(update,2)).^2);
@@ -171,6 +172,7 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
                     permutation(above_spd_thresh)=[];
                     update(update) = ~above_spd_thresh;
                     speed(update) = tmp_spd(~above_spd_thresh);
+
                 end
 
                 % Use permutation vector to sort raw centroid data and update
