@@ -161,7 +161,7 @@ for i = 1:length(trackDat.fields)
     end
     % open fileID with write permission
     expmt.data.(trackDat.fields{i}).fID = ...
-        fopen(expmt.data.(trackDat.fields{i}).path,'w');         
+        fopen(expmt.data.(trackDat.fields{i}).path,'W');         
 end
 
 % save current parameters to .mat file prior to experiment

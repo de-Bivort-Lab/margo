@@ -201,12 +201,6 @@ classdef ExperimentData < dynamicprops
                obj.parameters = rmfield(obj.parameters,non_default{i}); 
             end
         end
-        
-        function obj = export_all_csv(obj)
-           for i=1:numel(obj.meta.fields)
-               export_to_csv(obj.data.(obj.meta.fields{i}));
-           end
-        end
             
     end
     methods(Static)

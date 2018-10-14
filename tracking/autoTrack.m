@@ -204,7 +204,8 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
 % assign any optional sorted output fields to the trackDat
 % structure if listed in expmt.meta.fields. 
 % return NaNs if record = false
-
+expmt.meta.num_frames = trackDat.ct;
+expmt.meta.num_dropped = trackDat.drop_ct;
 if any(strcmpi('speed',out_fields))
     if record
         if exist('speed','var')
