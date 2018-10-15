@@ -1,6 +1,6 @@
 function gui_handles = toggleSubguis(gui_handles,state)
 
-% this function enables/disables subguis of autotracker.
+% this function enables/disables subguis of margo.
 % any function control that opens a separate window cannot be accessed
 % during experiments and should be disabled. Use this function to easily
 % toggle between enabled and disabled states for all controls that open

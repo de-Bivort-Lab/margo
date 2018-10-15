@@ -142,7 +142,7 @@ function circadian_parameter_subgui_OpeningFcn(hObject, eventdata, handles, vara
     handles.circ_fig.UserData.pulse_amp = str2num(handles.edit_pulseamp.String);
     
     light_uipanel = findobj('Tag','light_uipanel');
-    gui_fig = findobj('Name','autotracker');
+    gui_fig = findobj('Name','margo');
     handles.circ_fig.Position(1) = gui_fig.Position(1) + ...
         sum(light_uipanel.Position([1 3])) - handles.circ_fig.Position(3);
     handles.circ_fig.Position(2) = gui_fig.Position(2) + ...

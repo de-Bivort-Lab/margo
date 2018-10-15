@@ -1,35 +1,35 @@
-function varargout = autotracker(varargin)
-% AUTOTRACKER MATLAB code for autotracker.fig
-%      AUTOTRACKER, by itself, creates a new AUTOTRACKER or raises the existing
+function varargout = margo(varargin)
+% MARGO MATLAB code for margo.fig
+%      MARGO, by itself, creates a new MARGO or raises the existing
 %      singleton*.
 %
-%      H = AUTOTRACKER returns the handle to a new AUTOTRACKER or the handle to
+%      H = MARGO returns the handle to a new MARGO or the handle to
 %      the existing singleton*.
 %
-%      AUTOTRACKER('CALLBACK',hObject,eventData,handles,...) calls the local
-%      function named CALLBACK in AUTOTRACKER.M with the given input arguments.
+%      MARGO('CALLBACK',hObject,eventData,handles,...) calls the local
+%      function named CALLBACK in MARGO.M with the given input arguments.
 %
-%      AUTOTRACKER('Property','Value',...) creates a new AUTOTRACKER or raises the
+%      MARGO('Property','Value',...) creates a new MARGO or raises the
 %      existing singleton*.  Starting from the left, property value pairs are
-%      applied to the GUI before autotracker_OpeningFcn gets called.  An
+%      applied to the GUI before margo_OpeningFcn gets called.  An
 %      unrecognized property name or invalid value makes property application
-%      stop.  All inputs are passed to autotracker_OpeningFcn via varargin.
+%      stop.  All inputs are passed to margo_OpeningFcn via varargin.
 %
 %      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
 %      instance to run (singleton)".
 %
 % See also: GUIDE, GUIDATA, GUIHANDLES
 
-% Edit the above text to modify the response to help autotracker
+% Edit the above text to modify the response to help margo
 
-% Last Modified by GUIDE v2.5 15-Oct-2018 12:11:49
+% Last Modified by GUIDE v2.5 15-Oct-2018 12:28:31
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
                    'gui_Singleton',  gui_Singleton, ...
-                   'gui_OpeningFcn', @autotracker_OpeningFcn, ...
-                   'gui_OutputFcn',  @autotracker_OutputFcn, ...
+                   'gui_OpeningFcn', @margo_OpeningFcn, ...
+                   'gui_OutputFcn',  @margo_OutputFcn, ...
                    'gui_LayoutFcn',  [] , ...
                    'gui_Callback',   []);
 if nargin && ischar(varargin{1})
@@ -44,13 +44,13 @@ end
 % End initialization code - DO NOT EDIT
 
 
-% --- Executes just before autotracker is made visible.
-function autotracker_OpeningFcn(hObject, ~, handles, varargin)
+% --- Executes just before margo is made visible.
+function margo_OpeningFcn(hObject, ~, handles, varargin)
 % hObject    handle to figure
-% varargin   command line arguments to autotracker (see VARARGIN)
+% varargin   command line arguments to margo (see VARARGIN)
 
 % get gui directory and ensure all dependencies are added to path
-handles.gui_dir = which('autotracker');
+handles.gui_dir = which('margo');
 [par_dir,~,~] = fileparts(handles.gui_dir);
 [par_dir,~,~] = fileparts(par_dir);
 handles.gui_dir = [par_dir '/'];
@@ -123,11 +123,11 @@ setappdata(handles.gui_fig,'expmt',expmt);
 % Update handles structure
 guidata(hObject,handles);
 
-% UIWAIT makes autotracker wait for user response (see UIRESUME)
+% UIWAIT makes margo wait for user response (see UIRESUME)
 % uiwait(handles.gui_fig);
 
 % --- Outputs from this function are returned to the command line.
-function varargout = autotracker_OutputFcn(hObject, ~, handles) 
+function varargout = margo_OutputFcn(hObject, ~, handles) 
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 
@@ -567,11 +567,11 @@ function save_path_button1_Callback(hObject, ~, handles)
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 mat_dir = handles.gui_dir(1:strfind(handles.gui_dir,'MATLAB')+6);
-default_path = [mat_dir 'autotracker_data/'];
+default_path = [mat_dir 'margo_data/'];
 if exist(default_path,'dir') ~= 7
     mkdir(default_path);
     msg_title = 'New Data Path';
-    message = ['Autotracker has automatically generated a new default directory'...
+    message = ['margo has automatically generated a new default directory'...
         ' for data in ' default_path];
     
     % Display info
@@ -1160,7 +1160,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 % Get existing profile list
-gui_dir = which('autotrackergui');
+gui_dir = which('margo');
 gui_dir = gui_dir(1:strfind(gui_dir,'/gui/'));
 load_path =[gui_dir 'profiles/'];
 tmp_profiles = ls(load_path);
@@ -3112,7 +3112,7 @@ if ~isempty(name)
 end
 
 
-function export_meta_menu_Callback(hObject, eventdata, handles)
+function export_menu_Callback(hObject, eventdata, handles)
 % do nothing
 
 % --------------------------------------------------------------------

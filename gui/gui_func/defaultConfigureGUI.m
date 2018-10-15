@@ -25,7 +25,7 @@ if exist([handles.gui_dir 'profiles/deviceID.txt'],'file')
     
 end
 handles.display_menu.UserData = 1;     
-gui_notify('welcome to autotracker',handles.disp_note);
+gui_notify('welcome to margo',handles.disp_note);
 
 % configure the figure window
 root = get(0);
@@ -86,7 +86,7 @@ set(findall(handles.tracking_uipanel, '-property', 'Enable'), 'Enable', 'off');
 handles.run_uipanel.ForegroundColor = [.5   .5  .5];
 set(findall(handles.run_uipanel, '-property', 'Enable'), 'Enable', 'off');
 
-% Choose default command line output for autotracker
+% Choose default command line output for margo
 handles.gui_fig.UserData.edit_rois = false;
 handles.axes_handle = gca;
 set(gca,'Xtick',[],'Ytick',[],'XLabel',[],'YLabel',[]);
@@ -118,7 +118,7 @@ end
 hParent = findobj('Tag','saved_presets_menu');
 save_path = [handles.gui_dir 'profiles/'];
 fh = @(hObject,eventdata)...
-        autotracker('saved_preset_Callback',...
+        margo('saved_preset_Callback',...
             hObject,eventdata,guidata(hObject));
 
 for i = 1:length(profiles)
