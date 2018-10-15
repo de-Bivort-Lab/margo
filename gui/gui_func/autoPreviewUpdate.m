@@ -1,4 +1,4 @@
-function autoPreviewUpdate(obj,event,hImage)
+function autoPreviewUpdate(~,event,hImage)
 
 % query the active display mode
 gui_handles = getappdata(hImage,'gui_handles');

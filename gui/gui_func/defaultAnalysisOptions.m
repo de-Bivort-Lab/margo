@@ -1,7 +1,7 @@
 function [fields,options,varargout] = defaultAnalysisOptions(varargin)
 
 f = false;
-options = struct('disable',f,'handedness',f,'bouts',f,'bootstrap',f,...
+options = struct('disable',true,'handedness',f,'bouts',f,'bootstrap',f,...
     'regress',f,'slide',f,'areathresh',f,'save',true,'raw',f);
 options.raw = {};
 fields = {'centroid';'time'};

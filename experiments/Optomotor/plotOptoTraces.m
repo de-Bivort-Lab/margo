@@ -21,8 +21,8 @@ nTracks = size(optoplots,2);
 hold on
 for i=1:nTracks
     if active(i)
-        plot(1:t0-1,smooth(optoplots(1:t0-1,i),20),'Color',rand(1,3),'linewidth',2);
-        plot(t0+1:length(optoplots),smooth(optoplots(t0+1:end,i),20),'Color',rand(1,3),'linewidth',2);
+        plot(1:t0-1,meanFilter(optoplots(1:t0-1,i),20),'Color',rand(1,3),'linewidth',2);
+        plot(t0+1:length(optoplots),meanFilter(optoplots(t0+1:end,i),20),'Color',rand(1,3),'linewidth',2);
     end
 end
 

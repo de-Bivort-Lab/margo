@@ -1,5 +1,13 @@
 function [expmt_out] = cam_settings_subgui(handles,expmt_in)
 
+% check to see if a camera exists
+if ~isfield(expmt_in.hardware.cam,'AdaptorName') || ...
+        ~isfield(expmt_in.hardware.cam,'DeviceIDs') || ...
+        ~isfield(expmt_in.hardware.cam,'ActiveMode')
+    expmt_out=expmt_in;
+    return;
+end
+
 % get device properties
 if ~isfield(expmt_in.hardware.cam,'vid') || ...
         (isfield(expmt_in.hardware.cam,'vid') && ~isvalid(expmt_in.hardware.cam.vid))

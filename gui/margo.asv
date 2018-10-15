@@ -1774,8 +1774,7 @@ if ~isempty(tmp)
     p.mm_per_pix = tmp.mm_per_pixel;
     expmt.parameters = p;
     
-    handles.edit_area_maximum.String = num2str(p.area_max,2);
-    handles.edit_area_minimum.String = num2str(p.area_min,2);
+    handles.edit_area_maximum
     if expmt.parameters.mm_per_pix ~= 1
         expmt.parameters.units = 'millimeters';
     end
@@ -3098,7 +3097,6 @@ if ~isempty(track_param_fig) && ishghandle(track_param_fig)
         htarget_rate.String = hObject.String;
     end
 end
-setappdata(handles.gui_fig,'expmt',expmt);
 
 
 % --- Executes during object creation, after setting all properties.

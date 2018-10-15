@@ -69,8 +69,8 @@ handles.edit_dist_thresh.String = sprintf('%0.1f',param.distance_thresh);
 handles.edit_target_rate.String = sprintf('%0.1f',param.target_rate);
 handles.edit_vignette_sigma.String = sprintf('%0.1f',param.vignette_sigma);
 handles.edit_vignette_weight.String = sprintf('%0.1f',param.vignette_weight);
-handles.edit_area_min.String = sprintf('%i',param.area_min);
-handles.edit_area_max.String = sprintf('%i',param.area_max);
+handles.edit_area_min.String = sprintf('%.1f',param.area_min);
+handles.edit_area_max.String = sprintf('%.1f',param.area_max);
 handles.edit_ROI_cluster_tolerance.String = sprintf('%0.1f',param.roi_tol);
 handles.edit_dilate_sz.String = sprintf('%i',param.dilate_sz);
 handles.edit_num_traces.String = sprintf('%i',param.traces_per_roi);
@@ -158,18 +158,21 @@ display_menu.UserData = 1;
 display = false;
 
 % Initialize camera and video object
-expmt = getVideoInput(expmt,gui_handles);
-
-switch expmt.meta.source
-    case 'camera'
-        if isfield(expmt.hardware.cam,'vid')
-            display = true;
-        end
-    case 'video'
-        imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');
-        if isfield(expmt.meta.video,'vid') && ~isempty(imh)
-            display = true;
-        end
+try
+    expmt = getVideoInput(expmt,gui_handles);
+    switch expmt.meta.source
+        case 'camera'
+            if isfield(expmt.hardware.cam,'vid')
+                display = true;
+            end
+        case 'video'
+            imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');
+            if isfield(expmt.meta.video,'vid') && ~isempty(imh)
+                display = true;
+            end
+    end
+catch
+    display = false;
 end
 
 if ~display
