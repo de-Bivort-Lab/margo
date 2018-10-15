@@ -207,6 +207,21 @@ classdef ExperimentData < dynamicprops
                export_to_csv(obj.data.(obj.meta.fields{i}));
            end
         end
+        
+        function export_meta_json(obj)
+            
+            % select parameters and meta data to export
+            tmp.meta = obj.meta;
+            tmp.parameters = obj.parameters;
+            
+            % encode string and write file
+            json_str = jsonencode(tmp);
+            json_path = unixify([obj.meta.path.dir obj.meta.path.name '.json']);
+            fID = fopen(json_path, 'W');
+            if fID== -1, error('Cannot create JSON file'); end
+            fwrite(fID, json_str, 'char');
+            fclose(fID);
+        end
             
     end
     methods(Static)

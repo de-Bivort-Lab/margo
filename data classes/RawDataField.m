@@ -204,15 +204,13 @@ classdef RawDataField < dynamicprops
 end
 
 
+% exports raw data files to csv in batches
 function fID = batch_to_csv(obj, format_spec)
 
     [csv_dir,csv_name,~] = fileparts(obj.path);
     field = csv_name(find(csv_name=='_',1,'Last')+1:end);
     reset(obj);
     [frames_per_batch, nbatches] = get_batch_sizes(obj.raw);
-    msg = sprintf('%s - processing batch 1 of %i', field, nbatches);
-    hwb = waitbar(0,'','Name',...
-        sprintf('Exporting raw data from %s to csv',csv_name));
     
     % write data in batches
     sz = size(obj.raw);
@@ -222,8 +220,6 @@ function fID = batch_to_csv(obj, format_spec)
             fID(1) = fopen([csv_dir '/' csv_name '_x.csv'],'W+');
             fID(2) = fopen([csv_dir '/' csv_name '_y.csv'],'W');
             for i=1:nbatches
-                msg = sprintf('%s - processing batch %i of %i', field, i, nbatches);
-                hwb = waitbar((i-1)/nbatches,hwb,msg);
                 idx = [(i-1)*frames_per_batch+1 i*frames_per_batch];
                 if idx(2) > sz(1)
                     batch_dat_x = obj.raw(idx(1):sz(1),1,:);
@@ -234,14 +230,11 @@ function fID = batch_to_csv(obj, format_spec)
                 end
                 fprintf(fID(1), format_spec, batch_dat_x);
                 fprintf(fID(2), format_spec, batch_dat_y);
-                hwb = waitbar(i/nbatches,hwb,msg);
                 reset(obj);
             end
         otherwise
             fID = fopen([csv_dir '/' csv_name '.csv'],'W');
             for i=1:nbatches
-                msg = sprintf('%s - processing batch %i of %i', field, i, nbatches);
-                hwb = waitbar((i-1)/nbatches,hwb,msg);
                 idx = [(i-1)*frames_per_batch+1 i*frames_per_batch];
                 if idx(2) > sz(1)
                     batch_dat = obj.raw(idx(1):sz(1),1);
@@ -249,12 +242,10 @@ function fID = batch_to_csv(obj, format_spec)
                     batch_dat = obj.raw(idx(1):idx(2),1);
                 end
                 fprintf(fID, format_spec, batch_dat);
-                hwb = waitbar(i/nbatches,hwb,msg);
                 reset(obj);
             end
     end
     for i=1:numel(fID)
         fclose(fID(i));
     end
-    delete(hwb);
 end
