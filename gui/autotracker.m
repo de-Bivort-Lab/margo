@@ -583,7 +583,7 @@ expmt.meta.path.full = fpath;
 set(handles.save_path,'string',fpath);
 
 % if experiment parameters are set, Enable experiment run panel
-if expmt.meta.exp_id > 1 && ~isempty(handles.save_path.String)
+if ~isempty(handles.save_path.String)
     set(findall(handles.run_uipanel, '-property', 'Enable'),'Enable','on');
     eb = findall(handles.run_uipanel, 'Style', 'edit');
     set(eb,'Enable','inactive','BackgroundColor',[.87 .87 .87]);
@@ -982,7 +982,7 @@ if ~isempty(handles.experiments(idx).sub_gui)
     tmp_param = feval(handles.experiments(idx).sub_gui,expmt);
     if ~isempty(tmp_param)
         expmt.parameters = tmp_param;
-        expmt.parameters.intialized = true;
+        expmt.parameters.initialized = true;
     end
 else
     error(['\nno sub gui detected for %s - '...
@@ -1298,7 +1298,6 @@ try
 
     % if experiment parameters are set, Enable experiment run panel
     if ~isempty(handles.save_path.String)
-
         set(findall(handles.run_uipanel, ...
             '-property', 'Enable'),'Enable','on');
     end
@@ -1591,6 +1590,10 @@ if ~isfield(expmt.hardware.projector,'reg_params')
     tmp = registration_parameter_subgui(expmt);
     if ~isempty(tmp)
         expmt.hardware.projector.reg_params = tmp;
+    else
+        msg = 'registration parameters not set, registration failed';
+        gui_notify(msg,handles.disp_note);
+        return
     end
 end
 
@@ -1653,17 +1656,11 @@ function reg_params_menu_Callback(hObject, ~, handles)
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 
-if isfield(expmt.hardware.projector,'reg_params')
-    tmp = registration_parameter_subgui(expmt);
-    if ~isempty(tmp)
-        expmt.reg_params = tmp;
-    end
-else
-        tmp = registration_parameter_subgui();
-    if ~isempty(tmp)
-        expmt.reg_params = tmp;
-    end
+tmp = registration_parameter_subgui(expmt);
+if ~isempty(tmp)
+    expmt.hardware.projector.reg_params = tmp;
 end
+
 
 % Store expmteriment data struct
 setappdata(handles.gui_fig,'expmt',expmt);
@@ -1673,11 +1670,9 @@ setappdata(handles.gui_fig,'expmt',expmt);
 function reg_error_menu_Callback(hObject, ~, handles)
 % hObject    handle to reg_error_menu (see GCBO)
 
-
-
 expmt = getappdata(handles.gui_fig,'expmt');
 
-if exist([handles.gui_dir 'hardware/projector_fit/']) == 7 &&...
+if exist([handles.gui_dir 'hardware/projector_fit/'],'dir') == 7 &&...
         isfield(expmt.hardware.projector,'reg_params')
     
     % Turn infrared and white background illumination off during registration
@@ -1730,8 +1725,6 @@ function tracking_menu_Callback(~,~,~)
 function advanced_tracking_menu_Callback(hObject, ~, handles)
 % hObject    handle to advanced_tracking_menu (see GCBO)
 
-
-
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 
@@ -1748,46 +1741,44 @@ function distance_scale_menu_Callback(hObject, ~, handles)
 % hObject    handle to distance_scale_menu (see GCBO)
 
 
-
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 
 % grab a frame if a camera or video object exists
-if (isfield(expmt.hardware.cam,'vid') && strcmp(expmt.hardware.cam.vid.Running,'on')) ||...
-    isfield(expmt.meta.video,'vid')
+if (isfield(expmt.hardware.cam,'vid') && ...
+        strcmp(expmt.hardware.cam.vid.Running,'on')) ||...
+        isfield(expmt.meta.video,'vid')
 
     % query next frame and optionally correct lens distortion
     trackDat = [];
-    [trackDat,expmt] = autoFrame(trackDat,expmt,handles);
+    [~,expmt] = autoFrame(trackDat,expmt,handles);
     
-elseif (isfield(expmt.hardware.cam,'vid') && strcmp(expmt.hardware.cam.vid.Running,'off'))
+elseif (isfield(expmt.hardware.cam,'vid') && ...
+        strcmp(expmt.hardware.cam.vid.Running,'off'))
 
     % restart camera
     start(expmt.hardware.cam.vid);
     
     % query next frame and optionally correct lens distortion
     trackDat = [];
-    [trackDat,expmt] = autoFrame(trackDat,expmt,handles); 
+    [~,expmt] = autoFrame(trackDat,expmt,handles); 
     
 end
 
 tmp=setDistanceScale_subgui(handles,expmt.parameters);
 delete(findobj('Tag','imline'));
 if ~isempty(tmp)
+    
     expmt.parameters.distance_scale = tmp;
+    p = expmt.parameters;
     
     % update speed, distance, and area thresholds
-    expmt.parameters.speed_thresh =...
-        expmt.parameters.speed_thresh .* tmp.mm_per_pixel ./ expmt.parameters.mm_per_pix;
-    expmt.parameters.distance_thresh =...
-        expmt.parameters.distance_thresh .* tmp.mm_per_pixel ./ expmt.parameters.mm_per_pix;
-    expmt.parameters.area_min =...
-        expmt.parameters.area_min .* ((tmp.mm_per_pixel./expmt.parameters.mm_per_pix)^2);
-    expmt.parameters.area_max =...
-        expmt.parameters.area_max .* ((tmp.mm_per_pixel./expmt.parameters.mm_per_pix)^2);
-    
-    % set new parameter
-    expmt.parameters.mm_per_pix = tmp.mm_per_pixel;
+    p.speed_thresh = p.speed_thresh .* tmp.mm_per_pixel ./ pmm_per_pix;
+    p.distance_thresh = p.distance_thresh .* tmp.mm_per_pixel ./ pmm_per_pix;
+    p.area_min = p.area_min .* ((tmp.mm_per_pixel./pmm_per_pix)^2);
+    p.area_max = p.area_max .* ((tmp.mm_per_pixel./pmm_per_pix)^2);
+    p.mm_per_pix = tmp.mm_per_pixel;
+    expmt.parameters = p;
     
     if expmt.parameters.mm_per_pix ~= 1
         expmt.parameters.units = 'millimeters';
@@ -1799,38 +1790,13 @@ setappdata(handles.gui_fig,'expmt',expmt);
 
 
 % --------------------------------------------------------------------
-function Untitled_4_Callback(~,~,~)
-% hObject    handle to Untitled_4 (see GCBO)
-
-
-
-
-% --------------------------------------------------------------------
 function speed_thresh_menu_Callback(~,~,~)
 % hObject    handle to speed_thresh_menu (see GCBO)
-
-
 
 
 % --------------------------------------------------------------------
 function ROI_distance_thresh_menu_Callback(~,~,~)
 % hObject    handle to ROI_distance_thresh_menu (see GCBO)
-
-
-
-
-% --------------------------------------------------------------------
-function Untitled_7_Callback(~,~,~)
-% hObject    handle to Untitled_7 (see GCBO)
-
-
-
-
-% --------------------------------------------------------------------
-function Untitled_8_Callback(~,~,~)
-% hObject    handle to Untitled_8 (see GCBO)
-
-
 
 
 % --- Executes when gui_fig is resized.
@@ -2009,8 +1975,6 @@ function pushbutton23_Callback(~,~,~)
 function vid_select_popupmenu_Callback(hObject, ~, handles)
 % hObject    handle to vid_select_popupmenu (see GCBO)
 
-
-
 % get expmt data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 
@@ -2022,18 +1986,9 @@ expmt.meta.video.vid = ...
 setappdata(handles.gui_fig,'expmt',expmt);
 
 
-
-% Hints: contents = cellstr(get(hObject,'String')) returns vid_select_popupmenu contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from vid_select_popupmenu
-
-
 % --- Executes during object creation, after setting all properties.
 function vid_select_popupmenu_CreateFcn(hObject,~,~)
-% hObject    handle to vid_select_popupmenu (see GCBO)
 
-
-
-% Hint: popupmenu controls usually have a white background on Windows.
 
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
@@ -2046,17 +2001,8 @@ function edit_video_dir_Callback(~,~,~)
 
 
 
-% Hints: get(hObject,'String') returns contents of edit_video_dir as text
-%        str2double(get(hObject,'String')) returns contents of edit_video_dir as a double
-
-
 % --- Executes during object creation, after setting all properties.
 function edit_video_dir_CreateFcn(hObject,~,~)
-% hObject    handle to edit_video_dir (see GCBO)
-
-
-
-
 
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
@@ -2065,9 +2011,6 @@ end
 
 % --- Executes on button press in video_files_pushbutton.
 function video_files_pushbutton_Callback(hObject, ~, handles)
-% hObject    handle to video_files_pushbutton (see GCBO)
-
-
 
 % get expmt data struct
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -2094,13 +2037,8 @@ function select_source_menu_Callback(~,~,~)
 % hObject    handle to select_source_menu (see GCBO)
 
 
-
-
 % --------------------------------------------------------------------
 function source_camera_menu_Callback(hObject, ~, handles)
-% hObject    handle to source_camera_menu (see GCBO)
-
-
 
 % get expmt data struct
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -2143,13 +2081,8 @@ expmt.meta.source = 'camera';
 setappdata(handles.gui_fig,'expmt',expmt);
 
 
-
-
 % --------------------------------------------------------------------
 function source_video_menu_Callback(hObject, ~, handles)
-% hObject    handle to source_video_menu (see GCBO)
-
-
 
 % get expmt data struct
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -2202,7 +2135,6 @@ expmt.meta.source = 'video';
 
 % set expmt data struct
 setappdata(handles.gui_fig,'expmt',expmt);
-
 
 
 % --------------------------------------------------------------------
@@ -2313,8 +2245,6 @@ guidata(hObject,handles);
 
 % --------------------------------------------------------------------
 function save_new_preset_menu_Callback(hObject, ~, handles)
-% hObject    handle to save_new_preset_menu (see GCBO)
-
 
 
 % import expmteriment data struct
@@ -2418,8 +2348,6 @@ setappdata(handles.gui_fig,'expmt',expmt);
 function pause_togglebutton_Callback(hObject,~,~)
 % hObject    handle to pause_togglebutton (see GCBO)
 
-
-
 switch hObject.Value
     case 1
         hObject.BackgroundColor = [0.85 0.65 0.65];
@@ -2429,9 +2357,6 @@ end
 
 % --------------------------------------------------------------------
 function record_video_menu_Callback(hObject,~,handles)
-% hObject    handle to record_video_menu (see GCBO)
-
-
 
 switch hObject.Checked
     case 'off'
@@ -2446,21 +2371,21 @@ end
 function edit_area_maximum_Callback(hObject, ~, handles)
 % hObject    handle to edit_area_maximum (see GCBO)
 
-
-
 expmt = getappdata(handles.gui_fig,'expmt');
 expmt.parameters.area_max = str2double(hObject.String);
+track_param_fig = findobj('Type','figure','Tag','track_fig');
+if ~isempty(track_param_fig) && ishghandle(track_param_fig)
+    hmax = findobj(track_param_fig,'-depth',2,'Tag','edit_area_max');
+    if ~isempty(hmax) && ishghandle( hmax)
+         hmax.String = hObject.String;
+    end
+end
 guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.
 function edit_area_maximum_CreateFcn(hObject,~,~)
 % hObject    handle to edit_area_maximum (see GCBO)
-
-
-
-
-
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
@@ -2471,14 +2396,8 @@ function view_menu_Callback(~,~,~)
 % hObject    handle to view_menu (see GCBO)
 
 
-
-
-
 % --------------------------------------------------------------------
 function view_roi_bounds_menu_Callback(hObject, ~, handles)
-% hObject    handle to view_roi_bounds_menu (see GCBO)
-
-
 
 expmt = getappdata(handles.gui_fig,'expmt');
 
@@ -2529,9 +2448,6 @@ end
 
 % --------------------------------------------------------------------
 function view_roi_num_menu_Callback(hObject, ~, handles)
-% hObject    handle to view_roi_num_menu (see GCBO)
-
-
 
 expmt = getappdata(handles.gui_fig,'expmt');
 
@@ -2546,7 +2462,8 @@ switch hObject.Checked
                 handles.view_menu.UserData.hNum(i) =...
                     text(handles.axes_handle,expmt.meta.roi.centers(i,1),...
                     expmt.meta.roi.centers(i,2),num2str(i),'Color',[0 0 1],...
-                    'HorizontalAlignment','center','VerticalAlignment','middle');
+                    'HorizontalAlignment','center','VerticalAlignment','middle',...
+                    'HitTest','off');
             end
             hold off
         else
@@ -2558,16 +2475,14 @@ switch hObject.Checked
         hObject.Checked = 'off';
         
         if isfield(handles.view_menu.UserData,'hNum')
-            set(handles.view_menu.UserData.hNum,'Visible','off');
+            h_valid = isvalid(handles.view_menu.UserData.hNum);
+            arrayfun(@(h) delete(h),handles.view_menu.UserData.hNum(h_valid));
         end
 end
 
 
 % --------------------------------------------------------------------
 function view_roi_ori_menu_Callback(hObject, ~, handles)
-% hObject    handle to view_roi_ori_menu (see GCBO)
-
-
 
 
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -2675,22 +2590,15 @@ if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
     handles.hImage.CData = trackDat.im;
     handles.axes_handle.CLim = [0 255];
     
-    
-    hold on
-    for i =1:length(expmt.meta.roi.centers)
-        hBounds(i) = rectangle(handles.axes_handle,...
-            'Position',expmt.meta.roi.bounds(i,:),'EdgeColor','r');
-        hNum(i) = text(handles.axes_handle,expmt.meta.roi.centers(i,1),...
-            expmt.meta.roi.centers(i,2),num2str(i),'Color',[0 0 1],...
-            'HorizontalAlignment','center','VerticalAlignment','middle',...
-            'HitTest','off');
-    end
-    hold off
+    feval(handles.view_roi_bounds_menu.Callback,...
+            handles.view_roi_bounds_menu,[]);
+    feval(handles.view_roi_num_menu.Callback,...
+        handles.view_roi_num_menu,[]);
     
     instructions = {'Right-click in an existing ROI to delete it'...
     ['Left-click to switch tool to draw tool, '...
     'then left-click and drag to define new ROI'] ...
-    'Press any key to accept changes and exit'};
+    'Press Enter accept changes and exit'};
     hNote = gui_axes_notify(axh, instructions);
 
     while handles.gui_fig.UserData.edit_rois
@@ -2716,65 +2624,60 @@ if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
                         roi.bounds = [roi.bounds; r];
                         r(3) = r(1) + r(3);
                         r(4) = r(2) + r(4);
-                        roi.corners = [roi.corners; r];
                         
+                        switch roi.mode
+                            case 'auto'
+                                roi = addROI(roi, r);
+                            case 'grid'
+                                msg = {'failed to manually add ROI...';...
+                                    'grid ROI mode only supports manual subtraction';...
+                                    'select Detect ROIs to manually add a grid'};
+                                gui_notify(msg, handles.disp_note);
+                        end        
                     end
-                    
                 % case for right-click
                 case 3
                     
                     % check to see if click occured in ROI
-                    x_bounded = c(1) > roi.bounds(:,1) &...
-                        c(1) < sum(roi.bounds(:,[1 3]),2);
-                    y_bounded = c(2) > roi.bounds(:,2) &...
-                        c(2) < sum(roi.bounds(:,[2 4]),2);
+                    roi_num = assignROI(c(1:2), expmt);
+                    idx = roi_num{1};
                     
                     % delete targeted ROI
-                    idx = find(x_bounded & y_bounded);
-                    delete(hBounds(x_bounded & y_bounded));
-                    roi.bounds(idx,:) = [];
-                    roi.centers(idx,:) = [];
-                    roi.orientation(idx,:) = [];
-                    roi.corners(idx,:) = [];
-                    roi.pixIdx(idx) = [];
-                    roi.n = roi.n - numel(idx);
-                    
-                    if isfield(roi,'num_traces')
-                        roi.num_traces(idx) = [];
+                    if idx
+                        roi = subtractROI(roi, idx);
+                        if strcmp(expmt.meta.roi.mode,'grid')
+                            grids = handles.add_ROI_pushbutton.UserData.grid;
+                            grid_idx = expmt.meta.roi.grid(idx);
+                            nper = arrayfun(@(g) size(g.XData,2), grids);
+                            sub = idx - sum(nper(1:(grid_idx-1)));
+                            grids(grid_idx).XData(:,sub) = [];
+                            grids(grid_idx).YData(:,sub) = [];
+                            handles.add_ROI_pushbutton.UserData.grid = grids;
+                        end
                     end
-                    
             end
             
             % remove click data
             handles.gui_fig.UserData = rmfield(handles.gui_fig.UserData,'click');
             
-            % re-sort and label ROIs
-            [x,y] = ROIcenters(roi.im,roi.corners);
-            roi.centers = [x,y];
-            tol = expmt.parameters.roi_tol;
-            [roi.centers,roi.corners,roi.bounds] = ...
-                sortROIs(tol,roi.centers,roi.corners,roi.bounds);
-            roi.orientation = getMazeOrientation(roi.im,roi.corners);
-            
             % re-draw ROIs
-            delete(hBounds);
-            delete(hNum);
-            hold on
-            for i =1:length(roi.centers)
-                hBounds(i) = ...
-                    rectangle(handles.axes_handle,...
-                        'Position',roi.bounds(i,:),'EdgeColor','r');
-                hNum(i) = text(handles.axes_handle,roi.centers(i,1),...
-                    roi.centers(i,2),num2str(i),'Color',[0 0 1],...
-                    'HorizontalAlignment','center','VerticalAlignment','middle',...
-                    'HitTest','off');
-            end
-            hold off
             expmt.meta.roi = roi;
-
+            feval(handles.view_roi_bounds_menu.Callback,...
+                handles.view_roi_bounds_menu,[]);
+            feval(handles.view_roi_bounds_menu.Callback,...
+                handles.view_roi_bounds_menu,[]);
+            feval(handles.view_roi_num_menu.Callback,...
+                handles.view_roi_num_menu,[]);
+            feval(handles.view_roi_num_menu.Callback,...
+                handles.view_roi_num_menu,[]);
+            drawnow limitrate
         end
     end
     cellfun(@(h) delete(h), hNote);
+    feval(handles.view_roi_bounds_menu.Callback,...
+        handles.view_roi_bounds_menu,[]);
+    feval(handles.view_roi_num_menu.Callback,...
+        handles.view_roi_num_menu,[]);
 end
 
 if ~isfield(expmt.meta.roi,'num_traces')
@@ -2791,13 +2694,16 @@ elseif numel(expmt.meta.roi.num_traces) < expmt.meta.roi.n
 
 end
 
+% clear drawn objects from the axes
+clean_gui(handles.axes_handle);
+
+% re-acquire ROI masks
+expmt = setROImask(expmt);
+
 % re-Enable objects that were Enabled before selecting manual edit
 for i = 1:length(has_Enable)
     has_Enable(i).Enable = Enable_states{i};
 end
-
-% clear drawn objects from the axes
-clean_gui(handles.axes_handle);
 
 % save changes to master struct and gui data
 setappdata(handles.gui_fig,'expmt',expmt);
@@ -2859,9 +2765,6 @@ hObject.Units = 'Points';
 guidata(hObject,handles);
 
 
-
-
-
 % --- Executes on button press in stop_pushbutton.
 function stop_pushbutton_Callback(hObject, ~, handles)
 
@@ -2870,8 +2773,6 @@ if hObject.Value
 end
 
 guidata(hObject,handles);
-
-
 
 
 % --- Executes during object creation, after setting all properties.
@@ -3088,11 +2989,8 @@ hObject.Visible = 'off';
 guidata(hObject,handles);
 
 
-
-
 % --------------------------------------------------------------------
 function view_cen_num_Callback(hObject, eventdata, handles)
-
 
 switch hObject.Checked
     case 'off'
@@ -3101,29 +2999,32 @@ switch hObject.Checked
         hObject.Checked = 'off';
 end
 
+expmt = getappdata(handles.gui_fig,'expmt');
 if isfield(handles.gui_fig.UserData,'cenText') && ishghandle(handles.gui_fig.UserData.cenText(1))
     
-    switch handles.view_cen_num.Checked
+    switch hObject.Checked
         case 'on'
             set(handles.gui_fig.UserData.cenText,'Visible','on');
         case 'off'
             set(handles.gui_fig.UserData.cenText,'Visible','off');
     end
     
+elseif isfield(expmt.meta.roi,'num_traces')
+ 
+    n = sum(expmt.meta.roi.num_traces);
+    c = zeros(n,1);
+    handles.gui_fig.UserData.cenText = text(c,c,'','Color','m',...
+        'FontSmoothing','off','HorizontalAlignment','center','Visible','off');
+    switch hObject.Checked
+        case 'on'
+            set(handles.gui_fig.UserData.cenText,'Visible','on');
+        case 'off'
+            set(handles.gui_fig.UserData.cenText,'Visible','off');
+    end   
 else
-
-    expmt = getappdata(handles.gui_fig,'expmt');
-    lblstr = arrayfun(@num2str,1:length(expmt.meta.roi.centers(:,1)),'UniformOutput',false);
-    handles.gui_fig.UserData.cenText = text(expmt.meta.roi.centers(:,1),expmt.meta.roi.centers(:,2),lblstr,...
-        'Color','m','FontSmoothing','off','HorizontalAlignment','center','Visible','off');
-    
-    switch handles.view_cen_num.Checked
-        case 'on'
-            set(handles.gui_fig.UserData.cenText,'Visible','on');
-        case 'off'
-            set(handles.gui_fig.UserData.cenText,'Visible','off');
-    end
-    
+    msg = {'cannot display centroid numbers';'no traces initialized'};
+    gui_notify(msg,handles.disp_note);
+    hObject.Checked = 'off';
 end
 
 guidata(hObject,handles);
@@ -3162,6 +3063,13 @@ function edit_area_minimum_Callback(hObject, eventdata, handles)
 
 expmt = getappdata(handles.gui_fig,'expmt');
 expmt.parameters.area_min = str2double(hObject.String);
+track_param_fig = findobj('Type','figure','Tag','track_fig');
+if ~isempty(track_param_fig) && ishghandle(track_param_fig)
+    hmin = findobj(track_param_fig,'-depth',2,'Tag','edit_area_min');
+    if ~isempty(hmin) && ishghandle(hmin)
+         hmin.String = hObject.String;
+    end
+end
 guidata(hObject,handles);
 
 
@@ -3179,6 +3087,13 @@ function edit_target_rate_Callback(hObject, eventdata, handles)
 
 expmt = getappdata(handles.gui_fig,'expmt');
 expmt.parameters.target_rate = str2double(hObject.String);
+track_param_fig = findobj('Type','figure','Tag','track_fig');
+if ~isempty(track_param_fig) && ishghandle(track_param_fig)
+    htarget_rate = findobj(track_param_fig,'-depth',2,'Tag','edit_target_rate');
+    if ~isempty(htarget_rate) && ishghandle(htarget_rate)
+        htarget_rate.String = hObject.String;
+    end
+end
 
 
 % --- Executes during object creation, after setting all properties.

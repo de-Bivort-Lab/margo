@@ -517,7 +517,8 @@ function edit_target_rate_Callback(hObject, eventdata, handles)
 gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
 expmt = getappdata(gui_fig,'expmt');
 
-expmt.parameters.target_rate=str2num(handles.edit_target_rate.String);
+expmt.parameters.target_rate = str2double(handles.edit_target_rate.String);
+handles.track_fig.UserData.gui_handles.edit_target_rate.String = hObject.String;
 guidata(hObject,handles);
 
 
@@ -560,7 +561,7 @@ function edit_area_max_Callback(hObject, eventdata, handles)
 
 gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
 expmt = getappdata(gui_fig,'expmt');
-expmt.parameters.area_max = str2num(get(hObject,'string'));
+expmt.parameters.area_max = str2double(get(hObject,'string'));
 handles.track_fig.UserData.gui_handles.edit_area_maximum.String = hObject.String;
 guidata(hObject,handles);
 
@@ -573,7 +574,7 @@ function edit_area_min_Callback(hObject, eventdata, handles)
 
 gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
 expmt = getappdata(gui_fig,'expmt');
-expmt.parameters.area_min = str2num(get(hObject,'string'));
+expmt.parameters.area_min = str2double(get(hObject,'string'));
 handles.track_fig.UserData.gui_handles.edit_area_minimum.String = hObject.String;
 guidata(hObject,handles);
 % 
@@ -885,12 +886,14 @@ expmt.meta.track_mode = hObject.String{hObject.Value};
 switch expmt.meta.track_mode
     case 'single'
         set(handles.multi_uipanel.Children,'Enable','off');
-        if isfield(expmt.meta.roi,'n')
+        if isfield(expmt.meta.roi,'num_traces')
             expmt.meta.roi.num_traces = ones(expmt.meta.roi.n,1);
+            expmt.parameters.traces_per_roi = 1;
+            expmt.meta.num_traces = expmt.meta.roi.n;
         end
     case 'multitrack'
         set(handles.multi_uipanel.Children,'Enable','on');
-        if isfield(expmt.meta.roi,'n')
+        if isfield(expmt.meta.roi,'num_traces')
             expmt.meta.roi.num_traces = ...
                 ones(expmt.meta.roi.n,1).*expmt.parameters.traces_per_roi;
         end

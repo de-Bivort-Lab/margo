@@ -145,6 +145,8 @@ classdef ExperimentData < dynamicprops
             obj.meta.labels = {};
             obj.meta.ref= es;
             obj.meta.noise = es;
+            obj.meta.num_traces = 0;
+            obj.meta.num_frames = 0;
             
             % re-initialize data fields
             f = obj.meta.fields;
@@ -284,7 +286,7 @@ classdef ExperimentData < dynamicprops
 
                     for i=1:length(callArgs)
                         tmp_var = evalin('caller',callArgs{i});
-                        if ischar(tmp) && exist(tmp_var,'file')==2
+                        if ischar(tmp_var) && exist(tmp_var,'file')==2
                             fpath = tmp_var;
                             if testPath(fpath, obj.meta.date)
                                 obj = updatepaths(obj,fpath);

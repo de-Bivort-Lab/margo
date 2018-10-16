@@ -60,21 +60,23 @@ classdef RawDataField < dynamicprops
                 end
                 
                 % ensure correct dimensions
-                nTraces = obj.Parent.meta.num_traces;
-                nFrames = obj.Parent.meta.num_frames;
-                valid_dim = [2 nTraces nFrames];
-                obj.dim(~ismember(obj.dim,valid_dim)) = [];
+                ntrace = obj.Parent.meta.num_traces;
+                nframe = obj.Parent.meta.num_frames;
+                valid_dim = [ntrace nframe 2];
+                obj.dim(~ismember(obj.dim,valid_dim))=[];
                 if isempty(obj.dim)
-                    obj.dim = [nFrames 1];
-                elseif numel(obj.dim) == 1 && obj.dim == nFrames;
-                    obj.dim = [nFrames 1];
-                elseif (any(obj.dim == obj.Parent.meta.num_traces) &&...
-                        obj.dim(end) ~= nTraces) || ...
-                        ~any(obj.dim == nFrames)
-    
-                    tmp_dim = [frame_dim ...
-                        obj.dim(obj.dim~=nTraces & obj.dim~= nFrames) ...
-                        nTraces];
+                    obj.dim = [nframe 1];
+                    
+                elseif numel(obj.dim)==1 && obj.dim == nframe
+                    obj.dim = [nframe 1];
+                    
+                elseif (any(obj.dim == ntrace) &&...
+                        obj.dim(end) ~= ntrace) || ...
+                        ~any(obj.dim == nframe)
+                    
+                    tmp_dim = [nframe ...
+                        obj.dim(obj.dim~=ntrace & obj.dim~= nframe) ...
+                        ntrace];
                     obj.dim = tmp_dim;
                 end
                 

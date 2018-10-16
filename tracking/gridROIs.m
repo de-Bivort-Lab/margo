@@ -116,7 +116,7 @@ while ~gui_handles.accept_ROI_thresh_pushbutton.Value
         
         if ~isempty(hp)
             nGrids = gui_handles.add_ROI_pushbutton.UserData.nGrids;
-            hPatch(nGrids+1) = hp;
+            hPatch(nGrids) = hp;
             
             % initialize starting row/col dimensions and interactible polygon coords
             old_dim(nGrids) = ...

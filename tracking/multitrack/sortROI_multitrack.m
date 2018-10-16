@@ -78,19 +78,31 @@ while any(~targets_assigned)
             traces_in.t(can_idx(match_idx(no_dup))) = t_curr;
             idx = find(isnan(trace_permutation),1);
             idx = idx : idx + numel(can_idx(match_idx(no_dup))) - 1;
-            trace_permutation(idx) = can_idx(match_idx(no_dup));
+            idx(idx>numel(trace_permutation)) = [];
+            tmp = can_idx(match_idx(no_dup));
+            tmp = tmp(1:numel(idx));
+            trace_permutation(idx) = tmp;
             idx = find(isnan(blob_permutation),1);
             idx = idx: idx + numel(tar_idx(no_dup)) - 1;
-            blob_permutation(idx) = tar_idx(no_dup);
+            idx(idx>numel(blob_permutation)) = [];
+            tmp = tar_idx(no_dup);
+            tmp = tmp(1:numel(idx));
+            blob_permutation(idx) = tmp;
         case 'trace_sort'
             traces_out.cen(tar_idx(no_dup),:) = can_cen(match_idx(no_dup),:);
             traces_in.t(tar_idx(no_dup)) = t_curr;
             idx = find(isnan(trace_permutation),1);
             idx = idx : idx + numel(tar_idx(no_dup)) - 1;
-            trace_permutation(idx) = tar_idx(no_dup);
+            idx(idx>numel(trace_permutation)) = [];
+            tmp = tar_idx(no_dup);
+            tmp = tmp(1:numel(idx));
+            trace_permutation(idx) = tmp;
             idx = find(isnan(blob_permutation),1);
             idx = idx : idx + numel(can_idx(match_idx(no_dup))) - 1;
-            blob_permutation(idx) = can_idx(match_idx(no_dup));
+            idx(idx>numel(blob_permutation)) = [];
+            tmp = can_idx(match_idx(no_dup));
+            tmp = tmp(1:numel(idx));
+            blob_permutation(idx) = tmp; 
     end
 
     candidates_assigned(can_idx(match_idx(no_dup))) = true;
@@ -104,6 +116,9 @@ while any(~targets_assigned)
     match_idx(no_dup) = [];           
     tar_cen(no_dup,:) = [];
     targets_assigned(tar_idx(no_dup)) = true;
+    if all(targets_assigned)
+        break;
+    end
 
     % resolve duplicate assignments by finding nearest neighbor
     if ~isempty(has_dup)

@@ -36,6 +36,9 @@ expmt = getVideoInput(expmt,gui_handles);
 expmt.meta.ref = struct;
 trackDat = initializeTrackDat(expmt);
 trackDat.fields={'centroid';'area';'majorAxisLength'};
+if isfield(trackDat,'px_dist')
+    trackDat = rmfield(trackDat,'px_dist');
+end
 
 blob_lengths = NaN(100,1);
 if expmt.parameters.area_min == 5 && expmt.parameters.area_max == 100
