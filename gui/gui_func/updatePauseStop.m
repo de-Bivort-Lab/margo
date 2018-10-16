@@ -25,36 +25,6 @@ if gui_handles.stop_pushbutton.UserData.Value
             exit = true;
             expmt.meta.finish = false;
             
-            % delete master data struct
-            delete([expmt.meta.path.dir expmt.meta.path.name '.mat']);
-            
-            % close fileIDs
-            fclose('all');
-            for i = 1:length(trackDat.fields)                           
-                delete(expmt.data.(trackDat.fields{i}).path);
-            end
-            
-            if isfield(expmt.meta,'VideoData')
-                close(expmt.meta.VideoData.obj);
-            end
-            
-            switch expmt.meta.source
-                case 'camera'
-                    trackDat.t = 0;
-                    trackDat.tPrev = toc;
-                    autoTime(trackDat, expmt, gui_handles);
-                case 'video'
-                    gui_handles.edit_time_remaining.String = '-';
-            end
-            
-            % delete the experiment directory
-            if exist(expmt.meta.path.dir,'dir')==7
-                rmdir(expmt.meta.path.dir,'s');
-            end
-            
-            detach(expmt);
-            expmt.meta.data = [];
-            expmt.meta.path.name = [];
             
         case 'Exit'
             
@@ -63,3 +33,4 @@ if gui_handles.stop_pushbutton.UserData.Value
 end
 
 tPrev = toc;
+drawnow limitrate

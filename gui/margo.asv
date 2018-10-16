@@ -1,35 +1,35 @@
-function varargout = autotracker(varargin)
-% AUTOTRACKER MATLAB code for autotracker.fig
-%      AUTOTRACKER, by itself, creates a new AUTOTRACKER or raises the existing
+function varargout = margo(varargin)
+% MARGO MATLAB code for margo.fig
+%      MARGO, by itself, creates a new MARGO or raises the existing
 %      singleton*.
 %
-%      H = AUTOTRACKER returns the handle to a new AUTOTRACKER or the handle to
+%      H = MARGO returns the handle to a new MARGO or the handle to
 %      the existing singleton*.
 %
-%      AUTOTRACKER('CALLBACK',hObject,eventData,handles,...) calls the local
-%      function named CALLBACK in AUTOTRACKER.M with the given input arguments.
+%      MARGO('CALLBACK',hObject,eventData,handles,...) calls the local
+%      function named CALLBACK in MARGO.M with the given input arguments.
 %
-%      AUTOTRACKER('Property','Value',...) creates a new AUTOTRACKER or raises the
+%      MARGO('Property','Value',...) creates a new MARGO or raises the
 %      existing singleton*.  Starting from the left, property value pairs are
-%      applied to the GUI before autotracker_OpeningFcn gets called.  An
+%      applied to the GUI before margo_OpeningFcn gets called.  An
 %      unrecognized property name or invalid value makes property application
-%      stop.  All inputs are passed to autotracker_OpeningFcn via varargin.
+%      stop.  All inputs are passed to margo_OpeningFcn via varargin.
 %
 %      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
 %      instance to run (singleton)".
 %
 % See also: GUIDE, GUIDATA, GUIHANDLES
 
-% Edit the above text to modify the response to help autotracker
+% Edit the above text to modify the response to help margo
 
-% Last Modified by GUIDE v2.5 15-Oct-2018 12:11:49
+% Last Modified by GUIDE v2.5 15-Oct-2018 12:28:31
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
                    'gui_Singleton',  gui_Singleton, ...
-                   'gui_OpeningFcn', @autotracker_OpeningFcn, ...
-                   'gui_OutputFcn',  @autotracker_OutputFcn, ...
+                   'gui_OpeningFcn', @margo_OpeningFcn, ...
+                   'gui_OutputFcn',  @margo_OutputFcn, ...
                    'gui_LayoutFcn',  [] , ...
                    'gui_Callback',   []);
 if nargin && ischar(varargin{1})
@@ -44,13 +44,13 @@ end
 % End initialization code - DO NOT EDIT
 
 
-% --- Executes just before autotracker is made visible.
-function autotracker_OpeningFcn(hObject, ~, handles, varargin)
+% --- Executes just before margo is made visible.
+function margo_OpeningFcn(hObject, ~, handles, varargin)
 % hObject    handle to figure
-% varargin   command line arguments to autotracker (see VARARGIN)
+% varargin   command line arguments to margo (see VARARGIN)
 
 % get gui directory and ensure all dependencies are added to path
-handles.gui_dir = which('autotracker');
+handles.gui_dir = which('margo');
 [par_dir,~,~] = fileparts(handles.gui_dir);
 [par_dir,~,~] = fileparts(par_dir);
 handles.gui_dir = [par_dir '/'];
@@ -123,11 +123,11 @@ setappdata(handles.gui_fig,'expmt',expmt);
 % Update handles structure
 guidata(hObject,handles);
 
-% UIWAIT makes autotracker wait for user response (see UIRESUME)
+% UIWAIT makes margo wait for user response (see UIRESUME)
 % uiwait(handles.gui_fig);
 
 % --- Outputs from this function are returned to the command line.
-function varargout = autotracker_OutputFcn(hObject, ~, handles) 
+function varargout = margo_OutputFcn(hObject, ~, handles) 
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 
@@ -567,11 +567,11 @@ function save_path_button1_Callback(hObject, ~, handles)
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 mat_dir = handles.gui_dir(1:strfind(handles.gui_dir,'MATLAB')+6);
-default_path = [mat_dir 'autotracker_data/'];
+default_path = [mat_dir 'margo_data/'];
 if exist(default_path,'dir') ~= 7
     mkdir(default_path);
     msg_title = 'New Data Path';
-    message = ['Autotracker has automatically generated a new default directory'...
+    message = ['margo has automatically generated a new default directory'...
         ' for data in ' default_path];
     
     % Display info
@@ -1160,7 +1160,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 % Get existing profile list
-gui_dir = which('autotrackergui');
+gui_dir = which('margo');
 gui_dir = gui_dir(1:strfind(gui_dir,'/gui/'));
 load_path =[gui_dir 'profiles/'];
 tmp_profiles = ls(load_path);
@@ -1767,13 +1767,14 @@ if ~isempty(tmp)
     p = expmt.parameters;
     
     % update speed, distance, and area thresholds
-    p.speed_thresh = p.speed_thresh .* tmp.mm_per_pixel ./ pmm_per_pix;
-    p.distance_thresh = p.distance_thresh .* tmp.mm_per_pixel ./ pmm_per_pix;
-    p.area_min = p.area_min .* ((tmp.mm_per_pixel./pmm_per_pix)^2);
-    p.area_max = p.area_max .* ((tmp.mm_per_pixel./pmm_per_pix)^2);
+    p.speed_thresh = p.speed_thresh .* tmp.mm_per_pixel ./ p.mm_per_pix;
+    p.distance_thresh = p.distance_thresh .* tmp.mm_per_pixel ./ p.mm_per_pix;
+    p.area_min = p.area_min .* ((tmp.mm_per_pixel./p.mm_per_pix)^2);
+    p.area_max = p.area_max .* ((tmp.mm_per_pixel./p.mm_per_pix)^2);
     p.mm_per_pix = tmp.mm_per_pixel;
     expmt.parameters = p;
     
+    handles.edit_area_maximum
     if expmt.parameters.mm_per_pix ~= 1
         expmt.parameters.units = 'millimeters';
     end
@@ -1926,21 +1927,17 @@ if isfield(expmt.meta.video,'vid')
         
     % stream frames to the axes until the preview button is unticked
     ct=0;
+    setappdata(handles.hImage,'gui_handles',handles);
+    setappdata(handles.hImage,'expmt',expmt);
     while hObject.Value
         
         tic
         ct = ct+1;
         
         % get next frame and update image
-        [im, expmt.meta.video] = nextFrame(expmt.meta.video,handles);
-        if size(im,3)>1
-            im=im(:,:,2);
-        end
-        handles.hImage.CData = im; 
+        [event.Data, expmt.meta.video] = nextFrame(expmt.meta.video,handles);
         
-        % clear image and draw to screen
-        clearvars im
-        drawnow
+        autoPreviewUpdate([], event, handles.hImage)
         
         % update frame rate and frames remaining
         handles.edit_frame_rate.String = num2str(round(1/toc*10)/10);
@@ -2529,8 +2526,13 @@ switch hObject.Checked
         end
         ah = handles.axes_handle;
         if isfield(expmt.meta.ref,'im') && isfield(expmt.meta.ref,'cen')
-            x = squeeze(expmt.meta.ref.cen(:,1,:));
-            y = squeeze(expmt.meta.ref.cen(:,2,:));
+            if iscell(expmt.meta.ref.cen)
+                rcen = cat(1,expmt.meta.ref.cen{:});
+            else
+                rcen = expmt.meta.ref.cen;
+            end
+            x = squeeze(rcen(:,1,:));
+            y = squeeze(rcen(:,2,:));
             x(isnan(x))=[];
             y(isnan(y))=[];
             hold on
@@ -2541,6 +2543,7 @@ switch hObject.Checked
     case 'on'
         hObject.Checked = 'off';
         if isfield(handles.view_menu.UserData,'hRefCen') &&...
+                ~isempty(handles.view_menu.UserData.hRefCen) &&...
                 ishghandle(handles.view_menu.UserData.hRefCen)
             delete(handles.view_menu.UserData.hRefCen);
         end
@@ -2549,15 +2552,18 @@ end
 % --------------------------------------------------------------------
 function man_edit_roi_menu_Callback(hObject, ~, handles)
 
+
+% make sure ROIs exist
 expmt = getappdata(handles.gui_fig,'expmt');
+if ~isfield(expmt.meta.roi,'n') || ~expmt.meta.roi.n
+    return;
+end
 
 clean_gui(handles.axes_handle);
 handles.hImage = findobj(handles.axes_handle,'-depth',3,'Type','Image');
-
 has_Enable = findall(handles.gui_fig, '-property', 'Enable');
 Enable_states = get(has_Enable,'Enable');
 set(has_Enable,'Enable','off');
-
 axh = handles.axes_handle;
 
 
@@ -2672,6 +2678,9 @@ if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
         handles.view_roi_bounds_menu,[]);
     feval(handles.view_roi_num_menu.Callback,...
         handles.view_roi_num_menu,[]);
+    
+else
+    return;
 end
 
 if ~isfield(expmt.meta.roi,'num_traces')

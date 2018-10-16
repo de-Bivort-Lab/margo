@@ -1,4 +1,4 @@
-function varargout = run_basictracking(expmt,gui_handles,varargin)
+function expmt = run_basictracking(expmt,gui_handles,varargin)
 %
 % This is a blank experimental template to serve as a framework for new
 % custom experiments. The function takes the master experiment struct
@@ -70,20 +70,5 @@ while ~trackDat.lastFrame
     [trackDat, expmt] = autoDisplay(trackDat, expmt, imh, gui_handles);
     
 
-end
-
-
-%% post-experiment wrap-up
-
-% auto process data and save master struct
-if expmt.meta.finish
-    expmt = autoFinish(trackDat, expmt, gui_handles);
-end
-
-for i=1:nargout
-    switch i
-        case 1, varargout(i) = {expmt};
-        case 2, varargout(i) = {trackDat};
-    end
 end
 

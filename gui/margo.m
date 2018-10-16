@@ -1,35 +1,35 @@
-function varargout = autotracker(varargin)
-% AUTOTRACKER MATLAB code for autotracker.fig
-%      AUTOTRACKER, by itself, creates a new AUTOTRACKER or raises the existing
+function varargout = margo(varargin)
+% MARGO MATLAB code for margo.fig
+%      MARGO, by itself, creates a new MARGO or raises the existing
 %      singleton*.
 %
-%      H = AUTOTRACKER returns the handle to a new AUTOTRACKER or the handle to
+%      H = MARGO returns the handle to a new MARGO or the handle to
 %      the existing singleton*.
 %
-%      AUTOTRACKER('CALLBACK',hObject,eventData,handles,...) calls the local
-%      function named CALLBACK in AUTOTRACKER.M with the given input arguments.
+%      MARGO('CALLBACK',hObject,eventData,handles,...) calls the local
+%      function named CALLBACK in MARGO.M with the given input arguments.
 %
-%      AUTOTRACKER('Property','Value',...) creates a new AUTOTRACKER or raises the
+%      MARGO('Property','Value',...) creates a new MARGO or raises the
 %      existing singleton*.  Starting from the left, property value pairs are
-%      applied to the GUI before autotracker_OpeningFcn gets called.  An
+%      applied to the GUI before margo_OpeningFcn gets called.  An
 %      unrecognized property name or invalid value makes property application
-%      stop.  All inputs are passed to autotracker_OpeningFcn via varargin.
+%      stop.  All inputs are passed to margo_OpeningFcn via varargin.
 %
 %      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
 %      instance to run (singleton)".
 %
 % See also: GUIDE, GUIDATA, GUIHANDLES
 
-% Edit the above text to modify the response to help autotracker
+% Edit the above text to modify the response to help margo
 
-% Last Modified by GUIDE v2.5 20-Aug-2018 13:12:18
+% Last Modified by GUIDE v2.5 15-Oct-2018 12:28:31
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
                    'gui_Singleton',  gui_Singleton, ...
-                   'gui_OpeningFcn', @autotracker_OpeningFcn, ...
-                   'gui_OutputFcn',  @autotracker_OutputFcn, ...
+                   'gui_OpeningFcn', @margo_OpeningFcn, ...
+                   'gui_OutputFcn',  @margo_OutputFcn, ...
                    'gui_LayoutFcn',  [] , ...
                    'gui_Callback',   []);
 if nargin && ischar(varargin{1})
@@ -44,13 +44,13 @@ end
 % End initialization code - DO NOT EDIT
 
 
-% --- Executes just before autotracker is made visible.
-function autotracker_OpeningFcn(hObject, ~, handles, varargin)
+% --- Executes just before margo is made visible.
+function margo_OpeningFcn(hObject, ~, handles, varargin)
 % hObject    handle to figure
-% varargin   command line arguments to autotracker (see VARARGIN)
+% varargin   command line arguments to margo (see VARARGIN)
 
 % get gui directory and ensure all dependencies are added to path
-handles.gui_dir = which('autotracker');
+handles.gui_dir = which('margo');
 [par_dir,~,~] = fileparts(handles.gui_dir);
 [par_dir,~,~] = fileparts(par_dir);
 handles.gui_dir = [par_dir '/'];
@@ -123,11 +123,11 @@ setappdata(handles.gui_fig,'expmt',expmt);
 % Update handles structure
 guidata(hObject,handles);
 
-% UIWAIT makes autotracker wait for user response (see UIRESUME)
+% UIWAIT makes margo wait for user response (see UIRESUME)
 % uiwait(handles.gui_fig);
 
 % --- Outputs from this function are returned to the command line.
-function varargout = autotracker_OutputFcn(hObject, ~, handles) 
+function varargout = margo_OutputFcn(hObject, ~, handles) 
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 
@@ -567,11 +567,11 @@ function save_path_button1_Callback(hObject, ~, handles)
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 mat_dir = handles.gui_dir(1:strfind(handles.gui_dir,'MATLAB')+6);
-default_path = [mat_dir 'autotracker_data/'];
+default_path = [mat_dir 'margo_data/'];
 if exist(default_path,'dir') ~= 7
     mkdir(default_path);
     msg_title = 'New Data Path';
-    message = ['Autotracker has automatically generated a new default directory'...
+    message = ['margo has automatically generated a new default directory'...
         ' for data in ' default_path];
     
     % Display info
@@ -745,16 +745,17 @@ elseif any(strcmp(expmt.meta.name,handles.parameter_subgui)) &&...
 end
 
     
-try
+%try
     % disable controls that are not to be accessed while expmt is running
     toggleSubguis(handles,'off');
     toggleMenus(handles,'off');
-    handles.run_pushbutton.Enable = 'off';
+    hObject.Enable = 'off';
 
     % Execute the appropriate script for the selected experiment
     exp_idx = find(arrayfun(@(e) ...
         strcmpi(expmt.meta.name,e.name),handles.experiments));
     expmt = feval(handles.experiments(exp_idx).run, expmt, handles);
+    expmt = autoFinish(expmt,handles);
     
     % run post-processing
     if ~expmt.meta.finish
@@ -783,31 +784,30 @@ try
     end
 
 %re-establish gui state prior to tracking error is encountered
-catch ME
-    if isfield(handles,'deviceID')
-        try
-        [~,status]=urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=3']);
-        catch
-            status = false;
-        end
-        if ~status
-            gui_notify(['unable to connect to'...
-                ' http://lab.debivort.org'],handles.disp_note);
-        end
-    end
-    
-    switch expmt.meta.name
-        case 'Slow Phototaxis', sca;
-        case 'Optomotor', sca;
-        case 'Temporal Phototaxis', sca;
-    end
-    gui_notify('error encountered - tracking stopped',handles.disp_note);
-    keep_gui_state = true;
-    title = 'Error encountered - tracking stopped';
-    msg=getReport(ME,'extended','hyperlinks','off');
-    errordlg(msg,title);
-    error(getReport(ME));
-end
+% catch ME
+%     if isfield(handles,'deviceID')
+%         try
+%         [~,status]=urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=3']);
+%         catch
+%             status = false;
+%         end
+%         if ~status
+%             gui_notify(['unable to connect to'...
+%                 ' http://lab.debivort.org'],handles.disp_note);
+%         end
+%     end
+%     
+%     try
+%         sca;
+%     catch
+%     end
+%     gui_notify('error encountered - tracking stopped',handles.disp_note);
+%     keep_gui_state = true;
+%     title = 'Error encountered - tracking stopped';
+%     msg=getReport(ME,'extended','hyperlinks','off');
+%     errordlg(msg,title);
+%     error(getReport(ME));
+% end
     
 if isfield(handles,'deviceID')
     try
@@ -858,12 +858,6 @@ end
 % reset initialization
 expmt.meta.initialize = true;
 expmt.meta.finish = true;
-
-% ensure all open files are closed
-fIDs = fopen('all');
-for i=1:length(fIDs)
-    fclose(fIDs(i));
-end
         
 % Store expmteriment data struct
 setappdata(handles.gui_fig,'expmt',expmt);
@@ -1166,7 +1160,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 % Get existing profile list
-gui_dir = which('autotrackergui');
+gui_dir = which('margo');
 gui_dir = gui_dir(1:strfind(gui_dir,'/gui/'));
 load_path =[gui_dir 'profiles/'];
 tmp_profiles = ls(load_path);
@@ -1747,7 +1741,7 @@ expmt = getappdata(handles.gui_fig,'expmt');
 % grab a frame if a camera or video object exists
 if (isfield(expmt.hardware.cam,'vid') && ...
         strcmp(expmt.hardware.cam.vid.Running,'on')) ||...
-    isfield(expmt.meta.video,'vid')
+        isfield(expmt.meta.video,'vid')
 
     % query next frame and optionally correct lens distortion
     trackDat = [];
@@ -1768,21 +1762,20 @@ end
 tmp=setDistanceScale_subgui(handles,expmt.parameters);
 delete(findobj('Tag','imline'));
 if ~isempty(tmp)
+    
     expmt.parameters.distance_scale = tmp;
+    p = expmt.parameters;
     
     % update speed, distance, and area thresholds
-    expmt.parameters.speed_thresh =...
-        expmt.parameters.speed_thresh .* tmp.mm_per_pixel ./ expmt.parameters.mm_per_pix;
-    expmt.parameters.distance_thresh =...
-        expmt.parameters.distance_thresh .* tmp.mm_per_pixel ./ expmt.parameters.mm_per_pix;
-    expmt.parameters.area_min =...
-        expmt.parameters.area_min .* ((tmp.mm_per_pixel./expmt.parameters.mm_per_pix)^2);
-    expmt.parameters.area_max =...
-        expmt.parameters.area_max .* ((tmp.mm_per_pixel./expmt.parameters.mm_per_pix)^2);
+    p.speed_thresh = p.speed_thresh .* tmp.mm_per_pixel ./ p.mm_per_pix;
+    p.distance_thresh = p.distance_thresh .* tmp.mm_per_pixel ./ p.mm_per_pix;
+    p.area_min = p.area_min .* ((tmp.mm_per_pixel./p.mm_per_pix)^2);
+    p.area_max = p.area_max .* ((tmp.mm_per_pixel./p.mm_per_pix)^2);
+    p.mm_per_pix = tmp.mm_per_pixel;
+    expmt.parameters = p;
     
-    % set new parameter
-    expmt.parameters.mm_per_pix = tmp.mm_per_pixel;
-    
+    handles.edit_area_maximum.String = num2str(p.area_max,2);
+    handles.edit_area_minimum.String = num2str(p.area_min,2);
     if expmt.parameters.mm_per_pix ~= 1
         expmt.parameters.units = 'millimeters';
     end
@@ -1793,38 +1786,13 @@ setappdata(handles.gui_fig,'expmt',expmt);
 
 
 % --------------------------------------------------------------------
-function Untitled_4_Callback(~,~,~)
-% hObject    handle to Untitled_4 (see GCBO)
-
-
-
-
-% --------------------------------------------------------------------
 function speed_thresh_menu_Callback(~,~,~)
 % hObject    handle to speed_thresh_menu (see GCBO)
-
-
 
 
 % --------------------------------------------------------------------
 function ROI_distance_thresh_menu_Callback(~,~,~)
 % hObject    handle to ROI_distance_thresh_menu (see GCBO)
-
-
-
-
-% --------------------------------------------------------------------
-function Untitled_7_Callback(~,~,~)
-% hObject    handle to Untitled_7 (see GCBO)
-
-
-
-
-% --------------------------------------------------------------------
-function Untitled_8_Callback(~,~,~)
-% hObject    handle to Untitled_8 (see GCBO)
-
-
 
 
 % --- Executes when gui_fig is resized.
@@ -1960,21 +1928,17 @@ if isfield(expmt.meta.video,'vid')
         
     % stream frames to the axes until the preview button is unticked
     ct=0;
+    setappdata(handles.hImage,'gui_handles',handles);
+    setappdata(handles.hImage,'expmt',expmt);
     while hObject.Value
         
         tic
         ct = ct+1;
         
         % get next frame and update image
-        [im, expmt.meta.video] = nextFrame(expmt.meta.video,handles);
-        if size(im,3)>1
-            im=im(:,:,2);
-        end
-        handles.hImage.CData = im; 
+        [event.Data, expmt.meta.video] = nextFrame(expmt.meta.video,handles);
         
-        % clear image and draw to screen
-        clearvars im
-        drawnow
+        autoPreviewUpdate([], event, handles.hImage)
         
         % update frame rate and frames remaining
         handles.edit_frame_rate.String = num2str(round(1/toc*10)/10);
@@ -2003,8 +1967,6 @@ function pushbutton23_Callback(~,~,~)
 function vid_select_popupmenu_Callback(hObject, ~, handles)
 % hObject    handle to vid_select_popupmenu (see GCBO)
 
-
-
 % get expmt data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 
@@ -2016,18 +1978,9 @@ expmt.meta.video.vid = ...
 setappdata(handles.gui_fig,'expmt',expmt);
 
 
-
-% Hints: contents = cellstr(get(hObject,'String')) returns vid_select_popupmenu contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from vid_select_popupmenu
-
-
 % --- Executes during object creation, after setting all properties.
 function vid_select_popupmenu_CreateFcn(hObject,~,~)
-% hObject    handle to vid_select_popupmenu (see GCBO)
 
-
-
-% Hint: popupmenu controls usually have a white background on Windows.
 
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
@@ -2040,17 +1993,8 @@ function edit_video_dir_Callback(~,~,~)
 
 
 
-% Hints: get(hObject,'String') returns contents of edit_video_dir as text
-%        str2double(get(hObject,'String')) returns contents of edit_video_dir as a double
-
-
 % --- Executes during object creation, after setting all properties.
 function edit_video_dir_CreateFcn(hObject,~,~)
-% hObject    handle to edit_video_dir (see GCBO)
-
-
-
-
 
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
@@ -2059,9 +2003,6 @@ end
 
 % --- Executes on button press in video_files_pushbutton.
 function video_files_pushbutton_Callback(hObject, ~, handles)
-% hObject    handle to video_files_pushbutton (see GCBO)
-
-
 
 % get expmt data struct
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -2088,13 +2029,8 @@ function select_source_menu_Callback(~,~,~)
 % hObject    handle to select_source_menu (see GCBO)
 
 
-
-
 % --------------------------------------------------------------------
 function source_camera_menu_Callback(hObject, ~, handles)
-% hObject    handle to source_camera_menu (see GCBO)
-
-
 
 % get expmt data struct
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -2137,13 +2073,8 @@ expmt.meta.source = 'camera';
 setappdata(handles.gui_fig,'expmt',expmt);
 
 
-
-
 % --------------------------------------------------------------------
 function source_video_menu_Callback(hObject, ~, handles)
-% hObject    handle to source_video_menu (see GCBO)
-
-
 
 % get expmt data struct
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -2196,7 +2127,6 @@ expmt.meta.source = 'video';
 
 % set expmt data struct
 setappdata(handles.gui_fig,'expmt',expmt);
-
 
 
 % --------------------------------------------------------------------
@@ -2307,8 +2237,6 @@ guidata(hObject,handles);
 
 % --------------------------------------------------------------------
 function save_new_preset_menu_Callback(hObject, ~, handles)
-% hObject    handle to save_new_preset_menu (see GCBO)
-
 
 
 % import expmteriment data struct
@@ -2412,8 +2340,6 @@ setappdata(handles.gui_fig,'expmt',expmt);
 function pause_togglebutton_Callback(hObject,~,~)
 % hObject    handle to pause_togglebutton (see GCBO)
 
-
-
 switch hObject.Value
     case 1
         hObject.BackgroundColor = [0.85 0.65 0.65];
@@ -2423,9 +2349,6 @@ end
 
 % --------------------------------------------------------------------
 function record_video_menu_Callback(hObject,~,handles)
-% hObject    handle to record_video_menu (see GCBO)
-
-
 
 switch hObject.Checked
     case 'off'
@@ -2467,9 +2390,6 @@ function view_menu_Callback(~,~,~)
 
 % --------------------------------------------------------------------
 function view_roi_bounds_menu_Callback(hObject, ~, handles)
-% hObject    handle to view_roi_bounds_menu (see GCBO)
-
-
 
 expmt = getappdata(handles.gui_fig,'expmt');
 
@@ -2520,9 +2440,6 @@ end
 
 % --------------------------------------------------------------------
 function view_roi_num_menu_Callback(hObject, ~, handles)
-% hObject    handle to view_roi_num_menu (see GCBO)
-
-
 
 expmt = getappdata(handles.gui_fig,'expmt');
 
@@ -2558,9 +2475,6 @@ end
 
 % --------------------------------------------------------------------
 function view_roi_ori_menu_Callback(hObject, ~, handles)
-% hObject    handle to view_roi_ori_menu (see GCBO)
-
-
 
 
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -2613,8 +2527,13 @@ switch hObject.Checked
         end
         ah = handles.axes_handle;
         if isfield(expmt.meta.ref,'im') && isfield(expmt.meta.ref,'cen')
-            x = squeeze(expmt.meta.ref.cen(:,1,:));
-            y = squeeze(expmt.meta.ref.cen(:,2,:));
+            if iscell(expmt.meta.ref.cen)
+                rcen = cat(1,expmt.meta.ref.cen{:});
+            else
+                rcen = expmt.meta.ref.cen;
+            end
+            x = squeeze(rcen(:,1,:));
+            y = squeeze(rcen(:,2,:));
             x(isnan(x))=[];
             y(isnan(y))=[];
             hold on
@@ -2625,6 +2544,7 @@ switch hObject.Checked
     case 'on'
         hObject.Checked = 'off';
         if isfield(handles.view_menu.UserData,'hRefCen') &&...
+                ~isempty(handles.view_menu.UserData.hRefCen) &&...
                 ishghandle(handles.view_menu.UserData.hRefCen)
             delete(handles.view_menu.UserData.hRefCen);
         end
@@ -2633,15 +2553,18 @@ end
 % --------------------------------------------------------------------
 function man_edit_roi_menu_Callback(hObject, ~, handles)
 
+
+% make sure ROIs exist
 expmt = getappdata(handles.gui_fig,'expmt');
+if ~isfield(expmt.meta.roi,'n') || ~expmt.meta.roi.n
+    return;
+end
 
 clean_gui(handles.axes_handle);
 handles.hImage = findobj(handles.axes_handle,'-depth',3,'Type','Image');
-
 has_Enable = findall(handles.gui_fig, '-property', 'Enable');
 Enable_states = get(has_Enable,'Enable');
 set(has_Enable,'Enable','off');
-
 axh = handles.axes_handle;
 
 
@@ -2756,6 +2679,9 @@ if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
         handles.view_roi_bounds_menu,[]);
     feval(handles.view_roi_num_menu.Callback,...
         handles.view_roi_num_menu,[]);
+    
+else
+    return;
 end
 
 if ~isfield(expmt.meta.roi,'num_traces')
@@ -2843,9 +2769,6 @@ hObject.Units = 'Points';
 guidata(hObject,handles);
 
 
-
-
-
 % --- Executes on button press in stop_pushbutton.
 function stop_pushbutton_Callback(hObject, ~, handles)
 
@@ -2854,8 +2777,6 @@ if hObject.Value
 end
 
 guidata(hObject,handles);
-
-
 
 
 % --- Executes during object creation, after setting all properties.
@@ -3177,6 +3098,7 @@ if ~isempty(track_param_fig) && ishghandle(track_param_fig)
         htarget_rate.String = hObject.String;
     end
 end
+setappdata(handles.gui_fig,'expmt',expmt);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -3201,4 +3123,75 @@ if ~isempty(name)
 end
 
 
+function export_menu_Callback(hObject, eventdata, handles)
+% do nothing
 
+% --------------------------------------------------------------------
+function export_meta_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to export_meta_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% set default directory to MARGO_data directory
+dir_breaks = find(unixify(handles.gui_dir)=='/');
+data_dir = handles.gui_dir(1:dir_breaks(end-1));
+dinfo = dir(data_dir);
+dinfo(~[dinfo.isdir]) = [];
+data_dir = [data_dir ...
+    dinfo(arrayfun(@(d) any(strfind(d.name,'_data')), dinfo)).name];
+
+% prompt user for parent directory
+msg = 'Select the parent directory to recursively search for MARGO .mat file(s) to export';
+fDir = uigetdir(data_dir,msg);
+fPaths = recursiveSearch(fDir, 'ext', '.mat');
+
+% intialize waitbar
+hwb = waitbar(0,'','Name','Exporting meta data to .json');
+
+% iterate over files to export
+for i=1:numel(fPaths)
+    msg = sprintf('processing file %i of %i',i,numel(fPaths));
+    hwb = waitbar((i-1)/numel(fPaths),hwb,msg);
+    load(fPaths{i},'expmt');
+    export_meta_json(expmt);
+    hwb = waitbar(i/numel(fPaths),hwb,msg);
+end
+delete(hwb);
+
+
+% --------------------------------------------------------------------
+function export_raw_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to export_raw_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% set default directory to MARGO_data directory
+dir_breaks = find(unixify(handles.gui_dir)=='/');
+data_dir = handles.gui_dir(1:dir_breaks(end-1));
+dinfo = dir(data_dir);
+dinfo(~[dinfo.isdir]) = [];
+data_dir = [data_dir ...
+    dinfo(arrayfun(@(d) any(strfind(d.name,'_data')), dinfo)).name];
+
+% prompt user for parent directory
+msg = 'Select the parent directory to recursively search for MARGO .mat file(s) to export';
+fDir = uigetdir(data_dir,msg);
+fPaths = recursiveSearch(fDir, 'ext', '.mat');
+
+% intialize waitbar
+hwb = waitbar(0,'','Name','Exporting raw data to csv');
+
+% iterate over files to export
+for i=1:numel(fPaths)
+    msg = sprintf('processing file %i of %i',i,numel(fPaths));
+    hwb = waitbar((i-1)/numel(fPaths),hwb,msg);
+    try
+        load(fPaths{i},'expmt');
+        export_all_csv(expmt);
+    catch
+        warning(['Failed to export: %s\n'...
+            'Path meta data for raw data files may be broken'], fPaths{i});
+    end
+    hwb = waitbar(i/numel(fPaths),hwb,msg);
+end
+delete(hwb);

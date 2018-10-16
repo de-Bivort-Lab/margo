@@ -19,7 +19,7 @@ classdef ExperimentData < dynamicprops
                             'source','camera','roi',es,'ref',es,'noise',es,...
                             'date','','strain','','treatment','','sex','',...
                             'labels',[],'labels_table',table,'video',es,...
-                            'vignette',es);
+                            'vignette',es,'num_frames',0,'num_dropped',0);
             obj.hardware = struct('cam',es,'COM',es,...
                                 'light',es,'projector',es);
             obj.meta.fields = fieldnames(obj.data);
@@ -200,6 +200,27 @@ classdef ExperimentData < dynamicprops
             for i = 1:numel(non_default)
                obj.parameters = rmfield(obj.parameters,non_default{i}); 
             end
+        end
+        
+        function obj = export_all_csv(obj)
+           for i=1:numel(obj.meta.fields)
+               export_to_csv(obj.data.(obj.meta.fields{i}));
+           end
+        end
+        
+        function export_meta_json(obj)
+            
+            % select parameters and meta data to export
+            tmp.meta = obj.meta;
+            tmp.parameters = obj.parameters;
+            
+            % encode string and write file
+            json_str = jsonencode(tmp);
+            json_path = unixify([obj.meta.path.dir obj.meta.path.name '.json']);
+            fID = fopen(json_path, 'W');
+            if fID== -1, error('Cannot create JSON file'); end
+            fwrite(fID, json_str, 'char');
+            fclose(fID);
         end
             
     end

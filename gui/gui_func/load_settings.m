@@ -47,6 +47,7 @@ switch old.meta.source
             handles.edit_video_dir.String = old.meta.video.fdir;
         end       
         if isfield(old.meta,'video') && isfield(old.meta.video,'fnames')
+            warning off MATLAB:subscripting:noSubscriptsSpecified
             handles.vid_select_popupmenu.String = old.meta.video.fnames;
             handles.vid_select_popupmenu.Value = 1;
             set(handles.vid_uipanel.Children,'Enable','on');

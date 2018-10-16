@@ -1,6 +1,6 @@
 function [varargout] = autoDataProcess(expmt,varargin)
 
-% This function does basic data processing common to all autotracker
+% This function does basic data processing common to all margo
 % experiments such as reading the data from the hard disk, formating it into
 % the master data struct, and processing centroid coordinates and time
 % variables.

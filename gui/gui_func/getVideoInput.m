@@ -1,5 +1,6 @@
 function expmt = getVideoInput(expmt,gui_handles)
 
+warning off MATLAB:subscripting:noSubscriptsSpecified
 if strcmp(expmt.meta.source,'camera') && isfield(expmt.hardware.cam,'vid')
     
     if ~isvalid(expmt.hardware.cam.vid) || strcmp(expmt.hardware.cam.vid.Running,'off')

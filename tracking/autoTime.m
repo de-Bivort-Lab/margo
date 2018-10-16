@@ -20,7 +20,8 @@ function [trackDat] = autoTime(trackDat, expmt, gui_handles, varargin)
 
     %wait if necessary to achieve the target frame rate
     if nargin > 2
-        while ifi < 1/expmt.parameters.target_rate
+        exit = false;
+        while ifi < 1/expmt.parameters.target_rate && ~exit
             tCurrent = toc;
             ifi = ifi + tCurrent - trackDat.tPrev;
             gui_update_t = gui_update_t + tCurrent - trackDat.tPrev;
@@ -32,6 +33,16 @@ function [trackDat] = autoTime(trackDat, expmt, gui_handles, varargin)
                 tRemain = round(gui_handles.edit_exp_duration.Value * 3600 - (trackDat.t+ifi));
                 updateTimeString(tRemain, gui_handles.edit_time_remaining);
                 gui_update_t = 0;
+            end
+            
+            % listen for gui pause/unpause
+            while gui_handles.pause_togglebutton.Value ||...
+                    gui_handles.stop_pushbutton.UserData.Value
+
+                [expmt,trackDat.tPrev,exit] = updatePauseStop(trackDat,expmt,gui_handles);
+                if exit
+                    trackDat.lastFrame = true;
+                end
             end
             
             % update gui

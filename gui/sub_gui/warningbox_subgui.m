@@ -63,7 +63,7 @@ guidata(hObject, handles);
 % a list of figure properties.
 icon=true;
 if(nargin > 3)
-    for index = 1:2:(nargin-3),
+    for index = 1:2:(nargin-3)
         if nargin-3==index, break, end
         switch lower(varargin{index})
          case 'title'
@@ -108,7 +108,7 @@ FigPos(3:4)=[FigWidth FigHeight];
 set(hObject, 'Position', FigPos);
 set(hObject, 'Units', OldUnits);
 
-gui_dir = which('autotrackergui');
+gui_dir = which('margo');
 gui_dir = gui_dir(1:strfind(gui_dir,'\gui\'));
 warnim = imread([gui_dir 'gui\icons\warn.jpg']);
 

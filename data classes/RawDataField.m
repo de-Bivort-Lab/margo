@@ -181,12 +181,71 @@ classdef RawDataField < dynamicprops
             
         end
         
-
-        
+        function export_to_csv(obj)
+          
+            % assigned format_spec
+            unsigned_int = {'logical';'uint8';'uint16';'uint32';'uint64'};
+            signed_int = {'int8','int16','int32','int64'};
+            floating_pt = {'single','double'};
+            if any(strcmp(unsigned_int,obj.precision))
+                format_spec = '%u,';
+            elseif any(strcmp(signed_int,obj.precision))
+                format_spec = '%i,';
+            elseif any(strcmp(floating_pt,obj.precision))
+                format_spec = '%.6f,';
+            end
+            
+            % scale format spec up to length of row and insert newline
+            format_spec = [repmat(format_spec,1,obj.dim(end)) '\n'];
+            fID = batch_to_csv(obj, format_spec);
+            
+        end            
     end
+end
+
+
+% exports raw data files to csv in batches
+function fID = batch_to_csv(obj, format_spec)
+
+    [csv_dir,csv_name,~] = fileparts(obj.path);
+    field = csv_name(find(csv_name=='_',1,'Last')+1:end);
+    reset(obj);
+    [frames_per_batch, nbatches] = get_batch_sizes(obj.raw);
     
-    
-    
-    
-    
+    % write data in batches
+    sz = size(obj.raw);
+    switch field      
+        % proceess x,y separately since centroid is 3 dimensional
+        case 'centroid'
+            fID(1) = fopen([csv_dir '/' csv_name '_x.csv'],'W+');
+            fID(2) = fopen([csv_dir '/' csv_name '_y.csv'],'W');
+            for i=1:nbatches
+                idx = [(i-1)*frames_per_batch+1 i*frames_per_batch];
+                if idx(2) > sz(1)
+                    batch_dat_x = obj.raw(idx(1):sz(1),1,:);
+                    batch_dat_y = obj.raw(idx(1):sz(1),1,:);
+                else
+                    batch_dat_x = obj.raw(idx(1):idx(2),1,:);
+                    batch_dat_y = obj.raw(idx(1):idx(2),2,:);
+                end
+                fprintf(fID(1), format_spec, batch_dat_x);
+                fprintf(fID(2), format_spec, batch_dat_y);
+                reset(obj);
+            end
+        otherwise
+            fID = fopen([csv_dir '/' csv_name '.csv'],'W');
+            for i=1:nbatches
+                idx = [(i-1)*frames_per_batch+1 i*frames_per_batch];
+                if idx(2) > sz(1)
+                    batch_dat = obj.raw(idx(1):sz(1),1);
+                else
+                    batch_dat = obj.raw(idx(1):idx(2),1);
+                end
+                fprintf(fID, format_spec, batch_dat);
+                reset(obj);
+            end
+    end
+    for i=1:numel(fID)
+        fclose(fID(i));
+    end
 end

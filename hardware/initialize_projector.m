@@ -52,7 +52,7 @@ expmt.hardware.screen = scrProp;
 
 %% Load the projector fit
 
-gui_dir = which('autotracker');
+gui_dir = which('margo');
 gui_dir = gui_dir(1:strfind(gui_dir,'\gui\'));
 fName = 'projector_fit.mat';
 

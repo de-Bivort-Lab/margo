@@ -69,7 +69,7 @@ for j = 1:nBatch
                 ' for large tracking sessions']));
         end
         switch f
-            case 'Direction',
+            case 'Direction'
                 if ~opt.handedness
                     trackProps.Direction = ...
                         single([zeros(1,expmt.meta.num_traces); ...

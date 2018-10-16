@@ -1,4 +1,4 @@
-function [varargout] = run_ymaze(expmt,gui_handles,varargin)
+function expmt = run_ymaze(expmt,gui_handles,varargin)
 
 
 %% Parse variable inputs
@@ -111,19 +111,6 @@ while ~trackDat.lastFrame
 end
 
 
-%% post-experiment wrap-up
-
-% auto process data and save master struct
-if expmt.meta.finish
-    expmt = autoFinish(trackDat, expmt, gui_handles);
-end
-
-for i=1:nargout
-    switch i
-        case 1, varargout(i) = {expmt};
-        case 2, varargout(i) = {trackDat};
-    end
-end
 
 function update_turn_display(c, n, ch, h)
 

@@ -78,7 +78,7 @@ if numel(varargin)>1
     handles.label_fig.Visible = status;
 end
 
-gui_fig = findobj('Name','autotracker');
+gui_fig = findobj('Name','margo');
 light_panel = findobj('Tag','cam_uipanel');
 handles.label_fig.Position(1) = gui_fig.Position(1) + ...
     light_panel.Position(1);

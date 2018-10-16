@@ -74,7 +74,7 @@ function analysisoptions_gui_OpeningFcn(hObject, eventdata, handles, varargin)
     handles.output.meta.fields = f;
     
     light_uipanel = findobj('Tag','light_uipanel');
-    gui_fig = findobj('Name','autotracker');
+    gui_fig = findobj('Name','margo');
     handles.figure1.Position(1) = gui_fig.Position(1) + ...
         sum(light_uipanel.Position([1 3]));
     handles.figure1.Position(2) = gui_fig.Position(2) + ...
