@@ -218,7 +218,6 @@ if isempty(ii)
 end
 
 % get image handle or initialize
-colormap('gray');
 rc = round(expmt.meta.roi.corners(roi,:));
 roi_im = expmt.meta.ref.im(rc(2):rc(4),rc(1):rc(3));
 ih = findobj(ah.Children,'Type','Image','-depth',1);
@@ -243,10 +242,9 @@ y = y-rc(2);
 
 % update position plot
 if isempty(lh) || eb.UserData ~= roi
-    delete(lh);
-    hold(ah,'on');
-    ph=plot(ah,x(:),y(:),'r','LineWidth',1);
-    hold(ah,'off');
+    hold(ah,on
+    ph=plot(ah,x(:),y(:),'k','LineWidth',1);
+    hold off
     axis(ah,'equal');
     reset(expmt.data.centroid);
     smpl_sz = 10000;
@@ -254,8 +252,8 @@ if isempty(lh) || eb.UserData ~= roi
     smpl = randperm(expmt.meta.num_frames,smpl_sz);
     smpl = expmt.data.centroid.raw(smpl,:,roi);
     reset(expmt.data.centroid);
-    ah.XLim = [1 rc(3)-rc(1)];
-    ah.YLim = [1 rc(4)-rc(2)];
+    ah.XLim = expmt.meta.roi.corners(roi,[1 3]);
+    ah.YLim = expmt.meta.roi.corners(roi,[2 4]);
 else
     lh.XData = x;
     lh.YData = y;
