@@ -92,7 +92,7 @@ function analysisoptions_gui_OpeningFcn(hObject, eventdata, handles, varargin)
             case 'regress', h = handles.regress_checkbox;
             case 'slide', h = handles.slide_checkbox;
             case 'areathresh', h = handles.areathresh_checkbox;
-            case 'raw',
+            case 'raw'
                 for j = 1:numel(opt.(fn{i}))
                     switch opt.(fn{i}){j}
                         case 'speed', handles.trackProps_speed_checkbox.Value = true;
@@ -406,9 +406,6 @@ else
 end
 
 handles.output.meta.options.raw = r;
-if isempty(r)
-    handles.output.meta.options = rmfield(handles.output.meta.options,'raw');
-end
 
 guidata(hObject,handles);
 
@@ -439,9 +436,6 @@ else
 end
 
 handles.output.meta.options.raw = r;
-if isempty(r)
-    handles.output.meta.options = rmfield(handles.output.meta.options,'raw');
-end
 
 guidata(hObject,handles);
 
@@ -471,9 +465,6 @@ else
 end
 
 handles.output.meta.options.raw = r;
-if isempty(r)
-    handles.output.meta.options = rmfield(handles.output.meta.options,'raw');
-end
 
 guidata(hObject,handles);
 
@@ -502,9 +493,6 @@ else
 end
 
 handles.output.meta.options.raw = r;
-if isempty(r)
-    handles.output.meta.options = rmfield(handles.output.meta.options,'raw');
-end
 
 guidata(hObject,handles);
 

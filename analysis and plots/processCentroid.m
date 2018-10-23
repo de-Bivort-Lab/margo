@@ -64,9 +64,9 @@ for j = 1:nBatch
     for i = 1:length(opt.raw)
         f = opt.raw{i};
         if j==1
-            disp(sprintf('\n\tgenerating new %s raw data file',f));
-            disp(sprintf(['\n\tprocessing times may be slow'...
-                ' for large tracking sessions']));
+            fprintf('\n\tgenerating new %s raw data file',f);
+            fprintf(['\n\tprocessing times may be slow'...
+                ' for large tracking sessions']);
         end
         switch f
             case 'Direction'

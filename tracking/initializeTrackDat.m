@@ -58,8 +58,8 @@ end
 
 switch expmt.meta.track_mode
     case 'multitrack'
-        trackDat.centroid = cat(1,trackDat.traces.cen);
+        trackDat.centroid = single(cat(1,trackDat.traces.cen));
     case 'single'
-        trackDat.centroid = expmt.meta.roi.centers;
+        trackDat.centroid = single(expmt.meta.roi.centers);
 end
 

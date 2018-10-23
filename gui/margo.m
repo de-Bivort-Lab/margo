@@ -745,7 +745,7 @@ elseif any(strcmp(expmt.meta.name,handles.parameter_subgui)) &&...
 end
 
     
-%try
+try
     % disable controls that are not to be accessed while expmt is running
     toggleSubguis(handles,'off');
     toggleMenus(handles,'off');
@@ -784,30 +784,30 @@ end
     end
 
 %re-establish gui state prior to tracking error is encountered
-% catch ME
-%     if isfield(handles,'deviceID')
-%         try
-%         [~,status]=urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=3']);
-%         catch
-%             status = false;
-%         end
-%         if ~status
-%             gui_notify(['unable to connect to'...
-%                 ' http://lab.debivort.org'],handles.disp_note);
-%         end
-%     end
-%     
-%     try
-%         sca;
-%     catch
-%     end
-%     gui_notify('error encountered - tracking stopped',handles.disp_note);
-%     keep_gui_state = true;
-%     title = 'Error encountered - tracking stopped';
-%     msg=getReport(ME,'extended','hyperlinks','off');
-%     errordlg(msg,title);
-%     error(getReport(ME));
-% end
+catch ME
+    if isfield(handles,'deviceID')
+        try
+        [~,status]=urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=3']);
+        catch
+            status = false;
+        end
+        if ~status
+            gui_notify(['unable to connect to'...
+                ' http://lab.debivort.org'],handles.disp_note);
+        end
+    end
+    
+    try
+        sca;
+    catch
+    end
+    gui_notify('error encountered - tracking stopped',handles.disp_note);
+    keep_gui_state = true;
+    title = 'Error encountered - tracking stopped';
+    msg=getReport(ME,'extended','hyperlinks','off');
+    errordlg(msg,title);
+    error(getReport(ME));
+end
     
 if isfield(handles,'deviceID')
     try
@@ -1300,8 +1300,9 @@ try
     end
 
 catch
-    toggleMenus(handles, 'on');
 end
+
+toggleMenus(handles, 'on');
 expmt.meta.initialize = true;
 
 
@@ -1339,8 +1340,7 @@ end
 
 
 % run ROI detection
-%try 
-    
+try     
     expmt.meta.initialize = false;
     toggleMenus(handles, 'off');
     
@@ -1366,6 +1366,9 @@ end
     
     % Enable downstream ui controls
     handles.track_thresh_slider.Enable = 'on';
+    handles.edit_area_maximum.Enable = 'on';
+    handles.edit_area_minimum.Enable = 'on';
+    handles.edit_target_rate.Enable = 'on';
     handles.accept_track_thresh_pushbutton.Enable = 'on';
     handles.reference_pushbutton.Enable = 'on';
     handles.track_thresh_label.Enable = 'on';
@@ -1404,12 +1407,12 @@ end
     % re-enable controls
     set(on_objs, 'Enable', 'on');
     
-% catch ME
-%     toggleMenus(handles, 'on');
-%     hObject.Enable = 'on';
-%     msg=getReport(ME,'extended');
-%     errordlg(msg);
-% end
+catch ME
+    toggleMenus(handles, 'on');
+    hObject.Enable = 'on';
+    msg=getReport(ME,'extended');
+    errordlg(msg);
+end
 
 % Store expmteriment data struct
 expmt.meta.initialize = true;
@@ -2178,8 +2181,15 @@ if vid
     end
     
     % if an image already exists, display a preview of the vignette correction
+    set(handles.display_menu.Children,'Checked','off');
+    handles.display_raw_menu.Checked = 'on';
+    handles.display_menu.UserData = 1;
     imh = findobj(handles.axes_handle,'-depth',3,'Type','image');
-    imh.CData = im;
+    setappdata(imh,'gui_handles',handles);
+    setappdata(imh,'expmt',expmt);
+    event.Data = im;
+    autoPreviewUpdate([], event, imh)
+
     
     % display instructions
     msg = ['Click and drag to draw a rectangle to select a dimly lit ROI or '...
@@ -2202,13 +2212,12 @@ if vid
     expmt.meta.vignette.im = uint8(expmt.meta.vignette.im);
     expmt.meta.vignette.mode = 'manual';
     
-    imh.CData = im - expmt.meta.vignette.im;
-    imh.CDataMapping = 'scaled';
-    handles.axes_handle.CLim = [0 255];
+    
+    event.Data = im - expmt.meta.vignette.im;
+    autoPreviewUpdate([], event, imh)
     gui_notify('previewing vignette correction image',handles.disp_note);
     text(handles.axes_handle.XLim(2)*0.01,handles.axes_handle.YLim(2)*0.01,...
         'Vignette Correction Preview','Color',[1 0 0]);
-    drawnow limitrate
         
 end
 

@@ -176,6 +176,8 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
                 % Use permutation vector to sort raw centroid data and update
                 % vector to specify which centroids are reliable and should be updated
                 trackDat.centroid(update,:) = single(raw_cen(permutation,:));
+                cen_cell = num2cell(single(raw_cen(permutation,:)),2);
+                [trackDat.traces(update).cen] = cen_cell{:};
                 trackDat.tStamp(update) = trackDat.t;
                 if isfield(props,'WeightedCentroid')
                     raw_cen = reshape([props.WeightedCentroid],2,...

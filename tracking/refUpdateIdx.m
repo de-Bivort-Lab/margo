@@ -23,14 +23,13 @@ if isfield(expmt.meta.noise,'dist') && isfield(expmt.meta.noise,'roi_mean')
 %     include = cellfun(@(x) x | above_thresh, include, 'UniformOutput',...
 %                       false);
     include = include | above_thresh;
-    
-    force_update = ...
-        trackDat.ref.last_update >  expmt.parameters.ref_freq * 60 * 3; 
-    if any(force_update) && expmt.parameters.ref_freq > 1/120
-        include = include | force_update;
-        trackDat.ref.ct(force_update & ...
-            trackDat.ref.ct == nref) = 0;
-    end
+end
+
+force_update = trackDat.ref.last_update >  trackDat.ref.freq * 60 * 3; 
+if any(force_update) && expmt.parameters.ref_freq > 1/120
+    include = include | force_update;
+    trackDat.ref.ct(force_update & ...
+        trackDat.ref.ct == nref) = 0;
 end
 
 refIdx(~include)=0;
