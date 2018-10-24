@@ -869,8 +869,8 @@ function ROI_thresh_slider_Callback(hObject, ~, handles)
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 
-expmt.parameters.ROI_thresh = get(handles.ROI_thresh_slider,'Value');
-set(handles.disp_ROI_thresh,'string',num2str(round(expmt.parameters.ROI_thresh)));
+expmt.parameters.roi_thresh = get(handles.ROI_thresh_slider,'Value');
+set(handles.disp_ROI_thresh,'string',num2str(round(expmt.parameters.roi_thresh)));
 
 % Store expmteriment data struct
 setappdata(handles.gui_fig,'expmt',expmt);
@@ -1259,6 +1259,7 @@ else
 end
 
 % Store expmteriment data struct
+toggleMenus(handles, 'on');
 setappdata(handles.gui_fig,'expmt',expmt);
 guidata(hObject,handles);
 
@@ -1408,13 +1409,13 @@ try
     set(on_objs, 'Enable', 'on');
     
 catch ME
-    toggleMenus(handles, 'on');
     hObject.Enable = 'on';
     msg=getReport(ME,'extended');
     errordlg(msg);
 end
 
 % Store expmteriment data struct
+toggleMenus(handles, 'on');
 expmt.meta.initialize = true;
 setappdata(handles.gui_fig,'expmt',expmt);
 guidata(hObject,handles);

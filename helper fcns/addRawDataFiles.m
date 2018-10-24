@@ -35,6 +35,8 @@ if ~isempty(new_fields)
             else
                 initialize = true;
             end
+        else
+            initialize = true;
         end
         
         if initialize

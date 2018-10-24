@@ -253,8 +253,10 @@ if expmt.parameters.estimate_trace_num
 end
 expmt.meta.ref = trackDat.ref;
 
-
-expmt.meta.vignette.im = filterVignetting(expmt);
+switch expmt.meta.vignette.mode
+    case 'auto'
+        expmt.meta.vignette.im = filterVignetting(expmt);
+end
 
 % Reset accept reference button
 set(gui_handles.accept_track_thresh_pushbutton,'value',0);

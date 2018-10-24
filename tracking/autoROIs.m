@@ -73,7 +73,7 @@ while stop~=1
     [trackDat,expmt] = autoFrame(trackDat,expmt,gui_handles);
 
     % Update threshold value
-    ROI_thresh=get(gui_handles.ROI_thresh_slider,'value');
+    roi_thresh=expmt.parameters.roi_thresh;
 
     switch expmt.meta.vignette.mode
         case 'manual'
@@ -101,14 +101,14 @@ while stop~=1
                     floor(graythresh(trackDat.im)*255);
                 feval(gui_handles.ROI_thresh_slider.Callback,...
                     gui_handles.ROI_thresh_slider,[]);
-                ROI_thresh = gui_handles.ROI_thresh_slider.Value;
+                roi_thresh = expmt.parameters.roi_thresh;
             end
             
             
     end
     
     % Extract ROIs from thresholded image
-    [ROI_bounds,ROI_coords,~,~,binaryimage] = detect_ROIs(trackDat.im,ROI_thresh);
+    [ROI_bounds,ROI_coords,~,~,binaryimage] = detect_ROIs(trackDat.im,roi_thresh);
 
     % Calculate coords of ROI centers
     [xCenters,yCenters]=ROIcenters(binaryimage,ROI_coords);

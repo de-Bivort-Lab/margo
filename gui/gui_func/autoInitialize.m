@@ -183,7 +183,6 @@ end
 expmt.meta.initialize = false;
 expmt.meta.finish = true;
 expmt.meta.num_traces = sum(expmt.meta.roi.num_traces);
-sum(expmt.meta.roi.num_traces)
 
 % initialize centroid markers
 clean_gui(gui_handles.axes_handle);

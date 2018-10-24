@@ -122,7 +122,7 @@ classdef RawDataField < dynamicprops
                 end
             end
             if ~isattached(obj)
-                error('failed to attach raw data map');
+                warning('failed to attach raw data map');
             end
             obj.raw.Parent = obj;
         end

@@ -116,6 +116,7 @@ end
 
 
 % Choose default command line output for traceplot_subgui
+colormap(handles.trace_fig,'gray');
 handles.output = hObject;
 
 % Update handles structure
@@ -218,7 +219,6 @@ if isempty(ii)
 end
 
 % get image handle or initialize
-colormap('gray');
 rc = round(expmt.meta.roi.corners(roi,:));
 roi_im = expmt.meta.ref.im(rc(2):rc(4),rc(1):rc(3));
 ih = findobj(ah.Children,'Type','Image','-depth',1);
@@ -280,7 +280,7 @@ else
     lh.YData = s;
 end
 clear s x y
-
+colormap(ah,'gray');
 % update current roi number
 eb.UserData = roi;
 
