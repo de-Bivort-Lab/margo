@@ -14,7 +14,7 @@ end
 reset(expmt);
 
 % intialize cam center coords for distance calculation
-cc = [size(expmt.meta.ref,2)/2 size(expmt.meta.ref,1)/2]; 
+cc = [size(expmt.meta.ref.im,2)/2 size(expmt.meta.ref.im,1)/2]; 
 cam_dist = squeeze(sqrt((expmt.data.centroid.raw(smpl,1,:)-cc(1)).^2 +...
     (expmt.data.centroid.raw(smpl,2,:)-cc(2)).^2));
 
@@ -36,7 +36,7 @@ if (lm.Coefficients{2,4})<0.05
         return
     end
     
-    cc = [size(expmt.meta.ref,2)/2 size(expmt.meta.ref,1)/2]; 
+    cc = [size(expmt.meta.ref.im,2)/2 size(expmt.meta.ref.im,1)/2]; 
     for j=1:nBatch    
         
         reset(expmt);
