@@ -92,7 +92,7 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
         trackDat.px_dev(idx) = ((nanmean(trackDat.px_dist) - ...
                 expmt.meta.noise.mean)/expmt.meta.noise.std);
         
-        if trackDat.px_dev(idx) > 7
+        if trackDat.px_dev(idx) > 9
             record = false;
         end
     end

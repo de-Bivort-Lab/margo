@@ -1,7 +1,7 @@
 function [trackDat, expmt] = autoReference(trackDat,expmt,gui_handles)
 
     % if num pixels above thresh exceeds nine stdev
-    reset = mean(trackDat.px_dev) > 9;
+    reset = mean(trackDat.px_dev) > 10;
     
     if trackDat.ref.freq == expmt.parameters.ref_freq && ...
             median(trackDat.ref.ct) < expmt.parameters.ref_depth
