@@ -1,6 +1,6 @@
 function trackDat = initializeTrackDat(expmt)
 
-trackDat.fields={'centroid';'area';'time'};  % Define fields for regionprops
+trackDat.fields={'centroid';'area';'time';'dropped_frames'};  % Define fields for regionprops
 trackDat.t = 0;
 trackDat.ct = 0;
 trackDat.lastFrame = false;
@@ -18,6 +18,7 @@ end
 trackDat.traces = TracePool(nr, nt, md);
 trackDat.candidates = TracePool(nr, 0, md, 'Bounded', false);
 trackDat.drop_ct = zeros(sum(nt),1);
+trackDat.cen_duration = zeros(sum(nt),1);
 
 
 % Reference vars

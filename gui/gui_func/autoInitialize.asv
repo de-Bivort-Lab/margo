@@ -25,12 +25,10 @@ trackDat.tStamp = ...
 if isfield(trackDat,'fields')
     ff = trackDat.fields;
     trackDat = initializeTrackDat(expmt);
-    
-    % enforce minimum mandatory fields
-    mandatory_fields = {'centroid';'time';'dropped_frames'};
-    missing_ff = cellfun(@(mf) ~any(strcmpi(mf,ff)),mandatory_fields);
-    ff = [ff;mandatory_fields(missing_ff)];
     trackDat.fields = ff;
+    mandatory_fields = {'centroid';'time';'dropped_frames'};
+    add_mf = cellfun(@(mf) ~any(strcmpi(mf,ff)),mandatory_fields);
+    
 else
     trackDat = initializeTrackDat(expmt);
 end
