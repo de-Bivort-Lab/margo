@@ -179,7 +179,7 @@ hObject.Value = str2double(hObject.String);
 handles.(['roi_num_slider' num2str(plot_num)]).Value = hObject.Value;
 
 % update plot
-dispTrace(plot_num,handles);
+dispTrace(hObject.Value,plot_num,handles);
 
 
 
@@ -270,6 +270,7 @@ if isempty(lh) || eb.UserData ~= roi
     ah.XTick = [];
     ah.XTickLabel = [];
     if nanmax(s) > 0
+        s = sqrt(sum(diff(smpl).^2,2));
         ah.YLim = [0 ceil(nanmax(s))];
         ah.YTick = ah.YLim;
         ah.YTickLabel = ah.YLim;
