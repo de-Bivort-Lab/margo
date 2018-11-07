@@ -22,8 +22,8 @@ end
 colormap('gray');
 set(gui_handles.display_menu.Children,'Enable','on');
 set(gui_handles.display_menu.Children,'Checked','off');
-set(gui_handles.display_threshold_menu,'Checked','on');
-gui_handles.display_menu.UserData = 3;
+set(gui_handles.display_reference_menu,'Checked','on');
+gui_handles.display_menu.UserData = 4;
 gui_handles.accept_track_thresh_pushbutton.Value = 0;
 
 %% Setup the camera and/or video object
@@ -180,22 +180,19 @@ while trackDat.t < expmt.parameters.duration*3600 &&...
     trackDat.px_dev = 0;
     [trackDat, expmt] = autoReference(trackDat, expmt, gui_handles);   
 
-    % Update display
-    if gui_handles.display_menu.UserData ~= 5
         
-        % update the display
-        autoDisplay(trackDat, expmt, imh, gui_handles);   
-        nRefs = trackDat.ref.ct;
+    % update the display
+    autoDisplay(trackDat, expmt, imh, gui_handles);   
+    nRefs = trackDat.ref.ct;
 
-        % Update color indicator
-        hue = 1-color_scale.*nRefs./depth;
-        hsv_color = ones(numel(hue),3);
-        hsv_color(:,1) = hue;
-        color = hsv2rgb(hsv_color); 
+    % Update color indicator
+    hue = 1-color_scale.*nRefs./depth;
+    hsv_color = ones(numel(hue),3);
+    hsv_color(:,1) = hue;
+    color = hsv2rgb(hsv_color); 
 
-        % Draw last known centroid for each ROI and update ref. number indicator
-        hCirc.CData = color;
-    end
+    % Draw last known centroid for each ROI and update ref. number indicator
+    hCirc.CData = color;
 
     if trackDat.ct <= size(dDifference,1) && expmt.parameters.bg_auto
         % compute frame to frame change in the magnitude of the difference of

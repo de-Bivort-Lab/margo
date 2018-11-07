@@ -19,6 +19,7 @@ trackDat.traces = TracePool(nr, nt, md);
 trackDat.candidates = TracePool(nr, 0, md, 'Bounded', false);
 trackDat.drop_ct = zeros(sum(nt),1);
 trackDat.cen_duration = zeros(sum(nt),1);
+trackDat.dead_trace = false(sum(nt),1);
 
 
 % Reference vars

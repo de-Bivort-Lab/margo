@@ -21,7 +21,12 @@ gui_handles.display_menu.UserData = 3;
 
 %% Sampling Parameters
 
-pixDistSize=100;                            % Num values to record in p
+% Num values to record in p
+if isfield(expmt.parameters,'noise_sample_num')
+    pixDistSize = expmt.parameters.noise_sample_num;    
+else
+    pixDistSize = 100;
+end
 pixelDist=NaN(pixDistSize,1);               % Distribution of total number of pixels above image threshold
 roiDist=NaN(pixDistSize,expmt.meta.roi.n);  % Distribution of total number of pixels above image threshold
 
@@ -100,7 +105,10 @@ expmt.parameters.target_rate = old_rate;
 gui_notify('noise sampling complete',gui_handles.disp_note);
 
 % resample noise to fill in gaps for missing individuals
-[pixelDist, roiDist] = bootstrap_noise_dist(pixelDist, roiDist, update_ct);
+if isfield(expmt.parameters,'noise_estimate_missing') && ...
+        expmt.parameters.noise_estimate_missing    
+    [pixelDist, roiDist] = bootstrap_noise_dist(pixelDist, roiDist, update_ct);
+end
 
 % Assign outputs
 expmt.meta.noise.dist = pixelDist;

@@ -1241,7 +1241,7 @@ function reference_pushbutton_Callback(hObject, ~, handles)
 
 
 
-% import expmteriment variables
+% import experiment variables
 expmt = getappdata(handles.gui_fig,'expmt');
 
 if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
@@ -1250,9 +1250,28 @@ if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
         expmt.meta.initialize = false;
         expmt = initializeRef(handles,expmt);
         handles.sample_noise_pushbutton.Enable = 'on';
-    %catch
-        toggleMenus(handles, 'on');
-    %end
+        
+        % enable experimental controls if noise sampling disabled
+        if isfield(expmt.parameters,'noise_sample') && ...
+                ~expmt.parameters.noise_sample
+            % Enable downstream controls
+            handles.exp_uipanel.ForegroundColor = [0 0 0];
+            state = handles.exp_parameter_pushbutton.Enable;
+            ctls = findall(handles.exp_uipanel, '-property', 'Enable'); 
+            set(ctls, 'Enable', 'on');
+            handles.exp_parameter_pushbutton.Enable = state;
+
+            % if experiment parameters are set, Enable experiment run panel
+            if ~isempty(handles.save_path.String)
+                set(findall(handles.run_uipanel, ...
+                    '-property', 'Enable'),'Enable','on');
+            end
+            if any(strcmp(expmt.meta.name,handles.parameter_subgui))
+                handles.exp_parameter_pushbutton.Enable = 'on';
+            end
+         end
+%     catch
+%     end
     expmt.meta.initialize = true;
 else
     errordlg('Either ROI detection has not been run or no ROIs were detected.')
@@ -2066,7 +2085,7 @@ end
 
 % remove video object
 if isfield(expmt.meta.video,'vid')
-    expmt = rmfield(expmt.meta,'video');
+    expmt.meta = rmfield(expmt.meta,'video');
     gui_notify('source switched to camera',handles.disp_note);
 end
 

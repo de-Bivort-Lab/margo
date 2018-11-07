@@ -1,5 +1,10 @@
 function [expmt,tPrev,exit] = updatePauseStop(trackDat,expmt,gui_handles)
 
+if gui_handles.pause_togglebutton.Value && ...
+        ~isfield(gui_handles.pause_togglebutton.UserData,'pause_note')
+    gui_handles.pause_togglebutton.UserData.pause_note = ...
+        gui_axes_notify(gui_handles.axes_handle, 'Tracking Paused');
+end
 pause(0.005);
 exit = false;
 

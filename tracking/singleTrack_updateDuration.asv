@@ -13,6 +13,6 @@ trackDat.cen_duration(live_trace) = max_dur;
 trackDat.cen_duration(dead_trace) = 0;
 
 % de-assign dead traces
-trackDat.dead_trace(live_trace) = false;
+trackDat.dead_trace(live_trace
 trackDat.dead_trace = trackDat.dead_trace | dead_trace;
-trackDat.centroid(trackDat.dead_trace,:) = NaN;
+trackDat.centroid(dead_trace,:) = NaN;

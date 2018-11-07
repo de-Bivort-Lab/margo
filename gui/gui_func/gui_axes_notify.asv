@@ -1,10 +1,5 @@
 function note_handles = gui_axes_notify(ax,msg,varargin)
 
-% set default characteristics and parse inputs
-color = 'k';
-fontsize = 12;
-position = [ax.XLim(2)*0.5 ax.YLim(2)*0.035];
-align = 'center';
 for i=1:numel(varargin)
     arg = varargin{i};
     if ischar(arg)
@@ -12,21 +7,18 @@ for i=1:numel(varargin)
             case 'color'
                 i=i+1;
                 color = varargin{i};
-            case 'FontSize'
+            case 'color'
                 i=i+1;
-                fontsize = varargin{i};
-            case 'Position'
+                color = varargin{i};
+                            case 'color'
                 i=i+1;
-                position = varargin{i};
-            case 'Alignment'
-                i=i+1;
-                align = varargin{i};
+                color = varargin{i};
         end
     end
 end
-
-th = text(ax,position(1),position(2),msg,'color',color,'HitTest','off',...
-    'HorizontalAlignment',align,'FontWeight','bold','FontSize',fontsize);
+c = [ax.XLim(2)*0.5 ax.YLim(2)*0.035];
+th = text(ax,c(1),c(2),msg,'color','k','HitTest','off',...
+    'HorizontalAlignment','center','FontWeight','bold');
 th.Units = 'normalized';
 
 tsz = th.Extent;

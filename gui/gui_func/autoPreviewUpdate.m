@@ -11,7 +11,11 @@ if strcmp(expmt.meta.source,'camera') && ...
     [event.Data,~] = undistortImage(event.Data,expmt.hardware.cam.calibration);
 end
 
-switch gui_handles.display_menu.UserData
+active_display = gui_handles.display_menu.UserData;
+active_display(active_display==5) = 1;
+    
+
+switch active_display
 
     % raw image
     case 1         

@@ -172,7 +172,6 @@ end
 % save current parameters to .mat file prior to experiment
 save([expmt.meta.path.dir expmt.meta.path.name '.mat'],'expmt');
 
-
 %% Setup the camera and/or video object
 
 expmt = getVideoInput(expmt,gui_handles);

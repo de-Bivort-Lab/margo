@@ -97,18 +97,16 @@ else
 end
 
 % set noise correction parameters
-if sum(cellfun(@(f) any(strmatch('noise',f)), fieldnames(param))) < 5
+sum(cellfun(@(f) any(strfind('noise',f))
 
-    param = defaultNoiseCorrectionOptions(param);
-    handles.enable_noise_radiobutton.Value = param.noise_sample;
-    handles.edit_noise_sample_num.String = sprintf('%i',param.noise_sample_num);
-    handles.edit_noise_skip_thresh.String = sprintf('%i',param.noise_skip_thresh);
-    handles.edit_noise_ref_thresh.String = sprintf('%i',param.noise_ref_thresh);
-    if param.noise_estimate_missing
-        handles.empty_roi_resample_popupmenu.Value = param.noise_estimate_missing;
-    else
-        handles.empty_roi_resample_popupmenu.Value = 2;
-    end
+handles.enable_noise_radiobutton.Value = param.noise_sample;
+handles.edit_noise_sample_num.String = sprintf('%i',param.noise_sample_num);
+handles.edit_noise_skip_thresh.String = sprintf('%i',param.noise_skip_thresh);
+handles.edit_noise_ref_thresh.String = sprintf('%i',param.noise_ref_thresh);
+if param.noise_estimate_missing
+    handles.empty_roi_resample_popupmenu.Value = param.noise_estimate_missing;
+else
+    handles.empty_roi_resample_popupmenu.Value = 2;
 end
 
 
@@ -985,8 +983,8 @@ function edit_max_duration_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-expmt = getappdata(handles.track_fig.UserData.gui_handles.gui_fig,'expmt');
-expmt.parameters.max_trace_duration = str2double(hObject.String);
+% Hints: get(hObject,'String') returns contents of edit_max_duration as text
+%        str2double(get(hObject,'String')) returns contents of edit_max_duration as a double
 
 
 % --- Executes during object creation, after setting all properties.

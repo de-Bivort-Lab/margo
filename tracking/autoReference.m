@@ -1,7 +1,12 @@
 function [trackDat, expmt] = autoReference(trackDat,expmt,gui_handles)
 
-    % if num pixels above thresh exceeds nine stdev
-    reset = mean(trackDat.px_dev) > 10;
+    % if num pixels above thresh exceeds threshold
+    if ~isfield(expmt.parameters,'noise_ref_thresh')
+        expmt.parameters.noise_ref_thresh = 10;
+    end
+    if expmt.parameters.noise_sample
+        reset = mean(trackDat.px_dev) > expmt.parameters.noise_ref_thresh;
+    end
     
     if trackDat.ref.freq == expmt.parameters.ref_freq && ...
             median(trackDat.ref.ct) < expmt.parameters.ref_depth
@@ -14,8 +19,8 @@ function [trackDat, expmt] = autoReference(trackDat,expmt,gui_handles)
         trackDat.ref.freq = expmt.parameters.ref_freq;
     end
 
-    % If noise is above threshold: reset reference stack,
-    if reset
+    % If noise is above threshold: reset reference stack
+    if expmt.parameters.noise_sample && reset
 
         ref_stack = repmat(trackDat.im ,1, 1, expmt.parameters.ref_depth);
         trackDat.ref.im=uint8(mean(ref_stack,3));

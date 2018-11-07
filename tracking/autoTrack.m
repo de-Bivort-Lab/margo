@@ -86,13 +86,22 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
     
     % check image noise and dump frame if noise is too high
     record = true;
-    if isfield(trackDat,'px_dist')
+    if ~isfield(expmt.parameters,'noise_sample')
+        expmt.parameters.noise_sample = true;
+    end
+    if isfield(trackDat,'px_dist') && expmt.parameters.noise_sample
+        
+        % update rolling distribution and calculate deviation from baseline
         idx = mod(trackDat.ct,length(trackDat.px_dist))+1;
         trackDat.px_dist(idx) = sum(thresh_im(:));
         trackDat.px_dev(idx) = ((nanmean(trackDat.px_dist) - ...
                 expmt.meta.noise.mean)/expmt.meta.noise.std);
-        
-        if trackDat.px_dev(idx) > 9
+            
+        % query skip threshold or assign default
+        if ~isfield(expmt.parameters,'noise_skip_thresh')
+            expmt.parameters.noise_skip_thresh = 9;
+        end
+        if trackDat.px_dev(idx) > expmt.parameters.noise_skip_thresh
             record = false;
         end
     end
@@ -192,7 +201,8 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
                 end
 
                 trackDat.update = update;
-                trackDat = singleTrack_updateDuration(trackDat,update,10);
+                trackDat = singleTrack_updateDuration(...
+                    trackDat,update,expmt.parameters.max_trace_duration);
                 
         end
         trackDat.dropped_frames = ~update;

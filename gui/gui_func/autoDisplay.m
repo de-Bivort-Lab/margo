@@ -85,6 +85,16 @@ switch active_disp
         if any(gui_handles.axes_handle.CLim ~= [0 255])
             gui_handles.axes_handle.CLim = [0 255];
         end
+        
+    case 5
+        if isempty(gui_handles.display_none_menu.UserData)
+            msg = 'Display disabled';
+            ax = gui_handles.axes_handle;
+            loc = [ax.XLim(2)*0.01 ax.YLim(2)*0.02];
+            gui_handles.display_none_menu.UserData = ...
+                gui_axes_notify(ax,msg,'color','r',...
+                'FontSize',18,'Position', loc, 'Alignment', 'left');
+        end
 end
 
 if gui_handles.display_menu.UserData ~= 5
@@ -99,6 +109,10 @@ if gui_handles.display_menu.UserData ~= 5
         trackDat.hMark.XData = trackDat.centroid(:,1);
         trackDat.hMark.YData = trackDat.centroid(:,2);
     end
+    if ~isempty(gui_handles.display_none_menu.UserData)
+       cellfun(@(h) delete(h),gui_handles.display_none_menu.UserData); 
+       gui_handles.display_none_menu.UserData = [];
+    end
 end
 
 % force immediate screen drawing and callback evaluation
@@ -107,12 +121,15 @@ drawnow limitrate
 % listen for gui pause/unpause
 while gui_handles.pause_togglebutton.Value ||...
         gui_handles.stop_pushbutton.UserData.Value
-    
     [expmt,trackDat.tPrev,exit] = updatePauseStop(trackDat,expmt,gui_handles);
     if exit
         trackDat.lastFrame = true;
         return
     end
+end
+if isfield(gui_handles.pause_togglebutton.UserData,'pause_note')
+   cellfun(@(h) delete(h), ...
+       gui_handles.pause_togglebutton.UserData.pause_note); 
 end
 
 

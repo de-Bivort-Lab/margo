@@ -160,6 +160,7 @@ classdef ExperimentData < dynamicprops
             obj = trimParameters(obj);
         end
         
+        % define default experiment parameter values
         function p = initialize_parameters(~)
             p = struct();
             p.duration              = 2;
@@ -186,6 +187,11 @@ classdef ExperimentData < dynamicprops
             p.max_trace_duration    = 20;
             p.bg_mode               = 'light';
             p.bg_auto               = true;
+            p.noise_sample          = true;
+            p.noise_sample_num      = 100;
+            p.noise_skip_thresh     = 9;
+            p.noise_ref_thresh      = 10;
+            p.noise_estimate_missing= true;
         end
         
         function obj = trimParameters(obj)
