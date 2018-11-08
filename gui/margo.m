@@ -1298,7 +1298,7 @@ if ~isfield(expmt.meta.ref,'im')
     return
 end
 
-try   
+%try   
     expmt.meta.initialize = false;
     toggleMenus(handles, 'off');
     expmt = sampleNoise(handles,expmt);
@@ -1319,8 +1319,8 @@ try
         handles.exp_parameter_pushbutton.Enable = 'on';
     end
 
-catch
-end
+%catch
+%end
 
 toggleMenus(handles, 'on');
 expmt.meta.initialize = true;

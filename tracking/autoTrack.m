@@ -200,16 +200,19 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
                     trackDat.drop_ct(~update) = trackDat.drop_ct(~update) + 1;
                 end
 
-                trackDat.update = update;
+                
                 trackDat = singleTrack_updateDuration(...
                     trackDat,update,expmt.parameters.max_trace_duration);
                 
         end
+        trackDat.update = update;
         trackDat.dropped_frames = ~update;
     else
         
         % increment drop count for all objects if entire frame is dropped
+        
         trackDat.drop_ct = trackDat.drop_ct + 1;
+        trackDat.update = false(size(trackDat.drop_ct));
         trackDat.dropped_frames(:) = false;
         
     end

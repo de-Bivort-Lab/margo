@@ -8,14 +8,16 @@ n_frames = size(pix_dist,1);
 under_sampled = update_ct < n_frames*.1;
 
 % restrict bootstrap pool to well-sampled ROIs
-sampling_dist = roi_dist(:,~under_sampled);
+if size(roi_dist,2) == numel(under_sampled)
+    sampling_dist = roi_dist(:,~under_sampled);
 
-% generate random ROI numbers for each frame to sample from dist
-rand_ids = randi(sum(~under_sampled),[n_frames sum(under_sampled)]);
-frame_idx = (1:n_frames)'*ones(1,sum(under_sampled));
-lin_idx = sub2ind(size(sampling_dist),frame_idx,rand_ids);
-added_noise = sampling_dist(lin_idx);
+    % generate random ROI numbers for each frame to sample from dist
+    rand_ids = randi(sum(~under_sampled),[n_frames sum(under_sampled)]);
+    frame_idx = (1:n_frames)'*ones(1,sum(under_sampled));
+    lin_idx = sub2ind(size(sampling_dist),frame_idx,rand_ids);
+    added_noise = sampling_dist(lin_idx);
 
-% update total and ROI distributions
-roi_dist(:,under_sampled) = added_noise;
-pix_dist = pix_dist + sum(added_noise,2);
+    % update total and ROI distributions
+    roi_dist(:,under_sampled) = added_noise;
+    pix_dist = pix_dist + sum(added_noise,2);
+end

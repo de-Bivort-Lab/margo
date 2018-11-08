@@ -8,6 +8,9 @@ classdef ExperimentData < dynamicprops
         parameters;
         hardware;
     end
+    properties(Hidden=true)
+        trackDat;
+    end
     methods
         % construct new ExperimentData obj with default values
         function obj = ExperimentData
@@ -34,6 +37,9 @@ classdef ExperimentData < dynamicprops
             obj.meta.initialize = true;
             obj.meta.finish = true;
             obj.meta.exp_id = 1;
+            
+            % assign trackDat placeholder
+            obj.trackDat = es;
 
         end
         
@@ -327,7 +333,7 @@ classdef ExperimentData < dynamicprops
                         for i=1:numel(callVars)
                             varName = callVars(i).name;
                             tmp = evalin('caller',varName);
-                            if exist(tmp,'file')
+                            if ischar(tmp) && exist(tmp,'file')
                                 fpath = tmp;
                                 if testPath(fpath, obj.meta.date)
                                     obj = updatepaths(obj,fpath);

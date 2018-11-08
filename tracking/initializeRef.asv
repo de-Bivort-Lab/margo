@@ -64,7 +64,6 @@ trackDat.ref.thresh = expmt.parameters.distance_thresh * 0.5;
 % Initialize reference with single image
 [trackDat,expmt] = autoFrame(trackDat,expmt,gui_handles);
 trackDat.ref.im = trackDat.im;
-trackDat.ref.freq = expmt.parameters.ref_freq;
 tmp_ref = trackDat.ref.im;
 depth = expmt.parameters.ref_depth;
 nROIs = expmt.meta.roi.n;
@@ -80,13 +79,8 @@ diffStack(:) = {uint8(zeros(size(trackDat.im,1),...
 % acquire reference from video file if possible
 switch expmt.meta.source
     case 'video'
-        gui_notify('computing background reference from video',...
-            gui_handles.disp_note);
-        [trackDat.ref.im, trackDat.ref.stack, expmt.meta.video.vid] = ...
-            makeVidReference(expmt.meta.video.vid...
-            , 'median', expmt.parameters.ref_depth);
-        expmt.meta.ref = trackDat.ref;
-        return;
+        [ref, ref_stack] = makeVidReference(expmt.meta.video.vid...
+            , 'mean', expmt.parameters.ref_depth);
 end
 
 

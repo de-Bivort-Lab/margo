@@ -95,29 +95,18 @@ classdef TracePool < matlab.mixin.Copyable
             end
             if ~isempty(new_cen)
                 
-                % attempt to assign to dead trace with closest last known
-                % location
                 idx = find(isnan(obj.cen(:,1)));
                 tmp.cen = obj.death_cen(idx,:);
                 tmp.t = obj.t(idx);
                 tmp.speed = NaN(numel(idx));
-                [ba, bp, tmp] = ...
+                [blob_assigned, blob_permutation, tmp] = ...
                     sortROI_multitrack(tmp, new_cen, new_t, 1000);
-                obj.cen(idx(tmp.updated),:) = new_cen(bp(ba),:);
-                obj.duration(idx(tmp.updated)) = obj.max_duration;
-                obj.t(idx(tmp.updated)) = new_t;
+                obj.cen(idx(tmp.updated),:) = new_cen(1:numel(dead_traces),:);
 
-                % exit if all assigned
-                if sum(tmp.updated) == numel(ba)
-                    return
-                end
-                
-                % if any are left over, assign to remaining slots
                 dead_traces = find(isnan(obj.cen(:,1)), size(new_cen,1), 'first');
                 obj.cen(dead_traces,:) = new_cen(1:numel(dead_traces),:);
                 obj.duration(dead_traces) = obj.max_duration;
                 obj.t(dead_traces) = new_t;
-                
             end
         end
         

@@ -1,5 +1,5 @@
 
-function [blob_assigned, blob_permutation] = ...
+function [blob_assigned, blob_permutation, traces_out] = ...
              sortROI_multitrack(traces_out, blob_cen, t_curr, spd_thresh)
 %% sort ROIs in multitracking mode
 % inputs
@@ -183,6 +183,9 @@ d = sqrt((traces_out.cen(:,1)-traces_in.cen(:,1)).^2 + ...
          (traces_out.cen(:,2)-traces_in.cen(:,2)).^2);
 d = d .* 1;
 
+if any(d>50)
+    disp('stop');
+end
 
 % time elapsed since each centroid was last updated
 dt = t_curr - traces_out.t;
