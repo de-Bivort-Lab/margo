@@ -82,9 +82,14 @@ switch expmt.meta.source
     case 'video'
         gui_notify('computing background reference from video',...
             gui_handles.disp_note);
+        msg = 'Computing background reference from video file';
+        ax = gui_handles.axes_handle;
+        mh = gui_axes_notify(ax,msg,'color','r','FontSize',18);
+        drawnow
         [trackDat.ref.im, trackDat.ref.stack, expmt.meta.video.vid] = ...
             makeVidReference(expmt.meta.video.vid...
             , 'median', expmt.parameters.ref_depth);
+        cellfun(@(h) delete(h),mh); 
         expmt.meta.ref = trackDat.ref;
         return;
 end

@@ -5,11 +5,13 @@
 
 % Parameters
 cen_marker = 'o';           % centroid marker style
-cen_color = 'r';        % centroid marker color
-trail_marker = '-';           % centroid marker style
-trail_color = [1 .5 0];        % centroid marker color
-trail_length = 120;        % centroid trail length (number of frames)
-frame_rate = 60;        % output frame rate
+cen_color = 'b';            % centroid marker color
+cen_size = 3;               % centroid marker size
+trail_marker = '-';         % centroid marker style
+trail_color = 'm';     % centroid marker color
+trail_length = 25;         % centroid trail length (number of frames)
+frame_rate = 30;            % output frame rate
+frame_increment = 4;        % sampling rate of the frames (no sub-sampling = 1)
 
 %% get file paths
 
@@ -48,7 +50,7 @@ fh.MenuBar = 'none';
 fh.Name = 'Video Preview';
 open(wVid);
 fr = read(rVid,fr_offset);
-oob = size(fr)' + 10;
+oob = [size(fr,[1 2])' + 10;
 imh = image(fr);
 imh.CDataMapping = 'scaled';
 colormap('gray');
@@ -69,6 +71,7 @@ fh.Resize = 'off';
 attach(expmt);
 c = [expmt.data.centroid.raw(fr_offset,1,:);...
     expmt.data.centroid.raw(fr_offset,2,:)];
+c_prev = c;
 c(:,isnan(c(1,:))) = repmat(oob,1,sum(isnan(c(1,:))));
 trail = repmat(c,1,1,trail_length);
 trail = permute(trail,[3,2,1]);
@@ -85,7 +88,8 @@ trail_cdata(4,1) = 0;
 trail_cdata = repmat(trail_cdata,1,1,expmt.meta.num_traces);
 trail_cdata = reshape(trail_cdata(:),4,numel(trail_cdata)/4);
 set(eh,'ColorBinding','interpolated','ColorData',trail_cdata);
-ch = plot(c(1,:),c(2,:),cen_marker,'Color',cen_color,'Parent',ah,'LineWidth',2.5);
+ch = plot(c(1,:),c(2,:),cen_marker,'Color',cen_color,...
+    'Parent',ah,'LineWidth',2.5,'MarkerSize',cen_size);
 pause(0.01);
 ceh = ch.MarkerHandle;
 ceh.EdgeColorType = 'truecoloralpha';
@@ -96,26 +100,38 @@ hold off
 
 %%
 ct = fr_offset;
+fprintf('first centroids detected in frame %i\n', ct)
 
 while ct < expmt.meta.num_frames
-    ct = ct+1;
+    
+    if mod(ct,1000)==0
+        fprintf('processing frame\t %i\t of\t %i\n',ct,expmt.meta.num_frames)
+    end
+
     fr = read(rVid,ct);
     if size(fr,3)>1
         fr = fr(:,:,2);
     end
     imh.CData = fr;
-    c_prev = c;
     c = [expmt.data.centroid.raw(ct,1,:);...
         expmt.data.centroid.raw(ct,2,:)];
     prev_filt = ~isnan(c_prev(1,:));
     curr_filt = ~isnan(c(1,:));
-    if any(curr_filt > prev_filt)
-        
-    end
+    c_prev = c;
+    c(:,~curr_filt) = repmat(oob,1,sum(~curr_filt));
     trail = circshift(trail,1,1);
     trail(1,:,1) = c(1,:)';
     trail(1,:,2) = c(2,:)';
-    c(:,isnan(c(1,:))) = repmat(oob,1,sum(isnan(c(1,:))));
+    new_trace = curr_filt > prev_filt;
+    dead_trace = prev_filt > curr_filt;
+    if any(new_trace)
+        trail(:,new_trace,:) = ...
+            repmat(permute(c(:,new_trace),[3 2 1]),size(trail,1),1,1);
+    elseif any(dead_trace)
+        trail(:,dead_trace,:) = ...
+            repmat(permute(oob,[3 2 1]),size(trail,1),sum(dead_trace),1);
+    end
+
     ceh.VertexData(1,:) = c(1,:);
     ceh.VertexData(2,:) = c(2,:);
     th.XData = trail(xidx);
@@ -123,6 +139,7 @@ while ct < expmt.meta.num_frames
     drawnow
     im_out = getframe(ah);
     writeVideo(wVid,im_out.cdata);
+    ct = ct+frame_increment;
 end
 
 close(wVid);

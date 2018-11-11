@@ -13,14 +13,13 @@ function [trackDat] = autoTime(trackDat, expmt, gui_handles, varargin)
     end
 
     % calculate the interframe interval (ifi)
-    if strcmp(expmt.meta.source,'video') && ...
-            isprop(expmt.meta.video.vid,'FrameRate')
-
-        ifi = 1/expmt.meta.video.vid.FrameRate;
-        tCurrent = trackDat.tPrev + ifi;
-    else
-        tCurrent = toc;
-        ifi = tCurrent - trackDat.tPrev;
+    switch expmt.meta.source
+        case 'camera'
+            tCurrent = toc;
+            ifi = tCurrent - trackDat.tPrev;
+        case 'video'
+            
+            ifi = expmt.meta.video.vid.FrameRate
     end
 
     trackDat.tPrev=tCurrent;

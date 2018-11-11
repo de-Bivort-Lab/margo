@@ -183,10 +183,6 @@ d = sqrt((traces_out.cen(:,1)-traces_in.cen(:,1)).^2 + ...
          (traces_out.cen(:,2)-traces_in.cen(:,2)).^2);
 d = d .* 1;
 
-if any(d>50)
-    disp('stop');
-end
-
 % time elapsed since each centroid was last updated
 dt = t_curr - traces_out.t;
 
@@ -194,8 +190,8 @@ dt = t_curr - traces_out.t;
 spd = d./dt;
 above_spd = spd > spd_thresh;
 traces_out.cen(above_spd,:) = traces_in.cen(above_spd,:);
-traces_out.t(above_spd,:) = traces_in.t(above_spd,:);
 traces_out.updated = trace_updated & ~above_spd;
+traces_out.t(traces_out.updated,:) = t_curr;
 traces_out.speed(traces_out.updated) = spd(traces_out.updated);
 blob_permutation(ismember(trace_permutation,find(above_spd))) = [];
 blob_permutation(isnan(blob_permutation))=[];

@@ -5,12 +5,13 @@
 
 % Parameters
 cen_marker = 'o';           % centroid marker style
-cen_color = 'r';        % centroid marker color
-cen_size = 3;
-trail_marker = '-';           % centroid marker style
-trail_color = [1 .5 0];        % centroid marker color
-trail_length = 30;        % centroid trail length (number of frames)
-frame_rate = 60;        % output frame rate
+cen_color = 'b';            % centroid marker color
+cen_size = 3;               % centroid marker size
+trail_marker = '-';         % centroid marker style
+trail_color = 'm';     % centroid marker color
+trail_length = 60;         % centroid trail length (number of frames)
+frame_rate = 60;            % output frame rate
+frame_increment = 1;        % sampling rate of the frames (no sub-sampling = 1)
 
 %% get file paths
 
@@ -49,7 +50,7 @@ fh.MenuBar = 'none';
 fh.Name = 'Video Preview';
 open(wVid);
 fr = read(rVid,fr_offset);
-oob = size(fr)' + 10;
+oob = [size(fr,1);size(fr,2)] + 10;
 imh = image(fr);
 imh.CDataMapping = 'scaled';
 colormap('gray');
@@ -99,9 +100,14 @@ hold off
 
 %%
 ct = fr_offset;
+fprintf('first centroids detected in frame %i\n', ct)
 
 while ct < expmt.meta.num_frames
-    ct = ct+1;
+    
+    if mod(ct,1000)==0
+        fprintf('processing frame\t %i\t of\t %i\n',ct,expmt.meta.num_frames)
+    end
+
     fr = read(rVid,ct);
     if size(fr,3)>1
         fr = fr(:,:,2);
@@ -111,6 +117,7 @@ while ct < expmt.meta.num_frames
         expmt.data.centroid.raw(ct,2,:)];
     prev_filt = ~isnan(c_prev(1,:));
     curr_filt = ~isnan(c(1,:));
+    pp = c_prev;
     c_prev = c;
     c(:,~curr_filt) = repmat(oob,1,sum(~curr_filt));
     trail = circshift(trail,1,1);
@@ -118,6 +125,13 @@ while ct < expmt.meta.num_frames
     trail(1,:,2) = c(2,:)';
     new_trace = curr_filt > prev_filt;
     dead_trace = prev_filt > curr_filt;
+    disp_d = sqrt(sum((pp(:,curr_filt) - c(:,curr_filt)).^2));
+    trail(:,~curr_filt,:) = ...
+        repmat(permute(oob,[3 2 1]),size(trail,1),sum(~curr_filt),1);
+
+    if any(disp_d > 400)
+       fprintf(ct) 
+    end
     if any(new_trace)
         trail(:,new_trace,:) = ...
             repmat(permute(c(:,new_trace),[3 2 1]),size(trail,1),1,1);
@@ -133,6 +147,7 @@ while ct < expmt.meta.num_frames
     drawnow
     im_out = getframe(ah);
     writeVideo(wVid,im_out.cdata);
+    ct = ct+frame_increment;
 end
 
 close(wVid);
