@@ -8,8 +8,7 @@ n_frames = size(pix_dist,1);
 under_sampled = update_ct < n_frames*.1;
 
 if sum(~under_sampled)<1
-   warning('No ROIs sampled during noise sampling. Unable to resample noise distribution');
-   return
+   warning('unable to resample noise distribution' 
 end
 
 % restrict bootstrap pool to well-sampled ROIs
