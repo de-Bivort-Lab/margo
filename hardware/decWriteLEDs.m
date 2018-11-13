@@ -1,17 +1,18 @@
 function [numActive]=decWriteLEDs(serialObject,trackDat)
 
+
+led_pwm= repmat(trackDat.led_pwm,1,3);
+led_pwm(~trackDat.LEDs)=0;
+led_pwm = reshape(led_pwm',size(led_pwm,1)*3,1);
+led_pwm(trackDat.pLED) = led_pwm;
 trackDat.LEDs=reshape(trackDat.LEDs',size(trackDat.LEDs,1)*3,1);
 trackDat.LEDs(trackDat.pLED)=trackDat.LEDs;
 
-trackDat.targetPWM=ones(size(trackDat.LEDs,1),1)*trackDat.targetPWM;
-trackDat.targetPWM(~trackDat.LEDs)=0;
-trackDat.targetPWM=repmat(trackDat.targetPWM,1,12);
+led_pwm=repmat(led_pwm,1,12);
 
-% Convert 12 bit PWM value to binary
-for i=2:size(trackDat.targetPWM,2)
-    trackDat.targetPWM(:,i)=floor(trackDat.targetPWM(:,i-1)./2);
-end
-binaryConv=fliplr(mod(trackDat.targetPWM,2));
+bitMath = repmat(uint16(2.^(12:-1:1)),size(led_pwm,1),1);
+led_pwm = mod(led_pwm,bitMath)./bitMath;%./bitMath;
+binaryConv=mod(led_pwm,2);
 
 % Split binary values into bytes to be sent over serial
 byte1=[zeros(size(binaryConv,1),4) binaryConv(:,1:4)];

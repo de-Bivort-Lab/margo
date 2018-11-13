@@ -30,7 +30,14 @@ imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');
 %% Experimental Setup
 
 % properties of the tracked objects to be recorded
-trackDat.fields={'centroid';'time';'Turns';'LightChoice'};                 
+trackDat.fields={'centroid';'time';'Turns';'LightChoice'};
+
+% switch LED mode
+switch expmt.parameters.led_mode
+    case 'random'
+        trackDat.fields = [trackDat.fields;'led_pwm'];
+end
+        
 
 % initialize labels, files, and cam/video
 [trackDat,expmt] = autoInitialize(trackDat,expmt,gui_handles);
@@ -76,8 +83,6 @@ nTurns = zeros(size(expmt.meta.roi.centers,1),1);
 %% LED Y-maze specific setup
 
 % Detect available ports
-
-
 if ~isempty(expmt.hardware.COM.aux) && ...
         strcmp(expmt.hardware.COM.aux.Status,'closed')
     
@@ -125,7 +130,8 @@ trackDat.pLED = [1 24 2 23 3 22 4 21 5 20 6 ...
                203  200  202  201];  
 
 % Flicker lights ON/OFF to indicate board is working
-trackDat.targetPWM = 1500;      % Sets the max PWM for LEDs
+% Sets the max PWM for LEDs
+trackDat.led_pwm = repmat(uint16(4095),expmt.meta.roi.n,1);
 for i=1:6
     trackDat.LEDs = ones(expmt.meta.roi.n,3).*mod(i,2);              
     decWriteLEDs(serial_obj,trackDat);
@@ -134,6 +140,19 @@ end
 
 trackDat.LEDs = true(expmt.meta.roi.n,3);     % Initialize LEDs to ON
 prev_LEDs = trackDat.LEDs;
+trackDat.led_mode = expmt.parameters.led_mode;
+
+switch trackDat.led_mode
+    case 'random',
+        max_pwm = expmt.parameters.led_max_pwm;
+        trackDat.pwm_scale = ...
+            unique(uint16(2.^linspace(0,log2(max_pwm),20)-1))';
+        pwm_idx = randi(numel(trackDat.pwm_scale),[expmt.meta.roi.n 1]);
+        trackDat.led_pwm = trackDat.pwm_scale(pwm_idx);
+    case 'constant',
+        trackDat.led_pwm = repmat(uint16(expmt.parameters.led_max_pwm), ...
+            expmt.meta.roi.n, 1); 
+end
 
 %% Main Experimental Loop
 
@@ -165,7 +184,7 @@ while ~trackDat.lastFrame
     trackDat.LightChoice = detectLightChoice(trackDat);
 
     if any(trackDat.changed_arm)
-        trackDat.LEDs = updateLEDs(trackDat);               % Choose a new LED for flies that just made a turn
+        trackDat = updateLEDs(trackDat);               % Choose a new LED for flies that just made a turn
         numActive = decWriteLEDs(serial_obj,trackDat);      % Write new LED values to teensy
     end
 
