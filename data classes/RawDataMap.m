@@ -14,7 +14,7 @@ classdef RawDataMap < handle
         % indexing and return routines
         function out = subsref(obj,S)
             
-            is_subscripting = any(arrayfun(@(s) s.type~='.',S));
+            is_subscripting = any(arrayfun(@(s) any(s.type~='.'),S));
             if (isempty(obj.map) || ~isattached(obj.Parent)) &&...
                     is_subscripting
                 try

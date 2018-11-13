@@ -3,8 +3,8 @@ function [lightBoard,ports]=identifyMicrocontrollers
 IR_white_panel_handshake=[1 1 0 0 1 0 1]';
 
 if ~isempty(instrfindall)
-fclose(instrfindall);           % Make sure that the COM port is closed
-delete(instrfindall);           % Delete any serial objects in memory
+    fclose(instrfindall);           % Make sure that the COM port is closed
+    delete(instrfindall);           % Delete any serial objects in memory
 end
 
 % Detect available ports

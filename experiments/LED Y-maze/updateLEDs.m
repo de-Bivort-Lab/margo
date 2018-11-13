@@ -16,7 +16,7 @@ if any(trackDat.changed_arm)
     newArm = reshape(newArm,3,sum(trackDat.changed_arm))'; 
     
     % Select new arm by picking highest random number in each row (roi)
-    [v c] = max(newArm,[],2);                      
+    [~,c] = max(newArm,[],2);                      
     newArm = c'+iShift;
     newLEDs = zeros(size(newArm,2)*3,1);
     newLEDs(newArm) = 1;

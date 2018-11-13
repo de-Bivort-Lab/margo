@@ -52,6 +52,12 @@ classdef RawDataField < dynamicprops
             
         % initialize raw data memmap from raw data file
         function obj = attach(obj)
+            
+            
+            % intialize raw map parent
+            obj.raw.Parent = obj;
+            
+            % try to attach the raw data file
             try        
                 
                 if ~isfield(obj.Parent.meta,'num_traces')
@@ -87,9 +93,23 @@ classdef RawDataField < dynamicprops
                 
                 if exist(obj.path,'file')==2
                     
+                    % get expected file size
+                    bytes_per = bytes_per_el(obj.precision);
+                    exp_sz = prod(obj.dim)*bytes_per;
+                    
                     fInfo = dir(obj.path);
                     if ~fInfo(1).bytes
                         return
+                    elseif fInfo(1).bytes ~= exp_sz
+                        
+                        % check to see if reducing frame number
+                        % by one matches expected size
+                        dim = obj.dim;
+                        dim(dim==nframe)=nframe-1;
+                        if prod(dim)*bytes_per == fInfo(1).bytes
+                            obj.Parent.meta.num_frames = nframe-1;
+                            obj.dim(
+                        end
                     end
                     
                     prcn = obj.precision;
@@ -99,7 +119,6 @@ classdef RawDataField < dynamicprops
                         obj.raw.map = memmapfile(obj.path,...
                             'Format',{prcn,fliplr(obj.dim),'raw'});
                     end
-                    obj.raw.Parent = obj;
 
                     % resize if necessary
                     sz = size(obj.raw.map.Data);

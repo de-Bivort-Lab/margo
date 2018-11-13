@@ -812,8 +812,6 @@ catch ME
     title = 'Error encountered - tracking stopped';
     msg=getReport(ME,'extended','hyperlinks','off');
  
-    % update meta data and output log file
-    expmt = autoFinish_error(expmt, handles, msg);
     
     % report error to the GUI
     errordlg(msg,title);

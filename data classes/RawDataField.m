@@ -93,9 +93,23 @@ classdef RawDataField < dynamicprops
                 
                 if exist(obj.path,'file')==2
                     
+                    % get expected file size
+                    bytes_per = bytes_per_el(obj.precision);
+                    exp_sz = prod(obj.dim)*bytes_per;
+                    
                     fInfo = dir(obj.path);
                     if ~fInfo(1).bytes
                         return
+                    elseif fInfo(1).bytes ~= exp_sz
+                        
+                        % check to see if reducing frame number
+                        % by one matches expected size
+                        new_dim = obj.dim;
+                        new_dim(new_dim==nframe)=nframe-1;
+                        if prod(new_dim)*bytes_per == fInfo(1).bytes
+                            obj.Parent.meta.num_frames = nframe-1;
+                            obj.dim(obj.dim==nframe)=nframe-1;
+                        end
                     end
                     
                     prcn = obj.precision;
