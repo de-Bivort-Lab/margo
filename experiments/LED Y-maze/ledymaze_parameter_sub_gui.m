@@ -22,14 +22,14 @@ function varargout = slowphototaxis_parameter_gui(varargin)
 
 % Edit the above text to modify the response to help slowphototaxis_parameter_gui
 
-% Last Modified by GUIDE v2.5 12-Nov-2018 12:47:33
+% Last Modified by GUIDE v2.5 12-Nov-2018 12:51:45
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
                    'gui_Singleton',  gui_Singleton, ...
-                   'gui_OpeningFcn', @slowphototaxis_parameter_gui_OpeningFcn, ...
-                   'gui_OutputFcn',  @slowphototaxis_parameter_gui_OutputFcn, ...
+                   'gui_OpeningFcn', @led_ymaze_parameter_sub_gui_OpeningFcn, ...
+                   'gui_OutputFcn',  @led_ymaze_parameter_sub_gui_OutputFcn, ...
                    'gui_LayoutFcn',  [] , ...
                    'gui_Callback',   []);
 if nargin && ischar(varargin{1})
@@ -45,7 +45,7 @@ end
 
 
 % --- Executes just before slowphototaxis_parameter_gui is made visible.
-function slowphototaxis_parameter_gui_OpeningFcn(hObject, eventdata, handles, varargin)
+function led_ymaze_parameter_sub_gui_OpeningFcn(hObject, eventdata, handles, varargin)
 % This function has no output args, see OutputFcn.
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -53,56 +53,23 @@ function slowphototaxis_parameter_gui_OpeningFcn(hObject, eventdata, handles, va
 % varargin   command line arguments to slowphototaxis_parameter_gui (see VARARGIN)
 
     expmt = varargin{1};    
-    
-    if isfield(expmt,'photo_parameters')
-       parameters = expmt.photo_parameters;
-    else
-       parameters = expmt.parameters;
-    end
-    
-    % Clear the workspace
-    sca;
+    params = expmt.parameters;
 
-    % Here we call some default settings for setting up Psychtoolbox
-    available_screens = Screen('Screens');
-    disp_str = cell(length(available_screens),1);
-    for i = 1:length(available_screens)
-        [w,h]=Screen('WindowSize',i-1);
-        disp_str(i) = {['display ' num2str(i-1) ' (' num2str(w) 'x' num2str(h) ')']};
-    end
-
-    handles.led_mode_popupmenu.String = disp_str;
-    handles.led_mode_popupmenu.Value = 1;
-    
-    if isfield(expmt,'reg_params')
-        handles.led_mode_popupmenu.Value = expmt.hardware.projector.reg_params.screen_num+1;
-    else
-        expmt.hardware.projector.reg_params.screen_num = 0;
+    % update GUI with parameter values
+    if isfield(params,'led_mode')
+        led_mode = find(strcmpi(...
+            params.led_mode,handles.led_mode_popupmenu.String));
+        handles.led_mode_popupmenu.Value = led_mode;
     end
     
-    
-
-    if isfield(parameters,'stim_duration')
-        set(handles.edit_stim_duration,'string',parameters.stim_duration);     
-    end
-    
-    if isfield(parameters,'blank_duration')
-        set(handles.edit_blank_duration,'string',parameters.blank_duration);     
-    end
-
-    if isfield(parameters,'divider_size')
-        set(handles.edit_stim_divider_size,'string',parameters.divider_size);
-    end
-
-    if isfield(parameters,'stim_contrast')
-        set(handles.edit_stim_contrast,'string',parameters.stim_contrast);
+    if isfield(params,'led_max_pwm')
+        handles.edit_led_max_pwm.String = sprintf('%i',params.led_max_pwm);
     end
     
     % Choose default command line output for slowphototaxis_parameter_gui
-    parameters.stim_duration = str2num(get(handles.edit_stim_duration,'string'));
-    parameters.divider_size = str2num(get(handles.edit_stim_divider_size,'string'));
-    parameters.stim_contrast = str2num(get(handles.edit_stim_contrast,'string'));
-    parameters.blank_duration = str2num(get(handles.edit_blank_duration,'string'));
+    params.led_max_pwm = str2num(handles.edit_led_max_pwm.String);
+    params.led_mode = handles.led_mode_popupmenu.String{...
+            handles.led_mode_popupmenu.Value};
     
     handles.figure1.Units = 'points';
     light_uipanel = findobj('Tag','light_uipanel');
@@ -112,10 +79,8 @@ function slowphototaxis_parameter_gui_OpeningFcn(hObject, eventdata, handles, va
     handles.figure1.Position(2) = gui_fig.Position(2) + ...
         sum(light_uipanel.Position([2 4])) - handles.figure1.Position(4) - 25;
 
-
-
 % Update handles structure
-handles.output = parameters;
+handles.output = params;
 guidata(hObject, handles);
 
 % UIWAIT makes slowphototaxis_parameter_gui wait for user response (see UIRESUME)
@@ -123,7 +88,7 @@ uiwait(handles.figure1);
 
 
 % --- Outputs from this function are returned to the command line.
-function varargout = slowphototaxis_parameter_gui_OutputFcn(hObject, eventdata, handles) 
+function varargout = led_ymaze_parameter_sub_gui_OutputFcn(hObject, eventdata, handles) 
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -136,27 +101,6 @@ if isfield(handles,'output')
 else
     varargout{1} = [];
     delete(hObject);
-end
-
-
-function edit_stim_divider_size_Callback(hObject, eventdata, handles)
-% hObject    handle to edit_stim_divider_size (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-handles.output.divider_size=str2num(get(handles.edit_stim_divider_size,'string'));
-guidata(hObject, handles);
-
-
-% --- Executes during object creation, after setting all properties.
-function edit_stim_divider_size_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit_stim_divider_size (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
 end
 
 % --- Executes on button press in accept_parameters_pushbutton.
@@ -175,40 +119,22 @@ function figure1_CloseRequestFcn(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 delete(hObject);
 
-function edit_stim_duration_Callback(hObject, eventdata, handles)
-% hObject    handle to edit_stim_duration (see GCBO)
+function edit_led_max_pwm_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_led_max_pwm (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-handles.output.stim_duration=str2num(get(handles.edit_stim_duration,'string'));
+val = floor(str2double(hObject.String));
+val(val>4095)=4095;
+val(val<0)=0;
+hObject.String = sprintf('%i',val);
+handles.output.led_max_pwm = val;
 guidata(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function edit_stim_duration_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit_stim_duration (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-
-function edit_stim_contrast_Callback(hObject, eventdata, handles)
-% hObject    handle to edit_stim_contrast (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-handles.output.stim_contrast=str2num(get(handles.edit_stim_contrast,'string'));
-guidata(hObject, handles);
-
-
-% --- Executes during object creation, after setting all properties.
-function edit_stim_contrast_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit_stim_contrast (see GCBO)
+function edit_led_max_pwm_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_led_max_pwm (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -225,7 +151,7 @@ function led_mode_popupmenu_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-handles.output.reg_params.screen_num=handles.led_mode_popupmenu.Value-1;
+handles.output.led_mode = hObject.String{hObject.Value};
 guidata(hObject, handles);
 
 
@@ -236,29 +162,6 @@ function led_mode_popupmenu_CreateFcn(hObject, eventdata, handles)
 % handles    empty - handles not created until after all CreateFcns called
 
 % Hint: popupmenu controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-
-function edit_blank_duration_Callback(hObject, eventdata, handles)
-% hObject    handle to edit_blank_duration (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-handles.output.blank_duration=str2num(get(handles.edit_blank_duration,'string'));
-guidata(hObject, handles);
-
-
-% --- Executes during object creation, after setting all properties.
-function edit_blank_duration_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit_blank_duration (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');

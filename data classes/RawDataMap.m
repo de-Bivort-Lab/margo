@@ -14,7 +14,9 @@ classdef RawDataMap < handle
         % indexing and return routines
         function out = subsref(obj,S)
             
-            if isempty(obj.map) || ~isattached(obj.Parent)  
+            is_subscripting = any(arrayfun(@(s) s.type~='.',S));
+            if (isempty(obj.map) || ~isattached(obj.Parent)) &&...
+                    is_subscripting
                 try
                     attach(obj.Parent);
                 catch
@@ -37,8 +39,16 @@ classdef RawDataMap < handle
             end        
         end
         
+        % overload indexing
         function out = arrayindex(obj,s)
             
+            if ~isattached(obj.Parent)
+               [~,field_name,~] = fileparts(obj.Parent.path);
+               field_name = field_name(find(field_name=='_',1,'Last')+1:end);
+               msg = ['%s raw data field is not attached, '...
+                   'run attach(expmt.data.%s) before accessing contents'];
+               error(msg,field_name, field_name);
+            end
             % pull raw data from memmap using subscripts (s)
             switch numel(s)
                 case 0
@@ -62,6 +72,7 @@ classdef RawDataMap < handle
             end
         end
         
+        % default display behavior
         function ans = display(obj)
             
             if isempty(obj.map)
@@ -97,6 +108,9 @@ classdef RawDataMap < handle
             end
         end
         
+        % query parent properties
+        
+        % elemtemt-wise subtraction
         function out = minus(a,b)
             switch class(a)
                 case 'RawDataMap'
@@ -109,6 +123,8 @@ classdef RawDataMap < handle
                     out = a - out;
             end
         end
+        
+        % element-wise addition
         function out = plus(a,b)
             switch class(a)
                 case 'RawDataMap'
@@ -121,6 +137,8 @@ classdef RawDataMap < handle
                     out = a + out;
             end
         end
+        
+        % element-wise multiplication
         function out = times(a,b)
             switch class(a)
                 case 'RawDataMap'
@@ -133,6 +151,8 @@ classdef RawDataMap < handle
                     out = a .* out;
             end
         end
+        
+        % element-wise division
         function out = rdivide(a,b)
            switch class(a)
                 case 'RawDataMap'
