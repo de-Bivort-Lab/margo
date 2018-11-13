@@ -1,4 +1,4 @@
-function roi = addROI(roi, new_corners)
+function roi = addROI(roi, new_corners, expmt)
 
 % append roi and re-sort
 corners = [roi.corners; new_corners];

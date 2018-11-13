@@ -1,7 +1,5 @@
-function roi = subtractROI(roi, idx)
+function roi = subtractROI(roi, idx, expmt)
 
-gui_fig = findobj('Tag','gui_fig');
-expmt = getappdata(gui_fig,'expmt');
 roi.bounds(idx,:) = [];
 roi.centers(idx,:) = [];
 roi.orientation(idx,:) = [];

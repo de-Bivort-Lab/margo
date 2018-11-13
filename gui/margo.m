@@ -53,6 +53,7 @@ function margo_OpeningFcn(hObject, ~, handles, varargin)
 handles.gui_dir = which('margo');
 [par_dir,~,~] = fileparts(handles.gui_dir);
 [par_dir,~,~] = fileparts(par_dir);
+addpath([genpath(par_dir) '/']);
 handles.gui_dir = [par_dir '/'];
 handles.gui_dir = unixify(handles.gui_dir);
 addpath(genpath(handles.gui_dir));
@@ -2657,7 +2658,7 @@ if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
                         
                         switch roi.mode
                             case 'auto'
-                                roi = addROI(roi, r);
+                                roi = addROI(roi, r, expmt);
                             case 'grid'
                                 msg = {'failed to manually add ROI...';...
                                     'grid ROI mode only supports manual subtraction';...
@@ -2674,7 +2675,7 @@ if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
                     
                     % delete targeted ROI
                     if idx
-                        roi = subtractROI(roi, idx);
+                        roi = subtractROI(roi, idx, expmt);
                         if strcmp(expmt.meta.roi.mode,'grid')
                             grids = handles.add_ROI_pushbutton.UserData.grid;
                             grid_idx = expmt.meta.roi.grid(idx);
