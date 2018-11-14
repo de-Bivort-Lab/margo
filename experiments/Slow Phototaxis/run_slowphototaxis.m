@@ -1,4 +1,4 @@
-function varargout = run_slowphototaxis(expmt,gui_handles,varargin)
+function expmt = run_slowphototaxis(expmt,gui_handles,varargin)
 %
 % This is a blank experimental template to serve as a framework for new
 % custom experiments. The function takes the master experiment struct

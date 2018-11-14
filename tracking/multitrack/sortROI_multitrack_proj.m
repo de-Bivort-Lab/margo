@@ -1,6 +1,6 @@
 
-function [blob_assigned, blob_permutation, traces_out] = ...
-             sortROI_multitrack(traces_out, blob_cen, t_curr, spd_thresh)
+function [blob_assigned, blob_permutation, traces_out, updated] = ...
+             sortROI_multitrack_proj(traces_out, blob_cen, t_curr, spd_thresh)
 %% sort ROIs in multitracking mode
 % inputs
 %   -> prev_cen:  all trace coords for previous frame of a single ROI
@@ -198,6 +198,8 @@ blob_permutation(isnan(blob_permutation))=[];
 if isempty(blob_permutation)
     blob_permutation = [];
 end
+
+updated = traces_out.updated;
 
 
 

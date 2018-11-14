@@ -61,21 +61,18 @@ end
 scr = expmt.hardware.screen;
 xPixels=scr.windowRect(3);
 yPixels=scr.windowRect(4);
-x_stp=floor(xPixels/stp_sz);        % num steps in x
-y_stp=floor(yPixels/stp_sz);        % num steps in y
+x_stp = 20;
 white=[1 1 1];                      % color of the spot
-im_thresh=30;                       % image threshold
+im_thresh=18;                       % image threshold
 subim_sz=10;                        % Radius of the extracted image ROI
-min_Area = ((mean(size(ref)))*0.01)^2;
-max_Area = ((mean(size(ref)))*0.1)^2;
+min_Area = ceil(((mean(size(ref)))*0.001)^2);
+max_Area = floor((mean(size(ref)))*0.05)^2;
 
 % Initialize cam/projector coord placeholders
-cam_x=NaN(y_stp,x_stp);
-cam_y=NaN(y_stp,x_stp);
-proj_x=NaN(y_stp,x_stp);
-proj_y=NaN(y_stp,x_stp);
-
-iTime=NaN(15,1);
+cam_x=[];
+cam_y=[];
+proj_x=[];
+proj_y=[];
 
 %% Calculate display delay
 
@@ -131,12 +128,6 @@ delay = t*1.5;
 %% clear axes objects and initialize marker and text objects
 
 clean_gui(handles.axes_handle);
-hold on
-hTitle = text(handles.axes_handle.XLim(2)*0.05,handles.axes_handle.YLim(2)*0.05,...
-    'Registration in progress','fontsize',12,'Color',[1 0 0]);
-hMark = plot(0,0,'ro');
-hText = text(0,0,'','Color',[1 0 0],'fontsize',14);
-hold off
 
 handles.hImage = findobj(handles.gui_fig,'-depth',3,'Type','image');
 
@@ -148,101 +139,78 @@ robot = java.awt.Robot;
 robot.mouseMove(1, 1); 
 
 % Initialize both x and y to zero and raster the projector
-x=0;
 tic
 tPrev = toc;
 for i=1:x_stp
-    y=0;
-    for j=1:y_stp
         
+    tCurr = toc;
+    ifi = tCurr-tPrev;
+    while ifi < 1/frameRate
         tCurr = toc;
         ifi = tCurr-tPrev;
-        while ifi < 1/frameRate
-            tCurr = toc;
-            ifi = tCurr-tPrev;
-        end
-        tPrev = tCurr;
-        
-        % Draw circle with projector at pixel coords x,y
-        scr=drawCircles(x,y,r,white,scr);     
-        pause(delay);
-        
-        % Image spot with cam
-        im=peekdata(expmt.hardware.cam.vid,1);
-        if size(im,3)>1
-            im=im(:,:,2);
-        end
-        
-        % adjust image for lens distortion if camera calibration parameters exist
-        if isfield(expmt.hardware.cam,'calibration') && expmt.hardware.cam.calibrate
-            [im,~] = undistortImage(im,expmt.hardware.cam.calibration);
-        end
-        
-        im=im-ref;
-        
-        % Extract Centroid of spot
-        props=regionprops(im>im_thresh,'Centroid','Area');
-        props=props([props.Area]>min_Area & [props.Area]<max_Area);
-        
-        % Further process the Centroid if spot detected
-        if ~isempty([props.Centroid]) && length([props.Centroid])==2
-            
-            % Calculate center of mass using roi detected for the spot
-            cenDat=round([props.Centroid]);
-            yi=cenDat(2)-subim_sz:cenDat(2)+subim_sz;
-            xi=cenDat(1)-subim_sz:cenDat(1)+subim_sz;
-            if max(yi)<reg_yPixels+1 && min(yi)>0 && max(xi)<reg_xPixels+1 && min(xi)>1
-                
-                subim=im(yi,xi);
-                subim=double(subim);
-                subim=subim./sum(sum(subim));
+    end
+    tPrev = tCurr;
 
-                % Save camera coordinates of the spot
-                cam_x(j,i)=sum(sum(subim).*xi);
-                cam_y(j,i)=sum(sum(subim,2).*yi');
+    % Draw circle with projector at pixel coords x,y
+    centers = random_dots(scr.windowRect(3), scr.windowRect(4), 800, r);
+    scr=drawCircles(centers(:,1),centers(:,2),r,[1,1,1],scr);     
+    pause(delay);
 
-                % Reset axes and display tracking
-                handles.hImage.CData = im>im_thresh;
-                hMark.XData = cam_x(j,i);
-                hMark.YData = cam_y(j,i);
-                hText.Position = [cam_x(j,i),cam_y(j,i)+20];
-                hText.String = ['(' num2str(round(cam_x(j,i)*10)/10) ...
-                    ',' num2str(round(cam_y(j,i)*10)/10) ')'];
-                
-                if strcmp(hMark.Visible,'off')
-                    hMark.Visible = 'on';
-                    hText.Visible = 'on';
-                end
-                
-                drawnow
-            end
-        else
-            handles.hImage.CData = im>im_thresh;
-            if strcmp(hMark.Visible,'on')
-                hMark.Visible = 'off';
-                hText.Visible = 'off';
-            end
-            drawnow
-        end
-        
-        % Save projector coordinates of spot
-        proj_x(j,i)=x;
-        proj_y(j,i)=y;
-        
-        % Advance y by stp_sz pixels
-        y = y + stp_sz;
-        iCount=(i-1)*y_stp+j;
-        
-        iTime(mod(iCount,length(iTime))+1)=ifi;
-        if iCount >= length(iTime)
-            timeRemaining = round(mean(iTime)*(x_stp*y_stp-iCount));
-            updateTimeString(timeRemaining, handles.edit_time_remaining);
-        end
-        clearvars im props subim
+    % Image spot with cam
+    im=peekdata(expmt.hardware.cam.vid,1);
+    if size(im,3)>1
+        im=im(:,:,2);
+    end
+
+    % adjust image for lens distortion if camera calibration parameters exist
+    if isfield(expmt.hardware.cam,'calibration') && expmt.hardware.cam.calibrate
+        [im,~] = undistortImage(im,expmt.hardware.cam.calibration);
+    end
+
+    im=im-ref;
+
+    % Extract Centroid of spots
+    cc = bwconncomp(im>im_thresh, 8);
+    area = cellfun(@numel,cc.PixelIdxList);
+
+    % threshold blobs by area
+    below_min = area  < min_Area;
+    above_max = area > max_Area;
+
+    oob = below_min | above_max;
+    if any(oob)
+        cc.PixelIdxList(oob) = [];
+        cc.NumObjects = cc.NumObjects - sum(oob);
+        area(oob) = [];
+    end
+    props=regionprops(cc, 'Centroid');
+    cenDat = cat(1,props.Centroid);
+
+
+    % Further process the Centroid if spot detected
+    if ~isempty(cenDat)
+
+        tform_centers = cpd_margo(cenDat,centers);
+
+        tmp.cen = cenDat;
+        tmp.t = zeros(size(cenDat,1),1);
+        tmp.speed = NaN(numel(tmp.t));
+        [~, bp, tmp, updated] = sortROI_multitrack_proj(tmp, tform_centers, 1, 100);
+
+
+        % Save camera coordinates of the spot
+        cam_x = [cam_x; cenDat(updated,1)];
+        cam_y = [cam_y; cenDat(updated,2)];
+        proj_x = [proj_x; centers(bp,1)];
+        proj_y = [proj_y; centers(bp,2)];
+
     end
     
-    % Advance x by stp_sz pixels
-    x = x + stp_sz;
+    % update display
+    handles.hImage.CData = im>im_thresh;
+    drawnow
+
+    clearvars im props subim
     
 end
 
@@ -260,8 +228,12 @@ cam_y=cam_y(include);
 Fx=scatteredInterpolant(cam_x,cam_y,proj_x);
 Fy=scatteredInterpolant(cam_x,cam_y,proj_y);
 
+[poly_Fx, poly_Fy] = fit_adjust_proj_models(cam_x, cam_y, proj_x, proj_y);
+
 reg_data.Fx = Fx;
 reg_data.Fy = Fy;
+reg_data.poly_Fx = poly_Fx;
+reg_data.poly_Fy = poly_Fy;
 reg_data.cam_xPixels = reg_xPixels;
 reg_data.cam_yPixels = reg_yPixels;
 reg_data.cam_xCoords = cam_x;
