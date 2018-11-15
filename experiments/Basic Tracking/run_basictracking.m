@@ -69,6 +69,6 @@ while ~trackDat.lastFrame
     % update current image and display object positions 
     [trackDat, expmt] = autoDisplay(trackDat, expmt, imh, gui_handles);
     
-
+    
 end
 

@@ -287,3 +287,4 @@ end
 if any(strcmpi('VideoIndex',out_fields))
     trackDat.VideoIndex = trackDat.ct;
 end
+

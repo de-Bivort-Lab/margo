@@ -214,6 +214,22 @@ classdef ExperimentData < dynamicprops
             end
         end
         
+        function obj = trim_fields(obj)
+            
+            valid_fields = {'Centroid';'Time';'Area';'Speed';'Orientation';...
+                'WeightedCentroid';'PixelList';'PixelIdxList';...
+                'MajorAxisLength';'MinorAxisLength'};
+            not_valid = cellfun(@(f) ~any(strcmpi(f,valid_fields)),...
+                obj.meta.fields);
+            obj.meta.fields(not_valid) = [];
+            
+            f = obj.meta.fields;
+            obj.data = struct(f{:});
+            for i = 1:numel(f)
+                obj.data.(f{i}) = RawDataField('Parent',obj);
+            end
+        end
+        
         function obj = export_all_csv(obj)
            for i=1:numel(obj.meta.fields)
                export_to_csv(obj.data.(obj.meta.fields{i}));

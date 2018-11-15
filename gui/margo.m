@@ -49,6 +49,9 @@ function margo_OpeningFcn(hObject, ~, handles, varargin)
 % hObject    handle to figure
 % varargin   command line arguments to margo (see VARARGIN)
 
+% disable object/struct conversion warning
+warning off MATLAB:structOnObject
+
 % get gui directory and ensure all dependencies are added to path
 handles.gui_dir = which('margo');
 [par_dir,~,~] = fileparts(handles.gui_dir);
@@ -2383,9 +2386,12 @@ function pause_togglebutton_Callback(hObject,~,~)
 switch hObject.Value
     case 1
         hObject.BackgroundColor = [0.85 0.65 0.65];
+        hObject.UserData.Value = true;
     case 0
         hObject.BackgroundColor = [0.502 0.7529 0.8392];
+        hObject.UserData.Value = false;
 end
+guidata(hObject,handles);
 
 % --------------------------------------------------------------------
 function record_video_menu_Callback(hObject,~,handles)
@@ -2803,6 +2809,7 @@ wb = round([wo*w wo*w+w*ws w*(1-ws)-wo*w w*(1-wo)]);
 ps(hb,wb(1):wb(2),:) = 0;
 ps(hb,wb(3):wb(4),:) = 0;
 hObject.UserData.ps = ps;
+hObject.UserData.Value = hObject.Value;
 
 hObject.CData = ps;
 hObject.Units = 'Points';

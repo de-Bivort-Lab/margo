@@ -21,7 +21,8 @@ trackDat.tStamp = ...
 %%
 % create new "trace" fields trackDat.traces and trackDat.candidates
 
-% tracking vars
+% tracking fields
+expmt = trim_fields(expmt);
 if isfield(trackDat,'fields')
     ff = trackDat.fields;
     trackDat = initializeTrackDat(expmt);

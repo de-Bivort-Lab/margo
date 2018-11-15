@@ -119,9 +119,8 @@ end
 drawnow limitrate                 
 
 % listen for gui pause/unpause
-while gui_handles.pause_togglebutton.UserData.Value || ...
-        gui_handles.stop_pushbutton.UserData.Value
-    
+pause_button = struct(gui_handles.pause_togglebutton);
+while gui_handles.pause_togglebutton.UserData.Value || gui_handles.stop_pushbutton.UserData.Value
     [expmt,trackDat.tPrev,exit] = updatePauseStop(trackDat,expmt,gui_handles);
     if exit
         trackDat.lastFrame = true;

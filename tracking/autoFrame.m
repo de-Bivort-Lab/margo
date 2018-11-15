@@ -11,6 +11,8 @@ switch expmt.meta.source
     % grab frame from camera
     trackDat.im = peekdata(expmt.hardware.cam.vid,1);
 
+
+
     case 'video'
         
         % get next frame from video file
