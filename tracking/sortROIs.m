@@ -53,6 +53,8 @@ for i = 1:nargout
             varargout{i} = ROI_coords(perm_y,:);
         case 3
             varargout{i} = ROI_bounds(perm_y,:);
+        case 4
+            varargout{i} = perm_y;
     end
 
 end

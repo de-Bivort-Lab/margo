@@ -36,11 +36,10 @@ if isempty(roi_coords)
                             expmt.meta.roi.pixIdx,'UniformOutput',false);  
             sub_masks = cellfun(@(x) expmt.meta.roi.im(x),...
                             expmt.meta.roi.pixIdx,'UniformOutput',false); 
-            above_thresh = find(cellfun(@sum,sub_masks) > 50);
+            above_threhs = cellfun(@sum,sub_masks) > 3
             med_intensities = cellfun(@(x,y) median(x(y)),sub_ims, sub_masks,...
                                 'UniformOutput',false); 
-            [~,i] = min(cat(1,med_intensities{above_thresh}));
-            dim_roi = above_thresh(i);
+            [~,dim_roi] = min(cat(1,med_intensities{:}));
         case 'grid'
             sub_ims = cellfun(@(x) expmt.meta.ref.im(x),...
                             expmt.meta.roi.pixIdx,'UniformOutput',false);          

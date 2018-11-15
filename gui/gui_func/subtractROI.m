@@ -1,5 +1,6 @@
 function roi = subtractROI(roi, idx, expmt)
 
+% remove roi data
 roi.bounds(idx,:) = [];
 roi.centers(idx,:) = [];
 roi.orientation(idx,:) = [];
@@ -25,4 +26,15 @@ switch roi.mode
         if isfield(roi,'tform')
             roi.tform(idx) = [];
         end
+end
+
+% remove reference and noise info for roi if set
+if isfield(expmt.meta.ref,'cen')
+    expmt.meta.ref.cen(idx) = [];
+    expmt.meta.ref.ct(idx) = [];
+    expmt.meta.ref.last_update(idx) = [];
+end
+
+if isfield(expmt.meta.noise,'roi_dist')
+    expmt.meta.noise.roi_dist(:,idx)=[];
 end
