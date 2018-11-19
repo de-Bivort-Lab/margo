@@ -946,6 +946,21 @@ expmt.parameters.traces_per_roi = num_traces;
 if isfield(expmt.meta.roi,'n')
     expmt.meta.roi.num_traces = repmat(num_traces,expmt.meta.roi.n,1);
 end
+if isfield(expmt.meta.ref,'cen')
+    
+    prev_num_traces = cellfun(@(rc) size(rc,1), expmt.meta.ref.cen);
+    add_idx = prev_num_traces < num_traces;
+    sub_idx = prev_num_traces  > num_traces;
+    
+    if any(add_idx)
+        expmt.meta.ref.cen(add_idx) = arrayfun(@(rc,pnt) [rc{1}; NaN(num_traces-pnt,2,3)],...
+            expmt.meta.ref.cen(add_idx), prev_num_traces(add_idx), 'UniformOutput', false);
+    end
+    if any(sub_idx)
+        expmt.meta.ref.cen(sub_idx) = cellfun(@(rc) rc(1:num_traces,:,:),...
+            expmt.meta.ref.cen(sub_idx), 'UniformOutput', false);
+    end
+end
 guidata(hObject,handles);
 
 

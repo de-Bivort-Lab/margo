@@ -84,7 +84,7 @@ switch expmt.meta.source
             gui_handles.disp_note);
         msg = 'Computing background reference from video file';
         ax = gui_handles.axes_handle;
-        mh = gui_axes_notify(ax,msg,'color','r','FontSize',18);
+        mh = gui_axes_notify(ax,msg,'color','r','FontSize',14);
         drawnow
         [trackDat.ref.im, trackDat.ref.stack, expmt.meta.video.vid] = ...
             makeVidReference(expmt.meta.video.vid...

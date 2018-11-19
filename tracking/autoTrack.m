@@ -114,14 +114,15 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
                 expmt.parameters.dilate_sz > 0
             
             if ~isfield(expmt.parameters,'dilate_element') ||...
-                    isempty(expmt.parameters.dilate_element)
+                    isempty(expmt.parameters.dilate_element) ||...
+                    expmt.parameters.dilate_element.Dimensionality ~= expmt.parameters.dilate_sz
                 expmt.parameters.dilate_element = ...
                     strel('disk',expmt.parameters.dilate_sz);
             end
             
             % dilate and erode with same element to connect components
-            dim = imdilate(thresh_im,expmt.parameters.dilate_element);
-            eim = imerode(dim,expmt.parameters.dilate_element);
+            %dim = imdilate(thresh_im,expmt.parameters.dilate_element);
+            eim = imerode(thresh_im,expmt.parameters.dilate_element);
             thresh_im = eim;            
             
             clearvars dim eim mim

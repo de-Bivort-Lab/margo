@@ -103,7 +103,7 @@ classdef TracePool < matlab.mixin.Copyable
                 tmp.speed = NaN(numel(idx));
                 [ba, bp, tmp] = ...
                     sortROI_multitrack(tmp, new_cen, new_t, 1000);
-                obj.cen(idx(tmp.updated),:) = new_cen(bp(ba),:);
+                obj.cen(idx(tmp.updated),:) = new_cen(bp,:);
                 obj.duration(idx(tmp.updated)) = obj.max_duration;
                 obj.t(idx(tmp.updated)) = new_t;
 

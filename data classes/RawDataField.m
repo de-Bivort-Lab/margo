@@ -85,10 +85,10 @@ classdef RawDataField < dynamicprops
                         obj.dim(end) ~= ntrace) || ...
                         ~any(obj.dim == nframe)
                     
-                    tmp_dim = [nframe ...
-                        obj.dim(obj.dim~=ntrace & obj.dim~= nframe) ...
-                        ntrace];
-                    obj.dim = tmp_dim;
+                    tmp_dim = obj.dim;
+                    tmp_dim(find(obj.dim==ntrace,1))=[];
+                    tmp_dim(find(obj.dim==nframe,1))=[];
+                    obj.dim = [nframe tmp_dim ntrace];
                 end
                 
                 if exist(obj.path,'file')==2
