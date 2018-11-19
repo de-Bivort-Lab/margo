@@ -27,6 +27,7 @@ depth = expmt.parameters.ref_depth;       % number of rolling sub references
 if ~isempty(fieldnames(expmt.meta.ref))
     trackDat.ref = expmt.meta.ref;
     trackDat.ref.bg_mode = expmt.parameters.bg_mode;
+    trackDat.ref.ct = ones(nROIs, 1).*expmt.parameters.ref_depth; 
     tmp = trackDat.ref.cen;
     tmp_n = cellfun(@(t) size(t,1), tmp);
     trackDat.ref.cen = ...
@@ -44,7 +45,7 @@ else
     trackDat.ref.cen = cell(expmt.meta.roi.n,1);
     trackDat.ref.cen = ...
         arrayfun(@(n) NaN(n,2,depth), nt, 'UniformOutput', false);        
-    trackDat.ref.ct = zeros(nROIs, 1);              % Reference number placeholder
+    trackDat.ref.ct = ones(nROIs, 1).*expmt.parameters.ref_depth;              % Reference number placeholder
     trackDat.ref.t = 0;                             % reference time stamp
     trackDat.ref.last_update = zeros(nROIs,1);
     trackDat.ref.bg_mode = expmt.parameters.bg_mode;                 % set reference mode to dark

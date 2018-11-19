@@ -90,10 +90,10 @@ switch active_disp
         if isempty(gui_handles.display_none_menu.UserData)
             msg = 'Display disabled';
             ax = gui_handles.axes_handle;
-            loc = [ax.XLim(2)*0.01 ax.YLim(2)*0.02];
+            loc = [ax.XLim(2)*0.01 ax.YLim(2)*0.01];
             gui_handles.display_none_menu.UserData = ...
                 gui_axes_notify(ax,msg,'color','r',...
-                'FontSize',18,'Position', loc, 'Alignment', 'left');
+                'FontSize',14,'Position', loc, 'Alignment', 'left');
         end
 end
 
@@ -103,7 +103,8 @@ if gui_handles.display_menu.UserData ~= 5
             strcmp(gui_handles.gui_fig.UserData.cenText(1).Visible,'on')
 
          arrayfun(@updateText,gui_handles.gui_fig.UserData.cenText,...
-             num2cell(trackDat.centroid,2),(1:size(trackDat.centroid,1))');
+             num2cell(trackDat.centroid,2),(1:size(trackDat.centroid,1))',...
+             repmat(size(trackDat.im,1)*.015,size(trackDat.centroid,1),1));
     end
     if isfield(trackDat,'hMark') && ishghandle(trackDat.hMark(1))
         trackDat.hMark.XData = trackDat.centroid(:,1);
@@ -135,10 +136,10 @@ end
 
 
 
-function updateText(h,pos,n)
+function updateText(h,pos,n,offset)
 
 if ~isnan(pos{1}(1))
-    h.Position = pos{:} - [0 10];
+    h.Position = pos{:} - [0 offset];
     if isempty(h.String)
         h.String = sprintf('%i',n);
     end

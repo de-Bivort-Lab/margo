@@ -93,24 +93,28 @@ sb = findobj(handles.trace_fig,'-depth',1,'Style','slider');
 [~,p] = sort(get(sb,'Tag'));
 sb = sb(p);
 for i=1:6
-    sb(i).Min = 1;
-    cap = expmt.meta.num_frames-20000;
-    cap(cap<1)=expmt.meta.num_frames;
-    stp = 10000/cap/10;
-    stp(stp>1)=1;
-    stp2 = stp*10;
-    stp2(stp2>1) = 1;
-    sb(i).Max = cap;
-    if i <= expmt.meta.num_traces && ~strcmp(sb(i).Enable,'off')
-        dispTrace(i,handles);
-    end
-    if stp == 1
-        sb(i).SliderStep(2) = inf;
-        sb(i).SliderStep(1) = 0.99;
-        sb(i).Enable = 'off';
+    if i <= expmt.meta.roi.n
+        sb(i).Min = 1;
+        cap = expmt.meta.num_frames-20000;
+        cap(cap<1)=expmt.meta.num_frames;
+        stp = 10000/cap/10;
+        stp(stp>1)=1;
+        stp2 = stp*10;
+        stp2(stp2>1) = 1;
+        sb(i).Max = cap;
+        if i <= expmt.meta.num_traces && ~strcmp(sb(i).Enable,'off')
+            dispTrace(i,handles);
+        end
+        if stp == 1
+            sb(i).SliderStep(2) = inf;
+            sb(i).SliderStep(1) = 0.99;
+            sb(i).Enable = 'off';
+        else
+            sb(i).SliderStep(2) = stp2;
+            sb(i).SliderStep(1) = stp;
+        end
     else
-        sb(i).SliderStep(2) = stp2;
-        sb(i).SliderStep(1) = stp;
+        
     end
 end
 
@@ -214,7 +218,7 @@ else
     ii = ii:ii+9999;
 end
 
-if isempty(ii)
+if isempty(ii) || roi > expmt.meta.roi.n
     return
 end
 
@@ -229,9 +233,16 @@ else
 end
 
 % get centroid data
-x = expmt.data.centroid.raw(ii,1,roi);
-y = expmt.data.centroid.raw(ii,2,roi);
+n_traces = expmt.meta.roi.num_traces(roi);
+trace_idx = cumsum(expmt.meta.roi.num_traces(1:roi)) - n_traces;
+trace_idx = trace_idx+1:trace_idx+n_traces;
+x = expmt.data.centroid.raw(ii,1,trace_idx);
+y = expmt.data.centroid.raw(ii,2,trace_idx);
 th.String = sprintf('%i\t - \t%i',ii(1),ii(end));
+
+% initialize color cycle
+color_cycle = [linspace(0,.666,n_traces)' ones(n_traces,2)];
+color_cycle = hsv2rgb(color_cycle);
 
 % filter out starting point
 x(x==expmt.meta.roi.centers(roi,1))=NaN;
@@ -245,7 +256,9 @@ y = y-rc(2);
 if isempty(lh) || eb.UserData ~= roi
     delete(lh);
     hold(ah,'on');
-    ph=plot(ah,x(:),y(:),'r','LineWidth',1);
+    for i=1:size(x,2)
+        plot(ah,x(:,i),y(:,i),'Color',color_cycle(i,:),'LineWidth',1);
+    end
     hold(ah,'off');
     axis(ah,'equal');
     reset(expmt.data.centroid);
@@ -257,12 +270,15 @@ if isempty(lh) || eb.UserData ~= roi
     ah.XLim = [1 rc(3)-rc(1)];
     ah.YLim = [1 rc(4)-rc(2)];
 else
-    lh.XData = x;
-    lh.YData = y;
+    for i=1:size(x,2)
+        lh(size(x,2)-i+1).XData = x(:,i);
+        lh(size(x,2)-i+1).YData = y(:,i);
+    end
 end
 
 % update speed plot
 s = sqrt(diff(x).^2+diff(y).^2);
+s = sum(s,2);
 ah = handles.(['speed_axes' num2str(plot_num)]);
 lh = findobj(ah.Children,'Type','Line','-depth',1);
 if isempty(lh) || eb.UserData ~= roi

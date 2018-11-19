@@ -5,12 +5,12 @@
 
 % Parameters
 cen_marker = 'o';           % centroid marker style
-cen_color = 'b';            % centroid marker color
-cen_size = 3;               % centroid marker size
+cen_color = 'g';            % centroid marker color
+cen_size = 8;               % centroid marker size
 trail_marker = '-';         % centroid marker style
-trail_color = 'm';     % centroid marker color
-trail_length = 60;         % centroid trail length (number of frames)
-frame_rate = 60;            % output frame rate
+trail_color = [0 1 .3];     % centroid marker color
+trail_length = 5;         % centroid trail length (number of frames)
+frame_rate = 30;            % output frame rate
 frame_increment = 1;        % sampling rate of the frames (no sub-sampling = 1)
 
 %% get file paths
@@ -50,7 +50,7 @@ fh.MenuBar = 'none';
 fh.Name = 'Video Preview';
 open(wVid);
 fr = read(rVid,fr_offset);
-oob = [size(fr,1);size(fr,2)] + 10;
+
 imh = image(fr);
 imh.CDataMapping = 'scaled';
 colormap('gray');
@@ -66,37 +66,46 @@ axis equal tight
 %ah.PlotBoxAspectRatioMode = 'manual';
 ah.CLim = [0 255];
 fh.Resize = 'off';
-
+hold on
 % initialize centroid markers
 attach(expmt);
 c = [expmt.data.centroid.raw(fr_offset,1,:);...
     expmt.data.centroid.raw(fr_offset,2,:)];
 c_prev = c;
+
+im_out = getframe(ah);
+oob = [size(im_out.cdata,1);size(im_out.cdata,2)] + 10;
 c(:,isnan(c(1,:))) = repmat(oob,1,sum(isnan(c(1,:))));
-trail = repmat(c,1,1,trail_length);
-trail = permute(trail,[3,2,1]);
-xidx = 1:numel(trail)/2;
-yidx = numel(trail)/2+1:numel(trail);
-hold on
-th = plot(trail(xidx),trail(yidx),trail_marker,'Color',trail_color,'Parent',ah,'LineWidth',2);
-pause(0.01);
-eh = th.Edge;
-eh.ColorType = 'truecoloralpha';
-trail_cdata = repmat(eh.ColorData,1,trail_length);
-trail_cdata(4,:) = uint8(linspace(255,0,trail_length));
-trail_cdata(4,1) = 0;
-trail_cdata = repmat(trail_cdata,1,1,expmt.meta.num_traces);
-trail_cdata = reshape(trail_cdata(:),4,numel(trail_cdata)/4);
-set(eh,'ColorBinding','interpolated','ColorData',trail_cdata);
+
+if trail_length > 0
+    trail = repmat(c,1,1,trail_length);
+    trail = permute(trail,[3,2,1]);
+    xidx = 1:numel(trail)/2;
+    yidx = numel(trail)/2+1:numel(trail);
+    
+    th = plot(trail(xidx),trail(yidx),trail_marker,'Color',trail_color,'Parent',ah,'LineWidth',2);
+    pause(0.01);
+    eh = th.Edge;
+    eh.ColorType = 'truecoloralpha';
+    trail_cdata = repmat(eh.ColorData,1,trail_length);
+    trail_cdata(4,:) = uint8(linspace(255,0,trail_length));
+    trail_cdata(4,1) = 0;
+    trail_cdata = repmat(trail_cdata,1,1,expmt.meta.num_traces);
+    trail_cdata = reshape(trail_cdata(:),4,numel(trail_cdata)/4);
+    set(eh,'ColorBinding','interpolated','ColorData',trail_cdata);
+end
+pause(0.1);
 ch = plot(c(1,:),c(2,:),cen_marker,'Color',cen_color,...
     'Parent',ah,'LineWidth',2.5,'MarkerSize',cen_size);
-pause(0.01);
+pause(0.1);
 ceh = ch.MarkerHandle;
 ceh.EdgeColorType = 'truecoloralpha';
 ceh.FaceColorData = ceh.EdgeColorData;
 ceh.EdgeColorData = uint8([0;0;0;0]);
 hold off
 
+adim = ah.Position;
+fdim = fh.Position;
 
 %%
 ct = fr_offset;
@@ -120,30 +129,33 @@ while ct < expmt.meta.num_frames
     pp = c_prev;
     c_prev = c;
     c(:,~curr_filt) = repmat(oob,1,sum(~curr_filt));
-    trail = circshift(trail,1,1);
-    trail(1,:,1) = c(1,:)';
-    trail(1,:,2) = c(2,:)';
+    
+
     new_trace = curr_filt > prev_filt;
     dead_trace = prev_filt > curr_filt;
     disp_d = sqrt(sum((pp(:,curr_filt) - c(:,curr_filt)).^2));
-    trail(:,~curr_filt,:) = ...
-        repmat(permute(oob,[3 2 1]),size(trail,1),sum(~curr_filt),1);
+    
+    if trail_length > 0
+        trail = circshift(trail,1,1);
+        trail(1,:,1) = c(1,:)';
+        trail(1,:,2) = c(2,:)';
+        trail(:,~curr_filt,:) = ...
+            repmat(permute(oob,[3 2 1]),size(trail,1),sum(~curr_filt),1);
 
-    if any(disp_d > 400)
-       fprintf(ct) 
-    end
-    if any(new_trace)
-        trail(:,new_trace,:) = ...
-            repmat(permute(c(:,new_trace),[3 2 1]),size(trail,1),1,1);
-    elseif any(dead_trace)
-        trail(:,dead_trace,:) = ...
-            repmat(permute(oob,[3 2 1]),size(trail,1),sum(dead_trace),1);
+        if any(new_trace)
+            trail(:,new_trace,:) = ...
+                repmat(permute(c(:,new_trace),[3 2 1]),size(trail,1),1,1);
+        elseif any(dead_trace)
+            trail(:,dead_trace,:) = ...
+                repmat(permute(oob,[3 2 1]),size(trail,1),sum(dead_trace),1);
+        end
+        th.XData = trail(xidx);
+        th.YData = trail(yidx);
     end
 
     ceh.VertexData(1,:) = c(1,:);
     ceh.VertexData(2,:) = c(2,:);
-    th.XData = trail(xidx);
-    th.YData = trail(yidx);
+
     drawnow
     im_out = getframe(ah);
     writeVideo(wVid,im_out.cdata);

@@ -749,7 +749,7 @@ elseif any(strcmp(expmt.meta.name,handles.parameter_subgui)) &&...
 end
 
     
-try
+%try
     % disable controls that are not to be accessed while expmt is running
     toggleSubguis(handles,'off');
     toggleMenus(handles,'off');
@@ -788,39 +788,39 @@ try
     end
 
 %re-establish gui state prior to tracking error is encountered
-catch ME
-    
-    % update db_lab server if applicable
-    if isfield(handles,'deviceID')
-        try
-        [~,status]=urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=3']);
-        catch
-            status = false;
-        end
-        if ~status
-            gui_notify(['unable to connect to'...
-                ' http://lab.debivort.org'],handles.disp_note);
-        end
-    end
-    
-    % try to close any open PTB windows
-    try
-        sca;
-    catch
-    end
-    
-    % get error report
-    gui_notify('error encountered - tracking stopped',handles.disp_note);
-    keep_gui_state = true;
-    title = 'Error encountered - tracking stopped';
-    msg=getReport(ME,'extended','hyperlinks','off');
- 
-    % update meta data and output log file
-    expmt = autoFinish_error(expmt, handles, msg);
-    
-    % report error to the GUI
-    errordlg(msg,title);
-end
+% catch ME
+%     
+%     % update db_lab server if applicable
+%     if isfield(handles,'deviceID')
+%         try
+%         [~,status]=urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=3']);
+%         catch
+%             status = false;
+%         end
+%         if ~status
+%             gui_notify(['unable to connect to'...
+%                 ' http://lab.debivort.org'],handles.disp_note);
+%         end
+%     end
+%     
+%     % try to close any open PTB windows
+%     try
+%         sca;
+%     catch
+%     end
+%     
+%     % get error report
+%     gui_notify('error encountered - tracking stopped',handles.disp_note);
+%     keep_gui_state = true;
+%     title = 'Error encountered - tracking stopped';
+%     msg=getReport(ME,'extended','hyperlinks','off');
+%  
+%     % update meta data and output log file
+%     expmt = autoFinish_error(expmt, handles, msg);
+%     
+%     % report error to the GUI
+%     errordlg(msg,title);
+% end
 
 % update db_lab server if applicable
 if isfield(handles,'deviceID')
@@ -2380,7 +2380,7 @@ setappdata(handles.gui_fig,'expmt',expmt);
 
 
 % --- Executes on button press in pause_togglebutton.
-function pause_togglebutton_Callback(hObject,~,~)
+function pause_togglebutton_Callback(hObject,~,handles)
 % hObject    handle to pause_togglebutton (see GCBO)
 
 switch hObject.Value
