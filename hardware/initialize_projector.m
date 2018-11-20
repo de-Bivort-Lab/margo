@@ -82,6 +82,13 @@ if cam_xPixels ~= reg_data.cam_xPixels || cam_yPixels ~= reg_data.cam_yPixels
     expmt.hardware.projector.Fy=scatteredInterpolant(cam_x,cam_y,reg_data.proj_yCoords);
     
 else
-    expmt.hardware.projector.Fx = reg_data.poly_Fx;
-    expmt.hardware.projector.Fy = reg_data.poly_Fy;
+    if isfield(reg_data,'poly_Fx')
+        expmt.hardware.projector.Fx = reg_data.poly_Fx;
+        expmt.hardware.projector.Fy = reg_data.poly_Fy;
+    elseif isfield(reg_data,'Fx')
+        expmt.hardware.projector.Fx = reg_data.Fx;
+        expmt.hardware.projector.Fy = reg_data.Fy;
+    else
+        error('no registration mapping detected');
+    end
 end

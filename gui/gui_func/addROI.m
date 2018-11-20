@@ -4,14 +4,16 @@ function roi = addROI(roi, new_corners, expmt)
 corners = [roi.corners; new_corners];
 [x,y] = ROIcenters(roi.im,corners);
 centers = [x,y];
+bounds = [corners(:,1:2) diff(corners(:,[1 3]),1,2) diff(corners(:,[2 4]),1,2)];
 tol = expmt.parameters.roi_tol;
-[~,~,~,p] = sortROIs(tol, centers, corners, corners);
+[~,~,~,p] = sortROIs(tol, centers, corners, bounds);
 corners = corners(p,:);
 centers = centers(p,:);
+bounds = bounds(p,:);
 num_traces = [roi.num_traces; expmt.parameters.traces_per_roi];
 num_traces = num_traces(p);
 
-bounds = [corners(:,1:2) diff(corners(:,[1 3]),1,2) diff(corners(:,[2 4]),1,2)];
+
 orientation = getMazeOrientation(roi.im, corners);
 
 roi.corners = corners;

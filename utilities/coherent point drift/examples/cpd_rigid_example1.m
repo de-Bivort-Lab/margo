@@ -1,14 +1,7 @@
 % Example 1. Rigid CPD point-set registration. No options are set, so the
 % default ones are used. 2D fish point-set.
-clear all; close all; clc;
-
-load cpd_data2D_fish; Y=X;
-
-% Add a random rotation and scaling
-R=cpd_R(rand(1));
-s=rand(1);
-X=s*X*R';
-
+X = cenDat;
+Y = centers;
 
 Transform=cpd_register(X,Y);
 

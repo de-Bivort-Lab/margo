@@ -59,7 +59,13 @@
 function [C, R, t, s, sigma2, iter, T]=cpd_rigid(X,Y, rot, scale, max_it, tol, viz, outliers, fgt, corresp, sigma2)
 
 [N, D]=size(X);[M, D]=size(Y);
-if viz, figure; end;
+if viz
+    fh=figure;
+    fh.Color='w';
+    fh.Position(1:2) = 50;
+    fh.Position(3:4) = fh.Position(3:4)*1.5;
+    ax = gca; 
+end
 
 % Initialization
 if ~exist('sigma2','var') || isempty(sigma2) || (sigma2==0), 
@@ -109,7 +115,14 @@ while (iter<max_it) && (ntol > tol) && (sigma2 > 10*eps)
 
     iter=iter+1;
 
-    if viz, cpd_plot_iter(X, T); end; % show current iteration if viz=1
+    % show current iteration if viz=1
+    if viz 
+        if exist('lh','var')
+            [lh, th] = cpd_plot_iter(X, T, [], lh, th, iter);
+        else
+            [lh, th] = cpd_plot_iter(X, T);
+        end
+    end; 
 end
 
 % Find the correspondence, such that Y corresponds to X(C,:)

@@ -63,7 +63,7 @@ xPixels=scr.windowRect(3);
 yPixels=scr.windowRect(4);
 x_stp = 20;
 white=[1 1 1];                      % color of the spot
-im_thresh=18;                       % image threshold
+im_thresh=13;                       % image threshold
 subim_sz=10;                        % Radius of the extracted image ROI
 min_Area = ceil(((mean(size(ref)))*0.001)^2);
 max_Area = floor((mean(size(ref)))*0.05)^2;
@@ -123,7 +123,7 @@ end
 Screen('FillRect',scr.window,[0 0 0], scr.windowRect);
 Screen('Flip',scr.window);
 
-delay = t*1.5;
+delay = t*2;
 
 %% clear axes objects and initialize marker and text objects
 
@@ -167,24 +167,25 @@ for i=1:x_stp
         [im,~] = undistortImage(im,expmt.hardware.cam.calibration);
     end
 
-    im=im-ref;
+    diffim=im-ref;
 
-    % Extract Centroid of spots
-    cc = bwconncomp(im>im_thresh, 8);
-    area = cellfun(@numel,cc.PixelIdxList);
-
-    % threshold blobs by area
-    below_min = area  < min_Area;
-    above_max = area > max_Area;
-
-    oob = below_min | above_max;
-    if any(oob)
-        cc.PixelIdxList(oob) = [];
-        cc.NumObjects = cc.NumObjects - sum(oob);
-        area(oob) = [];
-    end
-    props=regionprops(cc, 'Centroid');
-    cenDat = cat(1,props.Centroid);
+%     % Extract Centroid of spots
+%     cc = bwconncomp(diffim>im_thresh, 8);
+%     area = cellfun(@numel,cc.PixelIdxList);
+% 
+%     % threshold blobs by area
+%     below_min = area  < min_Area;
+%     above_max = area > max_Area;
+% 
+%     oob = below_min | above_max;
+%     if any(oob)
+%         cc.PixelIdxList(oob) = [];
+%         cc.NumObjects = cc.NumObjects - sum(oob);
+%         area(oob) = [];
+%     end
+%     props=regionprops(cc, 'Centroid');
+    props = regionprops(diffim>im_thresh,diffim,'WeightedCentroid');
+    cenDat = cat(1,props.WeightedCentroid);
 
 
     % Further process the Centroid if spot detected
