@@ -67,7 +67,6 @@ switch old.meta.source
         end
 end
 
-
 % update calibration UI
 if isfield(old.hardware.cam,'calibrate') && old.hardware.cam.calibrate
     handles.cam_calibrate_menu.UserData = true;

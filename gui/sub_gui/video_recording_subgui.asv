@@ -121,14 +121,11 @@ function record_vid_checkbox_Callback(hObject, eventdata, handles)
 handles.output.meta.video_out.record = hObject.Value;
 switch hObject.Value
     case true
-        set(findall(handles.vid_record_fig, '-property', 'Enable'),'Enable','on');
-        handles.vid_subsample_checkbox.Value = handles.output.meta.video_out.rate >= 0;
-    case false
-        set(findall(handles.vid_record_fig, '-property', 'Enable'),'Enable','off');
+        set(findall(handles.vid_record_uipanel, '-property', 'Enable'),'Enable','on');
         handles.vid_subsample_checkbox.Value = false;
+    case false
+        set(findall(handles.vid_record_uipanel, '-property', 'Enable'),'Enable','off');
 end
-
-vid_subsample_checkbox_Callback(handles.vid_subsample_checkbox, [], handles);
 handles.rec_vid_label.Enable = 'on';
 hObject.Enable = 'on';
 guidata(hObject,handles);

@@ -178,9 +178,21 @@ save([expmt.meta.path.dir expmt.meta.path.name '.mat'],'expmt');
 expmt = getVideoInput(expmt,gui_handles);
 
 % initialize video recording if enabled
-if strcmp(expmt.meta.source,'camera') && isfield(expmt.meta,'video_out') ...
-        && expmt.meta.video_out.record
+if isfield(expmt.meta,'video_out') && expmt.meta.video_out.record
     expmt = initializeVidRecording(expmt,gui_handles);
+elseif isfield(trackDat,'video_index') || ...
+        any(strcmpi('video_index',expmt.meta.fields)) || ...
+        any(strcmpi('video_index',trackDat.fields))
+    
+    % remove video index from raw data output if video is not recorded
+    expmt.meta.fields(strcmpi('video_index',expmt.meta.fields)) = [];
+    trackDat.fields(strcmpi('video_index',trackDat.fields)) = [];
+    if any(strcmpi('video_index',fieldnames(expmt.data)))
+        expmt.data = rmfield(expmt.data,'video_index');
+    end
+    if any(strcmpi('video_index',fieldnames(trackDat)))
+        trackDat = rmfield(trackDat,'video_index');
+    end
 end
 
 expmt.meta.initialize = false;

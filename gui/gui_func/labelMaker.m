@@ -41,7 +41,7 @@ active_fields(4:6)=[];
 iCol = 1;
 
 
-for i = 1:nRows;
+for i = 1:nRows
     
     d = mazeEnds(i) - mazeStarts(i);
     newLabel(mazeStarts(i):mazeEnds(i),iCol) = repmat(labels(i,1), d+1, 1);
@@ -51,12 +51,10 @@ for i = 1:nRows;
         iCol = iCol+1;
     end
     
-    
     if ~isempty(labels{i,3})
         newLabel(mazeStarts(i):mazeEnds(i),iCol) = repmat(labels(i,3), d+1, 1);
         iCol = iCol+1;
     end
-    
     
     if ~isempty(labels{i,6}) && ~isempty(labels{i,7})
         if ischar(labels{i,6})

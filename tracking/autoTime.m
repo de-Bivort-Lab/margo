@@ -58,15 +58,25 @@ if nargin > 2
     end
 end    
 
-% update time variables
+% update timer variables
 trackDat.t = trackDat.t + ifi;
 trackDat.ifi = ifi;
 if isfield(trackDat.ref,'t')
+    % referencing timer update
     trackDat.ref.t = trackDat.ref.t + ifi;
     trackDat.ref.last_update = trackDat.ref.last_update + ifi;
 end
 if isfield(expmt.meta,'video_out') && expmt.meta.video_out.rate >= 0
+    
+    % video sub-sampling timer update
     expmt.meta.video_out.t = expmt.meta.video_out.t + ifi;
+    if isfield(trackDat,'video_index')
+       if expmt.meta.video_out.t > 1/expmt.meta.video_out.rate
+            trackDat.video_index = true;
+       else
+           trackDat.video_index = false;
+       end
+    end
 end
 
 % check reference update timer
