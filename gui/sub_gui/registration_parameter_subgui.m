@@ -128,8 +128,8 @@ else
     handles.output.spot_r = ...
         str2double(get(handles.edit_spot_r,'string'));
     handles.output.screen_num = 0;
-    handles.output.reg_fun = 'raster grid';
-    handles.output.reg_mode = '2D polynomial';
+    handles.output.reg_fun = '2D polynomial';
+    handles.output.reg_mode = 'raster grid';
 end
 
 % Update handles structure

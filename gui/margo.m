@@ -989,7 +989,7 @@ if ~isempty(handles.experiments(idx).sub_gui)
     
     tmp_param = feval(handles.experiments(idx).sub_gui,expmt);
     if ~isempty(tmp_param)
-        expmt.parameters = tmp_param;
+        expmt = tmp_param;
         expmt.parameters.initialized = true;
     end
 else
@@ -1563,7 +1563,13 @@ if isfield(expmt.hardware.projector,'reg_params')
     waitfor(msgbox(message,msg_title));
 
     % Register projector
-    reg_projector(expmt,handles);
+    switch expmt.hardware.projector.reg_params.reg_mode
+        case 'raster grid'
+            register_projector_raster(expmt,handles);
+        case 'random dots'
+            register_projector_random(expmt,handles);
+    end
+    
 
     % Reset infrared and white lights to prior values
     writeInfraredWhitePanel(expmt.hardware.COM.light,1,...

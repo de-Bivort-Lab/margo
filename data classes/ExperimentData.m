@@ -224,7 +224,8 @@ classdef ExperimentData < dynamicprops
             obj.meta.fields(not_valid) = [];
             
             f = obj.meta.fields;
-            obj.data = struct(f{:});
+            name_val_pairs = [f';cell(1,numel(f))];
+            obj.data = struct(name_val_pairs{:});
             for i = 1:numel(f)
                 obj.data.(f{i}) = RawDataField('Parent',obj);
             end

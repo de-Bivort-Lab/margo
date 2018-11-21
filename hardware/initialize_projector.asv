@@ -2,6 +2,10 @@ function expmt = initialize_projector(expmt,varargin)
 
 screen_num = expmt.hardware.projector.reg_params.screen_num;
 reg_params = expmt.hardware.projector.reg_params;
+if ~isfield(expmt.hardware.projector.reg_params,'reg_fun')
+    
+end
+
 
 background_color = [0 0 0];
 if ~isempty(varargin)
@@ -14,7 +18,6 @@ try
     sca;
 catch
     errordlg('Projector initialization failed. Psychtoolbox not detected.');
-    expmt.meta.finish = false;
     return
 end
 
@@ -68,13 +71,6 @@ if exist([gui_dir 'hardware\projector_fit\']) == 7
     load([gui_dir '\hardware\projector_fit\' fName]);
 else
     return  
-end
-
-if ~isfield(reg_params,'reg_fun')
-    expmt.meta.finish = false;
-    errordlg(['Projector settings not configured. Set projector options' ...
-        ' before using.']);
-    return
 end
 
 im = peekdata(expmt.hardware.cam.vid,1);

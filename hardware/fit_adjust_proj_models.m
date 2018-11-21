@@ -6,18 +6,20 @@ fy = fit([x y],proj_y,'poly22');
 
 % identify model outliers
 z = proj_x;
-z_hat = fx(x,y);
-err = abs(z-z_hat);
-include = err < 80;
 
 % fit new fx model excluding outliers
-fx = fit([x(include) y(include)],z(include),'poly22');
+for i=1:50
+    z_hat = fx(x,y);
+    err = abs(z-z_hat);
+    include = err < std(err)*.2;
+    fx = fit([x(include) y(include)],z(include),'poly22');
+end
 
 % identify model outliers
 z = proj_y;
-z_hat = fy(x,y);
-err = abs(z-z_hat);
-include = err<80;
-
-% fit new fx model excluding outliers
-fy = fit([x(include) y(include)],z(include),'poly22');
+for i=1:50
+    z_hat = fy(x,y);
+    err = abs(z-z_hat);
+    include = err < std(err)*.2;
+    fy = fit([x(include) y(include)],z(include),'poly22');
+end

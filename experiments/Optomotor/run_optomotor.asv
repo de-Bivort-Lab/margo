@@ -1,4 +1,4 @@
-function expmt = run_optomotor(expmt,gui_handles,varargin)
+function varargout = run_optomotor(expmt,gui_handles,varargin)
 %% Parse variable inputs
 
 for i = 1:length(varargin)
