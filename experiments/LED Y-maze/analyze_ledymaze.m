@@ -138,6 +138,13 @@ if isprop(expmt.data.LightChoice,'active') && ...
 
 end
 
+% Compute psychometric curves if applicable
+switch expmt.parameters.led_mode
+    case 'random'
+        expmt.meta.psychometrics = ...
+            ledymaze_psychometrics(expmt.data.led_pwm.raw(),expmt.data.light_choice.raw());
+end
+
 %% Create histogram plots of turn bias and light choice probability
 
 if isprop(expmt.data.LightChoice,'active') &&...

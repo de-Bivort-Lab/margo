@@ -1613,7 +1613,29 @@ guidata(hObject,handles);
 function reg_proj_menu_Callback(hObject, ~, handles)
 % hObject    handle to reg_proj_menu (see GCBO)
 
+% check for PTB installation
+try
+    sca;
+    % Here we call some default settings for setting up Psychtoolbox
+    available_screens = Screen('Screens');
+    disp_str = cell(length(available_screens),1);
+    for i = 1:length(available_screens)
+        [w,h]=Screen('WindowSize',i-1);
+        disp_str(i) = {['display ' num2str(i-1) ' (' num2str(w) 'x' num2str(h) ')']};
+    end
 
+    handles.scr_popupmenu.String = disp_str;
+    handles.scr_popupmenu.Value = 1;
+catch
+    errordlg('Psychtoolbox not detected. Registration failed.');
+    msg = {'Psychtoolbox not detected. ';...
+        'Psychtoolbox is either not installed ';...
+        'or not added to the MATLAB search path. ';...
+        'Psychtoolbox installation required for projector use.'};
+    warning(cat(2,msg{:}));
+    gui_notify(msg,handles.disp_note);
+    return
+end
 
 expmt = getappdata(handles.gui_fig,'expmt');
 
@@ -1635,30 +1657,19 @@ if isfield(expmt.hardware.projector,'reg_params')
 
     msg_title = ['Projector Registration Tips'];
     spc = [' '];
-    intro = ['Please check the following before continuing'...
+    intro = ['Please check the following before continuing '...
         'to ensure successful registration:'];
-    item1 = ['1.) Both the infrared and white lights for'...
-        'imaging illumination are set to OFF. '...
-        'Make sure the projector is the only light source'...
-        'visible to the camera'];
-    item2 = ['2.) Camera is not imaging through infrared filter. '...
-        'Projector display should be visible through the camera.'];
-    item3 = ['3.) Projector is connected to the computer, turned'...
-        'on and set to desired resolution.'];
-    item4 = ['4.) Camera shutter speed is adjusted to match the'...
-        'refresh rate of the projector.'...
-        ' This will appear as moving streaks in the camera if'...
-        'not properly adjusted.'];
-    item5 = ['5.) Both camera and projector are in fixed positions and'...
-        'will not need to be adjusted after registration.'];
-    item6 = ['6.) The projector is set as the most external display'...
-        '(ie. the highest number display). Hint: this is the most'...
-        'likely problem if the projector is connected but psych'...
-        'Toolbox is drawing to the primary display. MATLAB must be'...
-        'restarted before this change will take effect.'];
+    item1 = ['1.) Ensure the projector is the only light '...
+        'source visible to the camera'];
+    item2 = ['2.) Camera shutter speed is adjusted to match '...
+        'the refresh rate of the projector. This will appear as moving '...
+        'streaks to the camera if not properly adjusted.'];
+    item3 = ['3.) Both camera and projector are in fixed positions '...
+        'and will not need to be adjusted after registration.'];
+    item4 = ['4.) If using random dot registratio, ensure all (or nearly all) of the'...
+        'projected image is within the camera FOV'];
     closing = ['Click OK to continue with the registration'];
-    message = {intro spc item1 spc item2 spc ...
-        item3 spc item4 spc item5 spc item6 spc closing};
+    message = {intro spc item1 spc item2 spc item3 spc item4 spc closing};
 
     % Display registration tips
     waitfor(msgbox(message,msg_title));
@@ -1701,6 +1712,31 @@ setappdata(handles.gui_fig,'expmt',expmt);
 function reg_error_menu_Callback(hObject, ~, handles)
 % hObject    handle to reg_error_menu (see GCBO)
 
+% check for PTB installation
+try
+    sca;
+    % Here we call some default settings for setting up Psychtoolbox
+    available_screens = Screen('Screens');
+    disp_str = cell(length(available_screens),1);
+    for i = 1:length(available_screens)
+        [w,h]=Screen('WindowSize',i-1);
+        disp_str(i) = {['display ' num2str(i-1) ' (' num2str(w) 'x' num2str(h) ')']};
+    end
+
+    handles.scr_popupmenu.String = disp_str;
+    handles.scr_popupmenu.Value = 1;
+catch
+    errordlg('Psychtoolbox not detected. Error estimation failed.');
+    msg = {'Psychtoolbox not detected. ';...
+        'Psychtoolbox is either not installed ';...
+        'or not added to the MATLAB search path. ';...
+        'Psychtoolbox installation required for projector use.'};
+    warning(cat(2,msg{:}));
+    gui_notify(msg,handles.disp_note);
+    return
+end
+
+
 expmt = getappdata(handles.gui_fig,'expmt');
 
 if exist([handles.gui_dir 'hardware/projector_fit/'],'dir') == 7 &&...
@@ -1713,20 +1749,15 @@ if exist([handles.gui_dir 'hardware/projector_fit/'],'dir') == 7 &&...
     msg_title = ['Registration Error Measurment']; %#ok<*NBRAK>
     spc = [' '];
     intro = ['Please check the following before continuing to ensure successful registration:'];
-    item1 = ['1.) Both the infrared and white lights for imaging illumination are set to OFF. '...
-        'Make sure the projector is the only light source visible to the camera'];
-    item2 = ['2.) Camera is not imaging through infrared filter. '...
-        'Projector display should be visible through the camera.'];
-    item3 = ['3.) Projector is connected to the computer, turned on and set to desired resolution.'];
-    item4 = ['4.) Camera shutter speed is adjusted to match the refresh rate of the projector.'...
+    item1 = ['1.) Ensure the projector is the only light source visible to the camera'];
+    item2 = ['2.) Camera shutter speed is adjusted to match the refresh rate of the projector.'...
         ' This will appear as moving streaks in the camera if not properly adjusted.'];
-    item5 = ['5.) Both camera and projector are in fixed positions and will not need to be adjusted'...
+    item3 = ['3.) Both camera and projector are in fixed positions and will not need to be adjusted'...
         ' after registration.'];
-    item6 = ['6.) The projector is set as the most external display (ie. the highest number display). Hint: '...
-        'this is the most likely problem if the projector is connected but psych Toolbox is drawing to '...
-        'the primary display. MATLAB must be restarted before this change will take effect.'];
+    item4 = ['4.) If using random dot registratio, ensure all (or nearly all) of the'...
+        'projected image is within the camera FOV'];
     closing = ['Click OK to continue with the registration'];
-    message = {intro spc item1 spc item2 spc item3 spc item4 spc item5 spc item6 spc closing};
+    message = {intro spc item1 spc item2 spc item3 spc item4 spc closing};
 
     % Display registration tips
     waitfor(msgbox(message,msg_title));
@@ -2393,17 +2424,7 @@ switch hObject.Value
 end
 guidata(hObject,handles);
 
-% --------------------------------------------------------------------
-function record_video_menu_Callback(hObject,~,handles)
 
-switch hObject.Checked
-    case 'off'
-        hObject.Checked = 'on';
-        handles.vid_compress_menu.Enable = 'on';
-    case 'on'
-        hObject.Checked = 'off';
-        handles.vid_compress_menu.Enable = 'off';
-end
 
 
 function edit_area_maximum_Callback(hObject, ~, handles)
@@ -3085,7 +3106,8 @@ guidata(hObject,handles);
 % --------------------------------------------------------------------
 function video_menu_Callback(hObject, eventdata, handles)
 % hObject    handle to video_menu (see GCBO)
-
+expmt = getappdata(handles.gui_fig,'expmt');
+video_recording_subgui(expmt);
 
 
 

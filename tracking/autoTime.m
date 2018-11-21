@@ -65,6 +65,9 @@ if isfield(trackDat.ref,'t')
     trackDat.ref.t = trackDat.ref.t + ifi;
     trackDat.ref.last_update = trackDat.ref.last_update + ifi;
 end
+if isfield(expmt.meta,'video_out') && expmt.meta.video_out.rate >= 0
+    expmt.meta.video_out.t = expmt.meta.video_out.t + ifi;
+end
 
 % check reference update timer
 trackDat.ref.update = trackDat.ref.t > (1/trackDat.ref.freq) * 60;

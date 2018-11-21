@@ -178,11 +178,9 @@ save([expmt.meta.path.dir expmt.meta.path.name '.mat'],'expmt');
 expmt = getVideoInput(expmt,gui_handles);
 
 % initialize video recording if enabled
-if strcmp(expmt.meta.source,'camera') && ...
-        strcmp(gui_handles.record_video_menu.Checked,'on')
+if strcmp(expmt.meta.source,'camera') && isfield(expmt.meta,'video_out') ...
+        && expmt.meta.video_out.record
     expmt = initializeVidRecording(expmt,gui_handles);
-else
-   gui_handles.record_video_menu.Checked = 'off'; 
 end
 
 expmt.meta.initialize = false;

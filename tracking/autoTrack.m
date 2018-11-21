@@ -79,6 +79,7 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
     im_thresh = get(gui_handles.track_thresh_slider,'value');
     
     % threshold image
+    trackDat.diffim = diffim;
     thresh_im = diffim > im_thresh;
     if isfield(expmt.meta.roi,'mask')
         thresh_im = thresh_im & expmt.meta.roi.mask;

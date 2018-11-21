@@ -1,4 +1,4 @@
-function ledymaze_psychometrics(pwm,light_choice)
+function psychometrics = ledymaze_psychometrics(pwm,light_choice)
 % Compute individual and population psychometric curves for phototactic choice 
 % as a function of LED intensity.
 %
@@ -67,7 +67,6 @@ uistack(ph,'down');
 figure;
 nrows = ceil(sqrt(size(pwm,2)));
 ncols = ceil(size(pwm,2)/nrows);
-
 for i=1:nrows*ncols
 
     subplot(nrows,ncols,i); hold on;
@@ -86,7 +85,11 @@ for i=1:nrows*ncols
     end
 end
 
-
+% assign output data
+psychometrics.curves = psy_curv;
+psychometrics.mean = avg_of_individuals;
+psychometrics.CI95 = ci95;
+psychometrics.log2_pwm = pwm_vals;
 
 
 

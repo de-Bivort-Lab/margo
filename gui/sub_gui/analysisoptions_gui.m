@@ -70,7 +70,7 @@ function analysisoptions_gui_OpeningFcn(hObject, eventdata, handles, varargin)
     end
 
     handles.output = expmt;
-    handles.output.meta.options;
+    handles.output.meta.options = opt;
     handles.output.meta.fields = f;
     
     light_uipanel = findobj('Tag','light_uipanel');
