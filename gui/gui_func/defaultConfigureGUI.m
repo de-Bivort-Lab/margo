@@ -98,7 +98,7 @@ tmp_profiles = ls(load_path);
 profiles = cell(size(tmp_profiles,1),1);
 remove = [];
 
-for i = 1:size(profiles,1);
+for i = 1:size(profiles,1)
     k = strfind(tmp_profiles(i,:),'.mat');       % identify .mat files in dir
     if isempty(k)
         remove = [remove i];                        

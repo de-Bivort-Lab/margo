@@ -174,12 +174,12 @@ classdef ExperimentData < dynamicprops
             p.ref_freq              = 0.5000;
             p.roi_thresh            = 45.5000;
             p.track_thresh          = 15;
-            p.speed_thresh          = 95;
+            p.speed_thresh          = 200;
             p.distance_thresh       = 60;
             p.vignette_sigma        = 0.4700;
             p.vignette_weight       = 0.3500;
-            p.area_min              = 4;
-            p.area_max              = 100;
+            p.area_min              = 8;
+            p.area_max              = 150;
             p.target_rate           = 30;
             p.mm_per_pix            = 1;
             p.units                 = 'pixels';
@@ -188,16 +188,20 @@ classdef ExperimentData < dynamicprops
             p.roi_tol               = 2.5000;
             p.edit_rois             = 0;
             p.dilate_sz             = 0;
+            p.erode_sz              = 0;
             p.traces_per_roi        = 1;
             p.estimate_trace_num    = false;
             p.max_trace_duration    = 20;
             p.bg_mode               = 'light';
+            p.bg_adjust             = false;
             p.bg_auto               = true;
             p.noise_sample          = true;
             p.noise_sample_num      = 100;
             p.noise_skip_thresh     = 9;
             p.noise_ref_thresh      = 10;
             p.noise_estimate_missing= true;
+            p.ref_mode              = 'live';
+            p.ref_fun               = 'median';
         end
         
         function obj = trimParameters(obj)
@@ -224,7 +228,10 @@ classdef ExperimentData < dynamicprops
             obj.meta.fields(not_valid) = [];
             
             f = obj.meta.fields;
-            name_val_pairs = [f';cell(1,numel(f))];
+            if size(f,1) > size(f,2)
+                f = f';
+            end
+            name_val_pairs = [f;cell(1,numel(f))];
             obj.data = struct(name_val_pairs{:});
             for i = 1:numel(f)
                 obj.data.(f{i}) = RawDataField('Parent',obj);
@@ -350,11 +357,22 @@ classdef ExperimentData < dynamicprops
                         for i=1:numel(callVars)
                             varName = callVars(i).name;
                             tmp = evalin('caller',varName);
-                            if ischar(tmp) && exist(tmp,'file')
+                            
+                            % check filepath if file
+                            if ischar(tmp) && exist(tmp,'file')==2
                                 fpath = tmp;
                                 if testPath(fpath, obj.meta.date)
                                     obj = updatepaths(obj,fpath);
                                     return
+                                end
+                            % look for file under dir if dir
+                            elseif ischar(tmp) && exist(tmp,'dir')==7
+                                fpaths = recursiveSearch(tmp,'ext','.mat','keyword',obj.meta.date);
+                                for j=1:numel(fpaths)
+                                    if testPath(fpaths{j}, obj.meta.date)
+                                        obj = updatepaths(obj,fpaths{j});
+                                        return
+                                    end
                                 end
                             end
                         end

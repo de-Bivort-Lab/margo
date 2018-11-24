@@ -5,11 +5,13 @@ if ~isfield(expmt.parameters,'noise_ref_thresh')
     expmt.parameters.noise_ref_thresh = 10;
 end
 if expmt.parameters.noise_sample
-    reset = mean(trackDat.px_dev) > expmt.parameters.noise_ref_thresh;
+    ref_reset = mean(trackDat.px_dev) > expmt.parameters.noise_ref_thresh;
+    ref_reset = ref_reset & any(trackDat.ref.ct==expmt.parameters.ref_depth);
 end
 
+% temporarily adjust reference frequency if reference ct is empty for most ROIs
 if trackDat.ref.freq == expmt.parameters.ref_freq && ...
-        median(trackDat.ref.ct) < expmt.parameters.ref_depth
+        mean(trackDat.ref.ct) < expmt.parameters.ref_depth
 
     trackDat.ref.freq = 60;
 
@@ -20,10 +22,10 @@ elseif trackDat.ref.freq ~= expmt.parameters.ref_freq &&...
 end
 
 % If noise is above threshold: reset reference stack
-if expmt.parameters.noise_sample && reset
+if expmt.parameters.noise_sample && ref_reset
 
     ref_stack = repmat(trackDat.im ,1, 1, expmt.parameters.ref_depth);
-    trackDat.ref.im=uint8(mean(ref_stack,3));
+    trackDat.ref.im=ref_stack(:,:,1);
 
     note = gui_handles.disp_note.String{1};
     i = find(note==')');
@@ -60,6 +62,7 @@ elseif trackDat.ref.update
        trackDat.ref.t = 0;   
        [expmt,trackDat] = refUpdateIdx(expmt,trackDat);
 
+       % patch blobs in the reference with the current image
        trackDat = refRawCrossPatch(trackDat, expmt);
        trackDat.ref.update = false;
 

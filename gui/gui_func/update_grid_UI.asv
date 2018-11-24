@@ -11,11 +11,13 @@ hsc = handles.scale_edit1;
 hd = handles.remove_ROI_pushbutton;
 ha = handles.add_ROI_pushbutton;
 n = ha.UserData.nGrids;
-q = 12;
+q = 8;
 par = ha.Parent;
 
 
-if ~isfield(ha.UserData,'grids') || isempty(ha.UserData.grid(1).hs)
+if ~isfield(ha.UserData,'grids') || isempty(ha.UserData.grids(1).hs)
+    ha.UserData.grid = struct('shape','Circular','nRows',8,'nCols',12,...
+    'scale',1,'hs',[],'hr',[],'hc',[],'hsc',[]);
     ha.UserData.grid(1).hs = hs;
     ha.UserData.grid(1).hr = hr;
     ha.UserData.grid(1).hc = hc;
@@ -46,11 +48,6 @@ switch mode
         ha.UserData.grid(n).scale= str2double(ha.UserData.grid(n).hsc.String);
     
     case 'subtract'
-        
-        if n > numel(ha.UserData.grid)
-            return
-        end
-        
         delete(ha.UserData.grid(n).hs);
         delete(ha.UserData.grid(n).hr);
         delete(ha.UserData.grid(n).hc);
@@ -64,7 +61,7 @@ switch mode
     
 end
 
-xShift = sum(hsc.Position([1 3])) - ...
+xShift = sum(hc.Position([1 3])) - ...
     hs.Position(1) + hd.Position(3) + 10;   % full length of single grid controls
 yShift = hs.Position(4)+10;                 % height of the controls + spacer
 
@@ -74,25 +71,34 @@ if strcmp(mode,'add') && n < q
     ha.UserData.grid(n).hs.Position(2) = ha.UserData.grid(n).hs.Position(2) - (n-1)*yShift;
     ha.UserData.grid(n).hr.Position(2) = ha.UserData.grid(n).hr.Position(2) - (n-1)*yShift;
     ha.UserData.grid(n).hc.Position(2) = ha.UserData.grid(n).hc.Position(2) - (n-1)*yShift;
-    ha.UserData.grid(n).hsc.Position(2) = ha.UserData.grid(n).hsc.Position(2) - (n-1)*yShift;
     
 end
 
-% shift position of the add button
-ha.Position(2) = ha.UserData.grid(n).hs.Position(2) - yShift;
+switch n
+    case q-2
+        ha.Position(1) = hs.Position(1);
+        ha.Position(2) = ha.UserData.grid(n).hs.Position(2) - yShift;
+    case q-1
+        ha.Position(2) = hs.Position(2);
+        ha.Position(1) = hs.Position(1) + xShift;  
+    otherwise
+        ha.Position(2) = ha.UserData.grid(n).hs.Position(2) - yShift;
+end
 
-
-if n < q
-    ha.Visible = 'on';
-else
+if n==(q-1)*2
     ha.Visible = 'off';
+else
+    ha.Visible = 'on';
 end
 
 % update remove grid button
 hd.Position(2) = ha.UserData.grid(n).hc.Position(2);
 if n < q
     hd.Position(1) = hs.Position(1) + xShift - hd.Position(3);
+else
+    hd.Position(1) = hs.Position(1) + 2*xShift - hd.Position(3);
 end
+
 if n == 1
     hd.Visible = 'off';              
 else

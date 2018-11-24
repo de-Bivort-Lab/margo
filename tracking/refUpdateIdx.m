@@ -24,10 +24,7 @@ if isfield(expmt.meta.noise,'dist') && ...
     
     above_thresh = cellfun(@(x) sum(trackDat.thresh_im(x)),expmt.meta.roi.pixIdx) >...
         (expmt.meta.noise.roi_mean + expmt.meta.noise.roi_std * 4);
-    trackDat.ref.ct(above_thresh & ...
-        trackDat.ref.ct == nref) = 0;
-%     include = cellfun(@(x) x | above_thresh, include, 'UniformOutput',...
-%                       false);
+    trackDat.ref.ct(above_thresh & trackDat.ref.ct == nref) = 0;
     include = include | above_thresh;
 end
 
@@ -53,7 +50,12 @@ pixLists = arrayfun(@(x) ...
 trackDat.ref.stack = cellfun(@(x,y) updateSubRef(x,y,trackDat.im),pixLists',...
     trackDat.ref.stack,'UniformOutput',false);
 
-trackDat.ref.im = median(cat(3,trackDat.ref.stack{:}),3);
+switch expmt.parameters.ref_fun
+    case 'median'
+        trackDat.ref.im = median(cat(3,trackDat.ref.stack{:}),3);
+    case 'mean'
+        trackDat.ref.im = median(cat(3,trackDat.ref.stack{:}),3);
+end
 
 % update reference centroid positions
 if any(include)

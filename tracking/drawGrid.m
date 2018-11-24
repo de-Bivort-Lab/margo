@@ -1,5 +1,8 @@
 function [gui_handles,hPatch]=drawGrid(grid_idx,gui_handles)
 
+% get the current grid
+roi_grid = gui_handles.add_ROI_pushbutton.UserData.grid(grid_idx);
+
 axh = gui_handles.axes_handle;
 instructions = {'- click and drag to place new grid -'...
     '- reposition grid corners after placement if necessary -'};
@@ -22,8 +25,8 @@ if any(~roi(3:4))
     return
 end
 
-nRow = gui_handles.add_ROI_pushbutton.UserData.grid(grid_idx).nRows;
-nCol = gui_handles.add_ROI_pushbutton.UserData.grid(grid_idx).nCols;
+nRow = roi_grid.nRows;
+nCol = roi_grid.nCols;
 
 % get coordinates of vertices from rectangle bounds
 polyPos = NaN(4,2);                                 
@@ -33,15 +36,14 @@ polyPos(3,:) = [roi(1) sum(roi([2 4]))];
 polyPos(4,:) = [roi(1) roi(2)];
 
 % sort coordinates from top left to bottom right
-[xData,yData] = getGridVertices(polyPos(:,1),polyPos(:,2),nRow,nCol);
+[xData,yData] = getGridVertices(polyPos(:,1),polyPos(:,2),nRow,nCol, roi_grid.scale);
 
 % create interactible polygon
-gui_handles.add_ROI_pushbutton.UserData.grid(grid_idx).hp = ...
-    impoly(gui_handles.axes_handle, polyPos);
+roi_grid.hp = impoly(gui_handles.axes_handle, polyPos);
 
-switch gui_handles.add_ROI_pushbutton.UserData.grid(grid_idx).shape
+switch roi_grid.shape
     case 'Circular'
-        [gui_handles.add_ROI_pushbutton.UserData.grid(grid_idx).tform,circDat] = transformROI(xData,yData);
+        [roi_grid.tform,circDat] = transformROI(xData,yData);
         hPatch = patch('Faces',1:size(xData,2),...
             'XData',circDat(:,:,1),'YData',circDat(:,:,2),'FaceColor','none',...
             'EdgeColor','r','Parent',gui_handles.axes_handle);
@@ -54,3 +56,6 @@ uistack(hPatch,'down');
 
 set(on_objs,'Enable','on');
 cellfun(@delete,hNote);
+
+% reassign grid
+gui_handles.add_ROI_pushbutton.UserData.grid(grid_idx) = roi_grid;

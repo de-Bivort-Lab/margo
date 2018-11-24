@@ -24,38 +24,6 @@ props(~(above_min & below_max)) = [];
 pixList = cat(1,props.PixelIdxList);
 trackDat.ref.im(pixList) = trackDat.im(pixList);
 
-%{
-% get per ROI background luminance
-roi_ims = cellfun(@(b) trackDat.ref.im(b(2):b(4),b(1):b(3)), ...
-             num2cell([floor(expmt.meta.roi.corners(:,[1 2]))...
-             ceil(expmt.meta.roi.corners(:,[3 4]))],2),'UniformOutput',false);
-roi_lum = cellfun(@(im) mean(im(:))*0.9, roi_ims);
-switch trackDat.ref.bg_mode
-    case 'light'
-        roi_thresh = cellfun(@(im,lum) im(:)<lum, ...
-            roi_ims, num2cell(roi_lum), 'UniformOutput',false);
-    case 'dark'
-        roi_thresh = cellfun(@(im,lum) im(:)>lum, ...
-            roi_ims, num2cell(roi_lum), 'UniformOutput',false);
-end
-
-% find and filter target regions
-vim_thresh = ~expmt.meta.roi.mask;
-vim_thresh(cat(1,expmt.meta.roi.pixIdx{:})) = cat(1,roi_thresh{:});
-props = regionprops(vim_thresh,'Area','PixelIdxList');
-above_min = [props.Area]  .* (expmt.parameters.mm_per_pix^2) > ...
-    expmt.parameters.area_min*2;
-below_max = [props.Area] .* (expmt.parameters.mm_per_pix^2) <...
-    expmt.parameters.area_max;
-props(~(above_min & below_max)) = [];
-
-% replace targets with background
-pixList = cat(1,props.PixelIdxList);
-gh = fspecial('gaussian',30,5);
-filt_im = imfilter(expmt.meta.ref.im, gh);
-trackDat.ref.im(pixList) = filt_im(pixList);
-%}
-
 
 
 

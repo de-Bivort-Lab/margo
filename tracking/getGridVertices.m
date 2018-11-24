@@ -1,4 +1,5 @@
-function [XData,YData,varargout]=getGridVertices(xPlate,yPlate,nRow,nCol)
+function [XData, YData, varargout] = ...
+    getGridVertices(xPlate, yPlate, nRow, nCol, roi_scale)
 
 %Get vertices coordinates
 uR=[xPlate(1) yPlate(1)];
@@ -21,6 +22,13 @@ L=num2cell(L,2);
 vertCoords = cellfun(@(x,y) initializeVectors(x,y,nCol+1),L,R,'UniformOutput',false);
 [xVecs,yVecs] = cellfun(@(x) ...
     getVertices(x,vertCoords,nCol),num2cell(1:nRow*nCol),'UniformOutput',false);
+
+% rescale rois
+if roi_scale < 1
+   [xVecs, yVecs] = cellfun(@(x,y) scale_roi_vertices(x, y, roi_scale), xVecs, yVecs,...
+       'UniformOutput',false);
+end
+
 XData = cat(2,xVecs{:});
 YData = cat(2,yVecs{:});
 
@@ -93,6 +101,14 @@ xData = [vc{row}(col,1); vc{row+1}(col,1); ...
     vc{row+1}(col+1,1); vc{row}(col+1,1); vc{row}(col,1)];
 yData = [vc{row}(col,2); vc{row+1}(col,2); ...
     vc{row+1}(col+1,2); vc{row}(col+1,2); vc{row}(col,2)];
+
+
+function [x, y] = scale_roi_vertices(x,y,scale_factor)
+
+center = [mean(x(1:4)) mean(y(1:4))];
+x = scale_factor.*(x-center(1)) + center(1);
+y= scale_factor.*(y-center(2)) + center(2);
+
 
 
 function [slope,intercepts] = getLinearParams(n,rp,cp,nc)

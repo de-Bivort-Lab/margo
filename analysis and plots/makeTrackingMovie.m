@@ -6,9 +6,9 @@
 % Parameters
 cen_marker = 'o';           % centroid marker style
 cen_color = 'g';            % centroid marker color
-cen_size = 8;               % centroid marker size
+cen_size = 3;               % centroid marker size
 trail_marker = '-';         % centroid marker style
-trail_color = [0 1 .3];     % centroid marker color
+trail_color = 'c';     % centroid marker color
 trail_length = 5;         % centroid trail length (number of frames)
 frame_rate = 30;            % output frame rate
 frame_increment = 1;        % sampling rate of the frames (no sub-sampling = 1)
@@ -74,9 +74,9 @@ c = [expmt.data.centroid.raw(fr_offset,1,:);...
 c_prev = c;
 
 im_out = getframe(ah);
-oob = [size(im_out.cdata,1);size(im_out.cdata,2)] + 10;
+oob = [size(im_out.cdata,2);size(im_out.cdata,1)];
 c(:,isnan(c(1,:))) = repmat(oob,1,sum(isnan(c(1,:))));
-
+%%
 if trail_length > 0
     trail = repmat(c,1,1,trail_length);
     trail = permute(trail,[3,2,1]);
@@ -103,7 +103,7 @@ ceh.EdgeColorType = 'truecoloralpha';
 ceh.FaceColorData = ceh.EdgeColorData;
 ceh.EdgeColorData = uint8([0;0;0;0]);
 hold off
-
+axis tight off
 adim = ah.Position;
 fdim = fh.Position;
 

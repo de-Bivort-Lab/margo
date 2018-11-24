@@ -19,11 +19,8 @@ gui_handles.grid_ROI_uipanel.Visible = 'on';
 height = gui_handles.bottom_uipanel.Position(4) + ...
     gui_handles.run_uipanel.Position(4) + gui_handles.exp_uipanel.Position(4);
 gui_handles.grid_ROI_uipanel.Position(4) = height;
-y_shift = height - gui_handles.text48.Position(2) - 35;
+y_shift = heightgui_handles.text48.Position(2)
 all_ctls = findobj(gui_handles.grid_ROI_uipanel,'-depth',2,'Type','uicontrol');
-for i=1:numel(all_ctls)
-    all_ctls(i).Position(2) =  all_ctls(i).Position(2) + y_shift;
-end
 hAdd = gui_handles.add_ROI_pushbutton;
 
 
@@ -99,7 +96,6 @@ for i=1:nGrids
     old_dim(i) = {[nRow nCol]};
     old_coords(i) = {getPosition(gui_handles.add_ROI_pushbutton.UserData.grid(i).hp)};
     old_shape(i) = {hAdd.UserData.grid(i).shape};
-    old_scale(i) = hAdd.UserData.grid(i).scale;
 end
 
 % initialize timer
@@ -136,7 +132,6 @@ while ~gui_handles.accept_ROI_thresh_pushbutton.Value
                 {getPosition(...
                     gui_handles.add_ROI_pushbutton.UserData.grid(nGrids).hp)};
             old_shape(nGrids) = {hAdd.UserData.grid(nGrids).shape};
-            old_scale(nGrids) = hAdd.UserData.grid(nGrids).scale;
         else
             gui_handles = update_grid_UI(gui_handles,'subtract');
         end
@@ -156,8 +151,7 @@ while ~gui_handles.accept_ROI_thresh_pushbutton.Value
         hAdd.UserData.grid(i).YData = YData;
 
         if any(old_dim{i}~=[nRow nCol]) || ...
-                ~strcmp(hAdd.UserData.grid(i).shape,old_shape{i}) || ...
-                old_scale(i) ~= scale
+                ~strcmp(hAdd.UserData.grid(i).shape,old_shape{i})
             
             % remove old patch and draw now one if dimensions change
             delete(hPatch(i));
@@ -177,7 +171,6 @@ while ~gui_handles.accept_ROI_thresh_pushbutton.Value
             % update current dimensions
             old_dim(i) = {[nRow nCol]};
             old_shape(i) = {hAdd.UserData.grid(i).shape};
-            old_scale(i) = hAdd.UserData.grid(i).scale;
         
         elseif any(old_coords{i}(:)~=pos(:))
             old_coords(i) = {pos};

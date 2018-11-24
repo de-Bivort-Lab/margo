@@ -36,9 +36,8 @@ switch active_disp
 
     % difference image
     case 2
-        if isfield(expmt,'ref') && isfield(expmt.meta.vignette,'im')
-        im_handle.CData = ...
-            (trackDat.ref.im-expmt.meta.vignette.im)-(trackDat.im-expmt.meta.vignette.im);
+        if isfield(trackDat,'diffim')
+        im_handle.CData = trackDat.diffim;
             if strcmp(im_handle.CDataMapping,'scaled')
                 im_handle.CDataMapping = 'direct';
             end

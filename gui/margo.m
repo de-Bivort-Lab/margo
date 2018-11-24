@@ -22,7 +22,7 @@ function varargout = margo(varargin)
 
 % Edit the above text to modify the response to help margo
 
-% Last Modified by GUIDE v2.5 15-Oct-2018 12:28:31
+% Last Modified by GUIDE v2.5 24-Nov-2018 12:17:37
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -1804,7 +1804,6 @@ if isfield(handles,'fig_size')
             axes_width_old = handles.axes_handle.Position(3);
             axes_width_new = axes_width_old*fscale;
             handles.axes_handle.Position(3) = axes_width_new;
-            %pbaspect([aspectR,1,1]);
             
         else          
             handles.axes_handle.Position(4) = axes_height_new;
@@ -2151,8 +2150,8 @@ if vid
     event.Data = im - expmt.meta.vignette.im;
     autoPreviewUpdate([], event, imh)
     gui_notify('previewing vignette correction image',handles.disp_note);
-    text(handles.axes_handle.XLim(2)*0.01,handles.axes_handle.YLim(2)*0.01,...
-        'Vignette Correction Preview','Color',[1 0 0]);
+    handles.display_none_menu.UserData = ...
+        gui_axes_notify(handles.axes_handle,'Vignette Correction Preview');
         
 end
 
@@ -2917,7 +2916,7 @@ function add_ROI_pushbutton_CreateFcn(hObject, eventdata, handles)
 
 hObject.UserData.nGrids = 1;
 hObject.UserData.grid = struct('shape','Quadrilateral','nRows',8,'nCols',12,...
-    'hs',[],'hr',[],'hc',[],'hp',[],'centers',[],'bounds',[],...
+    'scale',1,'hs',[],'hr',[],'hc',[],'hsc',[],'hp',[],'centers',[],'bounds',[],...
     'XData',[],'YData',[],'polypos',[],'tform',[]);
 hObject.Value = false;
 guidata(hObject,handles);
@@ -3134,3 +3133,30 @@ for i=1:numel(fPaths)
     hwb = waitbar(i/numel(fPaths),hwb,msg);
 end
 delete(hwb);
+
+
+
+function scale_edit1_Callback(hObject, eventdata, handles)
+% hObject    handle to scale_edit1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+n = hObject.Value;
+scale = str2double(hObject.String);
+scale(scale>1) = 1;
+scale(scale<0.01) = 0.01;
+handles.add_ROI_pushbutton.UserData.grid(n).scale = scale;
+guidata(hObject,handles);
+
+
+% --- Executes during object creation, after setting all properties.
+function scale_edit1_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to scale_edit1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end

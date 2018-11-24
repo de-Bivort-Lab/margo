@@ -79,6 +79,9 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
     im_thresh = get(gui_handles.track_thresh_slider,'value');
     
     % threshold image
+    diffim_upper_bound = double(max(diffim(:)));
+    diffim_upper_bound(diffim_upper_bound==0) = 255;
+    diffim = imadjust(diffim, [0 diffim_upper_bound/255], [0 1]);
     trackDat.diffim = diffim;
     thresh_im = diffim > im_thresh;
     if isfield(expmt.meta.roi,'mask')
@@ -112,7 +115,7 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
         
         % check optional blob dilation/erosion
         if isfield(expmt.parameters,'dilate_sz') &&...
-                expmt.parameters.dilate_sz > 0
+                (expmt.parameters.dilate_sz > 0 || expmt.parameters.erode_sz)
             
             if ~isfield(expmt.parameters,'dilate_element') ||...
                     isempty(expmt.parameters.dilate_element) ||...
@@ -138,13 +141,14 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
             expmt.parameters.area_min;
         above_max = area .* (expmt.parameters.mm_per_pix^2) >...
             expmt.parameters.area_max;
-        
         oob = below_min | above_max;
         if any(oob)
             cc.PixelIdxList(oob) = [];
             cc.NumObjects = cc.NumObjects - sum(oob);
             area(oob) = [];
         end
+        
+        % extract blob properties
         props=regionprops(cc, in_fields);
         trackDat.thresh_im = thresh_im;
 

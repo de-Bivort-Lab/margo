@@ -22,7 +22,7 @@ function varargout = advancedTrackingParam_subgui(varargin)
 
 % Edit the above text to modify the response to help advancedTrackingParam_subgui
 
-% Last Modified by GUIDE v2.5 06-Nov-2018 18:29:14
+% Last Modified by GUIDE v2.5 24-Nov-2018 10:51:20
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -58,9 +58,30 @@ expmt = varargin{1};
 param = expmt.parameters;
 
 in_handles = varargin{2};
-handles.track_fig.UserData.gui_handles = in_handles;
-handles.track_fig.UserData.expmt = expmt;
+handles.options_fig.UserData.gui_handles = in_handles;
+handles.options_fig.UserData.expmt = expmt;
 gui_fig = in_handles.gui_fig;
+
+%Create tab group
+handles.tgroup = uitabgroup('Parent', handles.options_fig,'TabLocation', 'top');
+handles.tab1 = uitab('Parent', handles.tgroup, 'Title', 'Tracking');
+handles.tab2 = uitab('Parent', handles.tgroup, 'Title', 'Multi-tracking');
+handles.tab3 = uitab('Parent', handles.tgroup, 'Title', 'ROI Detection');
+handles.tab4 = uitab('Parent', handles.tgroup, 'Title', 'Background Reference');
+handles.tab5 = uitab('Parent', handles.tgroup, 'Title', 'Noise Detection');
+
+%Place panels into each tab
+set(handles.tracking_uipanel,'Parent',handles.tab1)
+set(handles.multi_uipanel,'Parent',handles.tab2)
+set(handles.roi_uipanel,'Parent',handles.tab3)
+set(handles.ref_uipanel,'Parent',handles.tab4)
+set(handles.noise_uipanel,'Parent',handles.tab5)
+
+%Reposition each panel to same location as panel 1
+set(handles.multi_uipanel,'position',get(handles.tracking_uipanel,'position'));
+set(handles.roi_uipanel,'position',get(handles.tracking_uipanel,'position'));
+set(handles.noise_uipanel,'position',get(handles.tracking_uipanel,'position'));
+set(handles.ref_uipanel,'position',get(handles.tracking_uipanel,'position'));
 
 
 % Set GUI strings with input parameters
@@ -73,6 +94,7 @@ handles.edit_area_min.String = sprintf('%.1f',param.area_min);
 handles.edit_area_max.String = sprintf('%.1f',param.area_max);
 handles.edit_ROI_cluster_tolerance.String = sprintf('%0.1f',param.roi_tol);
 handles.edit_dilate_sz.String = sprintf('%i',param.dilate_sz);
+handles.edit_erode_sz.String = sprintf('%i',param.erode_sz);
 handles.edit_num_traces.String = sprintf('%i',param.traces_per_roi);
 handles.edit_max_duration.String = sprintf('%i',param.max_trace_duration);
 
@@ -94,6 +116,28 @@ else
        case 'dark'
           handles.bg_mode_popupmenu.Value = 3;
    end
+end
+
+% default ref mode to live if source is not video
+if ~strcmpi(expmt.meta.source,'video')
+    handles.ref_mode_popupmenu.Enable = 'off';
+    param.ref_mode = 'live';
+end
+
+% set referencing parameters
+if isfield(param,'ref_mode')
+    % set ref mode
+    idx = find(cellfun(@(s) any(strmatch(param.ref_mode,s)),...
+        handles.ref_mode_popupmenu.String));
+    handles.ref_mode_popupmenu.Value = idx;
+    
+    % set ref function
+    idx = find(cellfun(@(s) any(strmatch(param.ref_fun,s)),...
+        handles.ref_fun_popupmenu.String));
+    handles.ref_fun_popupmenu.Value = idx;
+    
+    % set diffim adjustment
+    handles.diffim_adjust_checkbox.Value = param.bg_adjust;
 end
 
 % set noise correction parameters
@@ -124,10 +168,10 @@ if strcmp(param.roi_mode,'grid')
 end
 
 % set subgui position to top left corner of the axes
-handles.track_fig.Position(1) = gui_fig.Position(1) + ...
-    sum(in_handles.light_uipanel.Position([1 3])) - handles.track_fig.Position(3);
-handles.track_fig.Position(2) = gui_fig.Position(2) + ...
-    sum(in_handles.light_uipanel.Position([2 4])) - handles.track_fig.Position(4) - 25;
+handles.options_fig.Position(1) = gui_fig.Position(1) + ...
+    sum(in_handles.light_uipanel.Position([1 3])) - handles.options_fig.Position(3);
+handles.options_fig.Position(2) = gui_fig.Position(2) + ...
+    sum(in_handles.light_uipanel.Position([2 4])) - handles.options_fig.Position(4) - 25;
 
 % Update handles structure
 guidata(hObject, handles);
@@ -141,16 +185,16 @@ function varargout = advancedTrackingParam_subgui_OutputFcn(hObject, eventdata, 
 % handles    structure with handles and user data (see GUIDATA)
 
 % get handles to main gui
-expmt = handles.track_fig.UserData.expmt;
-gui_handles = handles.track_fig.UserData.gui_handles;
+expmt = handles.options_fig.UserData.expmt;
+gui_handles = handles.options_fig.UserData.gui_handles;
 varargout{1} = [];
 
 
 % exit tracking preview if experiment is in progress
 if ~expmt.meta.initialize
-    set(findobj(handles.track_fig,'-depth',1,...
+    set(findobj(handles.options_fig,'-depth',1,...
         'Style','radiobutton'),'Enable','off');
-    set(findobj(handles.track_fig,'-depth',1,...
+    set(findobj(handles.options_fig,'-depth',1,...
         'Style','popupmenu'),'Enable','off');
     return
 end
@@ -475,9 +519,9 @@ end
 
 
 
-% --- Executes when user attempts to close track_fig.
-function track_fig_CloseRequestFcn(hObject, eventdata, handles)
-% hObject    handle to track_fig (see GCBO)
+% --- Executes when user attempts to close options_fig.
+function options_fig_CloseRequestFcn(hObject, eventdata, handles)
+% hObject    handle to options_fig (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
@@ -503,7 +547,7 @@ function edit_vignette_weight_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of edit_vignette_weight as text
 %        str2double(get(hObject,'String')) returns contents of edit_vignette_weight as a double
 
-gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
+gui_fig = handles.options_fig.UserData.gui_handles.gui_fig;
 expmt = getappdata(gui_fig,'expmt');
 
 expmt.parameters.vignette_weight=str2num(get(handles.edit_vignette_weight,'string'));
@@ -518,7 +562,7 @@ function edit_vignette_sigma_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of edit_vignette_sigma as text
 %        str2double(get(hObject,'String')) returns contents of edit_vignette_sigma as a double
 
-gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
+gui_fig = handles.options_fig.UserData.gui_handles.gui_fig;
 expmt = getappdata(gui_fig,'expmt');
 
 expmt.parameters.vignette_sigma=str2num(get(handles.edit_vignette_sigma,'string'));
@@ -533,11 +577,11 @@ function edit_target_rate_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of edit29 as text
 %        str2double(get(hObject,'String')) returns contents of edit29 as a double
 
-gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
+gui_fig = handles.options_fig.UserData.gui_handles.gui_fig;
 expmt = getappdata(gui_fig,'expmt');
 
 expmt.parameters.target_rate = str2double(handles.edit_target_rate.String);
-handles.track_fig.UserData.gui_handles.edit_target_rate.String = hObject.String;
+handles.options_fig.UserData.gui_handles.edit_target_rate.String = hObject.String;
 guidata(hObject,handles);
 
 
@@ -550,7 +594,7 @@ function edit_dist_thresh_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of edit_dist_thresh as text
 %        str2double(get(hObject,'String')) returns contents of edit_dist_thresh as a double
 
-gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
+gui_fig = handles.options_fig.UserData.gui_handles.gui_fig;
 expmt = getappdata(gui_fig,'expmt');
 expmt.parameters.distance_thresh=str2num(get(handles.edit_dist_thresh,'string'));
 guidata(hObject,handles);
@@ -565,7 +609,7 @@ function edit_speed_thresh_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of edit_speed_thresh as text
 %        str2double(get(hObject,'String')) returns contents of edit_speed_thresh as a double
 
-gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
+gui_fig = handles.options_fig.UserData.gui_handles.gui_fig;
 expmt = getappdata(gui_fig,'expmt');
 expmt.parameters.speed_thresh = ...
     str2num(get(handles.edit_speed_thresh,'string'));
@@ -578,10 +622,10 @@ function edit_area_max_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
+gui_fig = handles.options_fig.UserData.gui_handles.gui_fig;
 expmt = getappdata(gui_fig,'expmt');
 expmt.parameters.area_max = str2double(get(hObject,'string'));
-handles.track_fig.UserData.gui_handles.edit_area_maximum.String = hObject.String;
+handles.options_fig.UserData.gui_handles.edit_area_maximum.String = hObject.String;
 guidata(hObject,handles);
 
 
@@ -591,10 +635,10 @@ function edit_area_min_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
+gui_fig = handles.options_fig.UserData.gui_handles.gui_fig;
 expmt = getappdata(gui_fig,'expmt');
 expmt.parameters.area_min = str2double(get(hObject,'string'));
-handles.track_fig.UserData.gui_handles.edit_area_minimum.String = hObject.String;
+handles.options_fig.UserData.gui_handles.edit_area_minimum.String = hObject.String;
 guidata(hObject,handles);
 % 
 
@@ -788,7 +832,7 @@ function sort_mode_popupmenu_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
+gui_fig = handles.options_fig.UserData.gui_handles.gui_fig;
 expmt = getappdata(gui_fig,'expmt');
 expmt.parameters.sort_mode = hObject.String{hObject.Value};
 guidata(hObject,handles);
@@ -813,7 +857,7 @@ function edit_ROI_cluster_tolerance_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
+gui_fig = handles.options_fig.UserData.gui_handles.gui_fig;
 expmt = getappdata(gui_fig,'expmt');
 expmt.parameters.roi_tol = str2num(get(hObject,'string'));
 guidata(hObject,handles);
@@ -838,7 +882,7 @@ function roi_mode_popupmenu_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
+gui_fig = handles.options_fig.UserData.gui_handles.gui_fig;
 expmt = getappdata(gui_fig,'expmt');
 expmt.parameters.roi_mode = hObject.String{hObject.Value};
 switch expmt.parameters.roi_mode
@@ -874,7 +918,7 @@ function edit_dilate_sz_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
+gui_fig = handles.options_fig.UserData.gui_handles.gui_fig;
 expmt = getappdata(gui_fig,'expmt');
 expmt.parameters.dilate_sz = str2num(get(hObject,'string'));
 guidata(hObject,handles);
@@ -899,7 +943,7 @@ function trackingmode_popupmenu_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
+gui_fig = handles.options_fig.UserData.gui_handles.gui_fig;
 expmt = getappdata(gui_fig,'expmt');
 expmt.meta.track_mode = hObject.String{hObject.Value};
 switch expmt.meta.track_mode
@@ -939,7 +983,7 @@ function edit_num_traces_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
+gui_fig = handles.options_fig.UserData.gui_handles.gui_fig;
 expmt = getappdata(gui_fig,'expmt');
 num_traces = str2double(hObject.String);
 expmt.parameters.traces_per_roi = num_traces;
@@ -983,14 +1027,14 @@ function num_traces_pushbutton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-expmt = getappdata(handles.track_fig.UserData.gui_handles.gui_fig,'expmt');
+expmt = getappdata(handles.options_fig.UserData.gui_handles.gui_fig,'expmt');
 
 if isfield(expmt.meta.roi,'n')
     if ~isfield(expmt.meta.roi,'num_traces')
        expmt.meta.roi.num_traces = ...
            ones(expmt.meta.roi.n,1).*expmt.parameters.traces_per_roi;
     end
-    editTracesPerROI(expmt, handles.track_fig.UserData.gui_handles);
+    editTracesPerROI(expmt, handles.options_fig.UserData.gui_handles);
 end
 
 
@@ -1000,7 +1044,7 @@ function edit_max_duration_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-expmt = getappdata(handles.track_fig.UserData.gui_handles.gui_fig,'expmt');
+expmt = getappdata(handles.options_fig.UserData.gui_handles.gui_fig,'expmt');
 expmt.parameters.max_trace_duration = str2double(hObject.String);
 
 
@@ -1020,7 +1064,7 @@ end
 % --- Executes on selection change in auto_estimate_popupmenu.
 function auto_estimate_popupmenu_Callback(hObject, eventdata, handles)
 
-expmt = getappdata(handles.track_fig.UserData.gui_handles.gui_fig,'expmt');
+expmt = getappdata(handles.options_fig.UserData.gui_handles.gui_fig,'expmt');
 switch hObject.String{hObject.Value}
     case 'on'
         expmt.parameters.estimate_trace_num = true;
@@ -1042,7 +1086,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-function track_fig_KeyPressFcn(hObject, eventdata, handles)
+function options_fig_KeyPressFcn(hObject, eventdata, handles)
 % hObject    handle to gui_fig (see GCBO)
 % eventdata  structure with the following fields (see MATLAB.UI.FIGURE)
 %	Key: name of the key that was pressed, in lower case
@@ -1051,7 +1095,7 @@ function track_fig_KeyPressFcn(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 kp = eventdata.Key;
-gui_fig = handles.track_fig.UserData.gui_handles.gui_fig;
+gui_fig = handles.options_fig.UserData.gui_handles.gui_fig;
 switch kp
     case 'return'
         gui_fig.UserData.edit_rois = false;
@@ -1065,7 +1109,7 @@ guidata(hObject,handles);
 % --- Executes on selection change in bg_mode_popupmenu.
 function bg_mode_popupmenu_Callback(hObject, eventdata, handles)
 
-expmt = getappdata(handles.track_fig.UserData.gui_handles.gui_fig,'expmt');
+expmt = getappdata(handles.options_fig.UserData.gui_handles.gui_fig,'expmt');
 
 switch hObject.String{hObject.Value}
     case 'auto'
@@ -1100,7 +1144,7 @@ function edit_noise_sample_num_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-expmt = getappdata(handles.track_fig.UserData.gui_handles.gui_fig,'expmt');
+expmt = getappdata(handles.options_fig.UserData.gui_handles.gui_fig,'expmt');
 expmt.parameters.noise_sample_num = str2double(hObject.String);
 
 
@@ -1124,7 +1168,7 @@ function edit_noise_skip_thresh_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-expmt = getappdata(handles.track_fig.UserData.gui_handles.gui_fig,'expmt');
+expmt = getappdata(handles.options_fig.UserData.gui_handles.gui_fig,'expmt');
 expmt.parameters.noise_skip_thresh = str2double(hObject.String);
 
 
@@ -1147,7 +1191,7 @@ function edit_noise_ref_thresh_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-expmt = getappdata(handles.track_fig.UserData.gui_handles.gui_fig,'expmt');
+expmt = getappdata(handles.options_fig.UserData.gui_handles.gui_fig,'expmt');
 expmt.parameters.noise_ref_thresh = str2double(hObject.String);
 
 
@@ -1170,7 +1214,7 @@ function enable_noise_radiobutton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-expmt = getappdata(handles.track_fig.UserData.gui_handles.gui_fig,'expmt');
+expmt = getappdata(handles.options_fig.UserData.gui_handles.gui_fig,'expmt');
 expmt.parameters.noise_sample = hObject.Value;
 
 
@@ -1180,7 +1224,7 @@ function empty_roi_resample_popupmenu_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-expmt = getappdata(handles.track_fig.UserData.gui_handles.gui_fig,'expmt');
+expmt = getappdata(handles.options_fig.UserData.gui_handles.gui_fig,'expmt');
 switch hObject.String{hObject.Value}
     case 'resample estimate'
         expmt.parameters.noise_estimate_missing = true;
@@ -1196,6 +1240,91 @@ function empty_roi_resample_popupmenu_CreateFcn(hObject, eventdata, handles)
 % handles    empty - handles not created until after all CreateFcns called
 
 % Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on selection change in ref_mode_popupmenu.
+function ref_mode_popupmenu_Callback(hObject, eventdata, handles)
+% hObject    handle to ref_mode_popupmenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+expmt = getappdata(handles.options_fig.UserData.gui_handles.gui_fig,'expmt');
+switch hObject.String{hObject.Value}
+    case 'live'
+        expmt.parameters.ref_mode = 'live';
+    case 'video (random sample)'
+        expmt.parameters.ref_mode = 'video';
+end
+
+
+
+% --- Executes during object creation, after setting all properties.
+function ref_mode_popupmenu_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to ref_mode_popupmenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on selection change in ref_fun_popupmenu.
+function ref_fun_popupmenu_Callback(hObject, eventdata, handles)
+% hObject    handle to ref_fun_popupmenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+expmt = getappdata(handles.options_fig.UserData.gui_handles.gui_fig,'expmt');
+expmt.parameters.ref_fun = hObject.String{hObject.Value};
+
+
+% --- Executes during object creation, after setting all properties.
+function ref_fun_popupmenu_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to ref_fun_popupmenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in diffim_adjust_checkbox.
+function diffim_adjust_checkbox_Callback(hObject, eventdata, handles)
+% hObject    handle to diffim_adjust_checkbox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+expmt = getappdata(handles.options_fig.UserData.gui_handles.gui_fig,'expmt');
+expmt.parameters.bg_adjust = hObject.Value;
+
+
+
+function edit_erode_sz_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_erode_sz (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+expmt = getappdata(handles.options_fig.UserData.gui_handles.gui_fig,'expmt');
+expmt.parameters.erode_sz = str2double(hObject.String);
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_erode_sz_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_erode_sz (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
