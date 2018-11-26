@@ -68,15 +68,20 @@ vid = expmt.meta.video_out;
 
 % update UI controls
 handles.record_vid_checkbox.Value = vid.record;
+handles.edit_vid_sample_rate.String = sprintf('%0.2f',vid.rate);
 record_vid_checkbox_Callback(handles.record_vid_checkbox, [], handles);
 handles.compress_checkbox.Value = vid.compress;
 handles.vid_subsample_checkbox.Value = vid.rate >= 0;
-handles.edit_vid_sample_rate.String = sprintf('%0.2f',vid.rate);
 handles.image_source_popupmenu.Value = ...
     find(strcmpi(vid.source,handles.image_source_popupmenu.String));
 if vid.rate < 0
     handles.edit_vid_sample_rate.Enable = 'off';
     handles.edit_subsample_label.Enable = 'off';
+end
+if any(strcmpi('video_index',expmt.meta.fields))
+    handles.video_index_checkbox.Value = true;
+else
+    handles.video_index_checkbox.Value = false;
 end
 
 % adjust subgui position
@@ -222,6 +227,7 @@ vid_out.record = false;
 vid_out.compress = false;
 vid_out.rate = -1;
 vid_out.source = 'raw image';
+vid_out.t = 0;
 
 
 
