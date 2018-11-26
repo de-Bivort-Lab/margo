@@ -21,9 +21,10 @@ switch expmt.meta.roi.mode
         % get pixel indices for each individual ROI
         xdat = num2cell(xdat,1);
         ydat = num2cell(ydat,1);
-        expmt.meta.roi.pixIdx = cellfun(@(x,y,z) ...
-            getGridROIPixels(x,y,z,size(expmt.meta.roi.im)), xdat,ydat,...
-            num2cell(expmt.meta.roi.vec,[2 3])','UniformOutput',false)';  
+        expmt.meta.roi.pixIdx = cellfun(@(x,y,v,s,t) ...
+            getGridROIPixels(x,y,v,size(expmt.meta.roi.im),s,t), xdat,ydat,...
+            num2cell(expmt.meta.roi.vec,[2 3])',expmt.meta.roi.shape',...
+            expmt.meta.roi.tform','UniformOutput',false)';  
 
     case 'auto'
         
@@ -50,7 +51,7 @@ function pL = getBoundsPixels(corners,dim)
  pL = sub2ind(dim,pL(:,2), pL(:,1));
  
  
- function pi = getGridROIPixels(x,y,vec,dim)
+ function pi = getGridROIPixels(x, y, vec, dim, shape, tform)
 
 pi = [];
      
@@ -85,8 +86,23 @@ pi = sub2ind(dim,pi(:,2),pi(:,1));
 mask = false(dim);
 mask(pi)=true;
 mask = imfill(mask,'holes');
-pi = regionprops(mask,'PixelIdxList');
-pi = pi.PixelIdxList;
+pi = regionprops(mask,'PixelList');
+pi = pi.PixelList;
 
+if strcmpi(shape,'Circular')
+    pi = pi(is_in_ellipse(pi,tform),:);
+end
+
+pi = sub2ind(size(mask),pi(:,2),pi(:,1));
+
+
+
+
+function in_ellipse = is_in_ellipse(cen,tf)
+
+% use projective transform if roi shape is circular
+transformed_cen = transformPointsForward(tf, cen);
+radial_pos = sqrt((transformed_cen(:,1)-0.5).^2 + (transformed_cen(:,2)-0.5).^2);
+in_ellipse =  radial_pos < 0.5;
 
 

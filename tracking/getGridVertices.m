@@ -35,46 +35,78 @@ YData = cat(2,yVecs{:});
 % output slope and bounds for calculating bounds for each ROI
 if nargout==3
     
-    T = NaN(nCol+1,2);
-    T(:,1) = linspace(uL(1),uR(1),nCol+1);
-    T(:,2) = linspace(uL(2),uR(2),nCol+1);
-    B = NaN(nCol+1,2);
-    B(:,1) = linspace(bL(1),bR(1),nCol+1);
-    B(:,2) = linspace(bL(2),bR(2),nCol+1);
+%     % CHANGE THIS CODE TO USE XData and YData to calculate linear params
+%     T = NaN(nCol+1,2);
+%     T(:,1) = linspace(uL(1),uR(1),nCol+1);
+%     T(:,2) = linspace(uL(2),uR(2),nCol+1);
+%     B = NaN(nCol+1,2);
+%     B(:,1) = linspace(bL(1),bR(1),nCol+1);
+%     B(:,2) = linspace(bL(2),bR(2),nCol+1);
+%     
+%     % convert to cell
+%     B=num2cell(B,2);
+%     T=num2cell(T,2);
+%     
+%     % calculate change in x and y for each vector
+%     vr = cellfun(@(x,y) initializeVectors(x,y,2),L,R,'UniformOutput',false);
+%     dr = cellfun(@(x) diff(x,1),vr,'UniformOutput',false);
+%     dr = cat(1,dr{:});   
+%     vc = cellfun(@(x,y) initializeVectors(x,y,2),T,B,'UniformOutput',false);
+%     dc = cellfun(@(x) diff(x,1),vc,'UniformOutput',false);
+%     dc = cat(1,dc{:});
+%     
+%     % slope
+%     mRow = dr(:,2)./dr(:,1);
+%     mCol = dc(:,1)./dc(:,2);
+%     
+%     % intercepts
+%     vr=cat(1,vr{:});
+%     vr=vr(mod(1:size(vr,1),2)==1,:);
+%     bRow = vr(:,2)-mRow.*vr(:,1);
+%     vc=cat(1,vc{:});
+%     vc=vc(mod(1:size(vc,1),2)==1,:);
+%     bCol = vc(:,1)-mCol.*vc(:,2);
+%     
+%     gridVec.row = [mRow bRow];
+%     gridVec.col = [mCol bCol];
+%     
+%     [m,b] = arrayfun(@(x) getLinearParams(x,gridVec.row,gridVec.col,nCol),...
+%         1:nRow*nCol,'UniformOutput',false);
+%     gridVec = cat(1,m{:});
+%     gridVec(:,:,2)=cat(1,b{:});
+
+    xx = num2cell(XData,1);
+    yy = num2cell(YData,1);
+    roi_edge_vectors = cellfun(@(x,y) ...
+        [{[x([1 4]) y([1 4])]} {[x([2 3]) y([2 3])]}  ...
+         {[x([1 2]) y([1 2])]} {[x([3 4]) y([3 4])]}],...
+        xx, yy, 'UniformOutput',false);
+
+    % calculate dx, dy for row vectors
+    dxy = cellfun(@(vr) ...
+            cellfun(@(v) diff(v,1),vr, 'UniformOutput', false),...
+        roi_edge_vectors, 'UniformOutput', false);
+
+    % calculate slope for each edge of ROIs
+    slopes = cellfun(@(d) ...
+            [d{1}(2)/d{1}(1) d{3}(1)/d{3}(2) ...
+             d{2}(2)/d{2}(1) d{4}(1)/d{4}(2)],...
+         dxy, 'UniformOutput', false);
+
+     % calculate intercepts for each edge of ROIs
+    intercepts = cellfun(@(vr,m) ...
+            [vr{1}(1,2)-m(1)*vr{1}(1,1) ...
+             vr{3}(1,1)-m(2)*vr{3}(1,2) ...
+             vr{2}(1,2)-m(3)*vr{2}(1,1) ...
+             vr{4}(1,1)-m(4)*vr{4}(1,2)],...
+         roi_edge_vectors, slopes, 'UniformOutput', false);
+
+    % record linear parameters
+    slopes = cat(1,slopes{:});
+    intercepts = cat(1,intercepts{:});
+    linear_params = cat(3,slopes,intercepts);
     
-    % convert to cell
-    B=num2cell(B,2);
-    T=num2cell(T,2);
-    
-    % calculate change in x and y for each vector
-    vr = cellfun(@(x,y) initializeVectors(x,y,2),L,R,'UniformOutput',false);
-    dr = cellfun(@(x) diff(x,1),vr,'UniformOutput',false);
-    dr = cat(1,dr{:});   
-    vc = cellfun(@(x,y) initializeVectors(x,y,2),T,B,'UniformOutput',false);
-    dc = cellfun(@(x) diff(x,1),vc,'UniformOutput',false);
-    dc = cat(1,dc{:});
-    
-    % slope
-    mRow = dr(:,2)./dr(:,1);
-    mCol = dc(:,1)./dc(:,2);
-    
-    % intercepts
-    vr=cat(1,vr{:});
-    vr=vr(mod(1:size(vr,1),2)==1,:);
-    bRow = vr(:,2)-mRow.*vr(:,1);
-    vc=cat(1,vc{:});
-    vc=vc(mod(1:size(vc,1),2)==1,:);
-    bCol = vc(:,1)-mCol.*vc(:,2);
-    
-    gridVec.row = [mRow bRow];
-    gridVec.col = [mCol bCol];
-    
-    [m,b] = arrayfun(@(x) getLinearParams(x,gridVec.row,gridVec.col,nCol),...
-        1:nRow*nCol,'UniformOutput',false);
-    gridVec = cat(1,m{:});
-    gridVec(:,:,2)=cat(1,b{:});
-    
-    varargout(1)={gridVec};
+    varargout(1)={linear_params};
 end
 
 
