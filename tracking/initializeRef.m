@@ -140,6 +140,12 @@ while trackDat.t < expmt.parameters.duration*3600 &&...
     if trackDat.ct == 0
         diffim = (trackDat.ref.im - expmt.meta.vignette.im) -...
                     (trackDat.im - expmt.meta.vignette.im);
+        
+        if expmt.parameters.bg_adjust
+            diffim_upper_bound = double(max(diffim(:)));
+            diffim_upper_bound(diffim_upper_bound==0) = 255;
+            diffim = imadjust(diffim, [0 diffim_upper_bound/255], [0 1]);
+        end
         tmp_thresh = floor(graythresh(diffim)*255);
         
         if tmp_thresh > 4

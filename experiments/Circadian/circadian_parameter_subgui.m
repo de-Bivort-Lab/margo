@@ -56,7 +56,7 @@ function circadian_parameter_subgui_OpeningFcn(hObject, eventdata, handles, vara
 
     expmt = varargin{1};
     p = expmt.parameters;
-    handles.circ_fig.UserData = p;
+    handles.output = expmt;
     
     if isfield(p,'lights_ON')
         if isstr(p.lights_ON)
@@ -121,25 +121,25 @@ function circadian_parameter_subgui_OpeningFcn(hObject, eventdata, handles, vara
         ptry = repmat(linspace(pmin,pmax,n)',1,size(r,2));
     end
     
-    handles.circ_fig.UserData.ramp_param = ptry(idx(1));
-    handles.circ_fig.UserData.ramp_time = rt;
+    handles.output.parameters.ramp_param = ptry(idx(1));
+    handles.output.parameters.ramp_time = rt;
     
 
     tString=handles.edit_timeon.String;
     divider=find(tString==':');
     hr=str2num(tString(1:divider-1));
     min=str2num(tString(divider+1))*10+str2num(tString(divider+2));
-    handles.circ_fig.UserData.lights_ON = [hr min];
+    handles.output.parameters.lights_ON = [hr min];
     
     tString=handles.edit_timeoff.String;
     divider=find(tString==':');
     hr=str2num(tString(1:divider-1));
     min=str2num(tString(divider+1))*10+str2num(tString(divider+2));
-    handles.circ_fig.UserData.lights_OFF = [hr min];
+    handles.output.parameters.lights_OFF = [hr min];
 
-    handles.circ_fig.UserData.pulse_num = str2num(get(handles.edit_pulsenum,'string'));
-    handles.circ_fig.UserData.pulse_per_hour = str2num(handles.edit_trialnum.String);
-    handles.circ_fig.UserData.pulse_amp = str2num(handles.edit_pulseamp.String);
+    handles.output.parameters.pulse_num = str2num(get(handles.edit_pulsenum,'string'));
+    handles.output.parameters.pulse_per_hour = str2num(handles.edit_trialnum.String);
+    handles.output.parameters.pulse_amp = str2num(handles.edit_pulseamp.String);
     
     light_uipanel = findobj('Tag','light_uipanel');
     gui_fig = findobj('Name','margo');
@@ -150,6 +150,7 @@ function circadian_parameter_subgui_OpeningFcn(hObject, eventdata, handles, vara
 
 % Update handles structure
 guidata(hObject, handles);
+uiwait(handles.circ_fig);
 
 
 
@@ -163,11 +164,12 @@ function varargout = circadian_parameter_subgui_OutputFcn(hObject, eventdata, ha
 % handles    structure with handles and user data (see GUIDATA)
 
 % Get default command line output from handles structure
-while ishghandle(hObject)
-    pause(0.001);
-    if isprop(handles.circ_fig,'UserData')
-    	varargout{1} = handles.circ_fig.UserData;
-    end
+if isfield(handles,'output')
+    varargout{1} = handles.output;
+    close(hObject);
+else
+    varargout{1} = [];
+    delete(hObject);
 end
 
 
@@ -177,7 +179,7 @@ function edit_pulsenum_Callback(hObject, eventdata, handles)
 % hObject    handle to edit_pulsenum (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-handles.circ_fig.UserData.pulse_num = str2num(get(handles.edit_pulsenum,'string'));
+handles.output.parameters.pulse_num = str2num(get(handles.edit_pulsenum,'string'));
 guidata(hObject, handles);
 
 
@@ -202,7 +204,7 @@ function edit_pulseamp_Callback(hObject, eventdata, handles)
 % hObject    handle to edit_pulseamp (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-handles.circ_fig.UserData.pulse_amp = str2num(handles.edit_pulseamp.String);
+handles.output.parameters.pulse_amp = str2num(handles.edit_pulseamp.String);
 guidata(hObject, handles);
 
 
@@ -226,7 +228,7 @@ function edit_trialnum_Callback(hObject, eventdata, handles)
 % hObject    handle to edit_trialnum (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-handles.circ_fig.UserData.pulse_per_hour = str2num(handles.edit_trialnum.String);
+handles.output.parameters.pulse_per_hour = str2num(handles.edit_trialnum.String);
 guidata(hObject, handles);
 
 
@@ -254,8 +256,8 @@ function test_pushbutton_Callback(hObject, eventdata, handles)
 gui_fig = findobj('Tag','gui_fig');
 expmt = getappdata(gui_fig,'expmt');
 
-n = handles.circ_fig.UserData.pulse_num;
-amp = handles.circ_fig.UserData.pulse_amp;
+n = handles.output.parameters.pulse_num;
+amp = handles.output.parameters.pulse_amp;
 writeVibrationalMotors(expmt.hardware.COM.light,6,1,1,n,amp);
 
 guidata(hObject, handles);
@@ -280,7 +282,7 @@ tString=hObject.String;
 divider=find(tString==':');
 hr=str2num(tString(1:divider-1));
 min=str2num(tString(divider+1))*10+str2num(tString(divider+2));
-handles.circ_fig.UserData.lights_OFF = [hr min];
+handles.output.parameters.lights_OFF = [hr min];
 guidata(hObject, handles);
 
 
@@ -307,7 +309,7 @@ tString=hObject.String;
 divider=find(tString==':');
 hr=str2num(tString(1:divider-1));
 min=str2num(tString(divider+1))*10+str2num(tString(divider+2));
-handles.circ_fig.UserData.lights_ON = [hr min];
+handles.output.parameters.lights_ON = [hr min];
 
 guidata(hObject, handles);
 
@@ -331,8 +333,8 @@ function edit_ramp_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-handles.circ_fig.UserData.ramp_time = str2num(hObject.String);
-rt = handles.circ_fig.UserData.ramp_time;
+handles.output.parameters.ramp_time = str2num(hObject.String);
+rt = handles.output.parameters.ramp_time;
 
 pmin = 0;
 pmax = 10;
@@ -352,7 +354,7 @@ while true
     ptry = repmat(linspace(pmin,pmax,n)',1,size(r,2));
 end
     
-handles.circ_fig.UserData.ramp_param = ptry(idx(1));
+handles.output.parameters.ramp_param = ptry(idx(1));
 guidata(hObject,handles);
 
 

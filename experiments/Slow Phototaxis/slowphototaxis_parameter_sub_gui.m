@@ -55,9 +55,9 @@ function slowphototaxis_parameter_gui_OpeningFcn(hObject, eventdata, handles, va
     expmt = varargin{1};    
     
     if isfield(expmt,'photo_parameters')
-       parameters = expmt.photo_parameters;
+       params = expmt.photo_parameters;
     else
-       parameters = expmt.parameters;
+       params = expmt.parameters;
     end
     
     % Clear the workspace
@@ -82,27 +82,27 @@ function slowphototaxis_parameter_gui_OpeningFcn(hObject, eventdata, handles, va
     
     
 
-    if isfield(parameters,'stim_duration')
-        set(handles.edit_stim_duration,'string',parameters.stim_duration);     
+    if isfield(params,'stim_duration')
+        set(handles.edit_stim_duration,'string',params.stim_duration);     
     end
     
-    if isfield(parameters,'blank_duration')
-        set(handles.edit_blank_duration,'string',parameters.blank_duration);     
+    if isfield(params,'blank_duration')
+        set(handles.edit_blank_duration,'string',params.blank_duration);     
     end
 
-    if isfield(parameters,'divider_size')
-        set(handles.edit_stim_divider_size,'string',parameters.divider_size);
+    if isfield(params,'divider_size')
+        set(handles.edit_stim_divider_size,'string',params.divider_size);
     end
 
-    if isfield(parameters,'stim_contrast')
-        set(handles.edit_stim_contrast,'string',parameters.stim_contrast);
+    if isfield(params,'stim_contrast')
+        set(handles.edit_stim_contrast,'string',params.stim_contrast);
     end
     
     % Choose default command line output for slowphototaxis_parameter_gui
-    parameters.stim_duration = str2num(get(handles.edit_stim_duration,'string'));
-    parameters.divider_size = str2num(get(handles.edit_stim_divider_size,'string'));
-    parameters.stim_contrast = str2num(get(handles.edit_stim_contrast,'string'));
-    parameters.blank_duration = str2num(get(handles.edit_blank_duration,'string'));
+    params.stim_duration = str2num(get(handles.edit_stim_duration,'string'));
+    params.divider_size = str2num(get(handles.edit_stim_divider_size,'string'));
+    params.stim_contrast = str2num(get(handles.edit_stim_contrast,'string'));
+    params.blank_duration = str2num(get(handles.edit_blank_duration,'string'));
     
     handles.figure1.Units = 'points';
     light_uipanel = findobj('Tag','light_uipanel');
@@ -115,7 +115,8 @@ function slowphototaxis_parameter_gui_OpeningFcn(hObject, eventdata, handles, va
 
 
 % Update handles structure
-handles.output = parameters;
+expmt.parameters = params;
+handles.output = expmt.parameters;
 guidata(hObject, handles);
 
 % UIWAIT makes slowphototaxis_parameter_gui wait for user response (see UIRESUME)
@@ -143,7 +144,7 @@ function edit_stim_divider_size_Callback(hObject, eventdata, handles)
 % hObject    handle to edit_stim_divider_size (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-handles.output.divider_size=str2num(get(handles.edit_stim_divider_size,'string'));
+handles.output.parameters.divider_size=str2num(get(handles.edit_stim_divider_size,'string'));
 guidata(hObject, handles);
 
 
@@ -180,7 +181,7 @@ function edit_stim_duration_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-handles.output.stim_duration=str2num(get(handles.edit_stim_duration,'string'));
+handles.output.parameters.stim_duration=str2num(get(handles.edit_stim_duration,'string'));
 guidata(hObject, handles);
 
 
@@ -202,7 +203,7 @@ function edit_stim_contrast_Callback(hObject, eventdata, handles)
 % hObject    handle to edit_stim_contrast (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-handles.output.stim_contrast=str2num(get(handles.edit_stim_contrast,'string'));
+handles.output.parameters.stim_contrast=str2num(get(handles.edit_stim_contrast,'string'));
 guidata(hObject, handles);
 
 
@@ -225,7 +226,7 @@ function led_mode_popupmenu_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-handles.output.reg_params.screen_num=handles.led_mode_popupmenu.Value-1;
+handles.output.parameters.reg_params.screen_num=handles.led_mode_popupmenu.Value-1;
 guidata(hObject, handles);
 
 
@@ -248,7 +249,7 @@ function edit_blank_duration_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-handles.output.blank_duration=str2num(get(handles.edit_blank_duration,'string'));
+handles.output.parameters.blank_duration=str2num(get(handles.edit_blank_duration,'string'));
 guidata(hObject, handles);
 
 

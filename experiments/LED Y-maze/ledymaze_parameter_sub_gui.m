@@ -80,7 +80,8 @@ function led_ymaze_parameter_sub_gui_OpeningFcn(hObject, eventdata, handles, var
         sum(light_uipanel.Position([2 4])) - handles.figure1.Position(4) - 25;
 
 % Update handles structure
-handles.output = params;
+expmt.parameters = params;
+handles.output = expmt;
 guidata(hObject, handles);
 
 % UIWAIT makes slowphototaxis_parameter_gui wait for user response (see UIRESUME)
@@ -128,7 +129,7 @@ val = floor(str2double(hObject.String));
 val(val>4095)=4095;
 val(val<0)=0;
 hObject.String = sprintf('%i',val);
-handles.output.led_max_pwm = val;
+handles.output.parameters.led_max_pwm = val;
 guidata(hObject, handles);
 
 
@@ -151,7 +152,7 @@ function led_mode_popupmenu_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-handles.output.led_mode = hObject.String{hObject.Value};
+handles.output.parameters.led_mode = hObject.String{hObject.Value};
 guidata(hObject, handles);
 
 
