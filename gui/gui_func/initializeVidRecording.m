@@ -1,25 +1,24 @@
 function expmt = initializeVidRecording(expmt,gui_handles)
+% initialize video output file
 
-% initialize video recording file if record video menu item is checked
-
+% set output path
 expmt.meta.VideoData.path = ...
     [expmt.meta.path.dir expmt.meta.path.name '_VideoData'];
 
-switch gui_handles.vid_compress_menu.Checked
-    case 'on'
-        expmt.meta.VideoData.obj = VideoWriter(expmt.meta.VideoData.path,'Motion JPEG AVI');
-        expmt.meta.VideoData.obj.Quality = 75;
-    case 'off'
-        expmt.meta.VideoData.obj = VideoWriter(expmt.meta.VideoData.path,'Grayscale AVI');
+% initialize video write object
+if expmt.meta.video_out.compress
+    expmt.meta.VideoData.obj = VideoWriter(expmt.meta.VideoData.path,'Motion JPEG AVI');
+    expmt.meta.VideoData.obj.Quality = 75;
+else
+    expmt.meta.VideoData.obj = VideoWriter(expmt.meta.VideoData.path,'Grayscale AVI');
 end
 expmt.meta.VideoData.FrameRate = expmt.parameters.target_rate;
 open(expmt.meta.VideoData.obj);
 
-% query resolution and precision and save to first four values to video file
-im = peekdata(expmt.hardware.cam.vid,1);
+% query resolution and precision
+im = expmt.meta.ref.im;
 res = [size(im,1);size(im,2)];
 c = class(im);
-
 switch c
     case 'uint8'
         prcn = 8;

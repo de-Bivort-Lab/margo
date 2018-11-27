@@ -70,7 +70,7 @@ if isfield(expmt.meta,'video_out') && expmt.meta.video_out.rate >= 0
     
     % video sub-sampling timer update
     expmt.meta.video_out.t = expmt.meta.video_out.t + ifi;
-    if isfield(trackDat,'video_index')
+    if any(strcmpi('video_index',expmt.meta.fields))
        if expmt.meta.video_out.t > 1/expmt.meta.video_out.rate
             trackDat.video_index = true;
        else

@@ -23,14 +23,8 @@ for i = 1:length(trackDat.fields)
 end
 
 % optional: save vid data to file if record video menu item is checked
-if ~isfield(expmt.meta,'VideoData') && isfield(expmt.meta,'video_out') ...
-        && expmt.meta.video_out.record
-    
-    % initialize new video if none exists
-    expmt = initializeVidRecording(expmt,gui_handles);
-    
-% record frame    
-elseif isfield(expmt.meta,'VideoData')
+if isfield(expmt.meta,'VideoData') && isfield(expmt.meta,'video_out') ...
+    && expmt.meta.video_out.record
     
     % enforce sub-sampling rate
     if expmt.meta.video_out.rate >= 0 && ...
@@ -38,17 +32,22 @@ elseif isfield(expmt.meta,'VideoData')
         return
     end
     
+    % open file for writing if necessary
+    if ~expmt.meta.VideoData.obj.IsOpen
+        open(expmt.meta.VideoData.obj);
+    end
+    
     % assign image to write base on image data source
     switch expmt.meta.video_out.source
         case 'raw image'
             im_out = trackDat.im;
         case 'threshold image'
-            im_out = trackDat.thresh_im;
+            im_out = uint8(trackDat.thresh_im.*255);
         case 'difference image'
-            im_out = trackDat.diffim;
+            im_out = uint8(trackDat.diffim);
     end
     
     % reset the sub-sampling timer and write video frame
-    expmt.meta.video_out.t
+    expmt.meta.video_out.t = 0;
     writeVideo(expmt.meta.VideoData.obj, im_out);
 end

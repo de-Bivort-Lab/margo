@@ -241,6 +241,9 @@ f = handles.output.meta.fields;
 if hObject.Value
     % add video index to output list if it doesn't exist
     if ~any(strcmpi('video_index',f))
+        if size(f,2) > size(f,1)
+            f = f';
+        end
         f = [f;{'video_index'}];
     end
 else

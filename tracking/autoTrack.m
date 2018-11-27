@@ -28,200 +28,210 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
 %
 % ----------------------------------------------------------------------%
 
-    % Split fields into fields going into regionprops and fields 
-    % being updated in trackDat
-    out_fields = trackDat.fields;
-    in_fields = trackDat.fields;
-    
-    % temporarily remove fields not recognized by regionprops
-    prop_fields = {'area';'BoundingBox';'centroid';'Convexarea';'ConvexHull';...
-        'ConvexImage';'Eccentricity';'EquivDiameter';'EulerNumber';'Extent';...
-        'Extrema';'Filledarea';'FilledImage';'Image';'majorAxisLength';...
-        'minorAxisLength';'orientation';'Perimeter';'pixelIdxList';'PixelList';...
-        'Solidity';'SubarrayIdx'};
-    remove = ~ismember(in_fields,prop_fields);
-    in_fields(remove) = [];
-    
-    % add centroid and area to the input regionprops fields if not provided
-    if ~any(strcmpi('centroid',in_fields)) && ...
-            ~any(strcmpi('weightedCentroid',in_fields))
-        in_fields = [in_fields; {'centroid'}];
-    end
-    if any(strcmpi('area',in_fields))
-        in_fields(strcmpi('area',in_fields)) = [];
-    end
-    if any(strcmpi('PixelList',in_fields))
-        in_fields(strcmpi('PixelList',in_fields)) = [];
-    end
-    
-    % add BoundingBox as a field if dilate/erode mode
-    if isfield(expmt.parameters,'dilate_element')
-        in_fields = [in_fields; {'BoundingBox'}];
-    end
-    
+% Split fields into fields going into regionprops and fields 
+% being updated in trackDat
+out_fields = trackDat.fields;
+in_fields = trackDat.fields;
 
-    % increment frame counter
-    trackDat.ct = trackDat.ct + 1;
-    trackDat.in_fields = in_fields;
+% temporarily remove fields not recognized by regionprops
+prop_fields = {'area';'BoundingBox';'centroid';'Convexarea';'ConvexHull';...
+    'ConvexImage';'Eccentricity';'EquivDiameter';'EulerNumber';'Extent';...
+    'Extrema';'Filledarea';'FilledImage';'Image';'majorAxisLength';...
+    'minorAxisLength';'orientation';'Perimeter';'pixelIdxList';'PixelList';...
+    'Solidity';'SubarrayIdx'};
+remove = ~ismember(in_fields,prop_fields);
+in_fields(remove) = [];
 
-    % calculate difference image and current for vignetting
-    switch trackDat.ref.bg_mode
-        case 'light'
-            diffim = (trackDat.ref.im - expmt.meta.vignette.im) -...
-                        (trackDat.im - expmt.meta.vignette.im);
-        case 'dark'
-            diffim = (trackDat.im - expmt.meta.vignette.im) -...
-                        (trackDat.ref.im - expmt.meta.vignette.im);
-    end
-    
-    
-    % get current image threshold and use it to extract region properties     
-    im_thresh = get(gui_handles.track_thresh_slider,'value');
-    
-    % threshold image
+% add centroid and area to the input regionprops fields if not provided
+if ~any(strcmpi('centroid',in_fields)) && ...
+        ~any(strcmpi('weightedCentroid',in_fields))
+    in_fields = [in_fields; {'centroid'}];
+end
+if any(strcmpi('area',in_fields))
+    in_fields(strcmpi('area',in_fields)) = [];
+end
+if any(strcmpi('PixelList',in_fields))
+    in_fields(strcmpi('PixelList',in_fields)) = [];
+end
+
+% add BoundingBox as a field if dilate/erode mode
+if isfield(expmt.parameters,'dilate_element')
+    in_fields = [in_fields; {'BoundingBox'}];
+end
+
+
+% increment frame counter
+trackDat.ct = trackDat.ct + 1;
+trackDat.in_fields = in_fields;
+
+% calculate difference image and current for vignetting
+switch trackDat.ref.bg_mode
+    case 'light'
+        diffim = (trackDat.ref.im - expmt.meta.vignette.im) -...
+                    (trackDat.im - expmt.meta.vignette.im);
+    case 'dark'
+        diffim = (trackDat.im - expmt.meta.vignette.im) -...
+                    (trackDat.ref.im - expmt.meta.vignette.im);
+end
+
+
+% get current image threshold and use it to extract region properties     
+im_thresh = get(gui_handles.track_thresh_slider,'value');
+
+% adjust difference image to enhance contrast
+if expmt.parameters.bg_adjust
     diffim_upper_bound = double(max(diffim(:)));
     diffim_upper_bound(diffim_upper_bound==0) = 255;
     diffim = imadjust(diffim, [0 diffim_upper_bound/255], [0 1]);
-    trackDat.diffim = diffim;
-    thresh_im = diffim > im_thresh;
-    if isfield(expmt.meta.roi,'mask')
-        thresh_im = thresh_im & expmt.meta.roi.mask;
+end
+trackDat.diffim = diffim;
+
+% threshold difference image
+thresh_im = diffim > im_thresh;
+if isfield(expmt.meta.roi,'mask')
+    % set pixels outside ROIs to zero
+    thresh_im = thresh_im & expmt.meta.roi.mask;
+end
+
+% check image noise and dump frame if noise is too high
+record = true;
+if ~isfield(expmt.parameters,'noise_sample')
+    expmt.parameters.noise_sample = true;
+end
+if isfield(trackDat,'px_dist') && expmt.parameters.noise_sample
+
+    % update rolling distribution and calculate deviation from baseline
+    idx = mod(trackDat.ct,length(trackDat.px_dist))+1;
+    trackDat.px_dist(idx) = sum(thresh_im(:));
+    trackDat.px_dev(idx) = ((nanmean(trackDat.px_dist) - ...
+            expmt.meta.noise.mean)/expmt.meta.noise.std);
+
+    % query skip threshold or assign default
+    if ~isfield(expmt.parameters,'noise_skip_thresh')
+        expmt.parameters.noise_skip_thresh = 9;
     end
-    
-    % check image noise and dump frame if noise is too high
-    record = true;
-    if ~isfield(expmt.parameters,'noise_sample')
-        expmt.parameters.noise_sample = true;
+    if trackDat.px_dev(idx) > expmt.parameters.noise_skip_thresh
+        record = false;
     end
-    if isfield(trackDat,'px_dist') && expmt.parameters.noise_sample
-        
-        % update rolling distribution and calculate deviation from baseline
-        idx = mod(trackDat.ct,length(trackDat.px_dist))+1;
-        trackDat.px_dist(idx) = sum(thresh_im(:));
-        trackDat.px_dev(idx) = ((nanmean(trackDat.px_dist) - ...
-                expmt.meta.noise.mean)/expmt.meta.noise.std);
-            
-        % query skip threshold or assign default
-        if ~isfield(expmt.parameters,'noise_skip_thresh')
-            expmt.parameters.noise_skip_thresh = 9;
+end
+
+% do tracking if frame is clean
+if record
+
+    % check optional blob dilation/erosion
+    if isfield(expmt.parameters,'dilate_sz') &&...
+            (expmt.parameters.dilate_sz || expmt.parameters.erode_sz)
+
+        if ~isfield(expmt.parameters,'dilate_element') ||...
+                isempty(expmt.parameters.dilate_element) ||...
+                expmt.parameters.dilate_element.Dimensionality ~= expmt.parameters.dilate_sz
+            expmt.parameters.dilate_element = ...
+                strel('disk',expmt.parameters.dilate_sz);
         end
-        if trackDat.px_dev(idx) > expmt.parameters.noise_skip_thresh
-            record = false;
+        if ~isfield(expmt.parameters,'erode_element') ||...
+                isempty(expmt.parameters.erode_element) ||...
+                expmt.parameters.erode_element.Dimensionality ~= expmt.parameters.erode_sz
+            expmt.parameters.erode_element = ...
+                strel('disk',expmt.parameters.erode_sz);
         end
+
+        % dilate foreground image blobs
+        if expmt.parameters.dilate_sz
+            thresh_im = imdilate(thresh_im,expmt.parameters.dilate_element);
+        end
+        % erode foreground image blobs
+        if expmt.parameters.erode_sz
+            thresh_im = imerode(thresh_im, expmt.parameters.erode_element);
+        end         
     end
-    
-    % do tracking if frame is clean
-    if record
-        
-        % check optional blob dilation/erosion
-        if isfield(expmt.parameters,'dilate_sz') &&...
-                (expmt.parameters.dilate_sz > 0 || expmt.parameters.erode_sz)
-            
-            if ~isfield(expmt.parameters,'dilate_element') ||...
-                    isempty(expmt.parameters.dilate_element) ||...
-                    expmt.parameters.dilate_element.Dimensionality ~= expmt.parameters.dilate_sz
-                expmt.parameters.dilate_element = ...
-                    strel('disk',expmt.parameters.dilate_sz);
+
+    % get region properties
+    cc = bwconncomp(thresh_im, 8);
+    area = cellfun(@numel,cc.PixelIdxList);
+
+    % threshold blobs by area
+    below_min = area  .* (expmt.parameters.mm_per_pix^2) < ...
+        expmt.parameters.area_min;
+    above_max = area .* (expmt.parameters.mm_per_pix^2) >...
+        expmt.parameters.area_max;
+    oob = below_min | above_max;
+    if any(oob)
+        cc.PixelIdxList(oob) = [];
+        cc.NumObjects = cc.NumObjects - sum(oob);
+        area(oob) = [];
+    end
+
+    % extract blob properties
+    props=regionprops(cc, in_fields);
+    trackDat.thresh_im = thresh_im;
+
+    % track objects
+    switch expmt.meta.track_mode
+
+        % track multiple objects per roi
+        case 'multitrack'
+            [trackDat, expmt, props] = multiTrack(props, trackDat, expmt);
+            trackDat.centroid = cat(1,trackDat.traces.cen);
+            update = cat(1,trackDat.traces.updated);
+            permutation = cat(2,trackDat.permutation{:})';
+
+        % track one object per roi
+        case 'single'
+            raw_cen = reshape([props.Centroid],2,length([props.Centroid])/2)';
+            % Match centroids to last known centroid positions
+            [permutation,update,raw_cen] = sortCentroids(raw_cen,trackDat,expmt);
+
+            % Apply speed threshold to centroid tracking
+            speed = NaN(size(update));
+
+            if any(update)
+                % calculate distance and convert from pix to mm
+                d = sqrt((raw_cen(permutation,1)-trackDat.centroid(update,1)).^2 ...
+                         + (raw_cen(permutation,2)-trackDat.centroid(update,2)).^2);
+                d = d .* expmt.parameters.mm_per_pix;
+
+                % time elapsed since each centroid was last updated
+                dt = trackDat.t - trackDat.tStamp(update);
+
+                % calculate speed and exclude centroids over speed threshold
+                tmp_spd = d./dt;
+                above_spd_thresh = tmp_spd > expmt.parameters.speed_thresh;
+                permutation(above_spd_thresh)=[];
+                update(update) = ~above_spd_thresh;
+                speed(update) = tmp_spd(~above_spd_thresh);
             end
-            
-            % dilate and erode with same element to connect components
-            %dim = imdilate(thresh_im,expmt.parameters.dilate_element);
-            eim = imerode(thresh_im,expmt.parameters.dilate_element);
-            thresh_im = eim;            
-            
-            clearvars dim eim mim
-        end
-            
-        % get region properties
-        cc = bwconncomp(thresh_im, 8);
-        area = cellfun(@numel,cc.PixelIdxList);
-        
-        % threshold blobs by area
-        below_min = area  .* (expmt.parameters.mm_per_pix^2) < ...
-            expmt.parameters.area_min;
-        above_max = area .* (expmt.parameters.mm_per_pix^2) >...
-            expmt.parameters.area_max;
-        oob = below_min | above_max;
-        if any(oob)
-            cc.PixelIdxList(oob) = [];
-            cc.NumObjects = cc.NumObjects - sum(oob);
-            area(oob) = [];
-        end
-        
-        % extract blob properties
-        props=regionprops(cc, in_fields);
-        trackDat.thresh_im = thresh_im;
 
-        % track objects
-        switch expmt.meta.track_mode
-            
-            % track multiple objects per roi
-            case 'multitrack'
-                [trackDat, expmt, props] = multiTrack(props, trackDat, expmt);
-                trackDat.centroid = cat(1,trackDat.traces.cen);
-                update = cat(1,trackDat.traces.updated);
-                permutation = cat(2,trackDat.permutation{:})';
+            % Use permutation vector to sort raw centroid data and update
+            % vector to specify which centroids are reliable and should be updated
+            trackDat.centroid(update,:) = single(raw_cen(permutation,:));
+            cen_cell = num2cell(single(raw_cen(permutation,:)),2);
+            [trackDat.traces(update).cen] = cen_cell{:};
+            trackDat.tStamp(update) = trackDat.t;
+            if isfield(props,'WeightedCentroid')
+                raw_cen = reshape([props.WeightedCentroid],2,...
+                    length([props.WeightedCentroid])/2)';
+                trackDat.weightedCentroid(update,:) = ...
+                    single(raw_cen(permutation,:));
+            end
 
-            % track one object per roi
-            case 'single'
-                raw_cen = reshape([props.Centroid],2,length([props.Centroid])/2)';
-                % Match centroids to last known centroid positions
-                [permutation,update,raw_cen] = sortCentroids(raw_cen,trackDat,expmt);
+            % update centroid drop count for objects not updated this frame
+            if isfield(trackDat,'drop_ct')
+                trackDat.drop_ct(~update) = trackDat.drop_ct(~update) + 1;
+            end
 
-                % Apply speed threshold to centroid tracking
-                speed = NaN(size(update));
+            trackDat = singleTrack_updateDuration(...
+                trackDat,update,expmt.parameters.max_trace_duration);
 
-                if any(update)
-                    % calculate distance and convert from pix to mm
-                    d = sqrt((raw_cen(permutation,1)-trackDat.centroid(update,1)).^2 ...
-                             + (raw_cen(permutation,2)-trackDat.centroid(update,2)).^2);
-                    d = d .* expmt.parameters.mm_per_pix;
-
-                    % time elapsed since each centroid was last updated
-                    dt = trackDat.t - trackDat.tStamp(update);
-
-                    % calculate speed and exclude centroids over speed threshold
-                    tmp_spd = d./dt;
-                    above_spd_thresh = tmp_spd > expmt.parameters.speed_thresh;
-                    permutation(above_spd_thresh)=[];
-                    update(update) = ~above_spd_thresh;
-                    speed(update) = tmp_spd(~above_spd_thresh);
-                end
-
-                % Use permutation vector to sort raw centroid data and update
-                % vector to specify which centroids are reliable and should be updated
-                trackDat.centroid(update,:) = single(raw_cen(permutation,:));
-                cen_cell = num2cell(single(raw_cen(permutation,:)),2);
-                [trackDat.traces(update).cen] = cen_cell{:};
-                trackDat.tStamp(update) = trackDat.t;
-                if isfield(props,'WeightedCentroid')
-                    raw_cen = reshape([props.WeightedCentroid],2,...
-                        length([props.WeightedCentroid])/2)';
-                    trackDat.weightedCentroid(update,:) = ...
-                        single(raw_cen(permutation,:));
-                end
-
-                % update centroid drop count for objects not updated this frame
-                if isfield(trackDat,'drop_ct')
-                    trackDat.drop_ct(~update) = trackDat.drop_ct(~update) + 1;
-                end
-
-                
-                trackDat = singleTrack_updateDuration(...
-                    trackDat,update,expmt.parameters.max_trace_duration);
-                
-        end
-        trackDat.update = update;
-        trackDat.dropped_frames = ~update;
-    else
-        
-        % increment drop count for all objects if entire frame is dropped
-        
-        trackDat.drop_ct = trackDat.drop_ct + 1;
-        trackDat.update = false(size(trackDat.drop_ct));
-        trackDat.dropped_frames(:) = false;
-        
     end
+    trackDat.update = update;
+    trackDat.dropped_frames = ~update;
+else
+
+    % increment drop count for all objects if entire frame is dropped   
+    trackDat.drop_ct = trackDat.drop_ct + 1;
+    trackDat.update = false(size(trackDat.drop_ct));
+    trackDat.dropped_frames(:) = false;
+end
     
 %% Assign outputs
 
