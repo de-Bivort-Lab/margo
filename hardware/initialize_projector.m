@@ -1,5 +1,12 @@
 function expmt = initialize_projector(expmt,varargin)
 
+
+% get default projector settings if none exist
+if ~isfield(expmt.hardware.projector,'reg_params') ||...
+        isempty(expmt.hardware.projector.reg_params)
+    expmt.hardware.projector.reg_params = ...
+        registration_parameter_subgui('default_registration_parameters');
+end
 screen_num = expmt.hardware.projector.reg_params.screen_num;
 reg_params = expmt.hardware.projector.reg_params;
 
@@ -64,7 +71,8 @@ gui_dir = which('margo');
 gui_dir = gui_dir(1:strfind(gui_dir,'\gui\'));
 fName = 'projector_fit.mat';
 
-if exist([gui_dir 'hardware\projector_fit\']) == 7 
+if exist([gui_dir 'hardware\projector_fit\'],'dir') == 7 &&...
+        exist([gui_dir 'hardware\projector_fit\' fName],'file') == 2
     load([gui_dir '\hardware\projector_fit\' fName]);
 else
     return  

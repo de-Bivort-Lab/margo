@@ -3203,11 +3203,9 @@ if isempty(expmt.meta.roi) || ~isfield(expmt.meta.roi,'n') || expmt.meta.roi.n <
 end
 
 switch hObject.Checked
-    case 'off'
-        projector_preview_rois(expmt);
-        hObject.Checked = 'on';
     case 'on'
-        hObject.Checked = 'off';
+        projector_preview_rois(expmt);
+    case 'off'
         sca;
 end
 

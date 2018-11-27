@@ -75,62 +75,47 @@ catch
     warning(cat(2,msg{:}));
     dn = findobj('Tag','disp_note');
     gui_notify(msg,dn);
+    return
 end
 
 % get Experiment Data and update UI with parameters (if existing)
-if ~isempty(varargin)
-    expmt = varargin{1};
-    if isfield(expmt.hardware.projector,'reg_params')
-        reg_params = expmt.hardware.projector.reg_params;
-    end
+expmt = varargin{1};
+if isfield(expmt.hardware.projector,'reg_params')
+    reg_params = expmt.hardware.projector.reg_params;
+else
+    reg_params = default_registration_parameters;
 end
 
-if exist('reg_params','var')
-    % update step size control
-    if isfield(reg_params,'pixel_step_size')
-        set(handles.edit_pixel_step_size,'string',reg_params.pixel_step_size);
-    else
-        reg_params.pixel_step_size = str2double(get(handles.edit_pixel_step_size,'string'));
-    end
-    % update spot control    
-    if isfield(reg_params,'spot_r')
-        set(handles.edit_spot_r,'string',reg_params.spot_r);
-    else
-        reg_params.spot_r=str2double(get(handles.edit_spot_r,'string'));
-    end
-    % update registration function menu
-    if isfield(reg_params,'reg_fun')
-        idx = find(strcmpi(reg_params.reg_fun, handles.reg_fun_popupmenu.String));
-        handles.reg_fun_popupmenu.Value = idx;
-    else
-        reg_params.reg_fun = handles.reg_fun_popupmenu.String{1};
-    end
-    % update registration mode menu
-    if isfield(reg_params,'reg_mode')
-        idx = find(strcmpi(reg_params.reg_mode, handles.reg_mode_popupmenu.String));
-        handles.reg_mode_popupmenu.Value = idx;
-    else
-        reg_params.reg_mode = handles.reg_mode_popupmenu.String{1};
-    end
-    
-    
-        
-    handles.scr_popupmenu.Value = reg_params.screen_num+1;
-    
-    handles.output=reg_params;
+
+% update step size control
+if isfield(reg_params,'pixel_step_size')
+    set(handles.edit_pixel_step_size,'string',reg_params.pixel_step_size);
 else
-    
-    % set default output
-    handles.output = [];
-    handles.output.name = 'Registration Parameters';
-    handles.output.pixel_step_size = ...
-        str2double(get(handles.edit_pixel_step_size,'string'));
-    handles.output.spot_r = ...
-        str2double(get(handles.edit_spot_r,'string'));
-    handles.output.screen_num = 0;
-    handles.output.reg_fun = '2D polynomial';
-    handles.output.reg_mode = 'raster grid';
+    reg_params.pixel_step_size = str2double(get(handles.edit_pixel_step_size,'string'));
 end
+% update spot control    
+if isfield(reg_params,'spot_r')
+    set(handles.edit_spot_r,'string',reg_params.spot_r);
+else
+    reg_params.spot_r=str2double(get(handles.edit_spot_r,'string'));
+end
+% update registration function menu
+if isfield(reg_params,'reg_fun')
+    idx = find(strcmpi(reg_params.reg_fun, handles.reg_fun_popupmenu.String));
+    handles.reg_fun_popupmenu.Value = idx;
+else
+    reg_params.reg_fun = handles.reg_fun_popupmenu.String{1};
+end
+% update registration mode menu
+if isfield(reg_params,'reg_mode')
+    idx = find(strcmpi(reg_params.reg_mode, handles.reg_mode_popupmenu.String));
+    handles.reg_mode_popupmenu.Value = idx;
+else
+    reg_params.reg_mode = handles.reg_mode_popupmenu.String{1};
+end
+           
+handles.scr_popupmenu.Value = reg_params.screen_num+1;
+handles.output=reg_params;
 
 % Update handles structure
 guidata(hObject, handles);
@@ -287,3 +272,16 @@ function reg_mode_popupmenu_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+
+function def_params = default_registration_parameters
+  
+% set default output
+def_params = [];
+def_params.name = 'Registration Parameters';
+def_params.pixel_step_size = 20;
+def_params.spot_r = 10;
+def_params.screen_num = 0;
+def_params.reg_fun = '2D polynomial';
+def_params.reg_mode = 'raster grid';
