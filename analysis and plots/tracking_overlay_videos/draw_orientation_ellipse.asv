@@ -54,19 +54,19 @@ hdir = expmt.meta.hdir(frame_num,:);
 mil = expmt.meta.mi(frame_num,:);
 mal = expmt.meta.ma(frame_num,:);
 foci = sqrt(diff((0.5.*[mil;mal]).^2));
-eccentricity = foci./sqrt(foci.^2+(mil./2).^2);
+eccentricity = foci./sqrt(foci.^2+(mil/2)^2);
 
 % compute major axis vertices for each ellipse
 ang = ori.*pi./180;
 cen = num2cell(expmt.data.centroid.raw(frame_num,:,:)',2);
-ma_vertices = arrayfun(@(c,a,mal) repmat(c{1},2,1) + [1;-1]*((mal/2).*[cos(a) sin(a)]),...
-    cen, ang', mal', 'UniformOutput',false);
-mi_vertices = arrayfun(@(c,a,mil) repmat(c{1},2,1) + [1;-1]*((mil/2).*[cos(a) sin(a)]),...
-    cen, ang'+pi/2, mil', 'UniformOutput',false);
+ma_vertices = cellfun(@(c,a) repmat(c,2,1) + [1;-1]*((mal/2).*[cos(a) sin(a)]),...
+    cen, num2cell(ang)', 'UniformOutput',false);
+mi_vertices = cellfun(@(c,a) repmat(c,2,1) + [1;-1]*((mil/2).*[cos(a) sin(a)]),...
+    cen, num2cell(ang+pi/2)', 'UniformOutput',false);
 
 % initialize coordinates of ellipse patches for drawing
-[vx, vy] = cellfun(@(mav, e) ellipse_coords(mav, e),...
-    ma_vertices, num2cell(eccentricity)', 'UniformOutput', false);
+[vx, vy] = cellfun(@(mav) ellipse_coords(mav, eccentricity),...
+    ma_vertices, 'UniformOutput', false);
 
 % draw patches
 hold on

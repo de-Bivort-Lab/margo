@@ -118,15 +118,16 @@ classdef ExperimentData < dynamicprops
                 attach(obj.data.(fn{i}));
             end
         end
+        
         % de-initialize all raw data maps
         function obj = detach(obj) 
             fn = fieldnames(obj.data);
             for i=1:length(obj.meta.fields)
-                obj.data.(fn{i}).raw.map = [];
+                detach(obj.data.(fn{i}));
             end
         end
-        % re-initialize all raw data maps
         
+        % re-initialize all raw data maps
         function obj = reset(obj)
             detach(obj);
             attach(obj);

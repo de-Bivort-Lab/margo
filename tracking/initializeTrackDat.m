@@ -45,7 +45,7 @@ else
     trackDat.ref.cen = cell(expmt.meta.roi.n,1);
     trackDat.ref.cen = ...
         arrayfun(@(n) NaN(n,2,depth), nt, 'UniformOutput', false);        
-    trackDat.ref.ct = ones(nROIs, 1).*expmt.parameters.ref_depth;              % Reference number placeholder
+    trackDat.ref.ct = zeros(nROIs, 1);              % Reference number placeholder
     trackDat.ref.t = 0;                             % reference time stamp
     trackDat.ref.last_update = zeros(nROIs,1);
     trackDat.ref.bg_mode = expmt.parameters.bg_mode;                 % set reference mode to dark
