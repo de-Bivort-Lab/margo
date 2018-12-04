@@ -59,7 +59,7 @@ end
 %% Set registration parameters
 
 scr = expmt.hardware.screen;
-x_stp = 20;
+x_stp = 10;
 im_thresh=13;                       % image threshold
 min_Area = ceil(((mean(size(ref)))*0.001)^2);
 max_Area = floor((mean(size(ref)))*0.05)^2;
@@ -148,7 +148,7 @@ for i=1:x_stp
     tPrev = tCurr;
 
     % Draw circle with projector at pixel coords x,y
-    centers = random_dots(scr.windowRect(3), scr.windowRect(4), 800, r);
+    centers = random_dots(scr.windowRect(3), scr.windowRect(4), 500, r);
     scr=drawCircles(centers(:,1),centers(:,2),r,[1,1,1],scr);  
     
     % pause before imaging to account for lag between projector
