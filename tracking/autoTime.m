@@ -14,7 +14,7 @@ end
 
 % calculate the interframe interval (ifi)
 if strcmp(expmt.meta.source,'video') && ...
-        isprop(expmt.meta.video.vid,'FrameRate')
+        isprop(expmt.meta.video.vid,'FrameRate') && false
 
     ifi = 1/expmt.meta.video.vid.FrameRate;
     tCurrent = trackDat.tPrev + ifi;

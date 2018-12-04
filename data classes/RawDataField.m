@@ -154,6 +154,12 @@ classdef RawDataField < dynamicprops
         end
         
         function obj = detach(obj)
+            if strcmpi(obj.precision,'logical')
+                try
+                    fclose(obj.fID);
+                catch
+                end
+            end
             obj.raw.map = [];
         end
         

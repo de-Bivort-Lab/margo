@@ -8,13 +8,12 @@ frame_rate = 30;            % output frame rate
 frame_increment = 1;        % sampling rate of the frames (no sub-sampling = 1)
 mode = 'centroid';          % valid modes: ('centroid'|'orientation')
 trail_length = 30;          % length of centroid comet trail (number of frames)
-options = struct();
 
 % configure plotting options - (optional)
 options.centroid = {'Marker'; 'o'; 'LineStyle'; 'none';...
     'MarkerFaceColor'; 'm'; 'MarkerEdgeColor'; 'none';...
     'MarkerSize'; 3; 'LineWidth'; 2.5};
-options.trail = {'LineStyle'; '-'; 'Color'; 'b'; 'LineWidth'; 2};
+options.trail = {'LineStyle'; '-'; 'Color'; 'c'; 'LineWidth'; 2};
 
 
 %% get file paths
@@ -77,9 +76,9 @@ hold on
 attach(expmt);
 switch mode
     case 'orientation'
-        handles = draw_orientation_ellipse(expmt, fr_offset, [], options);
+        handles = draw_orientation_ellipse(expmt, fr_offset);
     case 'centroid'
-        handles = draw_centroid_trail(expmt, fr_offset, trail_length, [], options);
+        handles = draw_centroid_trail(expmt, fr_offset, trail_length);
 end
 
 im_out = getframe(ah);
@@ -103,9 +102,9 @@ while ct < expmt.meta.num_frames
     % draw orientation data
     switch mode
         case 'centroid'
-            handles = draw_centroid_trail(expmt, ct, trail_length, handles, options);
+            handles = draw_centroid_trail(expmt, ct, trail_length, handles);
         case 'orientation'
-            handles = draw_orientation_ellipse(expmt, ct, handles, options);
+            handles = draw_orientation_ellipse(expmt, ct, handles);
     end
     
     drawnow

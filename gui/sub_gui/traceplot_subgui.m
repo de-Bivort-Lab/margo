@@ -235,7 +235,7 @@ end
 % get centroid data
 n_traces = expmt.meta.roi.num_traces(roi);
 trace_idx = cumsum(expmt.meta.roi.num_traces(1:roi)) - n_traces;
-trace_idx = trace_idx+1:trace_idx+n_traces;
+trace_idx = trace_idx(end)+1:trace_idx(end)+n_traces;
 x = expmt.data.centroid.raw(ii,1,trace_idx);
 y = expmt.data.centroid.raw(ii,2,trace_idx);
 th.String = sprintf('%i\t - \t%i',ii(1),ii(end));
