@@ -5,6 +5,7 @@ color = 'k';
 fontsize = 12;
 position = [ax.XLim(2)*0.5 ax.YLim(2)*0.035];
 align = 'center';
+alpha = 0.75;
 for i=1:numel(varargin)
     arg = varargin{i};
     if ischar(arg)
@@ -21,6 +22,9 @@ for i=1:numel(varargin)
             case 'Alignment'
                 i=i+1;
                 align = varargin{i};
+            case 'FaceAlpha'
+                i=i+1;
+                alpha = varargin{i};
         end
     end
 end
@@ -42,7 +46,7 @@ vy = [y(1) y(2) y(2) y(1) y(1)] + 0.1.*[-1 1 1 -1 -1];
 
 % draw new patch
 ph = patch(ax,'XData',vx,'YData',vy,'FaceColor',[1 1 1],...
-    'FaceAlpha',0.5,'EdgeColor','none','HitTest','off');
+    'FaceAlpha',alpha,'EdgeColor','none','HitTest','off');
 uistack(ph,'down');
 
 note_handles = {ph;th};

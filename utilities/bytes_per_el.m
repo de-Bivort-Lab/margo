@@ -28,5 +28,10 @@ switch precision
     case 'int64'
         n_bytes_per_element = 8;
     otherwise
-        error('data is not numeric');
+        if any(strfind(precision,'bit'))
+            n_bytes_per_element = ...
+                str2double(precision(strfind(precision,'bit')+3:end));
+        else
+            error('data is not numeric');
+        end
 end

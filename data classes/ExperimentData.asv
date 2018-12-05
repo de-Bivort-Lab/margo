@@ -332,10 +332,9 @@ classdef ExperimentData < dynamicprops
                     close_concat = find(callInput==']');
                     if all(size(open_concat)==size(close_concat))
                         is_concat = arrayfun(@(o,c) arg_splits>o & arg_splits<c, ...
-                            open_concat, close_concat, 'UniformOutput',false);
-                        is_concat = any(cat(1,is_concat{:}),1);
-                        arg_splits(is_concat)=[];
-                    end
+                            open_concat, close_concat);
+                        is_concat = cat(1,isc_con
+                    arg_splits(arg_splits>open_concat & arg_splits<close_concat)=[];
                     for i = 1:numel(open_idx)
                         sub_arg = open_idx(i) < arg_splits &...
                                     arg_splits < close_idx(numel(open_idx)-i+1);

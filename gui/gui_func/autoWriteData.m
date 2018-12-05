@@ -18,6 +18,9 @@ end
 % write raw data to binary files
 for i = 1:length(trackDat.fields)
     precision = class(trackDat.(trackDat.fields{i}));
+    if strcmpi(precision,'logical')
+        precision = 'ubit1';
+    end
     fwrite(expmt.data.(trackDat.fields{i}).fID,...
         trackDat.(trackDat.fields{i}),precision);
 end

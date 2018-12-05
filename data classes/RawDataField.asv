@@ -114,19 +114,12 @@ classdef RawDataField < dynamicprops
                         % expected size by a whole number
                         elseif fInfo(1).bytes/exp_sz == uint64(fInfo(1).bytes/exp_sz)
                             
-                            new_bytes_per = fInfo(1).bytes/exp_sz * bytes_per;
-                        % else check if file size is smaller than
-                        % expected size by a whole number
-                        elseif exp_sz/fInfo(1).bytes == uint64(exp_sz/fInfo(1).bytes)
-                            new_bytes_per = exp_sz/fInfo(1).bytes * bytes_per;
-                        end
-                        
-                        % assign a default precision
-                        if exist('new_bytes_per','var')                       
                             warning(['Binary file size did not match expected'...
                                 ' file size. Attempting to switch precision. '...
                                 'Resulting raw data may be inaccurate.']);
-                            switch new_bytes_per
+                            bytes_per = fInfo(1).bytes/exp_sz * bytes_per;
+                            % assign a default precision
+                            switch bytes_per
                                 case 1
                                    obj.precision = 'uint8'; 
                                 case 2
@@ -136,13 +129,17 @@ classdef RawDataField < dynamicprops
                                 case 8
                                     obj.precision = 'double'; 
                                 otherwise
-                                    obj.precision = sprintf('ubit%i',new_bytes_per*8); 
-                            end 
+                                    obj.precision = sprintf('ubit%i',bytes_per*8); 
+                            end
+                        % else check if file size is smaller than
+                        % expected size by a whole number
+                        elseif exp_sz/fInfo(1).bytes == uint64(exp_sz/fInfo(1).bytes)
+                            bytes_per = exp_sz/fInfo(1).bytes * bytes_per;
                         end
                     end
                     
                     prcn = obj.precision;
-                    if any(strcmpi({'logical';'ubit1';'bit1'},prcn))
+                    if strcmpi(prcn,'logical')
                         attach_binary(obj);
                     else
                         obj.raw.map = memmapfile(obj.path,...
@@ -202,7 +199,7 @@ classdef RawDataField < dynamicprops
             obj.fID = fopen(obj.path,'r');           
             if obj.fID ~= -1
                 obj.raw.map.Data.raw = ...
-                    fread(obj.fID,fliplr(obj.dim),'ubit1');
+                    fread(obj.fID,fliplr(obj.dim),'logical=>logical');
                 obj.raw.map.Format = {'logical'};
             else
                 error('invalid fileID');
