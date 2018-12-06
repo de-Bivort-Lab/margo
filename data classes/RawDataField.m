@@ -56,6 +56,7 @@ classdef RawDataField < dynamicprops
             
             % intialize raw map parent
             obj.raw.Parent = obj;
+            field_name = get_field_name(obj);
             
             % try to attach the raw data file
             try        
@@ -123,9 +124,10 @@ classdef RawDataField < dynamicprops
                         
                         % assign a default precision
                         if exist('new_bytes_per','var')                       
-                            warning(['Binary file size did not match expected'...
-                                ' file size. Attempting to switch precision. '...
-                                'Resulting raw data may be inaccurate.']);
+                            warning(sprintf(['Binary %s file size did not match expected'...
+                                ' file size. Attempting to automatically ajust'...
+                                ' the data precision. Resulting raw data may '...
+                                'be inaccurate.'],field_name));
                             switch new_bytes_per
                                 case 1
                                    obj.precision = 'uint8'; 
@@ -169,15 +171,15 @@ classdef RawDataField < dynamicprops
                 catch ME
                     switch ME.identifier
                         case 'MATLAB:memmapfile:inaccessibleFile'
-                            error(['Failed to initialize raw data map. '...
+                            error(['Failed to initialize %s raw data map. '...
                                 'No such file or directory:\n'...
-                                '\t%s'],obj.path);
+                                '\t%s'],field_name,obj.path);
                     end
                 end
             end
             if ~isattached(obj)
-                warning(['failed to attach raw data map, '...
-                    'automatic raw data file path repair failed']);
+                warning(sprintf(['failed to attach %s raw data map, '...
+                    'automatic raw data file path repair failed'],field_name));
             end
             
         end
@@ -208,6 +210,11 @@ classdef RawDataField < dynamicprops
                 error('invalid fileID');
             end
             
+        end
+        
+        function name = get_field_name(obj)
+            [~,filename,~] = fileparts(obj.path);
+            name = filename(strfind(filename,'__')+2:end);
         end
         
         function out = isattached(obj)

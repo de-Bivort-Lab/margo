@@ -37,6 +37,9 @@ options = set_options(options);
 % initialization
 cen = [expmt.data.centroid.raw(frame_num,1,:);...
     expmt.data.centroid.raw(frame_num,2,:)];
+if isfield(options,'x_pad')
+   cen(1,:) = cen(1,:)+options.x_pad; 
+end
 
 % draw patches
 hold on
