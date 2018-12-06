@@ -204,7 +204,7 @@ classdef RawDataField < dynamicprops
             obj.fID = fopen(obj.path,'r');           
             if obj.fID ~= -1
                 obj.raw.map.Data.raw = ...
-                    fread(obj.fID,fliplr(obj.dim),'ubit1');
+                    fread(obj.fID,fliplr(obj.dim),'ubit1=>logical');
                 obj.raw.map.Format = {'logical'};
             else
                 error('invalid fileID');
