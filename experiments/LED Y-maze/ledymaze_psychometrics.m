@@ -15,9 +15,6 @@ is_turn = light_choice ~= 0;
 
 % filter data for inactivity
 ntrials = sum(is_turn);
-pwm(:,ntrials<100) = [];
-light_choice(:,ntrials<100) = [];
-is_turn(:,ntrials<100) = [];
 
 % shift indices up by one
 pwm = [zeros(1,size(pwm,2)); pwm];
@@ -37,6 +34,9 @@ for i=1:numel(pwm_vals)
     % calculate individual means
     psy_curv(i,:) = cellfun(@(lc,m) nanmean(lc(m)), choice_cell, num2cell(mask,1));
     
+    % filter out low sampling
+    psy_curve(i,sum(mask)<10) = NaN;
+    
     % get all trials at current pwm
     all_trials{i} = light_choice(mask);
 end
@@ -44,14 +44,17 @@ end
 %% plot results
 
 % get averages and 95 % confidence intervals
-[avg_of_individuals, ~, ci95, ~] = normfit(psy_curv');
+[mu,~,ci95,~] = cellfun(@(psy) normfit(psy(~isnan(psy))), ...
+    num2cell(psy_curv,2), 'UniformOutput', false);
+mu = cat(1,mu{:});
+ci95 = cat(2,ci95{:});
 
 % create average of individuals plot
 pwm_vals = log2(double(pwm_vals))';
 
 % plot
 figure; hold on;
-plot(pwm_vals(2:end),avg_of_individuals(2:end),'k','LineWidth',1.5);
+plot(pwm_vals(2:end),mu(2:end),'k','LineWidth',1.5);
 vx = [pwm_vals(2:end) fliplr(pwm_vals(2:end)) pwm_vals(2)];
 vy = [ci95(1,2:end) fliplr(ci95(2,2:end)) ci95(1,2)];
 ph = patch(vx,vy,[.85 .85 .85],'EdgeColor','none');
@@ -87,7 +90,7 @@ end
 
 % assign output data
 psychometrics.curves = psy_curv;
-psychometrics.mean = avg_of_individuals;
+psychometrics.mean = mu;
 psychometrics.CI95 = ci95;
 psychometrics.log2_pwm = pwm_vals;
 

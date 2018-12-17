@@ -4,16 +4,16 @@
 % file, and select a save path for output video.
 
 % Parameters
-frame_rate = 30;            % output frame rate
+frame_rate = 15;            % output frame rate
 frame_increment = 1;        % sampling rate of the frames (no sub-sampling = 1)
 mode = 'centroid';          % valid modes: ('centroid'|'orientation')
-trail_length = 30;          % length of centroid comet trail (number of frames)
+trail_length = 3;          % length of centroid comet trail (number of frames)
 options = struct();
 
 % configure plotting options - (optional)
 options.centroid = {'Marker'; 'o'; 'LineStyle'; 'none';...
-    'MarkerFaceColor'; 'm'; 'MarkerEdgeColor'; 'none';...
-    'MarkerSize'; 3; 'LineWidth'; 2.5};
+    'MarkerFaceColor'; 'g'; 'MarkerEdgeColor'; 'none';...
+    'MarkerSize'; 4; 'LineWidth'; 2.5};
 options.trail = {'LineStyle'; '-'; 'Color'; 'b'; 'LineWidth'; 2};
 
 

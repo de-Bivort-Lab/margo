@@ -30,11 +30,6 @@ for i = 1:length(varargin)
             case 'Plot'
                 i=i+1;
                 options.plot = varargin{i};             
-            case 'Dir'
-                i=i+1;
-                expmt.meta.path.dir= varargin{i};
-                expmt = autoUpdatePaths(expmt);
-     
             case 'Save'
                 i=i+1;
                 options.save = varargin{i};             
@@ -165,7 +160,11 @@ if isfield(expmt.data,'speed') && isattached(expmt.data.speed) ...
             close(f);
         end
     end
-
+    
+    if options.slide
+        % get sliding average of activity level
+        expmt = slideActivity(expmt);
+    end
 end
 
 if isfield(options,'handles')

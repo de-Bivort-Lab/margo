@@ -142,7 +142,7 @@ end
 switch expmt.parameters.led_mode
     case 'random'
         expmt.meta.psychometrics = ...
-            ledymaze_psychometrics(expmt.data.led_pwm.raw(),expmt.data.light_choice.raw());
+            ledymaze_psychometrics(expmt.data.led_pwm.raw(),expmt.data.LightChoice.raw());
 end
 
 %% Create histogram plots of turn bias and light choice probability
@@ -183,11 +183,11 @@ else
 end
 
 legendLabel(1)={['Turn Choice: ' strain ' ' treatment ...
-    ' (u=' num2str(mean(expmt.data.Turns.rBias(expmt.data.Turns.active)))...
-    ', n=' num2str(sum(expmt.data.Turns.active)) ')']};
+    ' (u=' num2str(nanmean(expmt.data.Turns.rBias(expmt.data.Turns.active)))...
+    ', n=' num2str(nansum(expmt.data.Turns.active)) ')']};
 legendLabel(2)={['Light Choice: ' strain ' ' treatment ...
-    ' (u=' num2str(mean(expmt.data.LightChoice.pBias(expmt.data.Turns.active)))...
-    ', n=' num2str(sum(expmt.data.Turns.active)) ')']};
+    ' (u=' num2str(nanmean(expmt.data.LightChoice.pBias(expmt.data.Turns.active)))...
+    ', n=' num2str(nansum(expmt.data.Turns.active)) ')']};
 legend(legendLabel);
 
 title('Phototaxis and Right Turn Histogram');

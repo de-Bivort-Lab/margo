@@ -31,17 +31,20 @@ h = waitbar(0,['iteration 0 out of ' num2str(expmt.meta.num_traces)]);
 h.Name = ['Sliding ' f ' window'];
 
 % calculate frame_rate
-fr = nanmedian(expmt.data.time.raw);
+fr = nanmedian(expmt.data.time.raw());
 win_sz = round(win_sz/fr*60);
 stp_sz = round(stp_sz/1/fr*60);
 s = round(sampling_rate/1/fr*60);
 
 
-first_idx = round(length(expmt.(f).raw)/win_sz)+1;
+first_idx = round(expmt.meta.num_frames/win_sz)+1;
 r = floor(win_sz/2);
-win_idx = r+1:stp_sz:length(expmt.(f).raw)-r;
+win_idx = r+1:stp_sz:expmt.meta.num_frames-r;
 idx = repmat(win_idx',1,floor(win_sz/s)+1);
 idx = idx + repmat(-r:s:r,size(idx,1),1);
+
+% clear open data maps
+detach(expmt);
 
 
 % perform the operation

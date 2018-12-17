@@ -30,9 +30,16 @@ nBatch = ceil(rsz/msz * 2);
 bsz = ceil(expmt.meta.num_frames/nBatch);
     
 %% calculate track properties
+msg = 'batch %i of %i';
+hwb = waitbar(0,sprintf(msg,0,nBatch),'Name','Processing Centroid Data');
 for j = 1:nBatch
     
-    reset(expmt);
+    if ishghandle(hwb)
+        hwb = waitbar((j-1)/nBatch,hwb,sprintf(msg,j,nBatch));
+    end
+    % refresh centroid data map
+    detach(expmt.data.centroid);
+    attach(expmt.data.centroid);
     
     % get x and y coordinates of the centroid and normalize to ROI
     if j==nBatch
@@ -89,8 +96,13 @@ for j = 1:nBatch
     clear trackProps inx iny   
 end
 
-% re-inititialize maps
-reset(expmt);
+% close waitbar
+if ishghandle(hwb)
+    delete(hwb);
+end
+
+% clear centroid map
+detach(expmt.data.centroid);
 
 % close raw data and initialize new memmap for raw data
 for i = 1:length(opt.raw)
@@ -99,6 +111,8 @@ for i = 1:length(opt.raw)
     attach(expmt.data.(f));
 end
 
+% re-inititialize maps
+reset(expmt);
 
 % concatenate handedness data
 if nBatch>1 && opt.handedness

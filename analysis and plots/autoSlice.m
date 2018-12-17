@@ -5,11 +5,11 @@ function slice_data = autoSlice(expmt,f,roi_num)
 
 
 % renaming vars for shorthand
-if isfield(expmt.(f),'precision')
-    p = expmt.(f).precision;
+if isfield(expmt.data.(f),'precision')
+    p = expmt.data.(f).precision;
 elseif strcmp(f,'speed')
-    expmt.(f).precision = expmt.data.centroid.precision;
-    p = expmt.(f).precision;
+    expmt.data.(f).precision = expmt.data.centroid.precision;
+    p = expmt.data.(f).precision;
 end
 format = [p '=>' p];
 skip = expmt.meta.num_traces - 1;
@@ -30,12 +30,12 @@ end
 
 % update fID if necessary
 open_files = fopen('all');
-if ~ismember(expmt.(f).fID,open_files)
+if ~ismember(expmt.data.(f).fID,open_files)
     expmt = updatefID(expmt,f);
 end
 
-fseek(expmt.(f).fID,(roi_num-1)*nb,'bof');
-slice_data = fread(expmt.(f).fID,expmt.meta.num_frames,format,skip*nb);
+fseek(expmt.data.(f).fID,(roi_num-1)*nb,'bof');
+slice_data = fread(expmt.data.(f).fID,expmt.meta.num_frames,format,skip*nb);
 
 
 

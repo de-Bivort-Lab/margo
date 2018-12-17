@@ -68,6 +68,7 @@ if trail_length > 0
         handles.trail = plot(trail(xidx),trail(yidx),options.trail{:});
         pause(0.01);
         handles.trail.Edge.ColorType = 'truecoloralpha';
+        uistack(handles.trail,'down');
     else
         % get current positions from trail handle
         x = handles.trail.XData;
