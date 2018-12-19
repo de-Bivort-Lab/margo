@@ -182,7 +182,8 @@ if isfield(expmt.meta,'video_out') && expmt.meta.video_out.record
     expmt = initializeVidRecording(expmt,gui_handles);
 elseif isfield(trackDat,'video_index') || ...
         any(strcmpi('video_index',expmt.meta.fields)) || ...
-        any(strcmpi('video_index',trackDat.fields))
+        any(strcmpi('video_index',trackDat.fields)) || ...
+        (isfield(expmt.meta,'video_out') && ~expmt.meta.video_out.subsample)
     
     % remove video index from raw data output if video is not recorded
     expmt.meta.fields(strcmpi('video_index',expmt.meta.fields)) = [];

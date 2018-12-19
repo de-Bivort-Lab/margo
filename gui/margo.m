@@ -3028,7 +3028,8 @@ function edit_target_rate_Callback(hObject, eventdata, handles)
 % hObject    handle to edit_target_rate (see GCBO)
 
 expmt = getappdata(handles.gui_fig,'expmt');
-expmt.parameters.target_rate = str2double(hObject.String);
+
+new_rate = str2double(hObject.String);
 track_param_fig = findobj('Type','figure','Tag','track_fig');
 if ~isempty(track_param_fig) && ishghandle(track_param_fig)
     htarget_rate = findobj(track_param_fig,'-depth',2,'Tag','edit_target_rate');
@@ -3036,6 +3037,12 @@ if ~isempty(track_param_fig) && ishghandle(track_param_fig)
         htarget_rate.String = hObject.String;
     end
 end
+
+if isfield(expmt.meta,'video_out') && ~expmt.meta.video_out.subsample
+    expmt.meta.video_out.rate = new_rate;
+end
+expmt.parameters.target_rate = new_rate;
+
 setappdata(handles.gui_fig,'expmt',expmt);
 
 
