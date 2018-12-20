@@ -292,7 +292,7 @@ unlabeled_rois = [0 diff(is_unlabeled)];
 
 roi_start = find(unlabeled_rois==1,1);
 roi_end = find(unlabeled_rois==-1,1)-1;
-if isempty(roi_start) || (~isempty(roi_end) && roi_end < roi_start)
+if isempty(roi_start) || roi_end < numel(roi_start)
     roi_start = 1;
 end
 if isempty(roi_end)
