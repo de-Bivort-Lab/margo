@@ -22,7 +22,7 @@ if any(any(hasData)) && ~any(hasData(:,4))
 end
 
 nRows = sum(any(hasData,2));            % num rows with data
-active_fields = any(hasData);                  % logical vector showing which fields have entries
+active_fields = any(hasData,1);                  % logical vector showing which fields have entries
 
 if ischar(labels{1,4})
     mazeStarts=str2double(labels{1:nRows,4});
@@ -98,7 +98,7 @@ for i = 1:nRows
         else
             f = labels{i,9};
         end
-        newLabel(mazeStarts(i):mazeEnds(i),iCol) = repmat(f,d+1,1);
+        newLabel(mazeStarts(i):mazeEnds(i),iCol) = repmat({f},d+1,1);
         iCol = iCol+1;
     end
     
