@@ -36,7 +36,10 @@ gui_State = struct('gui_Name',       mfilename, ...
 
 if nargin && ischar(varargin{1})
     gui_State.gui_Callback = str2func(varargin{1});
-elseif isempty(varargin) && isvalid(findobj('Name','margo','Type','figure'))
+elseif isempty(varargin) && any(isvalid(findall(groot,'Name','margo','Type','figure')))
+    errordlg('An instance of Margo is already open. Cannot open more than one instance.');
+    varargout = {};
+    return;
 end
 
 if nargout
@@ -369,6 +372,8 @@ if ~isempty(expmt.hardware.cam)
                 '-bit image mode detected. Only 8-bit image modes are supported'],...
                 'Unsupported Camera Mode');
         end
+        
+        stop(expmt.hardware.cam.vid);
         
     else
         errordlg('Settings not confirmed, no camera detected');
@@ -1294,7 +1299,7 @@ end
 
 
 % run ROI detection
-%try     
+try     
     expmt.meta.initialize = false;
     toggleMenus(handles, 'off');
     
@@ -1361,11 +1366,14 @@ end
     % re-enable controls
     set(on_objs(ishghandle(on_objs)), 'Enable', 'on');
     
-% catch ME
-%     hObject.Enable = 'on';
-%     msg=getReport(ME,'extended');
-%     errordlg(msg);
-% end
+catch ME
+    hObject.Enable = 'on';
+    msg=getReport(ME,'extended');
+    errordlg(msg);
+end
+
+% stop camera
+
 
 % Store expmteriment data struct
 toggleMenus(handles, 'on');
@@ -1401,7 +1409,7 @@ function cam_settings_menu_Callback(hObject, ~, handles)
 expmt = getappdata(handles.gui_fig,'expmt');
 
 % run camera settings gui
-expmt = cam_settings_subgui(handles,expmt);
+cam_settings_subgui(expmt);
 
 % Store expmteriment data struct
 setappdata(handles.gui_fig,'expmt',expmt);

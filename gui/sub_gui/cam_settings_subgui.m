@@ -1,40 +1,54 @@
-function [expmt_out] = cam_settings_subgui(handles,expmt_in)
+function cam_settings_subgui(expmt)
 
 % check to see if a camera exists
-if ~isfield(expmt_in.hardware.cam,'AdaptorName') || ...
-        ~isfield(expmt_in.hardware.cam,'DeviceIDs') || ...
-        ~isfield(expmt_in.hardware.cam,'ActiveMode')
-    expmt_out=expmt_in;
+if ~isfield(expmt.hardware.cam,'AdaptorName') || ...
+        ~isfield(expmt.hardware.cam,'DeviceIDs') || ...
+        ~isfield(expmt.hardware.cam,'ActiveMode')
     return;
 end
 
 % get device properties
-if ~isfield(expmt_in.hardware.cam,'vid') || ...
-        (isfield(expmt_in.hardware.cam,'vid') && ~isvalid(expmt_in.hardware.cam.vid))
+if ~isfield(expmt.hardware.cam,'vid') || ...
+        (isfield(expmt.hardware.cam,'vid') && ~isvalid(expmt.hardware.cam.vid))
     imaqreset;
     pause(0.1);
-    vid = videoinput(expmt_in.hardware.cam.AdaptorName,expmt_in.hardware.cam.DeviceIDs{1},expmt_in.hardware.cam.ActiveMode{:});
+    vid = videoinput(expmt.hardware.cam.AdaptorName,expmt.hardware.cam.DeviceIDs{1},expmt.hardware.cam.ActiveMode{:});
 else
-    vid = expmt_in.hardware.cam.vid;
-    if strcmp(vid.Running,'on')
-        stop(vid);
-    end   
+    vid = expmt.hardware.cam.vid;
+end
+if strcmpi(vid.Running,'on')
+    dn = findobj('Tag','disp_note');
+    gui_notify('closing open camera session to adjust settings',dn);
+    stop(vid);
 end
 
 src = getselectedsource(vid);
 info = propinfo(src);
 names = fieldnames(info);
 
-if isfield(expmt_in.hardware.cam,'settings')
+if isfield(expmt.hardware.cam,'settings') && strcmpi(vid.Running,'off')
     
     % query saved cam settings
-    [i_src,i_set]=cmpCamSettings(src,expmt_in.hardware.cam.settings);
-    set_names = fieldnames(expmt_in.hardware.cam.settings);
+    [i_src,i_set]=cmpCamSettings(src,expmt.hardware.cam.settings);
+    set_names = fieldnames(expmt.hardware.cam.settings);
     
     for i = 1:length(i_src)
-        src.(names{i_src(i)}) = expmt_in.hardware.cam.settings.(set_names{i_set(i)});
+        if ~isfield(info.(names{i_src(i)}),'ReadOnly') || ...
+                ~strcmpi(info.(names{i_src(i)}).ReadOnly,'always')
+            
+            src.(names{i_src(i)}) = ...
+                expmt.hardware.cam.settings.(set_names{i_set(i)});
+        end
     end
-    
+else
+    prop_names = fieldnames(src);
+    has_readonly = find(cellfun(@(n) isfield(info.(n),'ReadOnly'), prop_names));
+    is_readonly = cellfun(@(n) strcmpi(info.(n).ReadOnly,'always'), ...
+        prop_names(has_readonly));
+    prop_names(has_readonly(is_readonly))=[];
+    prop_vals = cellfun(@(n) src.(n), prop_names, 'UniformOutput', false);
+    settings = cat(1,prop_names',prop_vals');
+    expmt.hardware.cam.settings = struct(settings{:});
 end
 
 
@@ -148,20 +162,15 @@ for i = 1:length(names)
     guiData.uictl = uictl;
     guiData.uival = uival;
     guiData.names = names;
-    guiData.expmt_in = expmt_in;
+    guiData.expmt = expmt;
     guiData.cam_src = src;
     set(f,'UserData',guiData);
 
 end
     
-%%
-while ishghandle(f)
-    pause(0.001);
-    if isprop(f,'UserData')
-        expmt_out = f.UserData.expmt_in;
-    end
+if (strcmpi(vid.Previewing,'off') && strcmpi(vid.Running,'on'))
+    set(findall(f,'-property','Enable'),'Enable','off');
 end
-
 end
 
 function slider_Callback(src,event)
@@ -175,7 +184,7 @@ function slider_Callback(src,event)
     set(vals(src.UserData),'string',num2str(get(src,'value')));
     
     % update camera source and settings
-    data.expmt_in.hardware.cam.settings.(names{src.UserData}) = get(src,'value');
+    data.expmt.hardware.cam.settings.(names{src.UserData}) = get(src,'value');
     data.cam_src.(names{src.UserData}) = get(src,'value');
     set(pf,'UserData',data);
 
@@ -189,7 +198,7 @@ function popupmenu_Callback(src,event)
     str_list = get(src,'string');
     
     % update camera source and settings with current value of src.string
-    data.expmt_in.hardware.cam.settings.(names{src.UserData}) = str_list{get(src,'value')};
+    data.expmt.hardware.cam.settings.(names{src.UserData}) = str_list{get(src,'value')};  
     data.cam_src.(names{src.UserData}) = str_list{get(src,'value')};
     set(pf,'UserData',data);
 
@@ -216,7 +225,7 @@ function edit_Callback(src,event)
     
     % update coupled UI component Experiment Data
     set(ctls(src.UserData),'value',val);   
-    data.expmt_in.hardware.cam.settings.(names{src.UserData}) = val;
+    data.expmt.hardware.cam.settings.(names{src.UserData}) = val;  
     data.cam_src.(names{src.UserData}) = val;
     src.String = num2str(val);
     set(pf,'UserData',data); 

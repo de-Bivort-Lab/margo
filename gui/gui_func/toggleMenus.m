@@ -12,4 +12,5 @@ gui_handles.man_edit_roi_menu.Enable = state;
 gui_handles.analysis_menu.Enable = state;
 gui_handles.video_menu.Enable = state;
 gui_handles.record_video_menu.Enable = state;
+gui_handles.cam_settings_menu.Enable = state;
 

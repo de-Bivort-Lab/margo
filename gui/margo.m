@@ -274,12 +274,19 @@ if ~isempty(expmt.hardware.cam)
         
         handles.Cam_preview_togglebutton.Enable = 'off';
         
+        % display notifications
+        note = gui_axes_notify(handles.axes_handle,'opening camera session');
         gui_notify('initializing camera',handles.disp_note);
         gui_notify('may take a few moments...',handles.disp_note);
-        imaqreset;
-        pause(0.01);
+        
+        % Clear old video objects
+        imaqreset
+        pause(0.2);
+
+        % Create camera object with input parameters
         expmt.hardware.cam = initializeCamera(expmt.hardware.cam);
         start(expmt.hardware.cam.vid);
+        cellfun(@delete,note);
         gui_notify('camera started, measuring frame rate...',handles.disp_note);
         drawnow
         
@@ -1188,7 +1195,7 @@ function reference_pushbutton_Callback(hObject, ~, handles)
 expmt = getappdata(handles.gui_fig,'expmt');
 
 if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
-    %try
+    try
         toggleMenus(handles, 'off');
         expmt.meta.initialize = false;
         expmt = initializeRef(handles,expmt);
@@ -1213,8 +1220,11 @@ if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
                 handles.exp_parameter_pushbutton.Enable = 'on';
             end
          end
-%     catch
-%     end
+         catch ME
+            hObject.Enable = 'on';
+            msg=getReport(ME,'extended');
+            errordlg(msg);
+        end
     expmt.meta.initialize = true;
 else
     errordlg('Either ROI detection has not been run or no ROIs were detected.')
@@ -1238,7 +1248,7 @@ if ~isfield(expmt.meta.ref,'im')
     return
 end
 
-%try   
+try   
     expmt.meta.initialize = false;
     toggleMenus(handles, 'off');
     expmt = sampleNoise(handles,expmt);
@@ -1259,12 +1269,14 @@ end
         handles.exp_parameter_pushbutton.Enable = 'on';
     end
 
-%catch
-%end
+catch ME
+    hObject.Enable = 'on';
+    msg=getReport(ME,'extended');
+    errordlg(msg);
+end
 
 toggleMenus(handles, 'on');
 expmt.meta.initialize = true;
-
 
 % Store expmteriment data struct
 setappdata(handles.gui_fig,'expmt',expmt);
@@ -1297,7 +1309,7 @@ end
 
 
 % run ROI detection
-%try     
+try     
     expmt.meta.initialize = false;
     toggleMenus(handles, 'off');
     
@@ -1364,11 +1376,11 @@ end
     % re-enable controls
     set(on_objs(ishghandle(on_objs)), 'Enable', 'on');
     
-% catch ME
-%     hObject.Enable = 'on';
-%     msg=getReport(ME,'extended');
-%     errordlg(msg);
-% end
+catch ME
+    hObject.Enable = 'on';
+    msg=getReport(ME,'extended');
+    errordlg(msg);
+end
 
 % Store expmteriment data struct
 toggleMenus(handles, 'on');
@@ -1404,7 +1416,7 @@ function cam_settings_menu_Callback(hObject, ~, handles)
 expmt = getappdata(handles.gui_fig,'expmt');
 
 % run camera settings gui
-expmt = cam_settings_subgui(handles,expmt);
+cam_settings_subgui(expmt);
 
 % Store expmteriment data struct
 setappdata(handles.gui_fig,'expmt',expmt);
