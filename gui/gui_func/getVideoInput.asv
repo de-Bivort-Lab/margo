@@ -17,7 +17,7 @@ if strcmp(expmt.meta.source,'camera') && isfield(expmt.hardware.cam,'vid')
     elseif strcmp(expmt.hardware.cam.vid.Previewing,'on')
         
         if ~isfield(gui_handles,'hImage') && ~ishghandle(gui_handles.hImage)
-            gui_handles.hImage = findobj(gui_handles.axes_handle,'-depth',1,'Type','Image');
+            gui_handles.hImage = 
         end
         im = gui_handles.hImage.CData;    
         prev_btn = gui_handles.Cam_preview_togglebutton;

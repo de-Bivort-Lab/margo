@@ -14,7 +14,7 @@ end
 if strcmp(expmt.meta.source,'camera') && ...
         isfield(expmt.hardware.cam,'calibration') && ...
         gui_handles.cam_calibrate_menu.UserData
-    [im,~] = undistortImage(im,expmt.hardware.cam.calibration);
+    [event.Data,~] = undistortImage(event.Data,expmt.hardware.cam.calibration);
 end
 
 active_display = gui_handles.display_menu.UserData;
@@ -25,7 +25,7 @@ switch active_display
 
     % raw image
     case 1         
-        hImage.CData = im;
+        hImage.CData = event.Data;
         hImage.Parent.CLim = [0 255];
         if strcmp(hImage.CDataMapping,'direct')
             hImage.CDataMapping = 'scaled';
@@ -35,7 +35,7 @@ switch active_display
     case 2
         if isfield(expmt.meta.vignette,'im')
         hImage.CData = ...
-            (expmt.meta.ref.im-expmt.meta.vignette.im)-(im-expmt.meta.vignette.im);
+            (expmt.meta.ref.im-expmt.meta.vignette.im)-(event.Data-expmt.meta.vignette.im);
             if strcmp(hImage.CDataMapping,'scaled')
                 hImage.CDataMapping = 'direct';
                 hImage.Parent.CLim = [0 255];
@@ -51,7 +51,7 @@ switch active_display
     case 3 
         
         if isfield(expmt.meta.vignette,'im')
-            hImage.CData = (expmt.meta.ref.im-expmt.meta.vignette.im)-(im-expmt.meta.vignette.im)...
+            hImage.CData = (expmt.meta.ref.im-expmt.meta.vignette.im)-(event.Data-expmt.meta.vignette.im)...
                 > gui_handles.track_thresh_slider.Value;
             hImage.Parent.CLim = [0 1];
             if strcmp(hImage.CDataMapping,'direct')
@@ -69,7 +69,7 @@ switch active_display
     case 4
         if isfield(expmt.meta.ref,'im')
             hImage.CData = expmt.meta.ref.im;
-            hImage.Parent.CLim = [0 max(im(:))];
+            hImage.Parent.CLim = [0 max(event.Data(:))];
             if strcmp(hImage.CDataMapping,'direct')
                 hImage.CDataMapping = 'scaled';
             end

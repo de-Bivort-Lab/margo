@@ -36,10 +36,7 @@ gui_State = struct('gui_Name',       mfilename, ...
 
 if nargin && ischar(varargin{1})
     gui_State.gui_Callback = str2func(varargin{1});
-elseif isempty(varargin) && any(isvalid(findall(groot,'Name','margo','Type','figure')))
-    errordlg('An instance of Margo is already open. Cannot open more than one instance.');
-    varargout = {};
-    return;
+elseif isempty(varargin) && isvalid(findobj('Name','margo','Type','figure'))
 end
 
 if nargout
