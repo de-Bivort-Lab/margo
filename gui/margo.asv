@@ -263,6 +263,19 @@ if ~isempty(expmt.hardware.cam)
     
     if ~isempty(expmt.hardware.cam.DeviceInfo)
         
+        bg_color = handles.gui_fig.Color(1);
+        im = uint8(ones(9,16).bg_color.*255);
+        handles.hImage = image(im);
+        colormap('gray');
+        handles.axes_handle.CLim = [0 255];
+        
+        set(handles.axes_handle,'Xtick',[],'Ytick',[],'XLabel',[],'YLabel',[],...
+            );
+        handles.axes_handle.Position(3) = ...
+            handles.gui_fig.Position(3) - 5 - handles.axes_handle.Position(1);
+        handles.gui_fig.Position(3) = handles.gui_fig.Position(3)+1;
+        handles.gui_fig.Position(3) = handles.gui_fig.Position(3)-1;
+        
         % query the Enable states of objects in the gui
         clean_gui(handles.axes_handle);
         on_objs = findobj('Enable','on');
@@ -274,12 +287,19 @@ if ~isempty(expmt.hardware.cam)
         
         handles.Cam_preview_togglebutton.Enable = 'off';
         
+        % display notifications
+        note = gui_axes_notify(handles.axes_handle,'opening camera session');
         gui_notify('initializing camera',handles.disp_note);
         gui_notify('may take a few moments...',handles.disp_note);
-        imaqreset;
-        pause(0.01);
+        
+        % Clear old video objects
+        imaqreset
+        pause(0.2);
+
+        % Create camera object with input parameters
         expmt.hardware.cam = initializeCamera(expmt.hardware.cam);
         start(expmt.hardware.cam.vid);
+        cellfun(@delete,note);
         gui_notify('camera started, measuring frame rate...',handles.disp_note);
         drawnow
         
@@ -324,7 +344,6 @@ if ~isempty(expmt.hardware.cam)
 
         
         % set the colormap and axes ticks
-        colormap('gray');
         set(gca,'Xtick',[],'Ytick',[],'XLabel',[],'YLabel',[]);
         
         % reset the Enable states of objects in the gui
@@ -372,8 +391,6 @@ if ~isempty(expmt.hardware.cam)
                 '-bit image mode detected. Only 8-bit image modes are supported'],...
                 'Unsupported Camera Mode');
         end
-        
-        stop(expmt.hardware.cam.vid);
         
     else
         errordlg('Settings not confirmed, no camera detected');
@@ -1190,7 +1207,7 @@ function reference_pushbutton_Callback(hObject, ~, handles)
 expmt = getappdata(handles.gui_fig,'expmt');
 
 if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
-    %try
+    try
         toggleMenus(handles, 'off');
         expmt.meta.initialize = false;
         expmt = initializeRef(handles,expmt);
@@ -1215,8 +1232,11 @@ if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
                 handles.exp_parameter_pushbutton.Enable = 'on';
             end
          end
-%     catch
-%     end
+         catch ME
+            hObject.Enable = 'on';
+            msg=getReport(ME,'extended');
+            errordlg(msg);
+        end
     expmt.meta.initialize = true;
 else
     errordlg('Either ROI detection has not been run or no ROIs were detected.')
@@ -1240,7 +1260,7 @@ if ~isfield(expmt.meta.ref,'im')
     return
 end
 
-%try   
+try   
     expmt.meta.initialize = false;
     toggleMenus(handles, 'off');
     expmt = sampleNoise(handles,expmt);
@@ -1261,12 +1281,14 @@ end
         handles.exp_parameter_pushbutton.Enable = 'on';
     end
 
-%catch
-%end
+catch ME
+    hObject.Enable = 'on';
+    msg=getReport(ME,'extended');
+    errordlg(msg);
+end
 
 toggleMenus(handles, 'on');
 expmt.meta.initialize = true;
-
 
 % Store expmteriment data struct
 setappdata(handles.gui_fig,'expmt',expmt);
@@ -1371,9 +1393,6 @@ catch ME
     msg=getReport(ME,'extended');
     errordlg(msg);
 end
-
-% stop camera
-
 
 % Store expmteriment data struct
 toggleMenus(handles, 'on');

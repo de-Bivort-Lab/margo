@@ -65,7 +65,7 @@ trackDat.ct = trackDat.ct + 1;
 trackDat.in_fields = in_fields;
 
 % calculate difference image and current for vignetting
-switch trackDat.ref.bg_mode
+switch expmt.parameters.bg_mode
     case 'light'
         diffim = (trackDat.ref.im - expmt.meta.vignette.im) -...
                     (trackDat.im - expmt.meta.vignette.im);

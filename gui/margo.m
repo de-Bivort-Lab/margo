@@ -263,6 +263,20 @@ if ~isempty(expmt.hardware.cam)
     
     if ~isempty(expmt.hardware.cam.DeviceInfo)
         
+        if ~isfield(handles,'hImage') || ~ishghandle(handles.hImage)
+            bg_color = handles.gui_fig.Color;
+            im = ones(9,16).*bg_color(1);
+            handles.hImage = imagesc(im);
+            colormap('gray');
+            handles.axes_handle.CLim = [0 1];
+            set(handles.axes_handle,'Xtick',[],'Ytick',[],'XLabel',[],'YLabel',[],...
+                'XColor',bg_color,'YColor',bg_color);
+            handles.axes_handle.Position(3) = ...
+                handles.gui_fig.Position(3) - 5 - handles.axes_handle.Position(1);
+            handles.gui_fig.Position(3) = handles.gui_fig.Position(3)+1;
+            handles.gui_fig.Position(3) = handles.gui_fig.Position(3)-1;
+        end
+        
         % query the Enable states of objects in the gui
         clean_gui(handles.axes_handle);
         on_objs = findobj('Enable','on');
@@ -321,8 +335,13 @@ if ~isempty(expmt.hardware.cam)
         end
         
         clean_gui(handles.axes_handle);
+        delete(handles.hImage);
+        if size(im,3)>1
+            im = im(:,:,2);
+        end
         handles.hImage = imagesc(im);
-        set(handles.axes_handle,'Xtick',[],'Ytick',[],'XLabel',[],'YLabel',[]);
+        set(handles.axes_handle,'Xtick',[],'Ytick',[],'XLabel',[],'YLabel',[],...
+            'XColor','k','YColor','k');
         res = expmt.hardware.cam.vid.VideoResolution;
         handles.axes_handle.Position(3) = ...
             handles.gui_fig.Position(3) - 5 - handles.axes_handle.Position(1);
@@ -331,7 +350,6 @@ if ~isempty(expmt.hardware.cam)
 
         
         % set the colormap and axes ticks
-        colormap('gray');
         set(gca,'Xtick',[],'Ytick',[],'XLabel',[],'YLabel',[]);
         
         % reset the Enable states of objects in the gui
