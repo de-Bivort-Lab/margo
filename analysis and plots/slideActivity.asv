@@ -26,7 +26,7 @@ f = figure; hold on;
 vx = [medfilt1(win_dat,15,[],1); NaN(1,size(win_dat,2))];
 vy = [repmat(tStamps',1,size(win_dat,2)); NaN(1,size(win_dat,2))];
 ph_raw = patch('XData',vy,'YData',vx,'EdgeColor','k','LineWidth',0.25,...
-    'FaceColor','none','EdgeAlpha',(1/(log(1/expmt.meta.num_traces)+1))^2);
+    'FaceColor','none','EdgeAlpha',1/expmt.meta.num_traces);
 
 % plot mean and confidence interval
 vx = [tStamps fliplr(tStamps)];
@@ -137,7 +137,7 @@ title('Activity Trace');
 xlabel('Time of Day');
 ylabel('Speed');
 fname = [expmt.meta.path.fig expmt.meta.date '_activity trace'];
-if ~isempty(expmt.meta.path.fig) && expmt.meta.options.save
+if ~isempty(expmt.meta.path.fig) && options.save
     hgsave(f,fname);
     close(f);
 end
