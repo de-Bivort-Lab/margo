@@ -6,7 +6,7 @@ if strcmp(expmt.meta.source,'camera') && isfield(expmt.hardware.cam,'vid')
     if ~isvalid(expmt.hardware.cam.vid) || strcmp(expmt.hardware.cam.vid.Running,'off')
     
         % Clear old video objects
-        note = gui_axes_notify(gui_handles.axes_handle,'opening camera session');
+        gui_axes_notify(gui_handles.axes_handle,'opening camera session');
         imaqreset
         pause(0.2);
 
@@ -14,7 +14,6 @@ if strcmp(expmt.meta.source,'camera') && isfield(expmt.hardware.cam,'vid')
         expmt.hardware.cam = initializeCamera(expmt.hardware.cam);
         start(expmt.hardware.cam.vid);
         pause(0.1);
-        cellfun(@delete,note);
     
     elseif strcmp(expmt.hardware.cam.vid.Previewing,'on')
         

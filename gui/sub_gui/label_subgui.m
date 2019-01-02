@@ -22,7 +22,7 @@ function varargout = label_subgui(varargin)
 
 % Edit the above text to modify the response to help label_subgui
 
-% Last Modified by GUIDE v2.5 19-Jul-2018 15:46:55
+% Last Modified by GUIDE v2.5 19-Dec-2018 17:50:42
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -65,6 +65,8 @@ if ~isempty(expmt.meta.labels)
     if cellfun('isempty',label_data(1,8))
         label_data(1,8) = {1};
     end
+    
+    label_data(cellfun(@(d) any(isnan(d)),label_data)) = {''};
     handles.output=label_data;
     set(handles.labels_table, 'Data', label_data);
 else
@@ -86,6 +88,7 @@ handles.label_fig.Position(2) = gui_fig.Position(2) + ...
     sum(light_panel.Position([2 4])) - handles.label_fig.Position(4) - 25;
 
 % Update handles structure
+setappdata(handles.label_fig,'expmt',expmt);
 guidata(hObject, handles);
 
 % UIWAIT makes optomotor_parameter_gui wait for user response (see UIRESUME)
@@ -130,7 +133,60 @@ function labels_table_CellEditCallback(hObject, eventdata, handles)
 %	Error: error string when failed to convert EditData to appropriate value for Data
 % handles    structure with handles and user data (see GUIDATA)
 
-handles.output{eventdata.Indices(1), eventdata.Indices(2)} = eventdata.NewData;
+% retrieve ExperimentData
+expmt = getappdata(handles.label_fig,'expmt');
+
+
+idx = eventdata.Indices;
+new_data = eventdata.NewData;
+col_names = handles.labels_table.ColumnName;
+numeric_cols = {'ROI Start';'ROI End';'ID Start';'ID End';'Day #';'Box #';'Tray #'};
+if any(strcmpi(col_names{idx(2)},numeric_cols)) && ischar(new_data)
+    new_data= str2double(new_data);
+end
+if isnan(new_data)
+    hObject.Data{idx(1),idx(2)} = '';
+    handles.output{idx(1),idx(2)} = '';
+    return;
+end
+
+hObject.Data{idx(1), idx(2)} = new_data;
+row = hObject.Data(idx(1),:);
+
+% get ROI and ID ranges
+roi_start = row{1,strcmpi('ROI Start',col_names)};
+roi_end = row{1,strcmpi('ROI End',col_names)};
+id_start = row{1,strcmpi('ID Start',col_names)};
+
+% enforce valid ranges
+roi_start(roi_start<1) = 1;
+roi_start(roi_start>expmt.meta.roi.n) = expmt.meta.roi.n;
+roi_end(roi_end<1) = 1;
+roi_end(roi_end>expmt.meta.roi.n) = expmt.meta.roi.n;
+roi_end(roi_end<roi_start) = roi_start;
+
+% query available roi slots
+other_rows = [1:idx(1)-1 idx(1)+1:size(hObject.Data,1)];
+[unlabeled_rois, free_roi_start, free_roi_end] = ...
+    get_available_rois(hObject.Data(other_rows,:), expmt.meta.roi.n);
+if ~any(unlabeled_rois)
+    hObject.Data{idx(1), idx(2)} = '';
+    errordlg('Cannot assign additional labels. All available ROIs already assigned.');
+   return; 
+end
+if isempty(roi_start) || isempty(roi_end) || any(~unlabeled_rois(roi_start:roi_end))
+    roi_start = free_roi_start;
+    roi_end = free_roi_end;
+end
+
+% shift ID range if necessary
+id_end = id_start + roi_end - roi_start;
+hObject.Data{idx(1),strcmpi('ROI Start',col_names)} = roi_start;
+hObject.Data{idx(1),strcmpi('ROI End',col_names)} = roi_end;
+hObject.Data{idx(1),strcmpi('ID End',col_names)} = id_end;
+
+% update output
+handles.output{idx(1), idx(2)} = hObject.Data{idx(1),idx(2)};
 guidata(hObject, handles);
 
 
@@ -149,7 +205,7 @@ function clear_label_pushbutton_Callback(hObject, eventdata, handles)
 % hObject    handle to clear_label_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-data=cell(10,11);
+data=cell(5,11);
 data(:)={''};
 handles.output=data;
 set(handles.labels_table, 'Data', data);
@@ -164,3 +220,81 @@ function label_fig_CloseRequestFcn(hObject, eventdata, handles)
 
 % Hint: delete(hObject) closes the figure
 delete(hObject);
+
+
+% --- Executes when selected cell(s) is changed in labels_table.
+function labels_table_CellSelectionCallback(hObject, eventdata, handles)
+% hObject    handle to labels_table (see GCBO)
+% eventdata  structure with the following fields (see MATLAB.UI.CONTROL.TABLE)
+%	Indices: row and column indices of the cell(s) currently selecteds
+% handles    structure with handles and user data (see GUIDATA)
+
+% retrieve ExperimentData
+expmt = getappdata(handles.label_fig,'expmt');
+
+idx = eventdata.Indices;
+if isempty(idx)
+    return
+end
+row = hObject.Data(idx(1),:);
+prev_idx = idx(1)-1;
+col_names = hObject.ColumnName;
+
+if all(cellfun(@isempty,row)) && prev_idx
+    
+    % query available roi slots
+    [unlabeled_rois, roi_start, roi_end] = ...
+        get_available_rois(hObject.Data, expmt.meta.roi.n);
+    if ~any(unlabeled_rois)
+       return; 
+    end
+
+    row = hObject.Data(prev_idx,:);
+
+    % enforce valid ranges
+    roi_start(roi_start<1) = 1;
+    roi_start(roi_start>expmt.meta.roi.n) = expmt.meta.roi.n;
+    roi_end(roi_end<1) = 1;
+    roi_end(roi_end>expmt.meta.roi.n) = expmt.meta.roi.n;
+    roi_end(roi_end<roi_start) = roi_start;
+    
+    % ids
+    id_ranges = hObject.Data(:,strcmpi('ID end',col_names));
+    id_ranges(cellfun(@isempty,id_ranges)) = {[]};
+    id_ranges = cat(1,id_ranges{:});
+    id_start = max(id_ranges) + 1;
+    
+    % re-assign to labels table
+    row{1,strcmpi('ROI End',col_names)} = roi_end;
+    row{1,strcmpi('ROI Start',col_names)} = roi_start;
+    row{1,strcmpi('ID Start',col_names)} = id_start;
+    
+    % initialize ID range
+    id_end = id_start + roi_end - roi_start;
+    row{1,strcmpi('ID End',col_names)} = id_end;
+    
+    hObject.Data(idx(1),:) = row;
+end
+
+handles.output = hObject.Data;
+guidata(hObject,handles);
+
+
+function [is_unlabeled, roi_start, roi_end] = get_available_rois(data, max_n)
+
+label_ranges = data(:,4:5);
+label_ranges(cellfun(@isempty,label_ranges)) = {[]};
+labeled_rois = cellfun(@(r) r(1):r(2), ...
+    num2cell(cell2mat(label_ranges),2),'UniformOutput',false);
+labeled_rois = cat(2,labeled_rois{:});
+is_unlabeled = ~ismember(1:max_n,labeled_rois);
+unlabeled_rois = [0 diff(is_unlabeled)];
+
+roi_start = find(unlabeled_rois==1,1);
+roi_end = find(unlabeled_rois==-1,1)-1;
+if isempty(roi_start) || (~isempty(roi_end) && roi_end < roi_start)
+    roi_start = 1;
+end
+if isempty(roi_end)
+    roi_end = max_n;
+end

@@ -62,26 +62,23 @@ if ischar(expmt)
 end
 if ~isfield(expmt.meta,'video_out')
     expmt.meta.video_out = default_recording_settings();
+    expmt.meta.video_out.rate = expmt.parameters.target_rate;
 end
 handles.output = expmt;
 vid = expmt.meta.video_out;
 
 % update UI controls
 handles.record_vid_checkbox.Value = vid.record;
-handles.edit_vid_sample_rate.String = sprintf('%0.2f',vid.rate);
+handles.edit_vid_sample_rate.String = sprintf('%0.1f',vid.rate);
 record_vid_checkbox_Callback(handles.record_vid_checkbox, [], handles);
 handles.compress_checkbox.Value = vid.compress;
-handles.vid_subsample_checkbox.Value = vid.rate >= 0;
+handles.vid_subsample_checkbox.Value = vid.subsample;
+handles.video_index_checkbox.Value = vid.index;
 handles.image_source_popupmenu.Value = ...
     find(strcmpi(vid.source,handles.image_source_popupmenu.String));
-if vid.rate < 0
+if ~vid.subsample
     handles.edit_vid_sample_rate.Enable = 'off';
     handles.edit_subsample_label.Enable = 'off';
-end
-if any(strcmpi('video_index',expmt.meta.fields))
-    handles.video_index_checkbox.Value = true;
-else
-    handles.video_index_checkbox.Value = false;
 end
 
 % adjust subgui position
@@ -127,7 +124,7 @@ handles.output.meta.video_out.record = hObject.Value;
 switch hObject.Value
     case true
         set(findall(handles.vid_record_fig, '-property', 'Enable'),'Enable','on');
-        handles.vid_subsample_checkbox.Value = handles.output.meta.video_out.rate >= 0;
+        handles.vid_subsample_checkbox.Value = handles.output.meta.video_out.subsample;
     case false
         set(findall(handles.vid_record_fig, '-property', 'Enable'),'Enable','off');
         handles.vid_subsample_checkbox.Value = false;
@@ -163,17 +160,22 @@ switch hObject.Value
         handles.edit_vid_sample_rate.Enable = 'on';
         handles.edit_subsample_label.Enable = 'on';
         handles.video_index_checkbox.Enable = 'on';
+        handles.video_index_checkbox.Value = ...
+            handles.output.meta.video_out.index;
         handles.output_vid_index_label.Enable = 'on';
     case false
-        handles.output.meta.video_out.rate = -1;
-        handles.edit_vid_sample_rate.String = '-1';
+        handles.output.meta.video_out.rate = ...
+            handles.output.parameters.target_rate;
+        handles.edit_vid_sample_rate.String = ...
+            sprintf('%0.1f',handles.output.parameters.target_rate);
         handles.edit_vid_sample_rate.Enable = 'off';
         handles.edit_subsample_label.Enable = 'off';
         handles.video_index_checkbox.Enable = 'off';
         handles.output_vid_index_label.Enable = 'off';
         handles.video_index_checkbox.Value = false;
-        video_index_checkbox_Callback(handles.video_index_checkbox,[],handles);
 end
+video_index_checkbox_Callback(handles.video_index_checkbox,[],handles);
+handles.output.meta.video_out.subsample = hObject.Value;
 
 
 function edit_vid_sample_rate_Callback(hObject, eventdata, handles)
@@ -181,7 +183,10 @@ function edit_vid_sample_rate_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-handles.output.meta.video_out.rate = str2double(hObject.String);
+val = str2double(hObject.String);
+val(val<0)=0;
+hObject.String = sprintf('%0.1f',val);
+handles.output.meta.video_out.rate = val;
 guidata(hObject,handles);
 
 
@@ -226,6 +231,8 @@ function vid_out = default_recording_settings
 vid_out.record = false;
 vid_out.compress = false;
 vid_out.rate = -1;
+vid_out.subsample = false;
+vid_out.index = false;
 vid_out.source = 'raw image';
 vid_out.t = 0;
 
@@ -254,5 +261,6 @@ else
 end
 
 % update output fields list
+handles.output.meta.video_out.index = hObject.Value;
 handles.output.meta.fields = f;
 guidata(hObject,handles);

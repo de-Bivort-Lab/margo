@@ -13,6 +13,7 @@ else
     expmt.meta.VideoData.obj = VideoWriter(expmt.meta.VideoData.path,'Grayscale AVI');
 end
 expmt.meta.VideoData.FrameRate = expmt.parameters.target_rate;
+expmt.meta.VideoData.obj.FrameRate = expmt.parameters.target_rate;
 open(expmt.meta.VideoData.obj);
 
 % query resolution and precision
