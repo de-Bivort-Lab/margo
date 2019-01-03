@@ -28,7 +28,7 @@ if isfield(expmt.meta.noise,'dist') && ...
     include = include | above_thresh;
 end
 
-force_update = trackDat.ref.last_update >  trackDat.ref.freq * 60 * 3; 
+force_update = trackDat.ref.last_update >  1/trackDat.ref.freq * 3; 
 if any(force_update) && expmt.parameters.ref_freq > 1/120
     include = include | force_update;
     trackDat.ref.ct(force_update & ...

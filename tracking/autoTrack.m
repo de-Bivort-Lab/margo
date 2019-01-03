@@ -163,7 +163,6 @@ if record
 
     % extract blob properties
     props=regionprops(cc, in_fields);
-    trackDat.thresh_im = thresh_im;
 
     % track objects
     switch expmt.meta.track_mode
@@ -234,6 +233,8 @@ else
 end
     
 %% Assign outputs
+
+trackDat.thresh_im = thresh_im;
 
 % assign any optional sorted output fields to the trackDat
 % structure if listed in expmt.meta.fields. 
