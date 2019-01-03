@@ -263,7 +263,8 @@ if ~isempty(expmt.hardware.cam)
     
     if ~isempty(expmt.hardware.cam.DeviceInfo)
         
-        if ~isfield(handles,'hImage') || ~ishghandle(handles.hImage)
+        if ~isfield(handles,'hImage') || isempty(handles.hImage) || ...
+                ~ishghandle(handles.hImage)
             bg_color = handles.gui_fig.Color;
             im = ones(9,16).*bg_color(1);
             handles.hImage = imagesc(im);
