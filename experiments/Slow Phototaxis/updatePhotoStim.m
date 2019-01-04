@@ -22,6 +22,8 @@ function [trackDat, expmt] = updatePhotoStim(trackDat, expmt)
             % convert current fly position to stimulus coords
             proj_centroid = NaN(size(expmt.meta.roi.corners,1),2);
             c = double(trackDat.centroid);
+            c(isnan(c(:,1)),:) = expmt.meta.roi.centers(isnan(c(:,1)),:);
+            
             proj_centroid(:,1) = expmt.hardware.projector.Fx(c(:,1),c(:,2));
             proj_centroid(:,2) = expmt.hardware.projector.Fy(c(:,1),c(:,2));
             

@@ -116,7 +116,7 @@ function slowphototaxis_parameter_gui_OpeningFcn(hObject, eventdata, handles, va
 
 % Update handles structure
 expmt.parameters = params;
-handles.output = expmt.parameters;
+handles.output = expmt;
 guidata(hObject, handles);
 
 % UIWAIT makes slowphototaxis_parameter_gui wait for user response (see UIRESUME)
