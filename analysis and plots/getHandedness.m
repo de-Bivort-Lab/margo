@@ -63,6 +63,10 @@ h = h./sum(h);
 
 bw = bins(2)-bins(1);
 
+if size(h,2) > size(h,1)
+    h = h';
+end
+
 % save to expmt data struct
 hist = h;
 mu = -sin(sum(h .* (bins' + bw/2)));

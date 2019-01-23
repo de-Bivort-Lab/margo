@@ -13,7 +13,7 @@ switch expmt.meta.name
     case 'Arena Circling'
         expmt = analyze_arenacircling(expmt,varargin{:});
         
-    case 'Y-maze'
+    case 'Y-Maze'
         expmt = analyze_ymaze(expmt,varargin{:});
         
     case 'LED Y-maze'

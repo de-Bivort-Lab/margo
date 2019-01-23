@@ -39,7 +39,8 @@ if (lm.Coefficients{2,4})<0.05
     cc = [size(expmt.meta.ref.im,2)/2 size(expmt.meta.ref.im,1)/2]; 
     for j=1:nBatch    
         
-        reset(expmt);
+        reset(expmt.data.centroid);
+        reset(expmt.data.speed);
         % get x and y coordinates and normalize to camera center
         if j==nBatch
             idx = (j-1)*bsz+1:nf;
@@ -50,7 +51,7 @@ if (lm.Coefficients{2,4})<0.05
             squeeze(sqrt((expmt.data.centroid.raw(idx,1,:)-cc(1)).^2 +...
                 (expmt.data.centroid.raw(idx,2,:)-cc(2)).^2));
         spd = expmt.data.speed.raw(idx,:) - lm.Coefficients{2,1}.*cam_dist;
-        fwrite(expmt.data.(f).fID,spd',expmt.data.(f).precision);
+        fwrite(expmt.data.(f).fID, spd',expmt.data.(f).precision);
         clear cam_dist idx spd
     end
     fclose('all');

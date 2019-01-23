@@ -450,13 +450,15 @@ if any(strfind(callStr,'load('))
     j = j(numel(nest)-nest_idx+1);
     callInput = callStr(i+1:j-1);
     input_str = regexp(callInput,'''(.[^'']*)''','tokens');
-    isfile = cellfun(@(p) exist(p,'file'),input_str{:});
+    if ~isempty(input_str)
+        isfile = cellfun(@(p) exist(p,'file'),input_str{:});
 
-    if any(isfile)
-        tmp_path = input_str{find(isfile)};
-        if testPath(tmp_path, date_label)
-            fpath = tmp_path;
-            return
+        if any(isfile)
+            tmp_path = input_str{find(isfile)};
+            if testPath(tmp_path, date_label)
+                fpath = tmp_path;
+                return
+            end
         end
     end
 
@@ -487,6 +489,41 @@ if any(strfind(callStr,'load('))
             end
         end
     end  
+    
+    callVars = evalin('base','whos');
+    varNames = arrayfun(@(cv) cv.name, callVars, 'UniformOutput',false);
+    for i=1:numel(callArgs)
+        is_var = cellfun(@(cv) ...
+            strfind(callArgs{i},cv), varNames, 'UniformOutput', false);
+        tmp_var = varNames(cellfun(@(iv) numel(iv)==1 && iv==1, is_var));
+        if ~isempty(tmp_var)
+            tmp = evalin('base',tmp_var{1});
+            subscripts = regexp(callArgs{i},tmp_var{1},'split');
+            subscripts = subscripts(~cellfun(@isempty,subscripts));
+            
+            S = struct('type',[],'subs',[]);
+            type = regexp(subscripts{1},'[.{(]?','match');
+            if ~isempty(type) && any(strcmp({'{';'('},type(1)))
+                expr = '(?<=[{|\(]).*(?=[}|\)])';
+                S.subs = regexp(subscripts{1},expr,'match');
+                switch type{1}
+                    case '{', S.type = '{}';
+                    case '(', S.type = '()';
+                end
+                if any(strcmp(varNames,S.subs))
+                    for k=1:numel(S.subs)
+                        S.subs{k} = evalin('base',S.subs{k});
+                    end
+                end
+                tmp_path = subsref(tmp,S);
+                if exist(tmp_path,'file') && testPath(tmp_path, date_label)
+                    fpath = tmp_path;
+                    return
+                end
+            end
+        end
+    end
+    
 end
 
 end

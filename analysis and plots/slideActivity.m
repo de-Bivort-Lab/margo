@@ -131,7 +131,8 @@ else
 end
 
 % save fig
-set(gca,'XTick',tTick(1:hr_step:end),'XtickLabel',tickLabels(1:hr_step:end),...
+set(gca,'XTick',tTick(1:ceil(hr_step):end),...
+    'XtickLabel',tickLabels(1:ceil(hr_step):end),...
     'XLim',[tStamps(1) tStamps(end)]);
 title('Activity Trace');
 xlabel('Time of Day');

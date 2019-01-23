@@ -14,20 +14,23 @@ clearvars -except expmt options
 
 %% Analyze stimulus response
 
+% add new properties to LightStatus
+props = {'n';'iti';'trans';'occ'};
+addprops(expmt.data.LightStatus, props);
 
 % get stimulus transitions
-stim_trans = diff([zeros(1,expmt.meta.num_traces);expmt.LightStatus.data]);
+stim_trans = diff([zeros(1,expmt.meta.num_traces);expmt.data.LightStatus.raw()]);
 [r,c] = find(stim_trans ~= 0);
-expmt.LightStatus.trans = cell(expmt.meta.num_traces,1);
-expmt.LightStatus.n = NaN(expmt.meta.num_traces,1);
-expmt.LightStatus.iti = NaN(expmt.meta.num_traces,1);
+expmt.data.LightStatus.trans = cell(expmt.meta.num_traces,1);
+expmt.data.LightStatus.n = NaN(expmt.meta.num_traces,1);
+expmt.data.LightStatus.iti = NaN(expmt.meta.num_traces,1);
 for i = 1:expmt.meta.num_traces
-    expmt.LightStatus.trans(i) = {r(c==i)};
-    expmt.LightStatus.iti(i) = mean(diff(expmt.LightStatus.trans{i})).*nanmean(expmt.data.time.raw());
-    expmt.Lightstatus.n(i) = length(expmt.LightStatus.trans{i});
+    expmt.data.LightStatus.trans(i) = {r(c==i)};
+    expmt.data.LightStatus.iti(i) = mean(diff(expmt.data.LightStatus.trans{i})).*nanmean(expmt.data.time.raw());
+    expmt.data.LightStatus.n(i) = length(expmt.data.LightStatus.trans{i});
 end
 
-expmt.LightStatus.occ = nanmean(expmt.LightStatus.data);
+expmt.data.LightStatus.occ = nanmean(expmt.data.LightStatus.raw());
 
 %{
 % get indices of stim endings
@@ -78,15 +81,16 @@ end
 
 %% Get centroid relative to stimulus
 
-stimang = expmt.StimAngle;
-stimang(stimang>180)=stimang(stimang>180)-360;
-stimang = stimang * pi ./ 180;
-cen_theta = trackProps.theta - repmat(stimang',expmt.meta.num_frames,1);
-clearvars stimang
-
-expmt.StimCen.data = NaN(size(expmt.data.centroid.data));
-expmt.StimCen.data(:,1,:) = trackProps.r .* cos(cen_theta);
-expmt.StimCen.data(:,2,:) = trackProps.r .* sin(cen_theta);
+% stimang = expmt.StimAngle;
+% stimang(stimang>180)=stimang(stimang>180)-360;
+% stimang = stimang * pi ./ 180;
+% cen_theta = trackProps.theta - repmat(stimang',expmt.meta.num_frames,1);
+% clearvars stimang
+% 
+% stim_cen.data = NaN(size(expmt.data.centroid.raw()));
+% stim_cen.data(:,1,:) = trackProps.r .* cos(cen_theta);
+% stim_cen.data(:,2,:) = trackProps.r .* sin(cen_theta);
+% expmt.meta.StimCen = stim_cen;
 
 %% Bootstrap data to measure overdispersion
 %{
@@ -191,57 +195,6 @@ expmt.Blank.avg_occ = bocc;
 expmt.Light.active = tTotal>min_active_period&active;
 expmt.Blank.active = btTotal>min_active_period&active;
 %}
-
-%% Extract handedness from lights ON and lights OFF periods
-
-% blank period
-first_half = false(size(trackProps.speed));
-first_half(1:round(length(first_half)/2),:) = true;
-inc = first_half & trackProps.speed >0.8;
-expmt.handedness_First = getHandedness(trackProps,'Include',inc);
-%inc = repmat(~expmt.Texture.data,1,expmt.meta.num_traces) & trackProps.speed >0.8;
-%expmt.handedness_Blank = getHandedness(trackProps,'Include',inc);
- inc = ~first_half & trackProps.speed >0.8;
-expmt.handedness_Second = getHandedness(trackProps,'Include',inc);
-%inc = repmat(expmt.Texture.data,1,expmt.meta.num_traces) & trackProps.speed >0.8;
-%expmt.handedness_Light = getHandedness(trackProps,'Include',inc);
-
-if isfield(options,'plot') && options.plot
-    if isfield(options,'handles')
-        gui_notify('generating plots',options.handles.disp_note)
-    end
-    plotArenaTraces(expmt,'handedness_Blank');
-    plotArenaTraces(expmt,'handedness_Light');
-end
-
-f=figure(); 
-[r,p]=corrcoef([expmt.handedness_First.mu' expmt.handedness_Second.mu'],'rows','pairwise');
-sh=scatter(expmt.handedness_First.mu,expmt.handedness_Second.mu,...
-    'MarkerEdgeColor',[0 0 0],'MarkerFaceColor',[0.5 0.5 0.5]);
-sh.Parent.XLim = [-1 1];
-sh.Parent.YLim = [-1 1];
-xlabel('stimulus first half \mu');
-ylabel('stimulus second half \mu');
-dim = [.65 .78 .1 .1];
-str = ['r = ' num2str(round(r(2,1)*100)/100) ', p = ' num2str(round(p(2,1)*10000)/10000)...
-    ' (n=' num2str(expmt.meta.num_traces) ')'];
-annotation('textbox',dim,'String',str,'FitBoxToText','on');
-title('slow phototaxis - handedness');
-
-fname = [expmt.meta.path.fig expmt.meta.date '_handedness'];
-if ~isempty(expmt.meta.path.fig) && options.save
-    hgsave(f,fname);
-    close(f);
-end
-
-%% Generate plots
-
-if isfield(options,'plot') && options.plot
-    if isfield(options,'handles')
-        gui_notify('generating plots',options.handles.disp_note)
-    end
-    plotArenaTraces(expmt);
-end
 
 clearvars -except expmt options
 

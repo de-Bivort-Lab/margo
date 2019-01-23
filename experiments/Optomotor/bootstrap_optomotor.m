@@ -27,7 +27,9 @@ if isfield(expmt.meta.(field),'active')
     nf = numel(expmt.meta.(field).n);
 end
 
-
+expmt.meta.(field).n(...
+    expmt.meta.(field).n > size(expmt.meta.(field).sdist,1)) = ...
+        size(expmt.meta.(field).sdist,1);
 opto_index = NaN(nReps,nf);
 
 wh = waitbar(0,['iteration 0 out of ' num2str(nReps)]);
@@ -48,7 +50,7 @@ for j = 1:nReps
     for i = 1:nf
         
         fly_sub = ids{i};
-        trial_sub = ceil(expmt.meta.(field).n(fly_sub).*rand(length(i),1));
+        trial_sub = ceil(expmt.meta.(field).n(fly_sub).*rand(length(fly_sub),1));
         trial_sub(trial_sub==0)=1;
         idx = sub2ind(size(expmt.meta.(field).sdist),trial_sub,fly_sub);
         tmp = expmt.meta.(field).sdist(idx);

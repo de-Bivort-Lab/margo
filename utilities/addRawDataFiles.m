@@ -42,7 +42,7 @@ if ~isempty(new_fields)
         if initialize
 
             expmt.data.(new_fields{i}) = RawDataField('Parent',expmt);
-            expmt.data.(new_fields{i}).fID = fopen(path,'w');
+            expmt.data.(new_fields{i}).fID = fopen(path,'W');
             expmt.data.(new_fields{i}).precision = 'single';
             expmt.data.(new_fields{i}).dim = ...
                 [expmt.meta.num_frames expmt.meta.num_traces];

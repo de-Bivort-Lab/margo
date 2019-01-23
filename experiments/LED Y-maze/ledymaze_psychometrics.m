@@ -1,4 +1,4 @@
-function psychometrics = ledymaze_psychometrics(pwm,light_choice)
+function [psychometrics, fig_handles] = ledymaze_psychometrics(pwm,light_choice)
 % Compute individual and population psychometric curves for phototactic choice 
 % as a function of LED intensity.
 %
@@ -53,7 +53,7 @@ ci95 = cat(2,ci95{:});
 pwm_vals = log2(double(pwm_vals))';
 
 % plot
-figure; hold on;
+fig_handle =figure; hold on;
 plot(pwm_vals(2:end),mu(2:end),'k','LineWidth',1.5);
 vx = [pwm_vals(2:end) fliplr(pwm_vals(2:end)) pwm_vals(2)];
 vy = [ci95(1,2:end) fliplr(ci95(2,2:end)) ci95(1,2)];
@@ -67,7 +67,7 @@ legend({'mean';'95% CI';'no preference'},'Location','Northwest');
 uistack(ph,'down');
 
 % plot individual traces
-figure;
+fig_handle2 = figure;
 nrows = ceil(sqrt(size(pwm,2)));
 ncols = ceil(size(pwm,2)/nrows);
 for i=1:nrows*ncols
@@ -93,6 +93,8 @@ psychometrics.curves = psy_curv;
 psychometrics.mean = mu;
 psychometrics.CI95 = ci95;
 psychometrics.log2_pwm = pwm_vals;
+
+fig_handles = [fig_handle fig_handle2];
 
 
 

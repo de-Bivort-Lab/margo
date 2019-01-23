@@ -141,8 +141,22 @@ end
 % Compute psychometric curves if applicable
 switch expmt.parameters.led_mode
     case 'random'
-        expmt.meta.psychometrics = ...
+        [expmt.meta.psychometrics, fhs] = ...
             ledymaze_psychometrics(expmt.data.led_pwm.raw(),expmt.data.LightChoice.raw());
+        
+        % save psychmetric curve figure
+        fname = [expmt.meta.path.fig expmt.meta.date '_avg_psycho_curve'];
+        if ~isempty(expmt.meta.path.fig) && options.save
+            hgsave(fhs(1),fname);
+            close(fhs(1));
+        end
+        
+        % save individual psychometric curves
+        fname = [expmt.meta.path.fig expmt.meta.date '_ind_psycho_curves'];
+        if ~isempty(expmt.meta.path.fig) && options.save
+            hgsave(fhs(2),fname);
+            close(fhs(2));
+        end
 end
 
 %% Create histogram plots of turn bias and light choice probability
