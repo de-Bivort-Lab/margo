@@ -65,7 +65,9 @@ if trackDat.ramp.stat && ...
         trackDat.ramp.t = toc;
         trackDat.ramp.ct = trackDat.ramp.ct+1;
 
-        if trackDat.ramp.ct > expmt.hardware.light.white
+        if trackDat.ramp.ct > expmt.hardware.light.white || ...
+                trackDat.ramp.ct > numel(trackDat.ramp.int)
+            trackDat.ramp.ct = numel(trackDat.ramp.int);
             trackDat.ramp.stat = 0;
             trackDat.Light = uint8(expmt.hardware.light.white);
             gui_notify('lights finished ramping up',gui_handles.disp_note);
@@ -92,7 +94,9 @@ if trackDat.ramp.stat && ...
         trackDat.ramp.t = toc;
         trackDat.ramp.ct = trackDat.ramp.ct+1;
 
-        if trackDat.ramp.ct > expmt.hardware.light.white
+        if trackDat.ramp.ct > expmt.hardware.light.white ||...
+                trackDat.ramp.ct > numel(trackDat.ramp.int)
+            trackDat.ramp.ct = numel(trackDat.ramp.int);
             trackDat.ramp.stat = 0;
             trackDat.Light = uint8(0);
             gui_notify('lights finished ramping up',gui_handles.disp_note);
