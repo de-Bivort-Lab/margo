@@ -79,6 +79,7 @@ end
 
 old.hardware = new.hardware;        % assign current values for hardware settings
 old = reInitialize(old);                   % remove fields that must be re-defined each expmt
+old.hardware.cam.calibrate = handles.cam_calibrate_menu.UserData;
 
 % query camera calibration
 cam_dir = [handles.gui_dir '/hardware/camera_calibration/'];
