@@ -1,4 +1,4 @@
-function [varargout] = autoDataProcess(expmt,varargin)
+function [varargout] = autoDataProcess(expmt,varargin) 
 
 % This function does basic data processing common to all autotracker
 % experiments such as reading the data from the hard disk, formating it into
