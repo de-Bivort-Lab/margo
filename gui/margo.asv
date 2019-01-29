@@ -2552,8 +2552,9 @@ if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
     
      % Take single frame
     if strcmp(expmt.meta.source,'camera')
-        trackDat = [];
-        trackDat = autoFrame(trackDat,expmt,handles);
+        trackDat
+        autoFrame(
+        trackDat.im = peekdata(expmt.hardware.cam.vid,1);
     else
         [trackDat.im, expmt.meta.video] = nextFrame(expmt.meta.video,handles);
     end

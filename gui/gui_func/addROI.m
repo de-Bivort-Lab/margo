@@ -5,11 +5,14 @@ corners = [roi.corners; new_corners];
 [x,y] = ROIcenters(roi.im,corners);
 centers = [x,y];
 bounds = [corners(:,1:2) diff(corners(:,[1 3]),1,2) diff(corners(:,[2 4]),1,2)];
+new_pixIdx = getBoundsPixels(new_corners,size(roi.im));
+pixIdx = [roi.pixIdx; {new_pixIdx}];
 tol = expmt.parameters.roi_tol;
 [~,~,~,p] = sortROIs(tol, centers, corners, bounds);
 corners = corners(p,:);
 centers = centers(p,:);
 bounds = bounds(p,:);
+pixIdx = pixIdx(p);
 num_traces = [roi.num_traces; expmt.parameters.traces_per_roi];
 num_traces = num_traces(p);
 
@@ -22,7 +25,7 @@ roi.bounds = bounds;
 roi.orientation = orientation;
 roi.num_traces = num_traces;
 roi.n = roi.n + 1;
-roi.pixIdx = getBoundsPixels(corners,size(roi.im));
+roi.pixIdx = pixIdx;
 
 
 if isfield(expmt.meta.ref,'cen')
