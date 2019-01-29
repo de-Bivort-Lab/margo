@@ -32,6 +32,6 @@ switch expmt.Name
         expmt = analyze_circadian(expmt,varargin{:});
         
     otherwise
-        errordlg('Experiment name not recognized, no analysis performed');
+        warning('Experiment name not recognized, no analysis performed');
         
 end

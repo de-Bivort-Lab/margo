@@ -181,12 +181,13 @@ for i = 1:length(expmt.fields)
         % if .bin file still isn't found, try updating data path
         if expmt.(f).fID == -1
             
-            dinfo = dir(expmt.fdir);
-            fnames = {dinfo.name};
-            newpath = ~cellfun(@isempty,strfind(fnames,f));
-            expmt.(f).path = [expmt.fdir '/' dinfo(newpath).name];
+            newpath = getHiddenMatDir(expmt.fdir,'ext','.bin','keyword',f);
+            if numel(newpath) > 1
+               is_match = cellfun(@(p) any(strfind(p,expmt.date )), newpath);
+               newpath = newpath(find(is_match,1));
+            end
+            expmt.(f).path = newpath{1};
             expmt.(f).fID = fopen(expmt.(f).path,'r');
-            
         end
 
 
