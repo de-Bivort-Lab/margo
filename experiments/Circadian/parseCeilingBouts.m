@@ -1,32 +1,20 @@
 function expmt = parseCeilingBouts(expmt)
 
-% query available memory to determine how many batches to process data in
-[umem,msz] = memory;
-msz = msz.PhysicalMemory.Available;
-switch expmt.area.map.Format{1}
-    case 'single', prcn = 4;
-    case 'double', prcn = 8;
-end
-
-nbatch = msz / (prcn * expmt.meta.num_frames * expmt.meta.num_traces * 8 * 10);
-if nbatch < 1
-    bsz = floor(expmt.meta.num_frames * nbatch);
-else
-    bsz = expmt.meta.num_frames;
-end
-
-idx = round(linspace(1,expmt.meta.num_frames,bsz));
-
-
+% initialize waitbar
 hwb = waitbar(0,['processing trace 1 of ' num2str(expmt.meta.num_traces)],'Name','Parsing floor/ceiling bouts');
+
+% initialize placeholder values
 thresh = NaN(expmt.meta.num_traces,1);
-ints = NaN(expmt.meta.num_traces,1);
 means = NaN(expmt.meta.num_traces,2)';
 sigmas = NaN(expmt.meta.num_traces,2)';
-expmt.area.ceiling = false(expmt.meta.num_frames,expmt.meta.num_traces);
-expmt.area.floor = false(expmt.meta.num_frames,expmt.meta.num_traces);
 
+% add new properties to area
+props = {'ceiling';'floor';'thresh';'mean';'sigma';'gravity_index'};
+addprops(expmt.data.area, props);
+expmt.data.area.ceiling = false(expmt.meta.num_frames,expmt.meta.num_traces);
+expmt.data.area.floor = false(expmt.meta.num_frames,expmt.meta.num_traces);
 
+% find area threshold for each trace separately
 for i = 1:expmt.meta.num_traces
     
     if ishghandle(hwb)
@@ -42,14 +30,14 @@ for i = 1:expmt.meta.num_traces
     % find upper and lower area modes
     [tmp_i,tmp_means,tmp_sig] = fitBimodalHist(a);
     if ~isempty(tmp_i)
-        ints(i) = tmp_i;
+        thresh(i) = tmp_i;
         means(:,i) = tmp_means;
         sigmas(:,i) = tmp_sig;
     end
     
     % parse data into arena ceiling and floor frames
-    expmt.area.ceiling(:,i) = a > ints(i);
-    expmt.area.floor(:,i) = a < ints(i);
+    expmt.data.area.ceiling(:,i) = a > thresh(i);
+    expmt.data.area.floor(:,i) = a < thresh(i);
     clear a moving
 
 end
@@ -58,7 +46,13 @@ if ishghandle(hwb)
     delete(hwb);
 end
 
+% record means and standard deviations
+expmt.data.area.mean = means;
+expmt.data.area.sigma = sigmas;
+expmt.data.area.thresh = thresh;
+
 % get gravity index
-expmt.Gravity.index = (sum(expmt.area.ceiling,1)-sum(expmt.area.floor,1))'./...
-    (sum(expmt.area.ceiling,1)+sum(expmt.area.floor,1))';   
+expmt.data.area.gravity_index =...
+    (sum(expmt.data.area.ceiling,1)-sum(expmt.data.area.floor,1))'./...
+    (sum(expmt.data.area.ceiling,1)+sum(expmt.data.area.floor,1))';   
 

@@ -74,16 +74,16 @@ classdef ExperimentData < dynamicprops
                 cellfun(@fileparts, rawpaths,'UniformOutput',false);
                                     
             if isempty(rawpaths)
-                prompt = sprintf(['Raw data files for %s not found, please'...
-                    ' select the raw data directory'],name);
-                rawdir = uigetdir(obj.meta.path.dir,prompt);
-                if all(~rawdir)
-                    rawdir = '';
-                end
-                rawpaths = ...
-                    recursiveSearch(rawdir,'ext','.bin','keyword',obj.meta.date);
-                [~,rawnames] = ...
-                    cellfun(@fileparts, rawpaths,'UniformOutput',false);
+%                 prompt = sprintf(['Raw data files for %s not found, please'...
+%                     ' select the raw data directory'],name);
+%                 rawdir = uigetdir(obj.meta.path.dir,prompt);
+%                 if all(~rawdir)
+%                     rawdir = '';
+%                 end
+%                 rawpaths = ...
+%                     recursiveSearch(rawdir,'ext','.bin','keyword',obj.meta.date);
+%                 [~,rawnames] = ...
+%                     cellfun(@fileparts, rawpaths,'UniformOutput',false);
             end
                     
             for i=1:length(obj.meta.fields) 
@@ -260,10 +260,15 @@ classdef ExperimentData < dynamicprops
             fclose(fID);
         end
             
+        function delete(obj)
+            detach(obj);
+            delete(obj);
+        end
     end
+
     methods(Static)
         
-        function obj = loadobj(obj)
+        function obj = loadobj(obj,varargin)
             
             warning('off','MATLAB:m_missing_operator');
             if ~isfield(obj.meta.path,'dir') || isempty(obj.meta.path.name)
@@ -366,36 +371,22 @@ classdef ExperimentData < dynamicprops
                         for i=1:numel(callVars)
                             varName = callVars(i).name;
                             tmp = evalin('caller',varName);
-                            
-                            % check filepath if file
-                            if ischar(tmp) && exist(tmp,'file')==2
-                                fpath = tmp;
-                                if testPath(fpath, obj.meta.date)
-                                    obj = updatepaths(obj,fpath);
-                                    return
-                                end
-                            % look for file under dir if dir
-                            elseif ischar(tmp) && exist(tmp,'dir')==7
-                                fpaths = recursiveSearch(tmp,'ext','.mat','keyword',obj.meta.date);
-                                for j=1:numel(fpaths)
-                                    if testPath(fpaths{j}, obj.meta.date)
-                                        obj = updatepaths(obj,fpaths{j});
-                                        return
-                                    end
-                                end
+                            fpath = recursivePathTest(tmp,obj.meta.date);
+                            if ~isempty(fpath)
+                                obj = updatepaths(obj,fpath);
+                                return
                             end
                         end
+                        error('path not found');
                     catch
                         callVars = evalin('base','whos');
                         for i=1:numel(callVars)
                             varName = callVars(i).name;
                             tmp = evalin('caller',varName);
-                            if exist(tmp,'file')
-                                fpath = tmp;
-                                if testPath(fpath, obj.meta.date)
-                                    obj = updatepaths(obj,fpath);
-                                    return
-                                end
+                            fpath = recursivePathTest(tmp,obj.meta.date);
+                            if ~isempty(fpath)
+                                obj = updatepaths(obj,fpath);
+                                return
                             end
                         end
                     end
@@ -433,6 +424,38 @@ function status = testPath(fpath, date_label)
     [~,name,~] = fileparts(fpath);
     status = ~isempty(strfind(name, date_label));
     
+end
+
+function path = recursivePathTest(var, date_label)
+
+% check filepath if file
+if ischar(var) && exist(var,'file')==2
+    fpath = var;
+    if testPath(fpath, date_label)
+        path = fpath;
+        return
+    end
+% look for file under dir if dir
+elseif ischar(var) && exist(var,'dir')==7
+    fpaths = recursiveSearch(var,'ext','.mat','keyword',date_label);
+    for j=1:numel(fpaths)
+        if testPath(fpaths{j}, date_label)
+            path = fpaths{j};
+            return
+        end
+    end
+elseif iscell(var)
+    for j=1:numel(var)
+        tmp_path = recursivePathTest(var{j}, date_label);
+        if ~isempty(tmp_path)
+           path = tmp_path;
+           return;
+        end
+    end 
+end
+
+path = '';
+
 end
 
 

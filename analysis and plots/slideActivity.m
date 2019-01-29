@@ -79,7 +79,6 @@ end
 % Bin speed scores into time of day bins
 circ.bins = 0:23;
 circ.n = NaN(24,expmt.meta.num_traces);
-circ.bin_spd = NaN(24,expmt.meta.num_traces);
 circ.t = (tStamps + tStart)/3600;
 
 % find indices of each time bin

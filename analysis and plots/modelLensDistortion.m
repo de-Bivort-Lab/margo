@@ -5,8 +5,8 @@ function expmt = modelLensDistortion(expmt)
 [bsz, nBatch] = getBatchSize(expmt, 4);
 
 
-if expmt.meta.num_frames > 50000
-    smpl = sort(randperm(expmt.meta.num_frames,50000));
+if expmt.meta.num_frames > 10000
+    smpl = sort(randperm(expmt.meta.num_frames,10000));
 else
     smpl = 1:expmt.meta.num_frames;
 end
@@ -21,11 +21,15 @@ cam_dist = squeeze(sqrt((expmt.data.centroid.raw(smpl,1,:)-cc(1)).^2 +...
 detach(expmt.data.centroid);
 spd = expmt.data.speed.raw(smpl,:);
 reset(expmt);
-filt = ~isnan(spd) & spd~=0;
 
-spd_table = table(cam_dist(filt),spd(filt),...
-    'VariableNames',{'Center_Distance';'speed'});
-lm = fitlm(spd_table,'speed~Center_Distance');
+% find adaptive speed threshold
+[spd_thresh,~,~] = fitBimodalHist(log(spd));
+spd_thresh = exp(spd_thresh);
+spd_thresh = 0;
+filt = ~isnan(spd) & spd>spd_thresh;
+
+
+lm = fitlm(cam_dist(filt),spd(filt),'linear');
 expmt.meta.speed.model = lm;
 
 if (lm.Coefficients{2,4})<0.05

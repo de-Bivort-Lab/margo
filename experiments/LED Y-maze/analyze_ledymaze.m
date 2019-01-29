@@ -110,11 +110,10 @@ expmt.data.LightChoice.pBias = ...
 for i = 1:expmt.meta.num_traces
     
     idx = ~isnan(expmt.data.Turns.sequence(:,i));
-    s = expmt.data.LightChoice.sequence(idx,i);
+    s = expmt.data.LightChoice.sequence(idx,i)==1;
     r = expmt.data.LightChoice.pBias(i);
     n = expmt.data.LightChoice.n(i);
     t = expmt.data.Turns.t(idx,i);
-    iti = (t(2:end) - t(1:end-1));
     
     expmt.data.LightChoice.switchiness(i) = ...
         sum((s(1:end-1)+s(2:end))==1)/(2*r*(1-r)*n);

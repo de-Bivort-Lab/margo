@@ -121,11 +121,13 @@ if options.regress
         gui_notify('modeling lens distortion',...
             options.handles.disp_note)
     end
+    disp('modeling lens distortion');
     if isfield(expmt.data,'speed')
         expmt = modelLensDistortion(expmt);
     end
 end
 
+% initialize figure directory
 expmt.meta.path.fig = [expmt.meta.path.dir 'figures_' expmt.meta.date '/'];
 if options.save
     [mkst,~]=mkdir(expmt.meta.path.fig);
@@ -134,14 +136,30 @@ if options.save
     end
 end
 
-if isfield(expmt.data,'speed') && isattached(expmt.data.speed) ...
-    
+% seperate floor/ceiling bouts if flagged
+reset(expmt);
+if isfield(expmt.data,'area') && isattached(expmt.data.area) && ...
+        isfield(options,'areathresh') && options.areathresh
+
     if isfield(options,'handles')
-        gui_notify('resampling speed data, may take a few minutes',...
-            options.handles.disp_note)
+        gui_notify('finding area thresholds',options.handles.disp_note);
     end
+    disp('finding area thresholds');
+    expmt = parseCeilingBouts(expmt);
     
+end
+
+% speed based post-processing features
+if isfield(expmt.data,'speed') && isattached(expmt.data.speed) ...
+   
+    % movement bout parsing
     if options.bouts || options.bootstrap
+        if isfield(options,'handles')
+            gui_notify('parsing movement bouts',...
+                options.handles.disp_note)
+        end
+        disp('parsing movement bouts');
+        
         % chunk speed data into individual movement bouts
         [block_indices, lag_thresh, speed_thresh] = blockActivity(expmt);
         expmt.meta.speed.thresh = speed_thresh;
@@ -149,7 +167,14 @@ if isfield(expmt.data,'speed') && isattached(expmt.data.speed) ...
         expmt.meta.speed.bouts.idx = block_indices;
     end
     
+    % speed bootstrapping
     if options.bootstrap
+        if isfield(options,'handles')
+            gui_notify('resampling speed data, may take a few minutes',...
+                options.handles.disp_note)
+        end
+        disp('resampling speed data, may take a few minutes');
+    
         % bootstrap resample speed data to generate null distribution
         [expmt.meta.speed.bs,f] = bootstrap_speed_blocks(expmt,block_indices,100);
 
@@ -161,7 +186,14 @@ if isfield(expmt.data,'speed') && isattached(expmt.data.speed) ...
         end
     end
     
+    % speed sliding window
     if options.slide
+        if isfield(options,'handles')
+            gui_notify('computing speed sliding window',...
+                options.handles.disp_note)
+        end
+        disp('computing speed sliding window');
+        
         % get sliding average of activity level
         expmt = slideActivity(expmt);
     end
@@ -170,6 +202,7 @@ end
 if isfield(options,'handles')
     gui_notify('processing complete',options.handles.disp_note)
 end
+disp('processing complete');
 
 
 for i=1:nargout

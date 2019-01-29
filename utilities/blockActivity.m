@@ -18,7 +18,6 @@ function [varargout] = blockActivity(expmt)
 % cutoff for bout discretization
 % 
 
-fprintf('\t ...segmenting traces into movement bouts\n');
 spd = expmt.data.speed;
 reset(spd);
 

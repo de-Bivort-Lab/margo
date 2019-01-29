@@ -29,7 +29,7 @@ for i=1:numel(varargin)
     end
 end
 
-th = text(ax,position(1),position(2),msg,'color',color,'HitTest','off',...
+th = text(position(1),position(2),msg,'color',color,'Parent',ax,'HitTest','off',...
     'HorizontalAlignment',align,'FontWeight','bold','FontSize',fontsize);
 th.Units = 'normalized';
 
@@ -45,7 +45,7 @@ vx = [x(1) x(1) x(2) x(2) x(1)] + 0.1.*[-1 -1 1 1 -1];
 vy = [y(1) y(2) y(2) y(1) y(1)] + 0.1.*[-1 1 1 -1 -1];
 
 % draw new patch
-ph = patch(ax,'XData',vx,'YData',vy,'FaceColor',[1 1 1],...
+ph = patch(ax,'XData',vx,'YData',vy,'FaceColor',[1 1 1],'Parent',ax,...
     'FaceAlpha',alpha,'EdgeColor','none','HitTest','off');
 uistack(ph,'down');
 

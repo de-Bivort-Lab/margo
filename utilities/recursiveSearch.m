@@ -21,6 +21,10 @@ for i=1:length(varargin)
     end
 end
 
+if any(strcmp({'\';'/'},fDir(end)))
+    fDir(end) = [];
+end
+
 % pack input options into cell
 opts = [opts{:} {'ext',target_ext}];
 

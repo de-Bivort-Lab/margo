@@ -5,13 +5,8 @@ function [batch_size, batch_num] = getBatchSize(expmt, batch_scale)
 
 [~,msz] = memory;
 msz = msz.PhysicalMemory.Available;
-switch expmt.data.centroid.precision
-    case 'double'
-        cen_prcn = 8;
-    case 'single'
-        cen_prcn = 4;
-end
 full_size = ...
-    expmt.meta.num_traces * expmt.meta.num_frames * (cen_prcn*2 + batch_scale);
+    expmt.meta.num_traces * expmt.meta.num_frames * ...
+    (bytes_per_el(expmt.data.centroid.precision)*2 + batch_scale);
 batch_num = ceil(full_size/msz * 2);
 batch_size = ceil(expmt.meta.num_frames/batch_num);

@@ -5,12 +5,7 @@ function slice_data = autoSlice(expmt,f,roi_num)
 
 
 % renaming vars for shorthand
-if isfield(expmt.data.(f),'precision')
-    p = expmt.data.(f).precision;
-elseif strcmp(f,'speed')
-    expmt.data.(f).precision = expmt.data.centroid.precision;
-    p = expmt.data.(f).precision;
-end
+p = expmt.data.(f).precision;
 format = [p '=>' p];
 skip = expmt.meta.num_traces - 1;
 

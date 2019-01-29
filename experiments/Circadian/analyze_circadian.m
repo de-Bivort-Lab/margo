@@ -10,33 +10,6 @@ function expmt = analyze_circadian(expmt,varargin)
 
 [expmt,options] = autoDataProcess(expmt,varargin{:});
 
-clearvars -except expmt trackProps options
-
-
-%% get individual area thresholds for separating frames at the ceiling and floor of the well
-
-if isfield(expmt,'area') && isfield(expmt.area,'map') && ...
-        isfield(options,'area_threshold') && options.area_threshold
-
-    if isfield(options,'handles')
-        gui_notify('finding area thresholds',options.handles.disp_note);
-    end
-    expmt = parseCeilingBouts(expmt);
-    
-end
-    
-
-%% Generate plots
-
-if isfield(options,'plot') && options.plot
-    if isfield(options,'handles')
-        gui_notify('generating plots',options.handles.disp_note)
-    end
-    plotArenaTraces(expmt);
-end
-
-clearvars -except expmt options
-
 %% Clean up files and wrap up analysis
 
 autoFinishAnalysis(expmt,options)

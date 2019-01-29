@@ -22,6 +22,7 @@ roi.bounds = bounds;
 roi.orientation = orientation;
 roi.num_traces = num_traces;
 roi.n = roi.n + 1;
+roi.pixIdx = getBoundsPixels(corners,size(roi.im));
 
 
 if isfield(expmt.meta.ref,'cen')
@@ -44,3 +45,12 @@ if isfield(expmt.meta.noise,'roi_dist')
     expmt.meta.noise.roi_dist = cat(2,expmt.meta.noise.roi_dist,all_vals(rand_idx));
     expmt.meta.noise.roi_dist(:,p);
 end
+
+
+function pL = getBoundsPixels(corners,dim)
+
+ corners = [floor(corners(1:2)) ceil(corners(3:4))];
+ corners(corners==0) = 1;
+ [x,y] = meshgrid(corners(1):corners(3),corners(2):corners(4));
+ pL = [x(:) y(:)];
+ pL = sub2ind(dim,pL(:,2), pL(:,1));
