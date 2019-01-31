@@ -1,10 +1,19 @@
-function [fig_handle, varargout] = autoPlotDist(data, filter, varargin)
+function [fig_handle, bins] = autoPlotDist(data, filter, varargin)
 
 ah = [];
+plot_opts = {'LineWidth'; 2};
 for i=1:numel(varargin)
-    if ishghandle(varargin{i}) && strcmpi(varargin{i}.Type,'axes')
+    arg = varargin{i};
+    if any(ishghandle(arg)) && strcmpi(arg.Type,'axes')
         hold on;
-        ah = varargin{i};
+        ah = arg;
+    end
+    if ischar(arg)
+        switch arg
+            case 'PlotOptions'
+                i=i+1;
+                plot_opts = varargin{i};
+        end
     end
 end
 
@@ -12,6 +21,7 @@ if ~isempty(ah)
     fh = ah.Parent;
 else
     fh = figure();
+    ah = gca;
 end
 
 % Histogram for stimulus ON period
@@ -32,9 +42,14 @@ data = data(filter,:);
 [kde, x] = ksdensity(data, linspace(lb,ub,100));
 
 
-lh = plot(x, kde,'Linewidth',2);
-set(gca, 'Xtick',bins, 'XLim', [bins(1) bins(end)],...
-    'Ylim', [0 max(kde)*1.1], 'TickLength', [0 0]);
+lh = plot(x, kde,plot_opts{:});
+all_lines = findobj(ah,'-depth',1,'Type','Line');
+xdata = arrayfun(@(l) l.XData, all_lines, 'UniformOutput', false);
+xdata = cat(2,xdata{:});
+ydata = arrayfun(@(l) l.YData, all_lines, 'UniformOutput', false);
+ydata = cat(2,ydata{:});
+set(ah, 'Xtick', bins, 'XLim', [min(xdata) max(xdata)],...
+    'Ylim', [0 max(ydata)*1.1], 'TickLength', [0 0]);
 ylabel('probability density');
 % add bs and obs patch
 x = [x(1) x];
