@@ -2,14 +2,22 @@ function [varargout] = fitBimodalHist(data)
 
 % get bimodal gaussian fit
 data = data(~isnan(data));
-data=data(data>0.25);
-opt.MaxIter = 5000;
+data = data(~isinf(data));
+
+% shrink data to reduce computation time and over fitting
+if numel(data) > 20000
+    data = data(randi(numel(data),[20000,1]));
+end
+opt.MaxIter = 1000;
 intersections = NaN;
 gmm.mu = [NaN;NaN];
 gmm.Sigma = [NaN;NaN];
 
 if length(data) > opt.MaxIter
     
+    if size(data,1) < size(data,2)
+        data = data';
+    end
     gmm = fitgmdist(data,2,'Options',opt);
 
     intersections = gaussIntersect(gmm.mu(1),gmm.mu(2),gmm.Sigma(1),gmm.Sigma(1));

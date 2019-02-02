@@ -1,41 +1,84 @@
-function block_indices = blockActivity(speed)
+function [varargout] = blockActivity(expmt)
 
-moving = speed > 0.001;
-transitions = int8([zeros(1,size(moving,2));diff(moving)]);
+% blockActivity divides margo speed traces into discreet bouts
+%
+% input:
+%   s_map           ->  memmap to raw speed data file (ie. expmt.data.speed.map)
+%
+% outputs:
+%
+%   block_indices   ->  nBouts x 2 cell array of frame indices where bout
+%                       transitions occurred
+%   lag_thresh      ->  autocorrelation lag threshold value in number of
+%                       frames for defining duration of movement bouts
+%   speed_thresh    ->  threshold value acquired by fitting two-component 
+%                       gmm to log(speed) and computing intersection
+%
+% compute autocorrelation and find conservative 
+% cutoff for bout discretization
+% 
 
-% get activity bout stops
-[row,col]=find(transitions==-1);
-stops = arrayfun(@(k) blockByID(k,row,col), 1:size(moving,2),'UniformOutput',false);
+spd = expmt.Speed.data;
 
-% get activity bout starts
-[row,col]=find(transitions==1);
-starts = arrayfun(@(k) blockByID(k,row,col), 1:size(moving,2),'UniformOutput',false);
+if size(spd,1) < 50000
+    smpl = 1:size(spd,1);
+else
+    smpl = 1:50000;
+end
 
-% get num starts and stops for each animal
-nStarts = cell2mat(cellfun(@size,starts(:),'UniformOutput',false));
-nStarts=nStarts(:,1);
-nStops = cell2mat(cellfun(@size,stops(:),'UniformOutput',false));
-nStops=nStops(:,1);
+% compute autocorrelation
+s = spd(smpl,:);
+ac = acf(s(~isnan(s)),250);
+lag_thresh = find(meanFilter(diff(ac),20)>-0.01,1)*1.8 + 1;
 
-% get the average interframe interval and compute minimum bout length in
-% num frames
 
+% median filter data by lag_thresh/2 to discretize bouts
+if (lag_thresh>1)
+    s = medfilt1(s,round(lag_thresh/2),[],1);
+end
+
+% find speed threshold cutoff from log speed
+[intersect] = fitBimodalHist(log(s(:)));
+speed_thresh = exp(intersect);
+
+% find frames where transitioned from 
+moving = s > speed_thresh;
+
+
+transitions = diff(moving,1,1);
+clear moving
+transitions = cat(1,zeros(1,size(transitions,2)),transitions);
+transitions = num2cell(transitions,1);
+
+% get activity bout stops and starts
+stops = cellfun(@(x,y) find(x==-1), transitions,'UniformOutput',false);
+starts = cellfun(@(x,y) find(x==1), transitions,'UniformOutput',false);
+
+% free speed map
+clear s moving transitions
 
 % filter by bout lengths
-block_indices = arrayfun(@filterShortBouts,starts,stops,'UniformOutput',false);
+block_indices = arrayfun(@(x,y) ...
+                filterShortBouts(x,y,lag_thresh),...
+                starts,stops,'UniformOutput',false);
+            
+            
+for i=1:nargout
+    switch i
+        case 1, varargout{i} = block_indices;
+        case 2, varargout{i} = lag_thresh;
+        case 3, varargout{i} = speed_thresh;
+    end
+end
 
 
 
-function idx = blockByID(id,r,c)
-
-    idx = r(c==id);
     
-    
-function idx = filterShortBouts(starts,stops)
+function idx = filterShortBouts(starts,stops,duration)
 
+    % discard last bout if it starts but doesn't end
     if any(size(starts{:}) ~= size(stops{:}))
-        
-        % determine which comes first
+
         start_end = length(starts{:}) > length(stops{:});
        
         if start_end
@@ -45,25 +88,16 @@ function idx = filterShortBouts(starts,stops)
         end
     end
     
-    if any(size(starts) ~= size(stops))
-        disp('break');
-    end
 
-    if length(starts{:})>0 && length(stops{:})>0
+    if ~isempty(starts) && ~isempty(stops)
         bout_length = abs(starts{:}-stops{:});
-        long_bout = bout_length > 15;
+        long_bout = bout_length > duration;
         idx = [starts{:}(long_bout) stops{:}(long_bout)];
 
         if size(idx,1)>1
             % ensure that lower index comes first
-            [~,i]=min(idx');
-            idx(i==2,:) = idx(i==2,[2 1]);
-
-            % shift indices to get bouts
-            idx = [idx;[idx(1:length(idx)-1,2) idx(2:end,1)]];
-
-            bout_length = idx(:,2)-idx(:,1);
-            idx(bout_length<30,:)=[];
+            [~,i]=min(idx,[],2);
+            idx(i==2,:)=[];
         end
     else
         idx = [];

@@ -18,11 +18,40 @@ clearvars -except expmt trackProps meta
 if isfield(expmt,'Area') && isfield(expmt.Area,'data') && ~isfield(expmt.Area,'thresh')
     
     % find threshold for each individual
-    moving = expmt.Speed.data > 0.8;
+    moving = expmt.Speed.data > expmt.Speed.thresh;
+    moving = moving & expmt.Area.data > 30*expmt.parameters.mm_per_pix^2;
     expmt.Area.data(~moving) = NaN;
-    a = num2cell(expmt.Area.data,1);
+    Area = num2cell(expmt.Area.data,1);
     disp('finding area thresholds');
-    [ints,means,sigmas] = cellfun(@fitBimodalHist,a,'UniformOutput',false);
+    %[ints,means,sigmas] = cellfun(@fitBimodalHist,a,'UniformOutput',false);
+    %ints = cellfun(@(d) graythresh(d(~isnan(d)))*max(d(~isnan(d))),a,'UniformOutput', false);
+    [area_thresholds, mode_means] = ...
+        cellfun(@kthresh_distribution, Area, 'UniformOutput', false);
+
+    
+    figure;
+    nCols = ceil(0.125*expmt.nTracks);
+    nRows = ceil(expmt.nTracks/nCols);
+    for i=1:expmt.nTracks
+        subplot(8,12,i);
+        if ~isempty(ints{i})
+            [kde,x] = ksdensity(expmt.Area.data(:,i));
+            plot(x,kde,'k','LineWidth',1);
+            hold on
+            y = get(gca,'YLim');
+            vx = [repmat([mode_means{i}(1) mode_means{i}(2)],2,1); NaN(1,2)];
+            vy = repmat([y'; NaN],1,2);
+            plot(vx(:),vy(:),'b','LineWidth',0.5);
+            plot([ints{i} ints{i}],y,'r','LineWidth',0.5);
+            hold off
+        end
+        if mod(i,12)==1
+            ylabel('density');
+        end
+        if i>84
+            xlabel(
+        end
+    end
 
     expmt.Area.thresh = NaN(expmt.nTracks,1);
     expmt.Area.thresh(~cellfun(@isempty,ints)) = [ints{:}];

@@ -274,7 +274,7 @@ expmt.DecFrames = size(expmt.Centroid.data,1);
 % handedness for each track. Resulting handedness scores are stored in
 % the master data struct.
 [expmt,trackProps] = processCentroid(expmt);
-trackProps.turning(trackProps.speed<0.1) = NaN;
+trackProps.turning(trackProps.speed<0.001) = NaN;
 expmt.handedness.index = nansum(trackProps.turning)./nansum(abs(trackProps.turning));
 expmt.Speed.data = trackProps.speed;
 
@@ -288,7 +288,7 @@ if meta.regress
     expmt = modelLensDistortion(expmt);
 end
 expmt.Speed.avg = nanmean(expmt.Speed.data);
-expmt.Speed.active = expmt.Speed.avg > 0.1;
+expmt.Speed.active = expmt.Speed.avg > 0.001;
 
 expmt.figdir = [expmt.fdir 'figures_' expmt.date '/'];
 if ~exist(expmt.figdir,'dir') && meta.save
@@ -301,7 +301,10 @@ end
 if isfield(trackProps,'speed') && meta.bootstrap
     
     % chunk speed data into individual movement bouts
-    block_indices = blockActivity(trackProps.speed);
+    [block_indices,lag_thresh,speed_thresh] = blockActivity(expmt);
+    expmt.Speed.bout_idx = block_indices;
+    expmt.Speed.lag_thresh = lag_thresh;
+    expmt.Speed.thresh = speed_thresh;
     
     % bootstrap resample speed data to generate null distribution
     [expmt.Speed.bs,f]=bootstrap_speed_blocks(expmt,trackProps,block_indices,100);

@@ -18,7 +18,6 @@ for j = 1:expmt.nTracks
     iny = expmt.Centroid.data(:,2,j)-expmt.ROI.centers(j,2);
     trackProps.speed(:,j) = zeros(size(inx,1),1);
     trackProps.speed(2:end,j) = sqrt(diff(inx).^2+diff(iny).^2);   
-    trackProps.speed(trackProps.speed(:,j) > 12, j) = NaN;
     center=0;
     
     % calculate the radial distance from the ROI center
@@ -37,6 +36,11 @@ for j = 1:expmt.nTracks
     
     clearvars mu h inx iny
     
+end
+
+% convert speed
+if isfield(expmt.parameters,'mm_per_pix')
+   trackProps.speed = trackProps.speed .* expmt.parameters.mm_per_pix;
 end
 
 % restrict frames for handedness measures to set criteria

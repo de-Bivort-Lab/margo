@@ -1,4 +1,4 @@
-function varargout = getSlidingWindow(expmt,f,win_sz,stp_sz,varargin)
+function varargout = getSlidingWindow(expmt,f,win_sz,stp_sz,sampling_rate,varargin)
 
 % extracts time averaged trace of expmt field (f) by sliding a window of length
 % win_sz over the data at intervals of stp_sz from the data
@@ -30,20 +30,33 @@ end
 h = waitbar(0,['iteration 0 out of ' num2str(expmt.nTracks)]);
 h.Name = ['Sliding ' f ' window'];
 
-first_idx = round(length(expmt.(f).data)/win_sz)+1;
-r = floor(win_sz/2);
-idx = r+1:stp_sz:length(expmt.(f).data);
+% calculate frame_rate
+fr = nanmedian(expmt.Time.data);
+win_sz = round(win_sz/fr*60);
+stp_sz = round(stp_sz/1/fr*60);
+s = round(sampling_rate/1/fr*60);
 
+
+first_idx = round(expmt.nFrames/win_sz)+1;
+r = floor(win_sz/2);
+win_idx = r+1:stp_sz:expmt.nFrames-r;
+idx = repmat(win_idx',1,floor(win_sz/s)+1);
+idx = idx + repmat(-r:s:r,size(idx,1),1);
 
 % perform the operation
-win_dat = NaN(length(idx),expmt.nTracks);
+win_dat = NaN(size(idx,1),expmt.nTracks);
 for i = 1:expmt.nTracks
     
-    if ishghandle(h);
-        waitbar(i/expmt.nTracks,h,['iteration ' num2str(i) ' out of ' num2str(expmt.nTracks)]);
+    if ishghandle(h)
+        waitbar(i/expmt.nTracks,h,['iteration '...
+            num2str(i) ' out of ' num2str(expmt.nTracks)]);
     end
     
-    win_dat(:,i) = arrayfun(@(k) slide_win(expmt.(f).data(:,i),k,r,fh), idx);
+    dat = expmt.Speed.data(:,i);
+    dat = num2cell(reshape(dat(idx(:)),size(idx)),2);
+    win_dat(:,i) = cellfun(fh,dat);
+    clear dat
+    
 end
 
 if ishghandle(h)
@@ -54,7 +67,7 @@ end
 for i = 1:nargout
     switch i
         case 1, varargout(i) = {win_dat};
-        case 2, varargout(i) = {idx};
+        case 2, varargout(i) = {win_idx};
         case 3, varargout(i) = {r};
     end
 end
@@ -62,10 +75,9 @@ end
 
 
 
-function out = slide_win(dat,idx,r,fh)
+function out = slide_win(dat,fh)
 
-    out = feval(fh,dat(idx-r:idx+1,:));
-
+    out = feval(fh,dat);
 
 
 

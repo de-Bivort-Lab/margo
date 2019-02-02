@@ -18,24 +18,57 @@ clearvars -except expmt trackProps meta
 if isfield(expmt,'Area') && isfield(expmt.Area,'data') && ~isfield(expmt.Area,'thresh')
     
     % find threshold for each individual
-    moving = expmt.Speed.data > 0.8;
-    expmt.Area.data(~moving) = NaN;
-    a = num2cell(expmt.Area.data,1);
+    filt = expmt.Speed.data > expmt.Speed.thresh;
+    filt = filt & expmt.Area.data > 30*expmt.parameters.mm_per_pix^2;
+    Area = expmt.Area.data;
+    Area(~filt) = NaN;
+    Area = num2cell(expmt.Area.data,1);
     disp('finding area thresholds');
-    [ints,means,sigmas] = cellfun(@fitBimodalHist,a,'UniformOutput',false);
+    [area_thresholds, mode_means] = ...
+        cellfun(@kthresh_distribution, Area, 'UniformOutput', false);
 
-    expmt.Area.thresh = NaN(expmt.nTracks,1);
-    expmt.Area.thresh(~cellfun(@isempty,ints)) = [ints{:}];
-    expmt.Area.modeMeans = NaN(expmt.nTracks,2);
-    expmt.Area.modeMeans(~cellfun(@isempty,means),:) = [means{:}]';
-    expmt.Area.modeSigmas = NaN(expmt.nTracks,2);
-    expmt.Area.modeSigmas(~cellfun(@isempty,sigmas),:) = [sigmas{:}]';
+    % plot individual distributions
+    f=figure;
+    nCols = ceil(0.125*expmt.nTracks);
+    nRows = ceil(expmt.nTracks/nCols);
+    for i=1:expmt.nTracks
+        subplot(nRows,nCols,i);
+        if ~isempty(area_thresholds{i})
+            [kde,x] = ksdensity(expmt.Area.data(:,i));
+            plot(x,kde,'k','LineWidth',1);
+            hold on
+            y = get(gca,'YLim');
+            vx = [repmat([mode_means{i}(1) mode_means{i}(2)],2,1); NaN(1,2)];
+            vy = repmat([y'; NaN],1,2);
+            plot(vx(:),vy(:),'b','LineWidth',0.5);
+            plot([area_thresholds{i} area_thresholds{i}],y,'r','LineWidth',0.5);
+            hold off
+        end
+        if mod(i,nCols)==1
+            ylabel('density');
+        end
+        if i>nCols*(nRows-1)
+            xlabel('area');
+        end
+    end
+    
+    % save fig
+    fname = [expmt.figdir expmt.date '_individual_area_thresholds'];
+    if ~isempty(expmt.figdir) && meta.save
+        hgsave(f,fname);
+        close(f);
+    end
+
+    expmt.Area.thresh = area_thresholds;
+    expmt.Area.modeMeans = mode_means;
     
     % parse data into arena ceiling and floor frames
-    ints(cellfun(@isempty,ints))={NaN};
-    expmt.Area.ceiling = cellfun(@(x,y) x>y, a,ints,'UniformOutput',false);
+    area_thresholds(cellfun(@isempty,area_thresholds))={NaN};
+    expmt.Area.ceiling = cellfun(@(x,y) x>y, Area, ...
+        area_thresholds,'UniformOutput',false);
     expmt.Area.ceiling = cat(2,expmt.Area.ceiling{:});
-    expmt.Area.floor = cellfun(@(x,y) x<y, a,ints,'UniformOutput',false);
+    expmt.Area.floor = cellfun(@(x,y) x<y, Area, ...
+        area_thresholds,'UniformOutput',false);
     expmt.Area.floor = cat(2,expmt.Area.floor{:});
     
     % get gravity index
@@ -52,7 +85,6 @@ if isfield(expmt,'Area') && isfield(expmt.Area,'data') && ~isfield(expmt.Area,'t
     tmpcv = expmt.handedness.circum_vel;
     tmpcv(expmt.Area.ceiling) = -tmpcv(expmt.Area.ceiling);
     h = histc(tmpcv,bins);
-    %h = histc(handedness.circum_vel(:,j),bins);
     h = h./repmat(sum(h),size(h,1),1);
 
     % save to expmt data struct
@@ -67,9 +99,10 @@ end
 
 if meta.slide
     
-win_sz = 500;
-stp_sz = 100;
-[win_dat,win_idx] = getSlidingWindow(expmt,'Speed',win_sz,stp_sz);
+win_sz = 2;             % size of sliding window (minutes)
+stp_sz = 1;             % step size between windows (minutes)
+sampling_rate = 0.05;    % sampling rate (minutes)
+[win_dat,win_idx] = getSlidingWindow(expmt,'Speed',win_sz,stp_sz,sampling_rate);
 
 % get mean and 95% CI
 [mu,~,ci95,~] = normfit(win_dat');
@@ -100,7 +133,7 @@ uistack(ph,'bottom');
 
 expmt.Circadian.trace.t = tmp_tStamps;
 
-%% Create time labels and light patches
+% Create time labels and light patches
 hr = str2double(expmt.date(12:13));
 min = str2double(expmt.date(15:16));
 sec = str2double(expmt.date(18:19));
@@ -140,7 +173,7 @@ if length(tmp_Light)~=length(expmt.Light.data) && isfield(meta,'decimate')...
     
 end
 tmp_Light = tmp_Light(win_idx);
-tmp_Light = tmp_Light > 127;
+tmp_Light = tmp_Light > 0;
 trans = [0;diff(tmp_Light)];
 dark_trans = find(trans==1);
 dark_trans = [dark_trans;find(trans==-1)];
@@ -164,7 +197,7 @@ xlabel('Time of day');
 legend({'lights OFF';'95% CI';'mean speed'});
 title('Circadian activity trace');
 
-%% Bin speed scores into time bins
+% Bin speed scores into time bins
 
 % bin by time of day
 expmt.Circadian.bins = 0:23;
