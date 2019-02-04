@@ -24,29 +24,34 @@ for i = 1:length(open_IDs)
     fclose(open_IDs(i));
 end
 
-if isfield(meta,'handles')
-    gui_notify('zipping raw data',meta.handles.disp_note)
-else
-    disp('zipping raw data... may take a few minutes');
-end
 
-flist = [];
-for i = 1:length(expmt.fields)
-    f = expmt.fields{i};
-    if ~strcmp(f,'VideoData')
-        path = expmt.(f).path;
-        if exist(path,'file')
-            flist = [flist;{path}];
+%% zip data
+
+if meta.zip
+    if isfield(meta,'handles')
+        gui_notify('zipping raw data',meta.handles.disp_note)
+    else
+        disp('zipping raw data... may take a few minutes');
+    end
+
+    flist = [];
+    for i = 1:length(expmt.fields)
+        f = expmt.fields{i};
+        if ~strcmp(f,'VideoData')
+            path = expmt.(f).path;
+            if exist(path,'file')
+                flist = [flist;{path}];
+            end
         end
     end
-end
 
-if ~isempty(flist)
-    zip([expmt.fdir expmt.fLabel '_RawData.zip'],flist);
-end
+    if ~isempty(flist)
+        zip([expmt.fdir expmt.fLabel '_RawData.zip'],flist);
+    end
 
-for i = 1:length(flist)
-    delete(flist{i});
+    for i = 1:length(flist)
+        delete(flist{i});
+    end
 end
 
 %% Display command to load data struct into workspace

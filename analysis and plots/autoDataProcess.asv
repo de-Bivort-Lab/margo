@@ -12,7 +12,7 @@ meta.raw = false;
 meta.bootstrap = false;
 meta.slide = true;
 meta.regress = false;
-meta.zip = true;
+
 
 for i = 1:length(varargin)
     
@@ -49,9 +49,6 @@ for i = 1:length(varargin)
             case 'Regress'
                 i=i+1;
                 meta.regress = varargin{i};
-            case 'Zip',
-                i=i+1;
-                meta.zip = varargin{i};
         end
     end
 end

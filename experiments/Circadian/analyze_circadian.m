@@ -15,14 +15,14 @@ clearvars -except expmt trackProps meta
 
 %% get individual area thresholds for separating frames at the ceiling and floor of the well
 
-if isfield(expmt,'Area') && isfield(expmt.Area,'data') && ~isfield(expmt.Area,'thresh')
-    
+if isfield(expmt,'Area') && isfield(expmt.Area,'data')
+    %%
     % find threshold for each individual
-    filt = expmt.Speed.data > expmt.Speed.thresh;
+    filt = expmt.Speed.data > 0.3;
     filt = filt & expmt.Area.data > 30*expmt.parameters.mm_per_pix^2;
     Area = expmt.Area.data;
     Area(~filt) = NaN;
-    Area = num2cell(expmt.Area.data,1);
+    Area = num2cell(Area,1);
     disp('finding area thresholds');
     [area_thresholds, mode_means] = ...
         cellfun(@kthresh_distribution, Area, 'UniformOutput', false);
@@ -34,7 +34,7 @@ if isfield(expmt,'Area') && isfield(expmt.Area,'data') && ~isfield(expmt.Area,'t
     for i=1:expmt.nTracks
         subplot(nRows,nCols,i);
         if ~isempty(area_thresholds{i})
-            [kde,x] = ksdensity(expmt.Area.data(:,i));
+            [kde,x] = ksdensity(Area{i});
             plot(x,kde,'k','LineWidth',1);
             hold on
             y = get(gca,'YLim');
@@ -51,6 +51,7 @@ if isfield(expmt,'Area') && isfield(expmt.Area,'data') && ~isfield(expmt.Area,'t
             xlabel('area');
         end
     end
+    %%
     
     % save fig
     fname = [expmt.figdir expmt.date '_individual_area_thresholds'];

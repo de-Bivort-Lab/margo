@@ -23,9 +23,8 @@ ulim = v(round(0.95*length(v)));
 
 %get activity filter
 a=~isnan(da);
-trialnum_thresh = 40;
-sampling =(squeeze(sum(sum(a(:,1:trialnum_thresh,:))))./(size(da,1)*size(da,2)));
-active = nTrials>trialnum_thresh & sampling > 0.01;
+trialnum_thresh = 25;
+active = nTrials>trialnum_thresh;
 expmt.Optomotor.index = opto_index;
 expmt.Optomotor.n = nTrials;
 expmt.Optomotor.active = active;

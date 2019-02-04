@@ -4,7 +4,7 @@ function handedness = getHandedness(trackProps,varargin)
 
 bw = 2*pi/25;                                   % bin width
 bins = 0:bw:2*pi;                          % handedness bins
-speedthresh = 0.8;
+speedthresh = 0.35;
 nf = size(trackProps.speed,2);
 empty = single(NaN(size(trackProps.speed)));
 
