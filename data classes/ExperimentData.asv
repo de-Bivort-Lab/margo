@@ -356,11 +356,13 @@ classdef ExperimentData < dynamicprops
                     callArgs = cellfun(@strtrim,callArgs,'UniformOutput',false);
 
                     for i=1:numel(callArgs)
-                        tmp = evalin('caller',callArgs{i});
-                        fpath = recursivePathTest(tmp,obj.meta.date);
-                        if ~isempty(fpath)
-                            obj = updatepaths(obj,fpath);
-                            return
+                        tmp_var = evalin('caller',callArgs{i});
+                        if ischar(tmp_var) && exist(tmp_var,'file')==2
+                            fpath = tmp_var;
+                            if testPath(fpath, obj.meta.date)
+                                obj = updatepaths(obj,fpath);
+                                return
+                            end
                         end
                     end    
                 else

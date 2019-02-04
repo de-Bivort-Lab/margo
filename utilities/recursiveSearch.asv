@@ -77,7 +77,3 @@ end
 
 fPaths = cellfun(@unixify, fPaths, 'UniformOutput',false);
 
-if size(fPaths,2) > size(fPaths,1)
-    fPaths = fPaths';
-end
-
