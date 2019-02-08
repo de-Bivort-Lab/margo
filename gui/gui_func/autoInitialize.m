@@ -215,5 +215,6 @@ hold off
 % start the timer for the experiment
 tic;
 trackDat.tPrev = toc;
+trackDat.lastFrame = false;
 gui_notify('tracking initialized',gui_handles.disp_note);
 

@@ -42,7 +42,7 @@ end
 reset(spd);
 
 % find speed threshold cutoff from log speed
-[intersect] = fitBimodalHist(log(s(:)));
+[intersect,~] = kthresh_distribution(log(s(:)));
 speed_thresh = exp(intersect);
 
 % find frames where transitioned from 

@@ -2272,8 +2272,9 @@ end
 
 
 % --------------------------------------------------------------------
-function aux_com_menu_Callback(~,~,~)
+function aux_com_menu_Callback(hObject,~,handles)
 % hObject    handle to aux_com_menu (see GCBO)
+
 
 
 

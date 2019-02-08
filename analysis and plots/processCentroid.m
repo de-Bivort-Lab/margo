@@ -56,7 +56,8 @@ for j = 1:nBatch
     
     % calculate speed        
     trackProps.speed = single([zeros(1,expmt.meta.num_traces); ...
-        sqrt(diff(inx).^2+diff(iny).^2)]);   
+        sqrt(diff(inx).^2+diff(iny).^2)]);
+    trackProps.speed = trackProps.speed .* expmt.parameters.mm_per_pix;
 
     % calculate handedness dependencies and metrics
     if opt.handedness

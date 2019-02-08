@@ -66,7 +66,7 @@ for j=1:numel(fDir)
             subpaths = recursiveSearch(subdir,opts{:});
 
             if ~isempty(subpaths)
-                fPaths = [fPaths subpaths];
+                fPaths = [fPaths;subpaths];
             end
 
         end

@@ -18,7 +18,7 @@ function [varargout]=bootstrap_speed_blocks(expmt,blocks,nReps)
 nf = expmt.meta.num_traces;
 spd = expmt.data.speed.raw();
 reset(expmt.data.speed);
-active = nanmean(spd) > expmt.meta.speed.thresh;
+active = nanmean(spd) > expmt.data.speed.thresh;
 active_ids = find(active);
 blocks = blocks(active);
 nBouts = cellfun(@size,blocks,'UniformOutput',false);

@@ -24,11 +24,7 @@ switch p
 end
 
 % update fID if necessary
-open_files = fopen('all');
-if ~ismember(expmt.data.(f).fID,open_files)
-    expmt = updatefID(expmt,f);
-end
-
+expmt = updatefID(expmt,f);
 fseek(expmt.data.(f).fID,(roi_num-1)*nb,'bof');
 slice_data = fread(expmt.data.(f).fID,expmt.meta.num_frames,format,skip*nb);
 

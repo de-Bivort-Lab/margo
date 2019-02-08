@@ -34,9 +34,11 @@ for i = 1:expmt.meta.num_traces
     moving = autoSlice(expmt,'speed',i) > spd_thresh;
     a= autoSlice(expmt,'area',i);
     if ~any(mod(a,1))
-        a = a.*expmt.parameters.mm_per_pix^2;     
+        moving = moving & a > 180*expmt.parameters.mm_per_pix^2;
+    else
+        moving = moving & a > 180;
+        a = a.*expmt.parameters.mm_per_pix^2;
     end
-    moving = moving & a > 180*expmt.parameters.mm_per_pix^2;
     a(~moving) = NaN;
     Area{i} = a(~isnan(a));
 

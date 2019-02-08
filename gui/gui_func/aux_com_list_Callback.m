@@ -29,6 +29,9 @@ switch hObject.Checked
         hObject.Checked = 'on';
         expmt.hardware.COM.aux = serial(hObject.Label);
         
+        % open the COM device
+        fopen(expmt.hardware.COM.aux);
+        
 end
 
 % save loaded settings to master struct

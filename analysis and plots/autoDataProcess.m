@@ -162,9 +162,10 @@ if isfield(expmt.data,'speed') && isattached(expmt.data.speed) ...
         
         % chunk speed data into individual movement bouts
         [block_indices, lag_thresh, speed_thresh] = blockActivity(expmt);
-        expmt.meta.speed.thresh = speed_thresh;
-        expmt.meta.speed.bouts.thresh = lag_thresh;
-        expmt.meta.speed.bouts.idx = block_indices;
+        addprops(expmt.data.speed,{'thresh','bouts'});
+        expmt.data.speed.thresh = speed_thresh;
+        expmt.data.speed.bouts.thresh = lag_thresh;
+        expmt.data.speed.bouts.idx = block_indices;
     end
     
     % speed bootstrapping
@@ -175,8 +176,11 @@ if isfield(expmt.data,'speed') && isattached(expmt.data.speed) ...
         end
         disp('resampling speed data, may take a few minutes');
     
+        addprop(expmt.data.speed,'bootstrap');
+        
         % bootstrap resample speed data to generate null distribution
-        [expmt.meta.speed.bs,f] = bootstrap_speed_blocks(expmt,block_indices,100);
+        [expmt.data.speed.bootstrap,f] = ...
+            bootstrap_speed_blocks(expmt,block_indices,100);
 
         % save bootstrap figure to file
         fname = [expmt.meta.path.fig expmt.meta.date '_bs_logspeed'];

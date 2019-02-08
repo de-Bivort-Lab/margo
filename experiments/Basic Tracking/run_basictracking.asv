@@ -13,8 +13,7 @@ gui_notify(['executing ' mfilename '.m'], gui_handles.disp_note);
 % get image handle
 imh = findobj(gui_handles.axes_handle, '-depth', 3, 'Type', 'image');  
 
-% raw data fields to save each frame (append names of custom fields to
-% flag fields for writing to disk)
+% properties of the tracked objects to be recorded
 trackDat.fields = {'centroid'; 'time'};   
 
 % initialize labels, files, and cam/video
