@@ -43,7 +43,7 @@ if ~isempty(row_breaks)
         end
     end
 else
-    [~,~,~,perm_y] = sortROIs(2,centers(:,[2 1]),ROI_coords(:,[2,1,4,3]),ROI_bounds(:,[2,1,4,3]));
+    sortROIs(2,centers(:,[2 1]),ROI_coords(:,
 end
 
 % Sort ROI and center coords by the permutation vector defined
