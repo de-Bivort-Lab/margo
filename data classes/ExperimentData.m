@@ -389,16 +389,29 @@ classdef ExperimentData < dynamicprops
                         end
                     end
                     
-                    historypath = ...
-                        com.mathworks.mlservices. ...
-                        MLCommandHistoryServices.getSessionHistory;
-                    callStr = historypath(end);
-                    fpath = parseCommand(callStr, obj.meta.date);
-                    if ~isempty(fpath)
-                        if iscell(fpath)
-                            fpath = fpath{:};
+                    try
+                        historypath = ...
+                            com.mathworks.mlservices. ...
+                            MLCommandHistoryServices.getSessionHistory;
+                        callStr = historypath(end);
+                        fpath = parseCommand(callStr, obj.meta.date);
+                        if ~isempty(fpath)
+                            if iscell(fpath)
+                                fpath = fpath{:};
+                            end
+                            obj = updatepaths(obj,fpath);
                         end
-                        obj = updatepaths(obj,fpath);
+                    catch
+                    end
+                    
+                    try
+                        fpath = recursivePathTest(pwd,obj.meta.date);
+                        if ~isempty(fpath)
+                            obj = updatepaths(obj,fpath);
+                            return
+                        end
+                    catch
+                        warning('automatic filepath update failed');
                     end
                 end
             else
