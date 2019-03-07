@@ -71,7 +71,7 @@ Complete documentation of MARGO including tutorial examples, descriptions of par
 
 <p align="center">
     <img src="https://github.com/de-Bivort-Lab/margo/wiki/images/margo_readme/led_ymaze_gif.gif" width="374"/> &nbsp; &nbsp;
-    <img src="https://github.com/de-Bivort-Lab/margo/wiki/images/margo_readme/led_ymaze_gif.gif" width="374"/>
+    <img src="https://github.com/de-Bivort-Lab/margo/wiki/images/margo_readme/opto_gif_2.gif" width="374"/>
     <figcaption align=left>
         Closed-loop applications: (left) triggering LEDs based on position of flies in a Y-shaped mazes, (right) targeting optomotor stimuli to individual flies in circular arenas
     </figcaption>
