@@ -6,7 +6,7 @@ function varargout = getSlidingWindow(expmt,f,win_sz,stp_sz,sampling_rate,vararg
 %% parse inputs
 
 fh = str2func('nanmean');
-
+frame_range = [1 expmt.meta.num_frames];
 for i = 1:length(varargin)
     
     arg = varargin{i};
@@ -19,6 +19,9 @@ for i = 1:length(varargin)
             case 'Func'
                 i=i+1;
                 fh = str2func(varargin{i});
+            case 'FrameRange'
+                i=i+1;
+                frame_range = varargin{i};
         end
     end
 end
@@ -31,15 +34,15 @@ h = waitbar(0,['iteration 0 out of ' num2str(expmt.meta.num_traces)]);
 h.Name = ['Sliding ' f ' window'];
 
 % calculate frame_rate
-fr = nanmedian(expmt.data.time.raw());
+fr = nanmedian(expmt.data.time.raw(1:1000));
 win_sz = round(win_sz/fr*60);
-stp_sz = round(stp_sz/1/fr*60);
-s = round(sampling_rate/1/fr*60);
+stp_sz = round(stp_sz/fr*60);
+s = round(sampling_rate/fr*60);
 
-
-first_idx = round(expmt.meta.num_frames/win_sz)+1;
+nframes = diff(frame_range)+1;
+first_idx = round(nframes/win_sz)+frame_range(1);
 r = floor(win_sz/2);
-win_idx = r+1:stp_sz:expmt.meta.num_frames-r;
+win_idx = r+first_idx:stp_sz:frame_range(2)-r;
 idx = repmat(win_idx',1,floor(win_sz/s)+1);
 idx = idx + repmat(-r:s:r,size(idx,1),1);
 
@@ -49,16 +52,21 @@ detach(expmt);
 
 % perform the operation
 win_dat = NaN(size(idx,1),expmt.meta.num_traces);
-for i = 1:expmt.meta.num_traces
+for i = 1:size(idx,1)
     
     if ishghandle(h)
-        waitbar(i/expmt.meta.num_traces,h,['iteration '...
-            num2str(i) ' out of ' num2str(expmt.meta.num_traces)]);
+        waitbar(i/size(idx,1),h,...
+            sprintf('iteration %i of %i',i,size(idx,1)));
     end
     
-    dat = autoSlice(expmt,f,i);
-    dat = num2cell(reshape(dat(idx(:)),size(idx)),2);
-    win_dat(:,i) = cellfun(fh,dat);
+    %dat = autoSlice(expmt,f,i);
+    dat = expmt.data.(f).raw(idx(i,:),:);
+    dat = num2cell(dat,1);
+    win_dat(i,:) = cellfun(fh,dat);
+    
+    if mod(i,10)==0
+        reset(expmt.data.(f));
+    end
     clear dat
     
 end

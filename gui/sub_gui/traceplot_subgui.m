@@ -70,6 +70,9 @@ else
     handles.trace_fig.UserData.idx = 1:expmt.meta.num_frames;
 end
 
+% initialize speed placeholder
+handles.trace_fig.UserData.speed = NaN(10000,6);
+
 % disable extra controls if there are too few rois
 max_roi = expmt.meta.num_traces;
 all_ctls = findobj(handles.trace_fig,'-depth',1,'-property','Enable');
@@ -106,18 +109,17 @@ for i=1:6
             dispTrace(i,handles);
         end
         if stp == 1
-            sb(i).SliderStep(2) = inf;
             sb(i).SliderStep(1) = 0.99;
+            sb(i).SliderStep(2) = inf;
             sb(i).Enable = 'off';
         else
-            sb(i).SliderStep(2) = stp2;
             sb(i).SliderStep(1) = stp;
+            sb(i).SliderStep(2) = stp2;
         end
     else
         
     end
 end
-
 
 % Choose default command line output for traceplot_subgui
 colormap(handles.trace_fig,'gray');
@@ -262,11 +264,6 @@ if isempty(lh) || eb.UserData ~= roi
     hold(ah,'off');
     axis(ah,'equal');
     reset(expmt.data.centroid);
-    smpl_sz = 10000;
-    smpl_sz(smpl_sz>expmt.meta.num_frames) = expmt.meta.num_frames;
-    smpl = randperm(expmt.meta.num_frames,smpl_sz);
-    smpl = expmt.data.centroid.raw(smpl,:,roi);
-    reset(expmt.data.centroid);
     ah.XLim = [1 rc(3)-rc(1)];
     ah.YLim = [1 rc(4)-rc(2)];
 else
@@ -294,6 +291,13 @@ if isempty(lh) || eb.UserData ~= roi
 else
     lh.YData = s;
 end
+
+% update speed data
+handles.trace_fig.UserData.speed(1:numel(s),plot_num) = s;
+ax_tags = arrayfun(@(i) sprintf('speed_axes%i',i), 1:6, 'UniformOutput', false);
+spd_axes = cellfun(@(f) handles.(f), ax_tags, 'UniformOutput', false);
+update_spd_ylim(max(handles.trace_fig.UserData.speed(:)),cat(1,spd_axes{:}));
+
 clear s x y
 colormap(ah,'gray');
 % update current roi number
@@ -389,3 +393,14 @@ function trace_fig_CloseRequestFcn(hObject, eventdata, handles)
 
 uiresume(hObject);
 delete(hObject);
+
+
+function update_spd_ylim(new_max,ax_handles)
+
+new_max = ceil(new_max*1.1);
+old_max = get(ax_handles,'YLim');
+old_max = cellfun(@max,old_max,'UniformOutput',false);
+old_max = max(cat(1,old_max{:}));
+if new_max ~= old_max
+   set(ax_handles,'YLim',[0 new_max],'YTick',[0 new_max],'YTickLabel',[0 new_max]);
+end
