@@ -88,18 +88,18 @@ The Massively Automated Real-time GUI for Object-tracking (MARGO) is a MATLAB ba
 <p align="center">
     <img src="https://github.com/de-Bivort-Lab/margo/wiki/images/margo_readme/bee_gif.gif" width="360"/> &nbsp; &nbsp;
     <img src="https://github.com/de-Bivort-Lab/margo/wiki/images/margo_readme/zebrafish_gif.gif" width="384"/>
-    <figcaption>
-        Sample tracking of bumblebees (left) in a nestbox and larval zebrafish (right) in a multi-well culture plate
-    </figcaption>
+</p>
+<p align="center">
+    Sample tracking of bumblebees (left) in a nestbox and larval zebrafish (right) in a multi-well culture plate
 </p>
 
 
 <p align="center">
     <img src="https://github.com/de-Bivort-Lab/margo/wiki/images/margo_readme/larval_gif.gif" width="373"/> &nbsp; &nbsp;
     <img src="https://github.com/de-Bivort-Lab/margo/wiki/images/margo_readme/wormotel_gif.gif" width="370"/>
-    <figcaption>
-        Sample tracking of fruit fly larvae (left) in a chemotactic gradient and nematodes (right) in response to an optogenetic stimulus
-    </figcaption>
+</p>
+<p align="center">
+    Sample tracking of fruit fly larvae (left) in a chemotactic gradient and nematodes (right) in response to an optogenetic stimulus
 </p>
 
 
