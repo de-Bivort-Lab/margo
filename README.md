@@ -6,7 +6,7 @@ MARGO
 The Massively Automated Real-time GUI for Object-tracking (MARGO) is a MATLAB based tracking platform designed with an emphasis on high-throughput tracking of large groups of animals and tracking applications requiring closed-loop hardware control. See below for examples of MARGO applications.
 
 <figure align="center">
-    <img src="fly_960_gif.gif" width="95%"/>
+    <img src="https://github.com/de-Bivort-Lab/margo/wiki/images/fly_960_gif.gif" width="95%"/>
     <figcaption>
         Sample video clip from an experiment featuring continuous high-throughput tracking of 960 fruit tracked at 8Hz for 6 days
     </figcaption>
