@@ -42,7 +42,7 @@ if ~isempty(row_breaks)
                 perm_y(row_breaks(i-1):row_breaks(i)-1) = py_subset(perm_x);
         end
     end
-else
+elseif tolerance ~= 2
     [~,~,~,perm_y] = sortROIs(2,centers(:,[2 1]),ROI_coords(:,[2,1,4,3]),ROI_bounds(:,[2,1,4,3]));
 end
 
