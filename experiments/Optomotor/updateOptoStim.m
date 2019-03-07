@@ -37,9 +37,21 @@ function [trackDat, expmt] = updateOptoStim(trackDat, expmt)
     % Randomize the rotational direction & Set stim status to ON
     trackDat.Texture(activate_stim) = rand(sum(activate_stim),1)>0.5;       
     stim_on(activate_stim) = true;                             
-    stim.t(activate_stim)=trackDat.t;                                 
+    stim.t(activate_stim)=trackDat.t;
+    
+    % Turn off stimuli that have exceed the display duration
+    stim_OFF = ...
+      trackDat.t-stim.t >= expmt.parameters.stim_duration &...
+        stim_on;
+    stim_on(stim_OFF) = false;        % Set stim status to OFF
 
-    if any(stim_on)
+    % Update stim timer for stimulus turned off
+    if any(stim_OFF)           
+        % Reset the stimulus timer
+        stim.timer(stim_OFF)=trackDat.t;
+    end
+
+    if any(stim_on | stim_OFF)
 
         stim.ct = stim.ct+1;
 
@@ -114,18 +126,6 @@ function [trackDat, expmt] = updateOptoStim(trackDat, expmt)
                 expmt.hardware.screen.vbl + ...
                 (expmt.hardware.screen.waitframes - 0.5) *...
                 expmt.hardware.screen.ifi);
-    end
-
-    % Turn off stimuli that have exceed the display duration
-      stim_OFF = ...
-          trackDat.t-stim.t >= expmt.parameters.stim_duration &...
-            stim_on;
-      stim_on(stim_OFF) = false;        % Set stim status to OFF
-
-    % Update stim timer for stimulus turned off
-    if any(stim_OFF)           
-        % Reset the stimulus timer
-        stim.timer(stim_OFF)=trackDat.t;
     end
 
     % re-assign stim to ExperimentData

@@ -282,7 +282,7 @@ if any(strcmpi('majorAxisLength',out_fields))
     if record
         maLength(update) =[props(permutation).MajorAxisLength];
     end
-    trackDat.majorAxisLength = single(maLength);
+    trackDat.majorAxisLength = single(maLength .* expmt.parameters.mm_per_pix);
 end
 
 if any(strcmpi('minorAxisLength',out_fields))
@@ -290,7 +290,7 @@ if any(strcmpi('minorAxisLength',out_fields))
     if record
         miLength(update) =[props(permutation).MinorAxisLength];
     end
-    trackDat.minorAxisLength = single(miLength);
+    trackDat.minorAxisLength = single(miLength .* expmt.parameters.mm_per_pix);
 end
 
 if any(strcmpi('time',out_fields))

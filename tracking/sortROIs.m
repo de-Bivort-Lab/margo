@@ -20,28 +20,30 @@ row_breaks = find([0;diff(val)>std(diff(val))*tolerance]);    % Find breaks betw
 % find a final permutation by sorting each clustered set of y 
 % coords by their respective x coordinates
 if ~isempty(row_breaks)
-for i = 1:length(row_breaks)+1
-    switch i
-        case 1
-            
-            py_subset = perm_y(1:row_breaks(i)-1);          % get subset of perm vector for current row
-            [~,perm_x] = sort(centers(py_subset,1));      % sort x coords for current row
-            perm_y(1:row_breaks(i)-1) = py_subset(perm_x);    % reassign the permuted permutation to full perm vector
+    for i = 1:length(row_breaks)+1
+        switch i
+            case 1
 
-            
-        case length(row_breaks)+1
-            
-            py_subset = perm_y(row_breaks(i-1):end);
-            [~,perm_x] = sort(centers(py_subset,1));
-            perm_y(row_breaks(i-1):end) = py_subset(perm_x);
-            
-        otherwise
-            
-            py_subset = perm_y(row_breaks(i-1):row_breaks(i)-1);
-            [~,perm_x] = sort(centers(py_subset,1));
-            perm_y(row_breaks(i-1):row_breaks(i)-1) = py_subset(perm_x);
+                py_subset = perm_y(1:row_breaks(i)-1);          % get subset of perm vector for current row
+                [~,perm_x] = sort(centers(py_subset,1));      % sort x coords for current row
+                perm_y(1:row_breaks(i)-1) = py_subset(perm_x);    % reassign the permuted permutation to full perm vector
+
+
+            case length(row_breaks)+1
+
+                py_subset = perm_y(row_breaks(i-1):end);
+                [~,perm_x] = sort(centers(py_subset,1));
+                perm_y(row_breaks(i-1):end) = py_subset(perm_x);
+
+            otherwise
+
+                py_subset = perm_y(row_breaks(i-1):row_breaks(i)-1);
+                [~,perm_x] = sort(centers(py_subset,1));
+                perm_y(row_breaks(i-1):row_breaks(i)-1) = py_subset(perm_x);
+        end
     end
-end
+elseif tolerance ~= 2
+    [~,~,~,perm_y] = sortROIs(2,centers(:,[2 1]),ROI_coords(:,[2,1,4,3]),ROI_bounds(:,[2,1,4,3]));
 end
 
 % Sort ROI and center coords by the permutation vector defined

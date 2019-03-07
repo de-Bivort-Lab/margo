@@ -113,8 +113,7 @@ for i=1:6
             sb(i).SliderStep(2) = inf;
             sb(i).Enable = 'off';
         else
-            sb(i).SliderStep(1) = stp;
-            sb(i).SliderStep(2) = stp2;
+            sb(i).SliderStep = [stp stp2];
         end
     else
         

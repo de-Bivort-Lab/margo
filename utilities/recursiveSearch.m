@@ -24,6 +24,9 @@ end
 if ~iscell(fDir)
    fDir = {fDir}; 
 end
+if isempty(fDir)
+    fDir = pwd;
+end
 
 for i=1:numel(fDir)
     if any(strcmp({'\';'/'},fDir{i}(end)))

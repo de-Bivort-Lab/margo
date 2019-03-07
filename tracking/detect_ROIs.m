@@ -18,8 +18,8 @@ function [ROI_bounds,ROI_coords,ROI_widths,ROI_heights,binaryimage] = detect_ROI
         ROI_heights = ROI_bounds(:,4);
         median_W=median(ROI_widths);
         median_H=median(ROI_heights);
-        exclude_W=abs(ROI_widths-median_W)>0.3*median_W;
-        exclude_H=abs(ROI_heights-median_H)>0.3*median_H;
+        exclude_W=abs(ROI_widths-median_W)>0.5*median_W;
+        exclude_H=abs(ROI_heights-median_H)>0.5*median_H;
         excludedROIs=exclude_W|exclude_H;
 
         % Remove ROIs above or below size threshold;

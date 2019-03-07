@@ -57,12 +57,13 @@ for j=1:nBatch
     s = spd.raw(idx,:);
     moving(idx,:) = s > speed_thresh;
     reset(spd);
-    clear s
+    clear s idx
 end
 
-
-transitions = diff(moving,1,1);
-clear moving
+moving = int8(moving);
+shift_mov = [moving(2:size(moving,1),:); int8(zeros(1,size(moving,2)))];
+transitions = shift_mov - moving;
+clear moving shift_mov
 transitions = cat(1,zeros(1,size(transitions,2)),transitions);
 transitions = num2cell(transitions,1);
 
@@ -118,6 +119,8 @@ function idx = filterShortBouts(starts,stops,duration)
     else
         idx = [];
     end
+    
+    idx = uint32(idx);
     
     
     

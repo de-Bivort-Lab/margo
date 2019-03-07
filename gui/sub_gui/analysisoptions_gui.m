@@ -128,7 +128,7 @@ function analysisoptions_gui_OpeningFcn(hObject, eventdata, handles, varargin)
     
     
     if opt.disable
-        hCheck = findobj(handles.figure1,'-depth',3,'Style','checkbox');
+        hCheck = findall(handles.flag_uipanel,'-depth',3,'Style','checkbox');
         set(hCheck,'Enable','off');
         handles.Text15.Enable = 'off';
         handles.disable_checkbox.Enable = 'on';
@@ -141,20 +141,11 @@ guidata(hObject, handles);
 
 
 
-
-
-
 % --- Outputs from this function are returned to the command line.
 function varargout = analysisoptions_gui_OutputFcn(hObject, eventdata, handles) 
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 varargout = {};
-
-
-
-
-
-
 
 
 
@@ -170,7 +161,7 @@ function disable_checkbox_Callback(hObject, eventdata, handles)
 % hObject    handle to disable_checkbox (see GCBO)
 
 handles.output.meta.options.disable = hObject.Value;
-hCheck = findobj(handles.figure1,'-depth',3,'Style','checkbox');
+hCheck = findall(handles.flag_uipanel,'-depth',3,'Style','checkbox');
 if hObject.Value
     set(hCheck,'Enable','off');
     handles.text15.Enable = 'off';

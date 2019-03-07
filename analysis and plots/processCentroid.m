@@ -87,7 +87,7 @@ for j = 1:nBatch
                     trackProps.Theta = single(atan2(iny,inx));
                 end
             case 'Radius'
-                trackProps.Radius = sqrt(inx.^2 + iny.^2);
+                trackProps.Radius = single(sqrt(inx.^2 + iny.^2));
         end
         fwrite(expmt.data.(f).fID,trackProps.(f)',expmt.data.(f).precision);
         trackProps.(f) = [];
