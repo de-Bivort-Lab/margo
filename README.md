@@ -27,7 +27,7 @@ MARGO requires on [Psychtoolbox 3](http://psychtoolbox.org/) for support of exte
 
 ### MARGO installation
 
-The MARGO repository can be cloned via the github UI by downloading and extracting a zip file (*Clone or Download* > *Download ZIP*) or via the git command line API with the following command:
+The MARGO repository can be cloned via the github UI by downloading and extracting a zip file of the repository (*Clone or Download* > *Download ZIP*) or via the git command line API with the following command:
 
 ```
 git clone https://github.com/de-Bivort-Lab/margo.git
@@ -106,6 +106,16 @@ Tracking of fruit fly larvae (left) in a chemotactic gradient and nematodes (rig
 
 
 <br/>
+
+## Contributors
+
+- [Zach Werkhoven](https://github.com/winsl0w) primarily developed and maintains MARGO.
+- [Chuan Qin](https://github.com/cqin19) contributed to the development of MARGO's multitracker algorithm.
+- [Christian Rohrsen](https://github.com/chiser) contributed to the development of MARGO's camera/display co-registration system.
+
+## Acknowledgements
+
+Support for external display detection and visual stimulus crafting and display is dependent on the [Psychtoolbox](http://psychtoolbox.org/overview.html), originally developed by Mario Kleiner. MARGO's random display registration uses Andriy Myronenko's [Coherent Point Drift](https://sites.google.com/site/myronenko/research/cpd) algorithm and mex implementation. 
 
 ## License
 
