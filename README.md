@@ -98,8 +98,8 @@ The Massively Automated Real-time GUI for Object-tracking (MARGO) is a MATLAB ba
     <img src="https://github.com/de-Bivort-Lab/margo/wiki/images/margo_readme/larval_gif.gif" width="373"/> &nbsp; &nbsp;
     <img src="https://github.com/de-Bivort-Lab/margo/wiki/images/margo_readme/wormotel_gif.gif" width="370"/>
 </p>
-<p align="center">
-Tracking of fruit fly larvae (left) in a chemotactic gradient and nematodes (right) in response to an optogenetic stimulus
+<p align="left">
+Tracking of fruit fly larvae (left) in a chemotactic gradient and nematodes (right) in response to an optogenetic stimulus in the <a href="https://elifesciences.org/articles/26652">wormotel</a> high-throughput platform
 </p>
 
 
@@ -115,7 +115,7 @@ Tracking of fruit fly larvae (left) in a chemotactic gradient and nematodes (rig
 
 ## Acknowledgements
 
-Support for external display detection and visual stimulus crafting and display is dependent on the [Psychtoolbox](http://psychtoolbox.org/overview.html), originally developed by Mario Kleiner. MARGO's random display registration uses Andriy Myronenko's [Coherent Point Drift](https://sites.google.com/site/myronenko/research/cpd) algorithm and mex implementation. 
+Support for external display detection and visual stimulus crafting and display is dependent on the [Psychtoolbox](http://psychtoolbox.org/overview.html), originally developed by Mario Kleiner. MARGO's random display registration uses Andriy Myronenko's [Coherent Point Drift](https://sites.google.com/site/myronenko/research/cpd) algorithm and mex implementation. Multispecies tracking example videos provided by: James Crall (bumblebees), Jess Kanwal (fly larvae), and Matt Churgin (C. Elegans). 
 
 ## License
 
