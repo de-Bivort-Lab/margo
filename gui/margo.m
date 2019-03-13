@@ -333,6 +333,14 @@ if ~isempty(expmt.hardware.cam)
                 expmt.hardware.cam.bitDepth = 32;
             case 'int32'
                 expmt.hardware.cam.bitDepth = 32;
+            case 'single'
+                expmt.hardware.cam.bitDepth = 32;
+            case 'double'
+                expmt.hardware.cam.bitDepth = 64;
+        end
+        
+        if isempty(im)
+            errordlg('unable to retrieve image data');
         end
         
         clean_gui(handles.axes_handle);
@@ -340,7 +348,7 @@ if ~isempty(expmt.hardware.cam)
         if size(im,3)>1
             im = im(:,:,2);
         end
-        handles.hImage = imagesc(im);
+        handles.hImage = imagesc(im,'Parent',handles.axes_handle);
         set(handles.axes_handle,'Xtick',[],'Ytick',[],'XLabel',[],'YLabel',[],...
             'XColor','k','YColor','k');
         res = expmt.hardware.cam.vid.VideoResolution;
@@ -1830,6 +1838,8 @@ if isfield(handles,'fig_size')
         plot_aspect = pbaspect(handles.axes_handle);
         pbr = plot_aspect(2)/plot_aspect(1);
         fscale = aspectR/pbr;
+        fscale(isnan(fscale))=1;
+        
         
         axes_height_old = handles.axes_handle.Position(4);
         axes_height_new = axes_height_old*fscale;
@@ -1840,6 +1850,7 @@ if isfield(handles,'fig_size')
             plot_aspect = pbaspect(handles.axes_handle);
             plot_aspect = plot_aspect./plot_aspect(2);
             fscale = aspectR/plot_aspect(1);
+            fscale(isnan(fscale))=1;
             axes_width_old = handles.axes_handle.Position(3);
             axes_width_new = axes_width_old*fscale;
             handles.axes_handle.Position(3) = axes_width_new;
@@ -2298,7 +2309,10 @@ end
 delete(hParent.Children(del));
 
 % re-initialize COM ports
+gui_notify('refreshing COM ports...',handles.disp_note);
 [expmt, handles] = refreshCOM(expmt, handles);
+gui_notify('COM ports refreshed',handles.disp_note);
+
 
 % save loaded settings to master struct
 setappdata(handles.gui_fig,'expmt',expmt);  
@@ -2728,8 +2742,8 @@ function gui_fig_WindowKeyPressFcn(~,~,~)
 function pause_togglebutton_CreateFcn(hObject, ~, handles)
 
 hObject.Units = 'Pixels';
-w = hObject.Position(3);
-h = hObject.Position(4);
+w = ceil(hObject.Position(3));
+h = ceil(hObject.Position(4));
 c = hObject.BackgroundColor;
 ps = zeros(h,w,3);
 for i = 1:length(c)
@@ -2765,8 +2779,8 @@ guidata(hObject,handles);
 function run_pushbutton_CreateFcn(hObject, ~, handles)
 
 hObject.Units = 'Pixels';
-w = hObject.Position(3);
-h = hObject.Position(4);
+w = ceil(hObject.Position(3));
+h = ceil(hObject.Position(4));
 c = hObject.BackgroundColor;
 ps = zeros(h,w,3);
 for i = 1:length(c)
@@ -2794,8 +2808,8 @@ guidata(hObject,handles);
 function stop_pushbutton_CreateFcn(hObject, ~, handles)
 
 hObject.Units = 'Pixels';
-w = hObject.Position(3);
-h = hObject.Position(4);
+w = ceil(hObject.Position(3));
+h = ceil(hObject.Position(4));
 c = hObject.BackgroundColor;
 ps = zeros(h,w,3);
 for i = 1:length(c)

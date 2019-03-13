@@ -71,7 +71,7 @@ for i = 1:length(expmt.hardware.COM.ports)
     if i ==1
         menu_items(i).Separator = 'on';
     end
-    if unavailable(i)
+    if i>1 unavailable(i-1)
         menu_items(i).Enable = 'off';
     end
 end

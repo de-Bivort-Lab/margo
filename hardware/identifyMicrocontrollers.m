@@ -17,24 +17,28 @@ if ~isempty(ports)
 
         s = serial(ports{i});    % Create Serial Object
         set(s,'BaudRate',9600);         % Set baud rate
-        fopen(s);                       % Open the port
+        try
+            fopen(s);                       % Open the port
 
-        panel=2;
-        level=2;
-        writeData=char([level panel 23 23]);
+            panel=2;
+            level=2;
+            writeData=char([level panel 23 23]);
 
-        fwrite(s,writeData,'uchar');
-        pause(0.25);
+            fwrite(s,writeData,'uchar');
+            pause(0.1);
 
-        if s.BytesAvailable == numel(IR_white_panel_handshake)
-        handshake=fread(s,7);
-            if length(handshake) == length(IR_white_panel_handshake)
-                panelNum=i;
+            if s.BytesAvailable == numel(IR_white_panel_handshake)
+            handshake=fread(s,7);
+                if length(handshake) == length(IR_white_panel_handshake)
+                    panelNum=i;
+                end
             end
-        end
 
-        fclose(s);
-        delete(s);
+            fclose(s);
+            delete(s);
+        catch
+            ports{i} = [ports{i} ' (unavailable)'];
+        end
     end
 end
 
