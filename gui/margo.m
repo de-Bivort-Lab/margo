@@ -2414,6 +2414,8 @@ switch hObject.Checked
 end
 
 
+
+
 % --------------------------------------------------------------------
 function view_roi_num_menu_Callback(hObject, ~, handles)
 
@@ -2578,6 +2580,7 @@ if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
     'then left-click and drag to define new ROI'] ...
     'Press Enter accept changes and exit'};
     hNote = gui_axes_notify(axh, instructions);
+    cellfun(@(h) uistack(h,'up'), hNote);
 
     while handles.gui_fig.UserData.edit_rois
         
@@ -2648,6 +2651,7 @@ if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
                 handles.view_roi_num_menu,[]);
             feval(handles.view_roi_num_menu.Callback,...
                 handles.view_roi_num_menu,[]);
+            uistack(handles.view_menu.UserData.hBounds,'down',2);
             drawnow limitrate
         end
     end
