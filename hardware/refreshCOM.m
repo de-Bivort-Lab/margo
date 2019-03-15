@@ -22,6 +22,7 @@ port_list = expmt.hardware.COM.ports(~unavailable);
 
 
 % Update GUI menus with port names
+port_list = [];
 if ~isempty(port_list)
     handles.microcontroller_popupmenu.String = port_list;
 else

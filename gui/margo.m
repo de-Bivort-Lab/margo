@@ -166,7 +166,13 @@ function cam_select_popupmenu_Callback(hObject, ~, handles)
 % import expmteriment variables
 expmt = getappdata(handles.gui_fig,'expmt');
 
-if ~isempty(handles.cam_list(get(hObject,'value')).adaptor)
+cam_str = hObject.String;
+if ~iscell(cam_str)
+    cam_str = {cam_str};
+end
+
+if ~strcmpi(cam_str{hObject.Value},'Camera not detected') &&...
+        ~isempty(handles.cam_list(hObject.Value).adaptor)
     
     % get camera adaptor
     adaptor = handles.cam_list(get(hObject,'value')).adaptor;
@@ -312,10 +318,8 @@ if ~isempty(expmt.hardware.cam)
         % measure frame rate
         [frame_rate, expmt.hardware.cam] = estimateFrameRate(expmt.hardware.cam);
         expmt.hardware.cam.frame_rate = frame_rate;
-        
-        if expmt.parameters.target_rate == 60
-            expmt.parameters.target_rate = frame_rate;
-        end
+        expmt.parameters.target_rate = ceil(frame_rate);
+        expmt.parameters.max_trace_duration = ceil(frame_rate*0.5);
         
         % adjust aspect ratio of plot to match camera
         colormap('gray');
@@ -536,7 +540,15 @@ function microcontroller_popupmenu_Callback(hObject,~,handles)
 
 % initialize new light COM
 expmt = getappdata(handles.gui_fig,'expmt');
-expmt.hardware.COM.light = serial(hObject.String{hObject.Value});
+
+com_str = hObject.String;
+if ~iscell(com_str)
+    com_str = {com_str};
+end
+
+if ~strcmpi(com_str{hObject.Value},'No COM detected')
+    expmt.hardware.COM.light = serial(com_str{hObject.Value});
+end
 setappdata(handles.gui_fig,'expmt',expmt);
 guidata(hObject,handles);
 
@@ -791,7 +803,7 @@ elseif any(strcmp(expmt.meta.name,handles.parameter_subgui)) &&...
 end
 
     
-%try
+try
     % disable controls that are not to be accessed while expmt is running
     toggleSubguis(handles,'off');
     toggleMenus(handles,'off');
@@ -829,40 +841,40 @@ end
         end
     end
 
-%re-establish gui state prior to tracking error is encountered
-% catch ME
-%     
-%     % update db_lab server if applicable
-%     if isfield(handles,'deviceID')
-%         try
-%         [~,status]=urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=3']);
-%         catch
-%             status = false;
-%         end
-%         if ~status
-%             gui_notify(['unable to connect to'...
-%                 ' http://lab.debivort.org'],handles.disp_note);
-%         end
-%     end
-%     
-%     % try to close any open PTB windows
-%     try
-%         sca;
-%     catch
-%     end
-%     
-%     % get error report
-%     gui_notify('error encountered - tracking stopped',handles.disp_note);
-%     keep_gui_state = true;
-%     title = 'Error encountered - tracking stopped';
-%     msg=getReport(ME,'extended','hyperlinks','off');
-%  
-%     % update meta data and output log file
-%     expmt = autoFinish_error(expmt, handles, msg);
-%     
-%     % report error to the GUI
-%     errordlg(msg,title);
-% end
+% re-establish gui state prior to tracking error is encountered
+catch ME
+    
+    % update db_lab server if applicable
+    if isfield(handles,'deviceID')
+        try
+        [~,status]=urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=3']);
+        catch
+            status = false;
+        end
+        if ~status
+            gui_notify(['unable to connect to'...
+                ' http://lab.debivort.org'],handles.disp_note);
+        end
+    end
+    
+    % try to close any open PTB windows
+    try
+        sca;
+    catch
+    end
+    
+    % get error report
+    gui_notify('error encountered - tracking stopped',handles.disp_note);
+    keep_gui_state = true;
+    title = 'Error encountered - tracking stopped';
+    msg=getReport(ME,'extended','hyperlinks','off');
+ 
+    % update meta data and output log file
+    expmt = autoFinish_error(expmt, handles, msg);
+    
+    % report error to the GUI
+    errordlg(msg,title);
+end
 
 % update db_lab server if applicable
 if isfield(handles,'deviceID')

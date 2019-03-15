@@ -24,6 +24,7 @@ tPrev = toc;
 while tElapsed < 1 && any(isnan(tStamps))
     tCurr = toc;
     tElapsed = tElapsed + tCurr - tPrev;
+    tPrev = tCurr;
     im = peekdata(camInfo.vid,1);
     im = im(:,:,1);
     if ~(isempty(im)||isempty(prev_im)) && any(any(im~=prev_im))
@@ -31,10 +32,9 @@ while tElapsed < 1 && any(isnan(tStamps))
         tStamps(fCount)=tCurr;
     end
     prev_im = im;
-    clearvars im
 end
 
-frameRate=1/mean(diff(tStamps(~isnan(tStamps))));
+frameRate=1/median(diff(tStamps(~isnan(tStamps))));
 if isnan(frameRate)
     frameRate = 30;
 end

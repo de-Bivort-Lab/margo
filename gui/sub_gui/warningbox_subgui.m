@@ -109,8 +109,8 @@ set(hObject, 'Position', FigPos);
 set(hObject, 'Units', OldUnits);
 
 gui_dir = which('margo');
-gui_dir = gui_dir(1:strfind(gui_dir,'\gui\'));
-warnim = imread([gui_dir 'gui\icons\warn.jpg']);
+gui_dir = unixify(gui_dir(1:strfind(gui_dir,'/gui/')));
+warnim = imread([gui_dir 'gui/icons/warn.jpg']);
 
 if icon
     Img=image(warnim, 'Parent', handles.axes1);

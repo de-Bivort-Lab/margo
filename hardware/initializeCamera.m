@@ -13,8 +13,34 @@ if isfield(camInfo,'settings')
     set_names = fieldnames(camInfo.settings);
     
     for i = 1:length(i_src)
+        
+        % if property in settings list
         if ~isempty(camInfo.settings.(set_names{i_set(i)}))
-            src.(names{i_src(i)}) = camInfo.settings.(set_names{i_set(i)});
+            
+            % query property value and constraints
+            val = camInfo.settings.(set_names{i_set(i)});
+            constr = info.(set_names{i_set(i)}).ConstraintValue;
+            set_prop = false;
+            
+            % check to see if value falls in constraints
+            switch info.(set_names{i_set(i)}).Constraint
+                case 'enum'
+                    if ismember(val,constr)
+                        set_prop = true;
+                    end
+                case 'bounded'
+                    if val > constr(1) && val < constr(2)
+                        set_prop = true;
+                    end
+            end
+            
+            % set the property
+            if set_prop
+                try
+                    src.(names{i_src(i)}) = val;
+                catch
+                end
+            end
         end
     end
     
