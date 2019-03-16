@@ -19,7 +19,12 @@ The Massively Automated Real-time GUI for Object-tracking (MARGO) is a MATLAB ba
 
 **MATLAB**
 
-For best results, use MARGO with **MATLAB 2016b** or newer. MARGO has generally been designed to be backwards compatible with older versions of MATLAB. In addition to the base installation of MATLAB, MARGO uses the *image acquisition* and *image processing* toolboxes.
+For best results, use MARGO with **MATLAB 2016b** or newer. MARGO has generally been designed to be backwards compatible with older versions of MATLAB. In addition to the base installation of MATLAB, MARGO requires the following toolboxes:
+- image acquisition toolbox
+- image processing toolbox
+- computer vision system toolbox
+- instrument control toolbox
+- statistics and machine learning toolbox
 
 **Psychtoolbox (optional)**
 
