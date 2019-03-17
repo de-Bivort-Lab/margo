@@ -59,7 +59,6 @@ function margo_OpeningFcn(hObject, ~, handles, varargin)
 warning off MATLAB:structOnObject
 
 set(findall(handles.gui_fig, '-property', 'Units'), 'Units', 'characters');
-set(findall(handles.gui_fig, '-property', 'FontName'), 'FontName', 'default');
 
 % get gui directory and ensure all dependencies are added to path
 handles.gui_dir = which('margo');
@@ -1842,8 +1841,7 @@ if isfield(handles,'fig_size')
     handles.hImage = findobj(handles.axes_handle,'-depth',3,'Type','Image');
     if ~isempty(handles.hImage)
 
-        handles.axes_handle.Position(3) = handles.gui_fig.Position(3) - ...
-            handles.axes_handle.Position(1) - handles.fig_size(4)*0.005;
+        handles.axes_handle.Position(3) = handles.gui_fig.Position(3) - handles.axes_handle.Position(1) - 10;
         handles.axes_handle.Position(2) = handles.bottom_uipanel.Position(2);
         handles.axes_handle.Position(4) = ...
             handles.gui_fig.Position(4) - handles.axes_handle.Position(2) - ...
@@ -1864,7 +1862,7 @@ if isfield(handles,'fig_size')
         axes_height_old = handles.axes_handle.Position(4);
         axes_height_new = axes_height_old*fscale;
         
-        if axes_height_new + handles.fig_size(4)*0.005 > handles.gui_fig.Position(4)
+        if axes_height_new + 10 > handles.gui_fig.Position(4)
      
             aspectR = res(1)/res(2);
             plot_aspect = pbaspect(handles.axes_handle);

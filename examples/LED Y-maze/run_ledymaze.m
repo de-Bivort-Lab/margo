@@ -101,7 +101,7 @@ end
 
 % Initialize serial object
 serial_obj = expmt.hardware.COM.aux;
-set(serial_obj,'BaudRate',9600);                         % Set baud rate
+set(serial_obj,'BaudRate',76800);                         % Set baud rate
 
 % Set LED permutation vector that converts LED number by maze
 % into a unique address for each LED driver board on the teensy

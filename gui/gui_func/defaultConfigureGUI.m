@@ -46,15 +46,12 @@ handles.gui_fig.Position(1) = x;
 handles.gui_fig.Position(2) = y;
 handles.gui_fig.Position(3) = w;
 handles.gui_fig.Position(4) = h;
-handles.gui_fig.Units = 'points';
-
-%handles.gui_fig.Position(2) = pdisp_res(4) - handles.gui_fig.Position(4);
-%handles.gui_fig.Units = 'points';
+handles.gui_fig.Units = 'characters';
 
 
 % store panel starting location for reference when resizing
 c=findobj(handles.gui_fig.Children,'Tag','cam_uipanel');
-dh = (handles.gui_fig.Position(4) - c.Position(4)) - c.Position(2)-3;
+dh = (handles.gui_fig.Position(4) - c.Position(4)) - c.Position(2)- 0.005*handles.gui_fig.Position(4);
 panels = findobj(handles.gui_fig.Children,'Type','uipanel');
 for i = 1:length(panels)
     panels(i).Position(2) = panels(i).Position(2) + dh;
@@ -64,7 +61,7 @@ end
 rp = findobj('Tag','run_uipanel');
 bp = findobj('Tag','bottom_uipanel');
 dn = findobj('Tag','disp_note');
-bp.Position(2) = 3;
+bp.Position(2) = 0.005*handles.gui_fig.Position(4);
 dh = (rp.Position(2) - bp.Position(2)) - bp.Position(4);
 bp.Position(4) = rp.Position(2) - bp.Position(2);
 dn.Position(4) = dn.Position(4)+ dh;

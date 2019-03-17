@@ -9,7 +9,7 @@ if ~isempty(COM_obj)
     
     % open com device if it is currently close
     if strcmp(COM_obj.status,'closed')
-        set(COM_obj,'BaudRate',9600);
+        fclose(COM_obj);
         fopen(COM_obj);
     end
     
