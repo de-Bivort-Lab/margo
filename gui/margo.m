@@ -547,6 +547,10 @@ if ~iscell(com_str)
 end
 
 if ~strcmpi(com_str{hObject.Value},'No COM detected')
+    if strcmp(expmt.hardware.COM.light.status,'open')
+        fclose(expmt.hardware.COM.light);
+    end
+    delete(expmt.hardware.COM.light);
     expmt.hardware.COM.light = serial(com_str{hObject.Value});
 end
 setappdata(handles.gui_fig,'expmt',expmt);
