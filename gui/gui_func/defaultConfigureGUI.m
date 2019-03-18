@@ -41,12 +41,12 @@ y = root.MonitorPositions(idx,2) + root.MonitorPositions(idx,4)*0.1;
 w = root.MonitorPositions(idx,3);
 h = root.MonitorPositions(idx,4)*0.9;
 handles.int_pos = handles.gui_fig.Position;
-handles.gui_fig.Units = 'pixels';
-handles.gui_fig.Position(1) = x;
-handles.gui_fig.Position(2) = y;
-handles.gui_fig.Position(3) = w;
-handles.gui_fig.Position(4) = h;
-handles.gui_fig.Units = 'characters';
+% handles.gui_fig.Units = 'pixels';
+% handles.gui_fig.Position(1) = x;
+% handles.gui_fig.Position(2) = y;
+% handles.gui_fig.Position(3) = w;
+% handles.gui_fig.Position(4) = h;
+% handles.gui_fig.Units = 'characters';
 
 
 % store panel starting location for reference when resizing
