@@ -58,9 +58,6 @@ function margo_OpeningFcn(hObject, ~, handles, varargin)
 % disable object/struct conversion warning
 warning off MATLAB:structOnObject
 
-set(findall(handles.gui_fig, '-property', 'Units'), 'Units', 'characters');
-set(findall(handles.gui_fig, '-property', 'FontName'), 'FontName', 'default');
-
 % get gui directory and ensure all dependencies are added to path
 handles.gui_dir = which('margo');
 [par_dir,~,~] = fileparts(handles.gui_dir);
@@ -550,8 +547,6 @@ if ~iscell(com_str)
 end
 
 if ~strcmpi(com_str{hObject.Value},'No COM detected')
-    fclose(expmt.hardware.COM.light);
-    delete(expmt.hardware.COM.light);
     expmt.hardware.COM.light = serial(com_str{hObject.Value});
 end
 setappdata(handles.gui_fig,'expmt',expmt);
@@ -1842,12 +1837,9 @@ if isfield(handles,'fig_size')
     handles.hImage = findobj(handles.axes_handle,'-depth',3,'Type','Image');
     if ~isempty(handles.hImage)
 
-        handles.axes_handle.Position(3) = handles.gui_fig.Position(3) - ...
-            handles.axes_handle.Position(1) - handles.fig_size(4)*0.005;
+        handles.axes_handle.Position(3) = handles.gui_fig.Position(3) - handles.axes_handle.Position(1) - 10;
         handles.axes_handle.Position(2) = handles.bottom_uipanel.Position(2);
-        handles.axes_handle.Position(4) = ...
-            handles.gui_fig.Position(4) - handles.axes_handle.Position(2) - ...
-            handles.fig_size(4)*0.005;
+        handles.axes_handle.Position(4) = handles.gui_fig.Position(4) - handles.axes_handle.Position(2) - 5;
 
         res = size(handles.hImage.CData);
         if length(res)>2
@@ -1864,7 +1856,7 @@ if isfield(handles,'fig_size')
         axes_height_old = handles.axes_handle.Position(4);
         axes_height_new = axes_height_old*fscale;
         
-        if axes_height_new + handles.fig_size(4)*0.005 > handles.gui_fig.Position(4)
+        if axes_height_new + 10 > handles.gui_fig.Position(4)
      
             aspectR = res(1)/res(2);
             plot_aspect = pbaspect(handles.axes_handle);
