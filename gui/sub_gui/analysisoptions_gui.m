@@ -22,7 +22,7 @@ function varargout = analysisoptions_gui(varargin)
 
 % Edit the above text to modify the response to help analysisoptions_gui
 
-% Last Modified by GUIDE v2.5 11-May-2018 12:30:10
+% Last Modified by GUIDE v2.5 18-Mar-2019 17:29:54
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -486,4 +486,3 @@ end
 handles.output.meta.options.raw = r;
 
 guidata(hObject,handles);
-
