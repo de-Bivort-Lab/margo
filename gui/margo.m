@@ -57,8 +57,8 @@ function margo_OpeningFcn(hObject, ~, handles, varargin)
 
 %
 % % set bottom uipanel and disp note font size to point for accurate resizing
-handles.bottom_uipanel.FontUnits = 'points';
-handles.disp_note.FontUnits = 'points';
+set(findall(handles.bottom_uipanel,'-property','FontUnits'),'FontUnits','points');
+set(findall(handles.grid_ROI_uipanel,'-property','FontUnits'),'FontUnits','points');
 
 % disable object/struct conversion warning
 warning off MATLAB:structOnObject

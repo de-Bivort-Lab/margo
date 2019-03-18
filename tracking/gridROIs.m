@@ -19,7 +19,8 @@ gui_handles.grid_ROI_uipanel.Visible = 'on';
 height = gui_handles.bottom_uipanel.Position(4) + ...
     gui_handles.run_uipanel.Position(4) + gui_handles.exp_uipanel.Position(4);
 gui_handles.grid_ROI_uipanel.Position(4) = height;
-y_shift = height - gui_handles.text48.Position(2) - 35;
+y_shift = height - gui_handles.text48.Position(2) - ...
+    gui_handles.add_ROI_pushbutton.Position(4)*2;
 all_ctls = findobj(gui_handles.grid_ROI_uipanel,'-depth',2,'Type','uicontrol');
 for i=1:numel(all_ctls)
     all_ctls(i).Position(2) =  all_ctls(i).Position(2) + y_shift;
@@ -56,7 +57,6 @@ gui_handles.axes_handle.CLim = [0 255];
 
 % reset accept ROI pushbutton if necessary
 gui_handles.accept_ROI_thresh_pushbutton.Value = 0;
-roi_scale = 0.5;
 
 %% initialize grids
 
