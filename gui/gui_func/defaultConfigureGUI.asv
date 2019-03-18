@@ -74,6 +74,8 @@ handles.vid_uipanel.UserData = handles.vid_uipanel.Position;
 handles.disp_note.UserData = handles.disp_note.Position;
 handles.fig_size = handles.gui_fig.Position;
 
+% record bottom panel font size for accurate resizing
+
 
 
 % disable all panels except cam/video and lighting

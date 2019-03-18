@@ -55,6 +55,11 @@ function margo_OpeningFcn(hObject, ~, handles, varargin)
 % hObject    handle to figure
 % varargin   command line arguments to margo (see VARARGIN)
 
+%
+% % set bottom uipanel and disp note font size to point for accurate resizing
+handles.bottom_uipanel.FontUnits = 'points';
+handles.disp_note.FontUnits = 'points';
+
 % disable object/struct conversion warning
 warning off MATLAB:structOnObject
 
@@ -1837,9 +1842,11 @@ if isfield(handles,'fig_size')
     handles.hImage = findobj(handles.axes_handle,'-depth',3,'Type','Image');
     if ~isempty(handles.hImage)
 
-        handles.axes_handle.Position(3) = handles.gui_fig.Position(3) - handles.axes_handle.Position(1) - 10;
+        handles.axes_handle.Position(3) = handles.gui_fig.Position(3) - ...
+            handles.axes_handle.Position(1) - handles.fig_size(4)*0.005;
         handles.axes_handle.Position(2) = handles.bottom_uipanel.Position(2);
-        handles.axes_handle.Position(4) = handles.gui_fig.Position(4) - handles.axes_handle.Position(2) - 5;
+        handles.axes_handle.Position(4) = handles.gui_fig.Position(4) - ...
+            handles.axes_handle.Position(2) - handles.fig_size(4)*0.005;
 
         res = size(handles.hImage.CData);
         if length(res)>2
@@ -1856,7 +1863,8 @@ if isfield(handles,'fig_size')
         axes_height_old = handles.axes_handle.Position(4);
         axes_height_new = axes_height_old*fscale;
         
-        if axes_height_new + 10 > handles.gui_fig.Position(4)
+        if axes_height_new + handles.fig_size(4)*0.005 > ...
+                handles.gui_fig.Position(4)
      
             aspectR = res(1)/res(2);
             plot_aspect = pbaspect(handles.axes_handle);
