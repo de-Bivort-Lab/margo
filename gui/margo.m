@@ -2773,7 +2773,7 @@ hObject.UserData.ps = ps;
 hObject.UserData.Value = hObject.Value;
 
 hObject.CData = ps;
-hObject.Units = 'Points';
+hObject.Units = 'characters';
 guidata(hObject,handles);
 
 
@@ -2812,7 +2812,7 @@ end
 hObject.UserData.ps = ps;
 
 hObject.CData = ps;
-hObject.Units = 'Points';
+hObject.Units = 'characters';
 guidata(hObject,handles);
 
 
@@ -2839,7 +2839,7 @@ ps(hb,wb,:)=0;
 hObject.UserData.ps = ps;
 
 hObject.CData = ps;
-hObject.Units = 'Points';
+hObject.Units = 'characters';
 
 hObject.UserData.Value = 0;
 guidata(hObject,handles);
