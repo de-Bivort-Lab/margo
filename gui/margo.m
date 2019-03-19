@@ -180,18 +180,18 @@ if ~strcmpi(cam_str{hObject.Value},'Camera not detected') &&...
         ~isempty(handles.cam_list(hObject.Value).adaptor)
     
     % get camera adaptor
-    adaptor = handles.cam_list(get(hObject,'value')).adaptor;
+    adaptor = handles.cam_list(hObject.Value).adaptor;
     
     camInfo = imaqhwinfo(adaptor);
-    deviceInfo = camInfo.DeviceInfo(handles.cam_list(get(hObject,'value')).index);
+    deviceInfo = camInfo.DeviceInfo(handles.cam_list(hObject.Value).index);
     
     set(handles.cam_mode_popupmenu,'String',deviceInfo.SupportedFormats);
     default_format = deviceInfo.DefaultFormat;
 
-    for i = 1:length(deviceInfo.SupportedFormats)
-        if strcmp(default_format,camInfo.DeviceInfo(1).SupportedFormats{i})
+    for i = 1:numel(deviceInfo.SupportedFormats)
+        if strcmp(default_format,deviceInfo.SupportedFormats{i})
             set(handles.cam_mode_popupmenu,'Value',i);
-            camInfo.ActiveMode = camInfo.DeviceInfo(1).SupportedFormats(i);
+            camInfo.ActiveMode = deviceInfo.SupportedFormats(i);
         end
     end
     
@@ -328,7 +328,14 @@ if ~isempty(expmt.hardware.cam)
         
         % adjust aspect ratio of plot to match camera
         colormap('gray');
-        im = peekdata(expmt.hardware.cam.vid,1);
+        tic
+        im = [];
+        while isempty(im) && toc < 10
+            im = peekdata(expmt.hardware.cam.vid,1);
+        end
+        if isempty(im)
+            errordlg('Camera timed out while waiting for image data');
+        end
         switch class(im)
             case 'uint8'
                 expmt.hardware.cam.bitDepth = 8;
@@ -346,10 +353,6 @@ if ~isempty(expmt.hardware.cam)
                 expmt.hardware.cam.bitDepth = 32;
             case 'double'
                 expmt.hardware.cam.bitDepth = 64;
-        end
-        
-        if isempty(im)
-            errordlg('unable to retrieve image data');
         end
         
         clean_gui(handles.axes_handle);

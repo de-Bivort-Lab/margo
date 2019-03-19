@@ -42,6 +42,7 @@ if ~isempty(c.InstalledAdaptors)
             end
         end
         camInfo.activeID = 1;
+        set(handles.cam_select_popupmenu,'Value',1);
     else
         camInfo.activeID = [];
         set(handles.cam_select_popupmenu,'String','Camera not detected');
