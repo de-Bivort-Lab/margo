@@ -2345,12 +2345,15 @@ function refresh_cam_menu_Callback(hObject, ~, handles)
 % display warning and ask user whether or not to reset cam
 expmt = getappdata(handles.gui_fig,'expmt');
 refresh = warningbox_subgui('title', 'Camera Reset');     
+
+% reset cameras and refresh gui lists
 if strcmp(refresh,'OK')
-    expmt.hardware.cam = refresh_cam_list(handles);          % reset cameras and refresh gui lists
+    [expmt.hardware.cam, handles.cam_list] = refresh_cam_list(handles);          
 end
 
 % save loaded settings to master struct
-setappdata(handles.gui_fig,'expmt',expmt);  
+setappdata(handles.gui_fig,'expmt',expmt);
+guidata(hObject,handles);
 
 
 % --- Executes on button press in pause_togglebutton.
