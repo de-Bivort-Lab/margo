@@ -48,8 +48,6 @@ if ~isempty(c.InstalledAdaptors)
         set(handles.cam_select_popupmenu,'String','Camera not detected');
         set(handles.cam_mode_popupmenu,'String','No camera modes available');
     end
-
-
 else
     camInfo=[];
     cam_list = {};
