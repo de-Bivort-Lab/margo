@@ -65,8 +65,8 @@ switch mode
 end
 
 xShift = sum(hsc.Position([1 3])) - ...
-    hs.Position(1) + hd.Position(3) + 10;   % full length of single grid controls
-yShift = hs.Position(4)+10;                 % height of the controls + spacer
+    hs.Position(1) + hd.Position(3)*1.5;   % full length of single grid controls
+yShift = hs.Position(4)+handles.text54.Position(4);% height of the controls + spacer
 
 if strcmp(mode,'add') && n < q
     

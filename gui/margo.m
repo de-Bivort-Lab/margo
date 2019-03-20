@@ -55,6 +55,11 @@ function margo_OpeningFcn(hObject, ~, handles, varargin)
 % hObject    handle to figure
 % varargin   command line arguments to margo (see VARARGIN)
 
+%
+% % set bottom uipanel and disp note font size to point for accurate resizing
+set(findall(handles.bottom_uipanel,'-property','FontUnits'),'FontUnits','points');
+set(findall(handles.grid_ROI_uipanel,'-property','FontUnits'),'FontUnits','points');
+
 % disable object/struct conversion warning
 warning off MATLAB:structOnObject
 
@@ -175,18 +180,18 @@ if ~strcmpi(cam_str{hObject.Value},'Camera not detected') &&...
         ~isempty(handles.cam_list(hObject.Value).adaptor)
     
     % get camera adaptor
-    adaptor = handles.cam_list(get(hObject,'value')).adaptor;
+    adaptor = handles.cam_list(hObject.Value).adaptor;
     
     camInfo = imaqhwinfo(adaptor);
-    deviceInfo = camInfo.DeviceInfo(handles.cam_list(get(hObject,'value')).index);
+    deviceInfo = camInfo.DeviceInfo(handles.cam_list(hObject.Value).index);
     
     set(handles.cam_mode_popupmenu,'String',deviceInfo.SupportedFormats);
     default_format = deviceInfo.DefaultFormat;
 
-    for i = 1:length(deviceInfo.SupportedFormats)
-        if strcmp(default_format,camInfo.DeviceInfo(1).SupportedFormats{i})
+    for i = 1:numel(deviceInfo.SupportedFormats)
+        if strcmp(default_format,deviceInfo.SupportedFormats{i})
             set(handles.cam_mode_popupmenu,'Value',i);
-            camInfo.ActiveMode = camInfo.DeviceInfo(1).SupportedFormats(i);
+            camInfo.ActiveMode = deviceInfo.SupportedFormats(i);
         end
     end
     
@@ -323,7 +328,14 @@ if ~isempty(expmt.hardware.cam)
         
         % adjust aspect ratio of plot to match camera
         colormap('gray');
-        im = peekdata(expmt.hardware.cam.vid,1);
+        tic
+        im = [];
+        while isempty(im) && toc < 10
+            im = peekdata(expmt.hardware.cam.vid,1);
+        end
+        if isempty(im)
+            errordlg('Camera timed out while waiting for image data');
+        end
         switch class(im)
             case 'uint8'
                 expmt.hardware.cam.bitDepth = 8;
@@ -341,10 +353,6 @@ if ~isempty(expmt.hardware.cam)
                 expmt.hardware.cam.bitDepth = 32;
             case 'double'
                 expmt.hardware.cam.bitDepth = 64;
-        end
-        
-        if isempty(im)
-            errordlg('unable to retrieve image data');
         end
         
         clean_gui(handles.axes_handle);
@@ -1841,9 +1849,11 @@ if isfield(handles,'fig_size')
     handles.hImage = findobj(handles.axes_handle,'-depth',3,'Type','Image');
     if ~isempty(handles.hImage)
 
-        handles.axes_handle.Position(3) = handles.gui_fig.Position(3) - handles.axes_handle.Position(1) - 10;
+        handles.axes_handle.Position(3) = handles.gui_fig.Position(3) - ...
+            handles.axes_handle.Position(1) - handles.fig_size(4)*0.005;
         handles.axes_handle.Position(2) = handles.bottom_uipanel.Position(2);
-        handles.axes_handle.Position(4) = handles.gui_fig.Position(4) - handles.axes_handle.Position(2) - 5;
+        handles.axes_handle.Position(4) = handles.gui_fig.Position(4) - ...
+            handles.axes_handle.Position(2) - handles.fig_size(4)*0.005;
 
         res = size(handles.hImage.CData);
         if length(res)>2
@@ -1860,7 +1870,8 @@ if isfield(handles,'fig_size')
         axes_height_old = handles.axes_handle.Position(4);
         axes_height_new = axes_height_old*fscale;
         
-        if axes_height_new + 10 > handles.gui_fig.Position(4)
+        if axes_height_new + handles.fig_size(4)*0.005 > ...
+                handles.gui_fig.Position(4)
      
             aspectR = res(1)/res(2);
             plot_aspect = pbaspect(handles.axes_handle);
@@ -2341,12 +2352,15 @@ function refresh_cam_menu_Callback(hObject, ~, handles)
 % display warning and ask user whether or not to reset cam
 expmt = getappdata(handles.gui_fig,'expmt');
 refresh = warningbox_subgui('title', 'Camera Reset');     
+
+% reset cameras and refresh gui lists
 if strcmp(refresh,'OK')
-    expmt.hardware.cam = refresh_cam_list(handles);          % reset cameras and refresh gui lists
+    [expmt.hardware.cam, handles.cam_list] = refresh_cam_list(handles);          
 end
 
 % save loaded settings to master struct
-setappdata(handles.gui_fig,'expmt',expmt);  
+setappdata(handles.gui_fig,'expmt',expmt);
+guidata(hObject,handles);
 
 
 % --- Executes on button press in pause_togglebutton.
@@ -2777,7 +2791,7 @@ hObject.UserData.ps = ps;
 hObject.UserData.Value = hObject.Value;
 
 hObject.CData = ps;
-hObject.Units = 'Points';
+hObject.Units = 'characters';
 guidata(hObject,handles);
 
 
@@ -2816,7 +2830,7 @@ end
 hObject.UserData.ps = ps;
 
 hObject.CData = ps;
-hObject.Units = 'Points';
+hObject.Units = 'characters';
 guidata(hObject,handles);
 
 
@@ -2843,7 +2857,7 @@ ps(hb,wb,:)=0;
 hObject.UserData.ps = ps;
 
 hObject.CData = ps;
-hObject.Units = 'Points';
+hObject.Units = 'characters';
 
 hObject.UserData.Value = 0;
 guidata(hObject,handles);

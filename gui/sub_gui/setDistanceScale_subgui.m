@@ -22,7 +22,7 @@ function varargout = setDistanceScale_subgui(varargin)
 
 % Edit the above text to modify the response to help setDistanceScale_subgui
 
-% Last Modified by GUIDE v2.5 05-Apr-2017 17:06:24
+% Last Modified by GUIDE v2.5 18-Mar-2019 17:34:47
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -283,5 +283,3 @@ function dist_fig_ButtonDownFcn(hObject, eventdata, handles)
 % hObject    handle to dist_fig (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-
