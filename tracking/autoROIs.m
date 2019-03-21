@@ -155,6 +155,7 @@ gui_notify([num2str(size(centers,1)) ' ROIs detected'],gui_handles.disp_note);
 
 % Reset the accept threshold button
 set(gui_handles.accept_ROI_thresh_pushbutton,'value',0);
+delete(hText);
 
 % create a vignette correction image if mode is set to auto
 if strcmp(expmt.meta.vignette.mode,'auto') && ~isempty(ROI_coords)

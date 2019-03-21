@@ -22,7 +22,7 @@ function varargout = margo(varargin)
 
 % Edit the above text to modify the response to help margo
 
-% Last Modified by GUIDE v2.5 27-Nov-2018 17:13:54
+% Last Modified by GUIDE v2.5 21-Mar-2019 18:00:01
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -263,7 +263,7 @@ function Cam_confirm_pushbutton_Callback(hObject, ~, handles)
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 
-if ~isempty(expmt.hardware.cam)
+if ~isempty(expmt.hardware.cam) && isstruct(expmt.hardware.cam)
     
     if ~isfield(expmt.hardware.cam,'DeviceInfo') ||...
             isempty(expmt.hardware.cam.DeviceInfo)
@@ -418,6 +418,9 @@ if ~isempty(expmt.hardware.cam)
                 '-bit image mode detected. Only 8-bit image modes are supported'],...
                 'Unsupported Camera Mode');
         end
+        
+        % store a sample image
+        expmt.meta.sample_im = im;
         
     else
         errordlg('Settings not confirmed, no camera detected');
@@ -1248,6 +1251,7 @@ expmt = getappdata(handles.gui_fig,'expmt');
 if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
     try
         toggleMenus(handles, 'off');
+        set(handles.display_menu.Children,'Enable','on');
         expmt.meta.initialize = false;
         expmt = initializeRef(handles,expmt);
         handles.sample_noise_pushbutton.Enable = 'on';
@@ -1283,6 +1287,13 @@ end
 
 % Store expmteriment data struct
 toggleMenus(handles, 'on');
+if isfield(expmt.meta,'sample_im')
+    trackDat = initializeTrackDat(expmt);
+    trackDat.im = expmt.meta.sample_im;
+    set_display_mode(handles.display_menu,'raw');
+    autoDisplay(trackDat,expmt,handles.hImage,handles);
+end
+clean_gui(handles.axes_handle);
 setappdata(handles.gui_fig,'expmt',expmt);
 guidata(hObject,handles);
 
@@ -1326,7 +1337,14 @@ catch ME
     errordlg(msg);
 end
 
+% configure gui appearance
 toggleMenus(handles, 'on');
+if isfield(expmt.meta,'sample_im')
+    trackDat = initializeTrackDat(expmt);
+    trackDat.im = expmt.meta.sample_im;
+    set_display_mode(handles.display_menu,'raw');
+    autoDisplay(trackDat,expmt,handles.hImage,handles);
+end
 expmt.meta.initialize = true;
 
 % Store expmteriment data struct
@@ -1363,11 +1381,18 @@ end
 try     
     expmt.meta.initialize = false;
     toggleMenus(handles, 'off');
+    tracking_uictls = findall(handles.tracking_uipanel,'-property','Enable');
+    enable_states = get(tracking_uictls,'Enable');
+    set(tracking_uictls,'Enable','off');
+    handles.accept_ROI_thresh_pushbutton.Enable = 'on';
     
     switch expmt.parameters.roi_mode
 
         case 'auto'   
         % run automatic ROI detections
+        handles.ROI_thresh_slider.Enable = 'on';
+        handles.disp_ROI_thresh.Enable = 'on';
+        handles.ROI_thresh_label.Enable = 'on';
         expmt.meta.roi.mode = 'auto';
         expmt = autoROIs(handles,expmt);
     
@@ -1379,6 +1404,7 @@ try
             gui_notify(msg,handles.disp_note);
             toggleMenus(handles, 'on');
             hObject.Enable = 'on';
+            set(tracking_uictls(strcmp(enable_states,'on'),'Enable','on'));
             return
         end
             
@@ -1434,18 +1460,17 @@ catch ME
 end
 
 % Store expmteriment data struct
+set(tracking_uictls(strcmp(enable_states,'on')),'Enable','on');
 toggleMenus(handles, 'on');
+if isfield(expmt.meta,'sample_im')
+    trackDat = initializeTrackDat(expmt);
+    trackDat.im = expmt.meta.sample_im;
+    set_display_mode(handles.display_menu,'raw');
+    autoDisplay(trackDat,expmt,handles.hImage,handles);
+end
 expmt.meta.initialize = true;
 setappdata(handles.gui_fig,'expmt',expmt);
 guidata(hObject,handles);
-
-
-
-
-% ***************** Menu Items ******************** %
-
-
-
 
 % --------------------------------------------------------------------
 function hardware_props_menu_Callback(~,~,~)
@@ -1491,12 +1516,7 @@ function display_difference_menu_Callback(hObject, ~, handles)
 chk = get(hObject,'checked');
 
 if strcmp(chk,'off')
-    handles.display_menu.UserData = 2;
-    set(handles.display_difference_menu,'checked','on');
-    set(handles.display_raw_menu,'checked','off');
-    set(handles.display_threshold_menu,'checked','off');
-    set(handles.display_reference_menu,'checked','off');
-    set(handles.display_none_menu,'checked','off');
+    set_display_mode(handles.display_menu,'difference');
 end
 
 guidata(hObject,handles);
@@ -1508,12 +1528,7 @@ function display_raw_menu_Callback(hObject, ~, handles)
 chk = get(hObject,'checked');
 
 if strcmp(chk,'off')
-    handles.display_menu.UserData = 1;
-    set(handles.display_difference_menu,'checked','off');
-    set(handles.display_raw_menu,'checked','on');
-    set(handles.display_threshold_menu,'checked','off');
-    set(handles.display_reference_menu,'checked','off');
-    set(handles.display_none_menu,'checked','off');
+    set_display_mode(handles.display_menu,'raw');
 end
 
 guidata(hObject,handles);
@@ -1525,12 +1540,7 @@ function display_threshold_menu_Callback(hObject, ~, handles)
 chk = get(hObject,'checked');
 
 if strcmp(chk,'off')
-    handles.display_menu.UserData = 3;
-    set(handles.display_difference_menu,'checked','off');
-    set(handles.display_raw_menu,'checked','off');
-    set(handles.display_threshold_menu,'checked','on');
-    set(handles.display_reference_menu,'checked','off');
-    set(handles.display_none_menu,'checked','off');
+    set_display_mode(handles.display_menu,'threshold');
 end
 
 guidata(hObject,handles);
@@ -1541,12 +1551,7 @@ function display_reference_menu_Callback(hObject, ~, handles)
 chk = get(hObject,'checked');
 
 if strcmp(chk,'off')
-    handles.display_menu.UserData = 4;
-    set(handles.display_difference_menu,'checked','off');
-    set(handles.display_raw_menu,'checked','off');
-    set(handles.display_threshold_menu,'checked','off');
-    set(handles.display_reference_menu,'checked','on');
-    set(handles.display_none_menu,'checked','off');
+    set_display_mode(handles.display_menu,'reference');
 end
 
 guidata(hObject,handles);
@@ -1558,12 +1563,7 @@ function display_none_menu_Callback(hObject, ~, handles)
 chk = get(hObject,'checked');
 
 if strcmp(chk,'off')
-    handles.display_menu.UserData = 5;
-    set(handles.display_difference_menu,'checked','off');
-    set(handles.display_raw_menu,'checked','off');
-    set(handles.display_threshold_menu,'checked','off');
-    set(handles.display_reference_menu,'checked','off');
-    set(handles.display_none_menu,'checked','on');
+    set_display_mode(handles.display_menu,'none');
 end
 
 guidata(hObject,handles);
@@ -2192,9 +2192,7 @@ if vid
     end
     
     % if an image already exists, display a preview of the vignette correction
-    set(handles.display_menu.Children,'Checked','off');
-    handles.display_raw_menu.Checked = 'on';
-    handles.display_menu.UserData = 1;
+    set_display_mode(handles.display_menu,'raw');
     imh = findobj(handles.axes_handle,'-depth',3,'Type','image');
     setappdata(imh,'gui_handles',handles);
     setappdata(imh,'expmt',expmt);
@@ -3314,3 +3312,31 @@ function proj_cen_view_Callback(hObject, eventdata, handles)
 % hObject    handle to proj_cen_view (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function view_ref_stack_depth_Callback(hObject, eventdata, handles)
+% hObject    handle to view_ref_stack_depth (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+switch hObject.Checked
+    case 'off'
+        hObject.Checked = 'on';
+    case 'on'
+        hObject.Checked = 'off';
+end
+
+
+
+% --------------------------------------------------------------------
+function display_composite_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to display_composite_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+chk = get(hObject,'checked');
+
+if strcmp(chk,'off')
+    set_display_mode(handles.display_menu,'composite');
+end

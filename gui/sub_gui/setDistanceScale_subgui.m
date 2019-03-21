@@ -67,6 +67,7 @@ if isfield(param_data,'distance_scale')
     set(handles.edit_target_size,'string',param_data.distance_scale.target_size);
     set(handles.edit_mm_per_pixel,'string',round(param_data.distance_scale.mm_per_pixel*100)/100);
     handles.line_handle = imline(handles.input.axes_handle,param_data.distance_scale.Pos);
+    addNewPositionCallback(handles.line_handle,@line_reposition_Callback);
 
     % Assign current values as default output
     handles.dist_fig.UserData.target_size=str2num(get(handles.edit_target_size,'string'));
@@ -134,6 +135,8 @@ end
 
 % Create new image line object
 handles.line_handle = imline(handles.input.axes_handle);
+addNewPositionCallback(handles.line_handle,@line_reposition_Callback);
+figure(handles.dist_fig);
 
 if isfield(handles.dist_fig.UserData,'target_size')
     pos = handles.line_handle.getPosition();
@@ -179,7 +182,17 @@ function edit_target_size_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit_target_size as text
 %        str2double(get(hObject,'String')) returns contents of edit_target_size as a double
-handles.dist_fig.UserData.target_size = str2num(get(handles.edit_target_size,'string'));
+handles.dist_fig.UserData.target_size = str2double(get(handles.edit_target_size,'string'));
+
+if isfield(handles,'line_handle') && isvalid(handles.line_handle)
+    pos = handles.line_handle.getPosition();
+    handles.dist_fig.UserData.Pos = pos;
+    d = sqrt((pos(1,1)-pos(2,1))^2+(pos(2,2)-pos(1,2))^2);
+    handles.dist_fig.UserData.mm_per_pixel = handles.dist_fig.UserData.target_size/d;
+    handles.edit_mm_per_pixel.String = ...
+        sprintf('%0.3f',handles.dist_fig.UserData.mm_per_pixel);
+end
+        
 guidata(hObject,handles);
 
 
@@ -223,10 +236,7 @@ item3 = ['\bfDraw new line\rm - draw a line along a previously measured'...
     'in the camera window to initiate drawing. The mm/pixel conversion '...
     'factor will automatically be calculated and displayed.'];
 
-item4 = ['\bfUpdate\rm - the calculation if the line is repositioned after initial placement.'];
-
-item5=['\bfAccept\rm - save the conversion factor and close the '...
-    'window.'];
+item5=['Close the utility to accept the mm/pixel conversion'];
 
 closing = ['\itSee manual for additional tips and details on estimating absolute' ...
     ' distance from pixel distance.'];
@@ -239,7 +249,16 @@ Opt.WindowStyle='normal';
 waitfor(msgbox(message,msg_title,'none',Opt));
 
 
+function line_reposition_Callback(pos)
 
+dist_fig = findobj('Tag','dist_fig','Type','figure');
+edit_mm_per_pixel = findall(dist_fig,'Tag','edit_mm_per_pixel');
+figure(dist_fig);
+dist_fig.UserData.Pos = pos;
+d = sqrt((pos(1,1)-pos(2,1))^2+(pos(2,2)-pos(1,2))^2);
+dist_fig.UserData.mm_per_pixel = dist_fig.UserData.target_size/d;
+edit_mm_per_pixel.String = ...
+    sprintf('%0.3f',dist_fig.UserData.mm_per_pixel);
 
 
 

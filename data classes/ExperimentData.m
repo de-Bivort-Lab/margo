@@ -445,10 +445,21 @@ end
 
 % check filepath if file
 if ischar(var) && exist(var,'file')==2
+    % test the current file path
     fpath = var;
     if testPath(fpath, date_label)
         path = fpath;
         return
+    end
+    
+    % check for filename change
+    [fdir,~,~] = fileparts(var);
+    fpaths = recursiveSearch(fdir,'ext','.bin','keyword',date_label);
+    for j=1:numel(fpaths)
+        if testPath(fpaths{j}, date_label)
+            path = var;
+            return
+        end
     end
 % look for file under dir if dir
 elseif ischar(var) && exist(var,'dir')==7

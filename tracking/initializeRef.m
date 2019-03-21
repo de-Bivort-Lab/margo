@@ -20,10 +20,7 @@ end
 
 % enable display adjustment and set set the view to thresholded by default
 colormap('gray');
-set(gui_handles.display_menu.Children,'Enable','on');
-set(gui_handles.display_menu.Children,'Checked','off');
-set(gui_handles.display_reference_menu,'Checked','on');
-gui_handles.display_menu.UserData = 4;
+set_display_mode(gui_handles.display_menu,'reference');
 gui_handles.accept_track_thresh_pushbutton.Value = 0;
 
 %% Setup the camera and/or video object
@@ -104,20 +101,9 @@ imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','Image');
 set(gca,'Xtick',[],'Ytick',[]);     % turn off tick marks
 clearvars hCirc hText
 
-% Initialize color variables
-hsv_base = 360;                         % hsv red
-hsv_targ = 240;                         % hsv blue
-color_scale = 1 - hsv_targ/hsv_base;
-
-% initialize 
-hold on
-color = zeros(nROIs,3);
-color(:,1) = 1;
-hCirc = scatter(expmt.meta.roi.corners(:,1),expmt.meta.roi.corners(:,2),...
-    'o','filled','LineWidth',2);
-hCirc.CData = color;
+hold(gui_handles.axes_handle,'on');
 trackDat.hMark = plot(trackDat.centroid(:,1),trackDat.centroid(:,2),'ro');
-hold off
+hold(gui_handles.axes_handle,'off');
 
 
 %% Collect reference until timeout OR "accept reference" GUI press
@@ -156,7 +142,7 @@ while trackDat.t < expmt.parameters.duration*3600 &&...
     end
 
     % track objects and sort to ROIs
-    [trackDat] = autoTrack(trackDat,expmt,gui_handles);
+    trackDat = autoTrack(trackDat,expmt,gui_handles);
     
     
     % update area distribution
@@ -205,20 +191,9 @@ while trackDat.t < expmt.parameters.duration*3600 &&...
     % update ref at the reference frequency
     trackDat.px_dev = 0;
     [trackDat, expmt] = autoReference(trackDat, expmt, gui_handles);   
-
-        
+  
     % update the display
-    autoDisplay(trackDat, expmt, imh, gui_handles);   
-    nRefs = trackDat.ref.ct;
-
-    % Update color indicator
-    hue = 1-color_scale.*nRefs./depth;
-    hsv_color = ones(numel(hue),3);
-    hsv_color(:,1) = hue;
-    color = hsv2rgb(hsv_color); 
-
-    % Draw last known centroid for each ROI and update ref. number indicator
-    hCirc.CData = color;
+    [trackDat, expmt] = autoDisplay(trackDat, expmt, imh, gui_handles);   
 
     if trackDat.ct <= size(dDifference,1) && expmt.parameters.bg_auto
         % compute frame to frame change in the magnitude of the difference of
@@ -280,6 +255,15 @@ switch expmt.meta.vignette.mode
     case 'auto'
         expmt.meta.vignette.im = filterVignetting(expmt);
 end
+
+% delete reference number indicators
+if isfield(trackDat,'hRefCirc')
+    delete(trackDat.hRefCirc);
+    trackDat = rmfield(trackDat,'hRefCirc');
+end
+
+% send gui message
+gui_notify('reference initialization complete',gui_handles.disp_note);
 
 % Reset accept reference button
 set(gui_handles.accept_track_thresh_pushbutton,'value',0);

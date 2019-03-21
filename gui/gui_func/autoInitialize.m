@@ -44,10 +44,7 @@ expmt.meta.roi.cam_dist = ...
 
 % set colormap and enable display control
 colormap('gray');
-set(gui_handles.display_menu.Children,'Checked','off')
-set(gui_handles.display_menu.Children,'Enable','on')
-gui_handles.display_raw_menu.Checked = 'on';
-gui_handles.display_menu.UserData = 1;
+set_display_mode(gui_handles.display_menu,'raw');
 
 if strcmp(expmt.meta.source,'camera') && ~isvalid(expmt.hardware.cam.vid)
     expmt = getVideoInput(expmt,gui_handles);

@@ -15,7 +15,7 @@ if gui_handles.stop_pushbutton.UserData.Value
     t = 'Save or delete data?';
     msg = ['Stop experiment selected!' ... 
         ' Save data collected up to this point or delete files from this experiment.' ... 
-        'Close this window to disregard this message and resume the experiment.'];
+        ' Close this window to disregard this message and resume the experiment.'];
     answer = warningbox_subgui('title',t,'string',msg,'buttons',{'Save' 'Delete'});
 
     switch answer

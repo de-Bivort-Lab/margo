@@ -20,12 +20,13 @@ function [trackDat,expmt] = autoDisplay(trackDat, expmt, im_handle, gui_handles)
 
 
 % query the active display mode
-active_disp = gui_handles.display_menu.UserData;
+disp_menu = gui_handles.display_menu;
+active_disp = disp_menu.UserData;
 
 switch active_disp
 
     % raw image
-    case 1         
+    case 'raw'         
         im_handle.CData = trackDat.im;
         if strcmp(im_handle.CDataMapping,'direct')
             im_handle.CDataMapping = 'scaled';
@@ -35,7 +36,7 @@ switch active_disp
         end
 
     % difference image
-    case 2
+    case 'difference'
         if isfield(trackDat,'diffim')
         im_handle.CData = trackDat.diffim;
             if strcmp(im_handle.CDataMapping,'scaled')
@@ -45,14 +46,11 @@ switch active_disp
                 gui_handles.axes_handle.CLim = [0 255];
             end
         else
-            gui_handles.display_menu.UserData = 1;
-            gui_handles.display_menu.Children(5).Checked= 'on';
-            gui_handles.display_menu.Children(4).Checked= 'off';
-            gui_handles.display_menu.Children(4).Enable = 'off';
+            set_display_mode(disp_menu,'difference','Disable',true);
         end
 
     % threshold image
-    case 3 
+    case 'threshold'
         if isfield(trackDat,'thresh_im')
             im_handle.CData = trackDat.thresh_im;
             if strcmp(im_handle.CDataMapping,'direct')
@@ -62,30 +60,41 @@ switch active_disp
                 gui_handles.axes_handle.CLim = [0 1];
             end
         else
-            gui_handles.display_menu.UserData = 1;
-            gui_handles.display_menu.Children(5).Checked= 'on';
-            gui_handles.display_menu.Children(3).Checked= 'off';
-            gui_handles.display_menu.Children(3).Enable = 'off';
+            set_display_mode(disp_menu,'threshold','Disable',true);
         end
 
     % reference image
-    case 4
+    case 'reference'
         if isfield(trackDat,'ref') && isfield(trackDat.ref,'im')
             im_handle.CData = trackDat.ref.im;
             if strcmp(im_handle.CDataMapping,'direct')
                 im_handle.CDataMapping = 'scaled';
             end
         else 
-            gui_handles.display_menu.UserData = 1;
-            gui_handles.display_menu.Children(5).Checked= 'on';
-            gui_handles.display_menu.Children(2).Checked= 'off';
-            gui_handles.display_menu.Children(2).Enable = 'off';
+            set_display_mode(disp_menu,'reference','Disable',true);
         end
         if any(gui_handles.axes_handle.CLim ~= [0 255])
             gui_handles.axes_handle.CLim = [0 255];
         end
         
-    case 5
+    case 'composite'
+        if isfield(trackDat,'thresh_im')
+            R = trackDat.im;
+            G = trackDat.im;
+            R(trackDat.thresh_im) = 255;
+            G(trackDat.thresh_im) = 0;
+            im_handle.CData = cat(3,R,G,G);
+            if strcmp(im_handle.CDataMapping,'direct')
+                im_handle.CDataMapping = 'scaled';
+            end
+            if any(gui_handles.axes_handle.CLim ~= [0 255])
+                gui_handles.axes_handle.CLim = [0 255];
+            end
+        else
+            set_display_mode(disp_menu,'composite','Disable',true);
+        end
+        
+    case 'none'
         if isempty(gui_handles.display_none_menu.UserData)
             msg = 'Display disabled';
             ax = gui_handles.axes_handle;
@@ -96,7 +105,7 @@ switch active_disp
         end
 end
 
-if gui_handles.display_menu.UserData ~= 5
+if ~strcmp(active_disp,'none')
     if isfield(gui_handles.gui_fig.UserData,'cenText') && ...
             ishghandle(gui_handles.gui_fig.UserData.cenText(1)) &&...
             strcmp(gui_handles.gui_fig.UserData.cenText(1).Visible,'on')
@@ -104,10 +113,51 @@ if gui_handles.display_menu.UserData ~= 5
          arrayfun(@updateText,gui_handles.gui_fig.UserData.cenText,...
              num2cell(trackDat.centroid,2),(1:size(trackDat.centroid,1))',...
              repmat(size(trackDat.im,1)*.015,size(trackDat.centroid,1),1));
+
+    end
+    if strcmp(gui_handles.view_ref_stack_depth.Checked,'on') && ...
+            isfield(trackDat,'ref') && isfield(trackDat.ref,'ct')
+        % Initialize color variables
+        hsv_base = 360;                         % hsv red
+        hsv_targ = 240;                         % hsv blue
+        color_scale = 1 - hsv_targ/hsv_base;
+        
+        % initialize indicator if necessary
+        if ~isfield(trackDat,'hRefCirc') || ~ishghandle(trackDat.hRefCirc(1))
+            hold(gui_handles.axes_handle,'on');
+            color = zeros(expmt.meta.roi.n,3);
+            color(:,1) = 1;
+            trackDat.hRefCirc = scatter(expmt.meta.roi.corners(:,1),...
+                expmt.meta.roi.corners(:,2),...
+                'o','filled','LineWidth',2);
+            trackDat.hRefCirc.CData = color;
+            hold(gui_handles.axes_handle,'off');
+        end
+        
+        % Update ref number color indicator
+        hue = 1-color_scale.*trackDat.ref.ct./expmt.parameters.ref_depth;
+        hsv_color = ones(numel(hue),3);
+        hsv_color(:,1) = hue;
+        color = hsv2rgb(hsv_color);
+        trackDat.hRefCirc.CData = color;
+    else
+        if isfield(trackDat,'hRefCirc')
+            delete(trackDat.hRefCirc);
+            trackDat = rmfield(trackDat,'hRefCirc');
+        end
     end
     if isfield(trackDat,'hMark') && ishghandle(trackDat.hMark(1))
         trackDat.hMark.XData = trackDat.centroid(:,1);
         trackDat.hMark.YData = trackDat.centroid(:,2);
+        if strcmp(active_disp,'composite') && ...
+                (any(trackDat.hMark.Color ~= [0 0 1]) && ...
+                any(trackDat.hMark.Color ~= 'b'))
+            trackDat.hMark.Color = [0 0 1];
+        elseif  ~strcmp(active_disp,'composite') && ...
+                (any(trackDat.hMark.Color ~= [1 0 0]) && ...
+                any(trackDat.hMark.Color ~= 'r'))
+            trackDat.hMark.Color = [1 0 0];
+        end
     end
     if ~isempty(gui_handles.display_none_menu.UserData)
        cellfun(@(h) delete(h),gui_handles.display_none_menu.UserData); 

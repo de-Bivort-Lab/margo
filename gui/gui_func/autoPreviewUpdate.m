@@ -17,14 +17,16 @@ if strcmp(expmt.meta.source,'camera') && ...
     [im,~] = undistortImage(im,expmt.hardware.cam.calibration);
 end
 
-active_display = gui_handles.display_menu.UserData;
-active_display(active_display==5) = 1;
-    
+disp_menu = gui_handles.display_menu;
+if ~ischar(disp_menu.UserData) || strcmpi(disp_menu.UserData,'none')
+    disp_menu.UserData = 'raw';
+end
+active_display = disp_menu.UserData;
 
 switch active_display
 
     % raw image
-    case 1         
+    case 'raw'         
         hImage.CData = im;
         hImage.Parent.CLim = [0 255];
         if strcmp(hImage.CDataMapping,'direct')
@@ -32,7 +34,7 @@ switch active_display
         end
 
     % difference image
-    case 2
+    case 'difference'
         if isfield(expmt.meta.vignette,'im')
         hImage.CData = ...
             (expmt.meta.ref.im-expmt.meta.vignette.im)-(im-expmt.meta.vignette.im);
@@ -41,14 +43,11 @@ switch active_display
                 hImage.Parent.CLim = [0 255];
             end
         else
-            gui_handles.display_menu.UserData = 1;
-            gui_handles.display_menu.Children(5).Checked= 'on';
-            gui_handles.display_menu.Children(4).Checked= 'off';
-            gui_handles.display_menu.Children(4).Enable = 'off';
+            set_display_mode(disp_menu,'difference','Disable',true);
         end
 
     % threshold image
-    case 3 
+    case 'threshold'
         
         if isfield(expmt.meta.vignette,'im')
             hImage.CData = (expmt.meta.ref.im-expmt.meta.vignette.im)-(im-expmt.meta.vignette.im)...
@@ -59,14 +58,23 @@ switch active_display
                 hImage.Parent.CLim = [0 1];
             end
         else
-            gui_handles.display_menu.UserData = 1;
-            gui_handles.display_menu.Children(5).Checked= 'on';
-            gui_handles.display_menu.Children(3).Checked= 'off';
-            gui_handles.display_menu.Children(3).Enable = 'off';
+            set_display_mode(disp_menu,'threshold','Disable',true);
         end
-
+    % composite threshold image    
+    case 'composite'
+        if isfield(expmt.meta.vignette,'im')
+            hImage.CData = (expmt.meta.ref.im-expmt.meta.vignette.im)-(im-expmt.meta.vignette.im)...
+                > gui_handles.track_thresh_slider.Value;
+            hImage.Parent.CLim = [0 1];
+            if strcmp(hImage.CDataMapping,'direct')
+                hImage.CDataMapping = 'scaled';
+                hImage.Parent.CLim = [0 1];
+            end
+        else
+            set_display_mode(disp_menu,'composite','Disable',true);
+        end
     % reference image
-    case 4
+    case 'reference'
         if isfield(expmt.meta.ref,'im')
             hImage.CData = expmt.meta.ref.im;
             hImage.Parent.CLim = [0 max(im(:))];
@@ -74,10 +82,7 @@ switch active_display
                 hImage.CDataMapping = 'scaled';
             end
         else
-            gui_handles.display_menu.UserData = 1;
-            gui_handles.display_menu.Children(5).Checked= 'on';
-            gui_handles.display_menu.Children(2).Checked= 'off';
-            gui_handles.display_menu.Children(2).Enable = 'off';
+            set_display_mode(disp_menu,'reference','Disable',true);
         end
 end
 

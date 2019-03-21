@@ -24,7 +24,7 @@ if exist([handles.gui_dir 'profiles/deviceID.txt'],'file')
     
     
 end
-handles.display_menu.UserData = 1;     
+handles.display_menu.UserData = 'raw';     
 gui_notify('welcome to margo',handles.disp_note);
 
 % configure the figure window
