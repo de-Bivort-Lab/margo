@@ -177,6 +177,7 @@ if ~iscell(cam_str)
 end
 
 if ~strcmpi(cam_str{hObject.Value},'Camera not detected') &&...
+        ~strcmpi(cam_str{hObject.Value},'No camera adaptors installed') && ...
         ~isempty(handles.cam_list(hObject.Value).adaptor)
     
     % get camera adaptor
@@ -263,7 +264,8 @@ function Cam_confirm_pushbutton_Callback(hObject, ~, handles)
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 
-if ~isempty(expmt.hardware.cam) && isstruct(expmt.hardware.cam)
+if ~isempty(expmt.hardware.cam) && isstruct(expmt.hardware.cam) ...
+        && isfield(expmt.hardware.cam,'DeviceInfo')
     
     if ~isfield(expmt.hardware.cam,'DeviceInfo') ||...
             isempty(expmt.hardware.cam.DeviceInfo)
@@ -2695,6 +2697,8 @@ if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
             
             % remove click data
             handles.gui_fig.UserData = rmfield(handles.gui_fig.UserData,'click');
+            handles.view_menu.UserData.hBounds = ...
+                handles.view_menu.UserData.hBounds(isvalid(handles.view_menu.UserData.hBounds));
             
             % re-draw ROIs
             expmt.meta.roi = roi;

@@ -128,4 +128,7 @@ switch old.meta.source
         
 end
 
+% initialize video input
+old = getVideoInput(old,handles);
+
 
