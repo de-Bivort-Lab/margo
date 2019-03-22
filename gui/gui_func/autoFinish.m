@@ -46,6 +46,10 @@ if expmt.meta.finish
             if exist('camcopy','var')
                 expmt.hardware.cam = camcopy;
             end
+            try
+                attach(expmt);
+            catch
+            end
             
 else
             % delete master data struct

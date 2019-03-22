@@ -109,8 +109,7 @@ for i=1:6
             dispTrace(i,handles);
         end
         if stp == 1
-            sb(i).SliderStep(1) = 0.99;
-            sb(i).SliderStep(2) = inf;
+            sb(i).SliderStep = [0.99 Inf];
             sb(i).Enable = 'off';
         else
             sb(i).SliderStep = [stp stp2];
@@ -262,6 +261,7 @@ if isempty(lh) || eb.UserData ~= roi
     end
     hold(ah,'off');
     axis(ah,'equal');
+    set(ah,'XTick',[],'YTick',[]);
     reset(expmt.data.centroid);
     ah.XLim = [1 rc(3)-rc(1)];
     ah.YLim = [1 rc(4)-rc(2)];

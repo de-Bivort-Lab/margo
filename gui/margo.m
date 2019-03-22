@@ -837,6 +837,10 @@ try
         if ~isempty(handles.experiments(exp_idx).analyze)
             expmt = feval(handles.experiments(exp_idx).analyze, expmt);
         end
+    else
+        disp('Execute the following command to load your data into the workspace:')
+        disp(['load(',char(39),...
+            strcat(expmt.meta.path.dir,expmt.meta.path.name,'.mat'),char(39),');'])
     end
 
     if isfield(expmt.data,'centroid') && isattached(expmt.data.centroid)
@@ -906,6 +910,7 @@ end
 % re-Enable control set to off during experiment
 toggleSubguis(handles,'on');
 toggleMenus(handles,'on');
+set_display_mode(handles.display_menu,'raw');
       
 % remove saved rois, images, and noise statistics from prev experiment
 if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n && ~keep_gui_state
@@ -1345,6 +1350,7 @@ if isfield(expmt.meta,'sample_im')
     set_display_mode(handles.display_menu,'raw');
     autoDisplay(trackDat,expmt,handles.hImage,handles);
 end
+clean_gui(handles.axes_handle);
 expmt.meta.initialize = true;
 
 % Store expmteriment data struct
@@ -1466,6 +1472,13 @@ if isfield(expmt.meta,'sample_im')
     trackDat = initializeTrackDat(expmt);
     trackDat.im = expmt.meta.sample_im;
     set_display_mode(handles.display_menu,'raw');
+    if isempty(handles.hImage) || ~any(isvalid(handles.hImage))
+        handles.hImage = findall(handles.axes_handle,'Type','image');
+        if numel(handles.hImage)>1
+            delete(handles.hImage(2:end));
+            handles.hImage = handles.hImage(1);
+        end
+    end
     autoDisplay(trackDat,expmt,handles.hImage,handles);
 end
 expmt.meta.initialize = true;

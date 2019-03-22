@@ -268,9 +268,3 @@ gui_notify('reference initialization complete',gui_handles.disp_note);
 % Reset accept reference button
 set(gui_handles.accept_track_thresh_pushbutton,'value',0);
 
-% disable display control
-set(gui_handles.display_menu.Children,'Enable','off');
-set(gui_handles.display_menu.Children,'Checked','off');
-gui_handles.display_raw_menu.Checked = 'on';
-gui_handles.display_menu.UserData = 1;
-

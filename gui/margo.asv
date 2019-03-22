@@ -22,7 +22,7 @@ function varargout = margo(varargin)
 
 % Edit the above text to modify the response to help margo
 
-% Last Modified by GUIDE v2.5 21-Mar-2019 15:05:49
+% Last Modified by GUIDE v2.5 21-Mar-2019 18:00:01
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -837,6 +837,10 @@ try
         if ~isempty(handles.experiments(exp_idx).analyze)
             expmt = feval(handles.experiments(exp_idx).analyze, expmt);
         end
+    else
+        disp('Execute the following command to load your data into the workspace:')
+        disp(['load(',char(39),...
+            strcat(expmt.meta.path.dir,expmt.meta.path.name,'.mat'),char(39),');'])
     end
 
     if isfield(expmt.data,'centroid') && isattached(expmt.data.centroid)
@@ -906,6 +910,7 @@ end
 % re-Enable control set to off during experiment
 toggleSubguis(handles,'on');
 toggleMenus(handles,'on');
+set_display_mode(handles.display_menu,'raw');
       
 % remove saved rois, images, and noise statistics from prev experiment
 if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n && ~keep_gui_state
@@ -1251,6 +1256,7 @@ expmt = getappdata(handles.gui_fig,'expmt');
 if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
     try
         toggleMenus(handles, 'off');
+        set(handles.display_menu.Children,'Enable','on');
         expmt.meta.initialize = false;
         expmt = initializeRef(handles,expmt);
         handles.sample_noise_pushbutton.Enable = 'on';
@@ -1289,10 +1295,7 @@ toggleMenus(handles, 'on');
 if isfield(expmt.meta,'sample_im')
     trackDat = initializeTrackDat(expmt);
     trackDat.im = expmt.meta.sample_im;
-    set(findall(handles.display_menu,'-property','Checked','Type','uimenu'),...
-        'Checked','off');
-    handles.display_raw_menu.Checked = 'on';
-    handles.display_menu.UserData = 1;
+    set_display_mode(handles.display_menu,'raw');
     autoDisplay(trackDat,expmt,handles.hImage,handles);
 end
 clean_gui(handles.axes_handle);
@@ -1344,12 +1347,10 @@ toggleMenus(handles, 'on');
 if isfield(expmt.meta,'sample_im')
     trackDat = initializeTrackDat(expmt);
     trackDat.im = expmt.meta.sample_im;
-    set(findall(handles.display_menu,'-property','Checked','Type','uimenu'),...
-        'Checked','off');
-    handles.display_raw_menu.Checked = 'on';
-    handles.display_menu.UserData = 1;
+    set_display_mode(handles.display_menu,'raw');
     autoDisplay(trackDat,expmt,handles.hImage,handles);
 end
+clean_gui(handles.axes_handle);
 expmt.meta.initialize = true;
 
 % Store expmteriment data struct
@@ -1470,9 +1471,11 @@ toggleMenus(handles, 'on');
 if isfield(expmt.meta,'sample_im')
     trackDat = initializeTrackDat(expmt);
     trackDat.im = expmt.meta.sample_im;
-    set(findall(handles.display_menu,'-property','Checked','Type','uimenu'),...
-        'Checked','off');
     set_display_mode(handles.display_menu,'raw');
+    if isempty(handles.hImage) || ~any(isvalid(handles.hImage))
+        handles.hImage = findall(handles.axes_handle,'Type','image');
+        if numel(handles.hImage)
+    end
     autoDisplay(trackDat,expmt,handles.hImage,handles);
 end
 expmt.meta.initialize = true;
@@ -1523,7 +1526,7 @@ function display_difference_menu_Callback(hObject, ~, handles)
 chk = get(hObject,'checked');
 
 if strcmp(chk,'off')
-    set(handles.display_menu,'difference');
+    set_display_mode(handles.display_menu,'difference');
 end
 
 guidata(hObject,handles);
@@ -1536,11 +1539,6 @@ chk = get(hObject,'checked');
 
 if strcmp(chk,'off')
     set_display_mode(handles.display_menu,'raw');
-    set(handles.display_difference_menu,'checked','off');
-    set(handles.display_raw_menu,'checked','on');
-    set(handles.display_threshold_menu,'checked','off');
-    set(handles.display_reference_menu,'checked','off');
-    set(handles.display_none_menu,'checked','off');
 end
 
 guidata(hObject,handles);
@@ -1552,12 +1550,7 @@ function display_threshold_menu_Callback(hObject, ~, handles)
 chk = get(hObject,'checked');
 
 if strcmp(chk,'off')
-    handles.display_menu.UserData = 3;
-    set(handles.display_difference_menu,'checked','off');
-    set(handles.display_raw_menu,'checked','off');
-    set(handles.display_threshold_menu,'checked','on');
-    set(handles.display_reference_menu,'checked','off');
-    set(handles.display_none_menu,'checked','off');
+    set_display_mode(handles.display_menu,'threshold');
 end
 
 guidata(hObject,handles);
@@ -1568,12 +1561,7 @@ function display_reference_menu_Callback(hObject, ~, handles)
 chk = get(hObject,'checked');
 
 if strcmp(chk,'off')
-    handles.display_menu.UserData = 4;
-    set(handles.display_difference_menu,'checked','off');
-    set(handles.display_raw_menu,'checked','off');
-    set(handles.display_threshold_menu,'checked','off');
-    set(handles.display_reference_menu,'checked','on');
-    set(handles.display_none_menu,'checked','off');
+    set_display_mode(handles.display_menu,'reference');
 end
 
 guidata(hObject,handles);
@@ -1585,12 +1573,7 @@ function display_none_menu_Callback(hObject, ~, handles)
 chk = get(hObject,'checked');
 
 if strcmp(chk,'off')
-    handles.display_menu.UserData = 5;
-    set(handles.display_difference_menu,'checked','off');
-    set(handles.display_raw_menu,'checked','off');
-    set(handles.display_threshold_menu,'checked','off');
-    set(handles.display_reference_menu,'checked','off');
-    set(handles.display_none_menu,'checked','on');
+    set_display_mode(handles.display_menu,'none');
 end
 
 guidata(hObject,handles);
@@ -2219,9 +2202,7 @@ if vid
     end
     
     % if an image already exists, display a preview of the vignette correction
-    set(handles.display_menu.Children,'Checked','off');
-    handles.display_raw_menu.Checked = 'on';
-    handles.display_menu.UserData = 1;
+    set_display_mode(handles.display_menu,'raw');
     imh = findobj(handles.axes_handle,'-depth',3,'Type','image');
     setappdata(imh,'gui_handles',handles);
     setappdata(imh,'expmt',expmt);
@@ -3356,3 +3337,16 @@ switch hObject.Checked
         hObject.Checked = 'off';
 end
 
+
+
+% --------------------------------------------------------------------
+function display_composite_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to display_composite_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+chk = get(hObject,'checked');
+
+if strcmp(chk,'off')
+    set_display_mode(handles.display_menu,'composite');
+end
