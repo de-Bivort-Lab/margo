@@ -45,6 +45,7 @@ After cloning the repository, add the MARGO directory to MATLAB's path via one o
 ```
     add(genpath(pwd));
 ```
+
 <u>OR</u>
 
 2. Run the command below, select "Add with subfolders", and browse to the margo directory:
