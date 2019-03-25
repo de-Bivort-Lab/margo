@@ -19,7 +19,7 @@ switch expmt.meta.source
         % stop expmt when last frame of last video is reached
         if isfield(expmt.meta.video,'fID')
             trackDat.lastFrame = feof(expmt.meta.video.fID);
-        elseif ~hasFrame(expmt.meta.video.vid) &&...
+        elseif expmt.meta.video.current_frame >= expmt.meta.video.nFrames &&...
                 expmt.meta.video.ct == expmt.meta.video.nVids
             trackDat.lastFrame = true;
         end

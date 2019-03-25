@@ -90,7 +90,7 @@ if strcmp(expmt.meta.source,'camera') && ~no_plot
 
 elseif ~no_plot
 
-    frames_remaining = expmt.meta.video.nFrames - trackDat.ct;
+    frames_remaining = expmt.meta.video.nFrames - expmt.meta.video.current_frame;
     gui_handles.edit_time_remaining.String = num2str(frames_remaining);
 
 end
