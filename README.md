@@ -38,16 +38,19 @@ The MARGO repository can be cloned via the github UI by downloading and extracti
 git clone https://github.com/de-Bivort-Lab/margo.git
 ```
 
-After cloning the repository, add the MARGO directory to MATLAB's path by navigating to the margo directory and running:
+After cloning the repository, add the MARGO directory to MATLAB's path via one of the following two options:
+
+1. Navigate to the margo directory in MATLAB and run:
 
 ```
-add(genpath(margo));
+    add(genpath(pwd));
 ```
+<u>OR</u>
 
-Alternatively, permanently add MARGO and all sub folders to the MATLAB path by adding by running:
+2. Run the command below, select "Add with subfolders", and browse to the margo directory:
 
 ```
-pathtool
+    pathtool
 ```
 
 Once the margo directory is added to the MATLAB path, launch the GUI from the command line:
