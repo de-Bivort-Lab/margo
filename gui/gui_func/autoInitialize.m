@@ -197,22 +197,6 @@ elseif isfield(trackDat,'video_index') || ...
     end
 end
 
-switch expmt.meta.source
-    case 'video'
-        if expmt.meta.video.current_frame ~= 1
-            ttl = 'Select frame position';
-            msg = {['Would you like to start tracking from the start of '...
-                'the video or from the current frame?']};
-            buttons = {'video start';'current frame'};
-            first_frame = warningbox_subgui('title',ttl,'string',msg,...
-                'buttons',buttons,'icon',false);
-            if first_frame
-                expmt.meta.video.current_frame = 1;
-                gui_handles.vid_scrubber_slider.Value = 1;
-            end
-        end
-end
-
 expmt.meta.initialize = false;
 expmt.meta.finish = true;
 expmt.meta.num_traces = sum(expmt.meta.roi.num_traces);

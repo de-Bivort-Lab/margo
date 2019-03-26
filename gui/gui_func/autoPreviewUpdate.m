@@ -35,9 +35,9 @@ switch active_display
 
     % difference image
     case 'difference'
-        if isfield(expmt.meta.vignette,'im')
-        hImage.CData = ...
-            (expmt.meta.ref.im-expmt.meta.vignette.im)-(im-expmt.meta.vignette.im);
+        if isfield(expmt.meta.vignette,'im') && isfield(expmt.meta.ref,'im')
+            hImage.CData = (expmt.meta.ref.im-expmt.meta.vignette.im) - ...
+                (im-expmt.meta.vignette.im);
             if strcmp(hImage.CDataMapping,'scaled')
                 hImage.CDataMapping = 'direct';
                 hImage.Parent.CLim = [0 255];
@@ -49,7 +49,7 @@ switch active_display
     % threshold image
     case 'threshold'
         
-        if isfield(expmt.meta.vignette,'im')
+        if isfield(expmt.meta.vignette,'im') && isfield(expmt.meta.ref,'im')
             hImage.CData = (expmt.meta.ref.im-expmt.meta.vignette.im)-(im-expmt.meta.vignette.im)...
                 > gui_handles.track_thresh_slider.Value;
             hImage.Parent.CLim = [0 1];
@@ -62,7 +62,7 @@ switch active_display
         end
     % composite threshold image    
     case 'composite'
-        if isfield(expmt.meta.vignette,'im')
+        if isfield(expmt.meta.vignette,'im') && isfield(expmt.meta.ref,'im')
             hImage.CData = (expmt.meta.ref.im-expmt.meta.vignette.im)-(im-expmt.meta.vignette.im)...
                 > gui_handles.track_thresh_slider.Value;
             hImage.Parent.CLim = [0 1];

@@ -12,10 +12,6 @@ else
     
     if video.current_frame < video.nFrames
         
-        if video.buffered_update
-            video.current_frame = video.buffered_idx;
-            video.buffered_update = false;
-        end
         im = read(video.vid,video.current_frame);
         video.current_frame = video.current_frame + 1;
         
@@ -35,6 +31,4 @@ else
 
     end
     
-    % update video scrubber slider position
-    gui_handles.vid_scrubber_slider.Value = video.current_frame;
 end

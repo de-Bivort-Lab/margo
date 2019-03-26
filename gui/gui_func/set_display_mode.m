@@ -33,4 +33,5 @@ end
 
 set(disp_menu_items,'Checked','off');
 disp_menu_items(mode_idx).Checked = 'on';
+disp_menu_items(mode_idx).Enable = 'on';
 disp_menu_handle.UserData = mode;

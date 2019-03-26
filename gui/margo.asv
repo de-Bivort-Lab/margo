@@ -379,8 +379,6 @@ if ~isempty(expmt.hardware.cam) && isstruct(expmt.hardware.cam) ...
         set(on_objs(ishghandle(on_objs)),'Enable','on');
         set(off_objs(ishghandle(off_objs)),'Enable','off');
         set(handles.display_menu.Children,'Enable','off');
-        set(handles.display_menu.Children,'Checked','off');
-        set_display_mode(handles.display_menu,'raw');
         
         % set downstream UI panel Enable status
         handles.tracking_uipanel.ForegroundColor = [0 0 0];

@@ -75,8 +75,6 @@ if fDir
         delete(video.vid);
         video.vid = VideoReader([fDir fName{1}]);
         video.current_frame = 1;
-        video.buffered_idx = 1;
-        expmt.meta.video.buffered_update = false;
         video.total_duration = dur;
         video.nFrames = nFrames;
     end
