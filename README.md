@@ -58,15 +58,9 @@ Once the margo directory is added to the MATLAB path, launch the GUI from the co
 margo
 ```
 
-## Quickstart Guide
+## Getting Started
 
-We recommend that new users read about MARGO's [experimental workflow](##experimental-workflow) and follow the sample [tracking tutorial](https://github.com/de-Bivort-Lab/margo/wiki/Tracking-Tutorial) included in the documentation for more complete instructions on getting started in MARGO.
-
-<figure style="text-align: center">
-    <img src="https://github.com/de-Bivort-Lab/margo/wiki/images/quickstart/quick_start_guide.png" style="width: 95%"/>
-    <figcaption class="center_cap" style="text-align: center">
-    </figcaption>
-</figure>
+We recommend that new users read the [overview](https://github.com/de-Bivort-Lab/margo/wiki/Introduction#overview) of MARGO's functionality and use the sample video included in this repository to follow the [tracking tutorial](https://github.com/de-Bivort-Lab/margo/wiki/Tracking-Tutorial) included in the documentation for more complete instructions on getting started in MARGO.
 
 ## Documentation
 
