@@ -52,76 +52,56 @@ else
 end
 
 if trail_length > 0
-    
-    % find inactive centroids with NaNs and replace with placeholder
-    inactive = isnan(cen(1,:));
-    center = [size(expmt.meta.ref.im,2);size(expmt.meta.ref.im,1)]./2;
-    cen(:,inactive) = repmat(center,1,sum(inactive));
-    
+
     % initialize trail coordinates
     if ~isfield(handles,'trail') || isempty(handles.trail)
-        trail = repmat(cen,1,1,trail_length);
-        trail = permute(trail,[3,2,1]);
-        xidx = 1:numel(trail)/2;
-        yidx = numel(trail)/2+1:numel(trail);
-    
-        handles.trail = plot(trail(xidx),trail(yidx),options.trail{:});
+        
+        % initialize empty coords
+        trail_x = num2cell(NaN(trail_length,size(cen,2)),1);
+        trail_y = num2cell(NaN(trail_length,size(cen,2)),1);
+
+        % initialize plotting data
+        plot_xdata = cat(1,trail_x{:});
+        plot_ydata = cat(1,trail_y{:});
+        handles.trail = plot(plot_xdata,plot_ydata,options.trail{:});
         pause(0.01);
+        
         handles.trail.Edge.ColorType = 'truecoloralpha';
         uistack(handles.trail,'down');
-    else
-%         
-        bx = handles.trail.XData;
-        by = handles.trail.YData;
-        bx = reshape(bx, trail_length, numel(bx)/trail_length);
-        by = reshape(by, trail_length, numel(by)/trail_length);
         
-        % get current positions from trail handle
-        x = handles.trail.XData;
-        y = handles.trail.YData;
-        trail_x = reshape(x, trail_length, numel(x)/trail_length);
-        trail_y = reshape(y, trail_length, numel(y)/trail_length);
-        
-        % determine if trace was previously inactive
-        prev_inactive = trail_x == center(1);
-        
-        if any(inactive ~= prev_inactive(1,:))
-            a=0;
-        end
-        %%
-        % initialize all coordinates to new position for previously
-        % inactive traces
-        x_mat = repmat(cen(1,:),size(trail_x,1),1);
-        y_mat = repmat(cen(2,:),size(trail_y,1),1);
-        trail_x(prev_inactive) = x_mat(prev_inactive);
-        trail_y(prev_inactive) = y_mat(prev_inactive);
-        
-        % shift the current trail positions back by one frame
-        trail_x = circshift(trail_x,1,1);
-        trail_y = circshift(trail_y,1,1);
-        
-        % insert new centroid positions at front of trail
-        trail_x(1,:) = cen(1,:);
-        trail_y(1,:) = cen(2,:);
-        
-        % update positions in trail handle
-        handles.trail.XData = trail_x(:) + rand(size(trail_x(:))).*0.1;
-        handles.trail.YData = trail_y(:) + rand(size(trail_x(:))).*0.1;
+        handles.trail.UserData.x = trail_x;
+        handles.trail.UserData.y = trail_y;
     end
     
-    % initialize trail color data (fade transparency with alpha blend)
-    trail_color = handles.trail.Edge.ColorData(1:3,1);
-    trail_cdata = repmat(trail_color,1,trail_length);
-    trail_cdata(4,:) = uint8([linspace(255,0,trail_length-1) 0]);
-    trail_cdata(4,1) = 0;
-    trail_cdata = repmat(trail_cdata,1,1,expmt.meta.num_traces);
+    % retrieve trail coordinate data
+    trail_x = handles.trail.UserData.x;
+    trail_y = handles.trail.UserData.y;
     
-    % set alpha of inactive traces to zero
-    trail_cdata(4,:,inactive) = 0;
-    trail_cdata = reshape(trail_cdata(:),4,numel(trail_cdata)/4);
+    % update trail marker position data
+    [trail_x, trail_y] = cellfun(@(c,tx,ty) update_trail_coords(c(1),c(2),tx,ty),...
+        num2cell(cen,1), trail_x, trail_y, 'UniformOutput', false);
+        
+    % initialize plotting data
+    plot_xdata = cat(1,trail_x{:});
+    plot_ydata = cat(1,trail_y{:});
 
-    % update the color data
-    set(handles.trail.Edge,'ColorBinding','interpolated','ColorData',trail_cdata);
+    % restrict to valid coordinates
+    plot_xdata = plot_xdata(~isnan(plot_xdata));
+    plot_ydata = plot_ydata(~isnan(plot_ydata));
+    
+    % update trail color data
+    trail_cdata = cellfun(@(tx) ...
+    update_trail_cdata(~isnan(tx), handles.trail.Edge.ColorData(1:3,1)),...
+    trail_x, 'UniformOutput', false);
+    trail_cdata = cat(2,trail_cdata{:});
+    set(handles.trail.Edge,'ColorBinding','none');
+    set(handles.trail,'XData',plot_xdata,'YData',plot_ydata);
+    set(handles.trail.Edge,'ColorBinding','interpolated',...
+        'ColorData',trail_cdata);
+    
+    % store trail coordinates in the trail handle user data
+    handles.trail.UserData.x = trail_x;
+    handles.trail.UserData.y = trail_y;
 end
 
 
