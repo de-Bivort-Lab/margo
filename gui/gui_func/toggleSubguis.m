@@ -20,4 +20,5 @@ gui_handles.sample_noise_pushbutton.Enable = state;
 gui_handles.cam_settings_menu.Enable = state;
 gui_handles.select_source_menu.Enable = state;
 gui_handles.file_menu.Enable = state;
+gui_handles.vid_scrubber_slider.Enable = state;
 set(gui_handles.cam_uipanel.Children,'Enable',state);

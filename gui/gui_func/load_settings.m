@@ -53,6 +53,9 @@ switch old.meta.source
             set(handles.vid_uipanel.Children,'Enable','on');
             old.meta.video.vid = ...
                 VideoReader([old.meta.video.fdir old.meta.video.fnames{1}]);
+            old.meta.video.current_frame = 1;
+            old.meta.video.buffered_idx = 1;
+            old.meta.video.buffered_update = false;
             frame_rate = old.parameters.target_rate;
             old = guiInitializeVideo(old, handles);
             old.parameters.target_rate = frame_rate;
@@ -127,5 +130,8 @@ switch old.meta.source
         end         
         
 end
+
+% initialize video input
+old = getVideoInput(old,handles);
 
 

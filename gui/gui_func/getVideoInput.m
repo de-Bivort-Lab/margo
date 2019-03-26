@@ -66,6 +66,8 @@ elseif strcmp(expmt.meta.source,'video')
         gui_handles.edit_exp_duration.Value = ...
             expmt.meta.video.total_duration * 1.15 / 3600;
         
+        expmt.meta.video.buffered_idx = expmt.meta.video.current_frame;
+        
     end
     
 end

@@ -38,6 +38,7 @@ function expmt = guiInitializeVideo(expmt, gui_handles)
     end   
     if ~isfield(gui_handles,'hImage') || ~isfield(gui_handles.hImage,'CData')
         gui_handles.hImage = imagesc(im,'Parent',gui_handles.axes_handle);
+        set(gui_handles.axes_handle,'XTick',[],'YTick',[]);
         colormap(gui_handles.axes_handle,'gray');
         drawnow
     else
@@ -45,5 +46,15 @@ function expmt = guiInitializeVideo(expmt, gui_handles)
         colormap(gui_handles.axes_handle,'gray');
         drawnow
     end
-   
+    
+    vid_scrub = gui_handles.vid_scrubber_slider;
+    vid_scrub.Value = 1;
+    vid_scrub.Min = 1;
+    vid_scrub.Max = expmt.meta.video.nFrames;
+    stp = [1 50]./expmt.meta.video.nFrames;
+    stp(stp>0.5) = 0.5;
+    vid_scrub.SliderStep = stp;
+    vid_scrub.Visible = 'on';
+    ax_pos = gui_handles.axes_handle.Position([1 3]);
+    vid_scrub.Position(1:3) = [ax_pos(1) gui_handles.bottom_uipanel.Position(2) ax_pos(2)];
     

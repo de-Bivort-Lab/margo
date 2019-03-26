@@ -22,7 +22,7 @@ function varargout = margo(varargin)
 
 % Edit the above text to modify the response to help margo
 
-% Last Modified by GUIDE v2.5 21-Mar-2019 18:00:01
+% Last Modified by GUIDE v2.5 23-Mar-2019 14:59:40
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -177,6 +177,7 @@ if ~iscell(cam_str)
 end
 
 if ~strcmpi(cam_str{hObject.Value},'Camera not detected') &&...
+        ~strcmpi(cam_str{hObject.Value},'No camera adaptors installed') && ...
         ~isempty(handles.cam_list(hObject.Value).adaptor)
     
     % get camera adaptor
@@ -263,7 +264,8 @@ function Cam_confirm_pushbutton_Callback(hObject, ~, handles)
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 
-if ~isempty(expmt.hardware.cam) && isstruct(expmt.hardware.cam)
+if ~isempty(expmt.hardware.cam) && isstruct(expmt.hardware.cam) ...
+        && isfield(expmt.hardware.cam,'DeviceInfo')
     
     if ~isfield(expmt.hardware.cam,'DeviceInfo') ||...
             isempty(expmt.hardware.cam.DeviceInfo)
@@ -1384,7 +1386,7 @@ end
 
 
 % run ROI detection
-try     
+%try     
     expmt.meta.initialize = false;
     toggleMenus(handles, 'off');
     tracking_uictls = findall(handles.tracking_uipanel,'-property','Enable');
@@ -1459,11 +1461,11 @@ try
     % re-enable controls
     set(on_objs(ishghandle(on_objs)), 'Enable', 'on');
     
-catch ME
-    hObject.Enable = 'on';
-    msg=getReport(ME,'extended');
-    errordlg(msg);
-end
+% catch ME
+%     hObject.Enable = 'on';
+%     msg=getReport(ME,'extended');
+%     errordlg(msg);
+% end
 
 % Store expmteriment data struct
 set(tracking_uictls(strcmp(enable_states,'on')),'Enable','on');
@@ -1838,6 +1840,7 @@ function ROI_distance_thresh_menu_Callback(~,~,~)
 function gui_fig_SizeChangedFcn(hObject, ~, handles)
 % hObject    handle to gui_fig (see GCBO)
 % calculate delta width and height
+
 if isfield(handles,'fig_size')
     
     dh = handles.fig_size(4) - hObject.Position(4);
@@ -1862,9 +1865,18 @@ if isfield(handles,'fig_size')
     handles.hImage = findobj(handles.axes_handle,'-depth',3,'Type','Image');
     if ~isempty(handles.hImage)
 
+        expmt = getappdata(handles.gui_fig,'expmt');
+        switch expmt.meta.source
+            case 'camera'
+                handles.axes_handle.Position(2) = ...
+                    handles.bottom_uipanel.Position(2);
+            case 'video'
+                handles.axes_handle.Position(2) = ...
+                    sum(handles.vid_scrubber_slider.Position([2 4])) + ...
+                    handles.fig_size(4)*0.005;
+        end
         handles.axes_handle.Position(3) = handles.gui_fig.Position(3) - ...
             handles.axes_handle.Position(1) - handles.fig_size(4)*0.005;
-        handles.axes_handle.Position(2) = handles.bottom_uipanel.Position(2);
         handles.axes_handle.Position(4) = handles.gui_fig.Position(4) - ...
             handles.axes_handle.Position(2) - handles.fig_size(4)*0.005;
 
@@ -1898,7 +1910,8 @@ if isfield(handles,'fig_size')
         else          
             handles.axes_handle.Position(4) = axes_height_new;
             handles.axes_handle.Position(2) = handles.axes_handle.Position(2) + axes_height_old - axes_height_new;           
-        end    
+        end
+        handles.vid_scrubber_slider.Position(3) = handles.axes_handle.Position(3);
         handles.axes_handle.XTick = [];
         handles.axes_handle.YTick = [];     
     end
@@ -1958,13 +1971,10 @@ if isfield(expmt.meta.video,'vid')
     end
         
     % stream frames to the axes until the preview button is unticked
-    ct=0;
     setappdata(handles.hImage,'gui_handles',handles);
     setappdata(handles.hImage,'expmt',expmt);
-    while hObject.Value
-        
+    while hObject.Value 
         tic
-        ct = ct+1;
         
         % get next frame and update image
         [event.Data, expmt.meta.video] = nextFrame(expmt.meta.video,handles);
@@ -1972,8 +1982,10 @@ if isfield(expmt.meta.video,'vid')
         autoPreviewUpdate([], event, handles.hImage)
         
         % update frame rate and frames remaining
-        handles.edit_frame_rate.String = num2str(round(1/toc*10)/10);
-        handles.edit_time_remaining.String = num2str(expmt.meta.video.nFrames - ct);
+        handles.edit_frame_rate.String = sprintf('%.1f',1/toc);
+        handles.edit_time_remaining.String = ...
+            sprintf('%i',mod(expmt.meta.video.nFrames - ...
+            expmt.meta.video.current_frame,expmt.meta.video.nFrames));
  
     end
 else
@@ -2695,6 +2707,8 @@ if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
             
             % remove click data
             handles.gui_fig.UserData = rmfield(handles.gui_fig.UserData,'click');
+            handles.view_menu.UserData.hBounds = ...
+                handles.view_menu.UserData.hBounds(isvalid(handles.view_menu.UserData.hBounds));
             
             % re-draw ROIs
             expmt.meta.roi = roi;
@@ -3352,4 +3366,45 @@ chk = get(hObject,'checked');
 
 if strcmp(chk,'off')
     set_display_mode(handles.display_menu,'composite');
+end
+
+
+% --- Executes on slider movement.
+function vid_scrubber_slider_Callback(hObject, eventdata, handles)
+% hObject    handle to vid_scrubber_slider (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+expmt = getappdata(handles.gui_fig,'expmt');
+val = ceil(hObject.Value);
+expmt.meta.video.current_frame = val;
+
+if ~handles.vid_preview_togglebutton.Value
+    if ~isfield(handles,'hImage') || ~isvalid(handles.hImage)
+        handles.hImage = findall(handles.axes_handle,'Type','Image');
+    end
+    
+    % get next frame from video file
+    [expmt.meta.sample_im, expmt.meta.video] = nextFrame(expmt.meta.video,handles);
+    handles.hImage.CData = expmt.meta.sample_im;
+    
+    % update frames remaining string
+    handles.edit_time_remaining.String = ...
+        sprintf('%i',mod(expmt.meta.video.nFrames - val,expmt.meta.video.nFrames));
+end
+expmt.meta.video.buffered_update = true;
+expmt.meta.video.buffered_idx = val + 1;
+drawnow;
+    
+    
+
+% --- Executes during object creation, after setting all properties.
+function vid_scrubber_slider_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to vid_scrubber_slider (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: slider controls usually have a light gray background.
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
 end

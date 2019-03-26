@@ -10,8 +10,14 @@ if isfield(video,'fID')
     
 else
     
-    if hasFrame(video.vid)
-        im = readFrame(video.vid);
+    if video.current_frame < video.nFrames
+        
+        if video.buffered_update
+            video.current_frame = video.buffered_idx;
+            video.buffered_update = false;
+        end
+        im = read(video.vid,video.current_frame);
+        video.current_frame = video.current_frame + 1;
         
     else
        % increment to next video
@@ -20,12 +26,15 @@ else
        % create new video object
        video.vid = ...
            VideoReader([video.fdir video.fnames{mod(video.ct,video.nVids)+1}]);
+       video.current_frame = 1;
 
        % update gui popupmenu with current file
        gui_handles.vid_select_popupmenu.Value = mod(video.ct,video.nVids)+1;
 
-       im = readFrame(video.vid);
+       im = read(video.vid,1);
 
     end
     
+    % update video scrubber slider position
+    gui_handles.vid_scrubber_slider.Value = video.current_frame;
 end

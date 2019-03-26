@@ -225,7 +225,7 @@ guidata(hObject,handles);
 function speed_checkbox_Callback(hObject, eventdata, handles)
 % hObject    handle to speed_checkbox (see GCBO)
 
-f = handles.output.meta.fields;
+f = handles.output.meta.fields; if size(f,2) > size(f,1), f = f'; end
 if hObject.Value
      if ~any(strcmp('speed',f))
          f = [f;{'speed'}];
@@ -249,7 +249,7 @@ guidata(hObject,handles);
 function area_checkbox_Callback(hObject, eventdata, handles) %#ok<*INUSD>
 % hObject    handle to area_checkbox (see GCBO)
 
-f = handles.output.meta.fields;
+f = handles.output.meta.fields; if size(f,2) > size(f,1), f = f'; end
 if hObject.Value
      if ~any(strcmp('area',f))
          f = [f;{'area'}];
@@ -273,7 +273,7 @@ guidata(hObject,handles);
 function orientation_checkbox_Callback(hObject, eventdata, handles)
 % hObject    handle to orientation_checkbox (see GCBO)
 
-f = handles.output.meta.fields;
+f = handles.output.meta.fields; if size(f,2) > size(f,1), f = f'; end
 if hObject.Value
      if ~any(strcmp('orientation',f))
          f = [f;{'orientation'}];
@@ -299,7 +299,7 @@ guidata(hObject,handles);
 function weightedcentroid_checkbox_Callback(hObject, eventdata, handles)
 % hObject    handle to weightedcentroid_checkbox (see GCBO)
 
-f = handles.output.meta.fields;
+f = handles.output.meta.fields; if size(f,2) > size(f,1), f = f'; end
 if hObject.Value
      if ~any(strcmp('weightedCentroid',f))
          f = [f;{'weightedCentroid'}];
@@ -326,7 +326,7 @@ guidata(hObject,handles);
 function major_axis_checkbox_Callback(hObject, eventdata, handles)
 % hObject    handle to major_axis_checkbox (see GCBO)
 
-f = handles.output.meta.fields;
+f = handles.output.meta.fields; if size(f,2) > size(f,1), f = f'; end
 if hObject.Value
      if ~any(strcmp('majorAxisLength',f))
          f = [f;{'majorAxisLength'}];
@@ -351,7 +351,7 @@ guidata(hObject,handles);
 function minor_axis_checkbox_Callback(hObject, eventdata, handles)
 % hObject    handle to minor_axis_checkbox (see GCBO)
 
-f = handles.output.meta.fields;
+f = handles.output.meta.fields; if size(f,2) > size(f,1), f = f'; end
 if hObject.Value
      if ~any(strcmp('minorAxisLength',f))
          f = [f;{'minorAxisLength'}];

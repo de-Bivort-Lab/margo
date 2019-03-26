@@ -46,7 +46,7 @@ if ~isempty(new_fields)
             expmt.data.(new_fields{i}).precision = 'single';
             expmt.data.(new_fields{i}).dim = ...
                 [expmt.meta.num_frames expmt.meta.num_traces];
-            expmt.data.(new_fields{i}).path = path;
+            expmt.data.(new_fields{i}).path = unixify(path);
         else
             file_exists = [file_exists i];
         end
