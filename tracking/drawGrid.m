@@ -39,6 +39,7 @@ polyPos(4,:) = [roi(1) roi(2)];
 [xData,yData] = getGridVertices(polyPos(:,1),polyPos(:,2),nRow,nCol, roi_grid.scale);
 
 % create interactible polygon
+warning off MATLAB:structOnObject
 roi_grid.hp = impoly(gui_handles.axes_handle, polyPos);
 roi_grid.hp.Deletable = false;
 grid_props = struct(roi_grid.hp);

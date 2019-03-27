@@ -1264,22 +1264,23 @@ switch expmt.meta.source
         expmt.meta.video.current_frame = 1;
 end
 
+% configure enable states of GUI controls
+toggleMenus(handles, 'off');
+togglePanels(handles, 'off', {'vid';'cam'});
+tracking_uictls = findall(handles.tracking_uipanel,'-property','Enable');
+enable_states = get(tracking_uictls,'Enable');
+set(tracking_uictls,'Enable','off');
+ref_ctls = {'edit_target_rate';'edit_area_minimum';'edit_area_maximum';...
+    'track_thresh_label';'track_thresh_slider';'disp_track_thresh';...
+    'accept_track_thresh_pushbutton'};
+ref_ctls = cellfun(@(tag) handles.(tag), ref_ctls, 'UniformOutput', false);
+ref_ctls = cat(1,ref_ctls{:});
+set(ref_ctls,'Enable','on');
+handles.edit_ref_depth.Enable = 'off';
+set(handles.display_menu.Children,'Enable','on');
+
 if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
     try
-        % configure enable states of GUI controls
-        toggleMenus(handles, 'off');
-        togglePanels(handles, 'off', {'vid';'cam'});
-        tracking_uictls = findall(handles.tracking_uipanel,'-property','Enable');
-        enable_states = get(tracking_uictls,'Enable');
-        set(tracking_uictls,'Enable','off');
-        ref_ctls = {'edit_target_rate';'edit_area_minimum';'edit_area_maximum';...
-            'track_thresh_label';'track_thresh_slider';'disp_track_thresh';...
-            'accept_track_thresh_pushbutton'};
-        ref_ctls = cellfun(@(tag) handles.(tag), ref_ctls, 'UniformOutput', false);
-        ref_ctls = cat(1,ref_ctls{:});
-        set(ref_ctls,'Enable','on');
-        handles.edit_ref_depth.Enable = 'off';
-        set(handles.display_menu.Children,'Enable','on');
         
         expmt.meta.initialize = false;
         expmt = initializeRef(handles,expmt);
@@ -1438,7 +1439,7 @@ end
 
 
 % run ROI detection
-try     
+%try     
     expmt.meta.initialize = false;
     toggleMenus(handles, 'off');
     togglePanels(handles, 'off', {'vid';'cam'});
@@ -1460,12 +1461,12 @@ try
         case 'grid'    
         expmt.meta.roi.mode = 'grid';
         expmt = gridROIs(handles,expmt);   
-        if ~isfield(expmt.meta.roi,'centers')
+        if ~isfield(expmt.meta.roi,'centers') || isempty(expmt.meta.roi.centers)
             msg = 'grid ROI detection aborted';
             gui_notify(msg,handles.disp_note);
             toggleMenus(handles, 'on');
             hObject.Enable = 'on';
-            set(tracking_uictls(strcmp(enable_states,'on'),'Enable','on'));
+            set(tracking_uictls(strcmp(enable_states,'on')),'Enable','on');
             return
         end
             
@@ -1514,11 +1515,11 @@ try
     % re-enable controls
     set(on_objs(ishghandle(on_objs)), 'Enable', 'on');
     
-catch ME
-    hObject.Enable = 'on';
-    msg=getReport(ME,'extended');
-    errordlg(msg);
-end
+% catch ME
+%     hObject.Enable = 'on';
+%     msg=getReport(ME,'extended');
+%     errordlg(msg);
+% end
 
 % Store expmteriment data struct
 set(tracking_uictls(strcmp(enable_states,'on')),'Enable','on');
@@ -3003,10 +3004,13 @@ guidata(hObject,handles);
 function remove_ROI_pushbutton_Callback(hObject, eventdata, handles)
 
 if handles.add_ROI_pushbutton.UserData.nGrids > 1
-    handles = update_grid_UI(handles,'subtract'); 
+    handles = update_grid_UI(handles,'subtract',hObject.UserData);
+else
+   handles.add_ROI_pushbutton.UserData.nGrids = 0; 
 end
 
-guidata(hObject,handles);
+guidata(handles.add_ROI_pushbutton,handles);
+
 
 
 % --- Executes on selection change in ROI_shape_popupmenu1.
