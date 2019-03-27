@@ -177,6 +177,10 @@ save([expmt.meta.path.dir expmt.meta.path.name '.mat'],'expmt');
 %% Setup the camera and/or video object
 
 expmt = getVideoInput(expmt,gui_handles);
+switch expmt.meta.source
+    case 'video'
+        expmt.meta.video.current_frame = 1;
+end
 
 % initialize video recording if enabled
 if isfield(expmt.meta,'video_out') && expmt.meta.video_out.record

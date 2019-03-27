@@ -40,6 +40,11 @@ polyPos(4,:) = [roi(1) roi(2)];
 
 % create interactible polygon
 roi_grid.hp = impoly(gui_handles.axes_handle, polyPos);
+roi_grid.hp.Deletable = false;
+grid_props = struct(roi_grid.hp);
+h_vertices = findall(grid_props.h_group,'Tag','impoly vertex');
+context_menus = get(h_vertices,'UIContextMenu');
+cellfun(@(hmenu) delete(hmenu), context_menus);
 
 switch roi_grid.shape
     case 'Circular'
