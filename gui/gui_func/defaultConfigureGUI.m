@@ -89,44 +89,6 @@ handles.gui_fig.UserData.edit_rois = false;
 handles.axes_handle = gca;
 set(gca,'Xtick',[],'Ytick',[],'XLabel',[],'YLabel',[]);
 
-% popuplate saved profile list and create menu items
-% Get existing profile list
-load_path =[handles.gui_dir 'profiles/'];
-tmp_profiles = ls(load_path);
-profiles = cell(size(tmp_profiles,1),1);
-remove = [];
-
-for i = 1:size(profiles,1)
-    k = strfind(tmp_profiles(i,:),'.mat');       % identify .mat files in dir
-    if isempty(k)
-        remove = [remove i];                        
-    else
-        profiles(i) = {tmp_profiles(i,1:k-1)};   % save mat file names
-    end
-end
-profiles(remove)=[];                             % remove non-mat files from list
-
-if size(profiles,1) > 0
-    handles.profiles = profiles;
-else
-    handles.profiles = {'No profiles detected'};
-end
-
-% generate menu items for saved profiles and config their callbacks
-hParent = findobj('Tag','saved_presets_menu');
-save_path = [handles.gui_dir 'profiles/'];
-fh = @(hObject,eventdata)...
-        margo('saved_preset_Callback',...
-            hObject,eventdata,guidata(hObject));
-
-for i = 1:length(profiles)
-    menu_items(i) = uimenu(hParent,'Label',profiles{i},...
-                        'Callback',fh);
-    menu_items(i).UserData.path = [save_path profiles{i} '.mat'];
-    menu_items(i).UserData.index = i;
-    menu_items(i).UserData.gui_handles = handles;
-end
-
 % get experiment nums and function handles
 experiments = struct('name','','run','','analyze','','sub_gui','');
 par_dir = [handles.gui_dir 'experiments'];

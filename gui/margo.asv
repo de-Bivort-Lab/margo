@@ -2004,7 +2004,7 @@ if ~exist('expmt','var')
 end
 
 % load new settings in from file
-expmt = load_settings(expmt,expmt_new,handles);
+expmt = load_settings(expmt,expmt_new,hObject.UserData.gui_handles); %#ok<NODEF>
 
 % save loaded settings to master struct
 setappdata(gui_fig,'expmt',expmt);  
