@@ -8,7 +8,7 @@ The Massively Automated Real-time GUI for Object-tracking (MARGO) is a MATLAB ba
 <figure align="center">
     <img src="https://github.com/de-Bivort-Lab/margo/wiki/images/margo_readme/fly_960_gif.gif" width="95%"/>
     <figcaption>
-        Sample video clip from an experiment featuring continuous high-throughput tracking of 960 fruit tracked at 8Hz for 6 days
+        Sample video clip from an experiment featuring continuous high-throughput tracking of 960 fruit flies tracked at 8Hz for 6 days
     </figcaption>
 </figure>
 <br/>
@@ -32,17 +32,23 @@ MARGO requires on [Psychtoolbox 3](http://psychtoolbox.org/) for support of exte
 
 ### MARGO installation
 
-The MARGO repository can be cloned via the github UI by downloading and extracting a zip file of the repository (*Clone or Download* > *Download ZIP*) or via the git command line API with the following command:
+<p text-align="left">
+1. The MARGO repository can be cloned via the github UI by downloading and extracting a zip file of the repository (<i>Clone or Download</i> > <i>Download ZIP</i>) &nbsp; <ins>OR</ins>&nbsp; clone via the git command line API with the following command:
+</p>
 
 ```
 git clone https://github.com/de-Bivort-Lab/margo.git
 ```
 
-After cloning the repository, add the MARGO directory to MATLAB's path by navigating to the margo directory and running:
+<p text-align="left">
+2. After cloning the repository, add the MARGO directory to MATLAB's path by navigating to the margo directory and running:
+</p>
 
 ```
-add(genpath(margo));
+addpath(genpath(pwd));
 ```
+
+<ins>OR</ins>
 
 Alternatively, permanently add MARGO and all sub folders to the MATLAB path by adding by running:
 
@@ -50,7 +56,9 @@ Alternatively, permanently add MARGO and all sub folders to the MATLAB path by a
 pathtool
 ```
 
-Once the margo directory is added to the MATLAB path, launch the GUI from the command line:
+<p text-align="left">
+3. Once the margo directory is added to the MATLAB path, launch the GUI from the command line:
+</p>
 
 ```matlab
 margo
@@ -107,10 +115,11 @@ The Massively Automated Real-time GUI for Object-tracking (MARGO) is a MATLAB ba
 Tracking of fruit fly larvae (left) in a chemotactic gradient and nematodes (right) in response to an optogenetic stimulus in the <a href="https://elifesciences.org/articles/26652">wormotel</a> high-throughput platform
 </p>
 
-
-
-
 <br/>
+
+## Reporting issues
+
+MARGO is still a work in progress. Please [report](https://github.com/de-Bivort-Lab/margo/issues) any errors to this repository. To help solve issues quickly, please provide a detailed description of the error, the MATLAB error message, and the MARGO error log file (if possible).
 
 ## Contributors
 

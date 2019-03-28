@@ -29,7 +29,7 @@ if isempty(fDir)
 end
 
 for i=1:numel(fDir)
-    if any(strcmp({'\';'/'},fDir{i}(end)))
+    if any(strcmpi({'\';'/'},fDir{i}(end)))
         fDir{i}(end) = [];
     end
 end
@@ -50,10 +50,10 @@ for j=1:numel(fDir)
 
         [path,name,ext]=fileparts([fDir{j} '/' files(i).name]);
 
-        if strcmp(ext,target_ext) && exist('key','var') && ~isempty(strfind(name,key))
+        if strcmpi(ext,target_ext) && exist('key','var') && ~isempty(strfind(name,key))
             path = [path '/' name ext];
             fPaths = [fPaths {path}];
-        elseif strcmp(ext,target_ext) && ~exist('key','var')
+        elseif strcmpi(ext,target_ext) && ~exist('key','var')
             path = [path '/' name ext];
             fPaths = [fPaths {path}];
         end
@@ -63,7 +63,7 @@ for j=1:numel(fDir)
     ignore = {'.';'..';};
     for i=1:numel(dirs)
 
-        if ~any(strcmp(dirs(i).name,ignore))
+        if ~any(strcmpi(dirs(i).name,ignore))
 
             subdir = [fDir{j} '/' dirs(i).name];
             subpaths = recursiveSearch(subdir,opts{:});
