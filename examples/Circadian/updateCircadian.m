@@ -54,7 +54,7 @@ end
     
     %% Slowly ramp the light up or down to avoid startling the flies
     
-if trackDat.ramp.stat && ...
+if trackDat.ramp.stat && trackDat.ramp.ct > 0 && ...
         (trackDat.t-trackDat.ramp.t) > trackDat.ramp.int(trackDat.ramp.ct)
 
     if trackDat.ramp.stat == 1

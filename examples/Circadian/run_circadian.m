@@ -42,6 +42,10 @@ trackDat.ramp.t = 0;
 t=clock;            % grab current time
 t=t(4:5);           % grab hrs and min only
 
+if numel(expmt.parameters.lights_ON)~=2 || numel(expmt.parameters.lights_OFF)~=2
+   error('Invalid time format in Lights_ON/Lights_OFF'); 
+end
+
 if ~isfield(expmt.parameters,'lights_ON')
     expmt.parameters.lights_ON = [10 0];
 end
@@ -67,6 +71,11 @@ else
         trackDat.Light = uint8(0);
         writeInfraredWhitePanel(expmt.hardware.COM.light,0,0);
         trackDat.light.stat=0;
+end
+
+if expmt.hardware.light.white < 1
+    warning('Circadian white light value is zero');
+    gui_notify('WARNING: Circadian white light value = zero',gui_handles.disp_note);
 end
 
 %% Main Experimental Loop
