@@ -13,4 +13,7 @@ gui_handles.analysis_menu.Enable = state;
 gui_handles.video_menu.Enable = state;
 gui_handles.record_video_menu.Enable = state;
 gui_handles.cam_settings_menu.Enable = state;
+gui_handles.cam_settings_menu.Enable = state;
+gui_handles.select_source_menu.Enable = state;
+
 

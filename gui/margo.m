@@ -326,6 +326,7 @@ if ~isempty(expmt.hardware.cam) && isstruct(expmt.hardware.cam) ...
         [frame_rate, expmt.hardware.cam] = estimateFrameRate(expmt.hardware.cam);
         expmt.hardware.cam.frame_rate = frame_rate;
         expmt.parameters.target_rate = ceil(frame_rate);
+        handles.edit_target_rate.String = sprintf('%i',ceil(frame_rate));
         expmt.parameters.max_trace_duration = ceil(frame_rate*0.5);
         
         % adjust aspect ratio of plot to match camera
@@ -1227,7 +1228,7 @@ if any(FileName)
         profiles = get(handles.param_prof_popupmenu,'string');
         
         for i = 1:length(profiles)
-            if strcmp(profile_name,profiles{i});
+            if strcmp(profile_name,profiles{i})
                 ri = i;
             end
         end
@@ -1258,10 +1259,29 @@ function reference_pushbutton_Callback(hObject, ~, handles)
 % import experiment variables
 expmt = getappdata(handles.gui_fig,'expmt');
 
+switch expmt.meta.source
+    case 'video'
+        expmt.meta.video.current_frame = 1;
+end
+
+% configure enable states of GUI controls
+toggleMenus(handles, 'off');
+togglePanels(handles, 'off', {'vid';'cam'});
+tracking_uictls = findall(handles.tracking_uipanel,'-property','Enable');
+enable_states = get(tracking_uictls,'Enable');
+set(tracking_uictls,'Enable','off');
+ref_ctls = {'edit_target_rate';'edit_area_minimum';'edit_area_maximum';...
+    'track_thresh_label';'track_thresh_slider';'disp_track_thresh';...
+    'accept_track_thresh_pushbutton'};
+ref_ctls = cellfun(@(tag) handles.(tag), ref_ctls, 'UniformOutput', false);
+ref_ctls = cat(1,ref_ctls{:});
+set(ref_ctls,'Enable','on');
+handles.edit_ref_depth.Enable = 'off';
+set(handles.display_menu.Children,'Enable','on');
+
 if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
     try
-        toggleMenus(handles, 'off');
-        set(handles.display_menu.Children,'Enable','on');
+        
         expmt.meta.initialize = false;
         expmt = initializeRef(handles,expmt);
         handles.sample_noise_pushbutton.Enable = 'on';
@@ -1284,19 +1304,24 @@ if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
             if any(strcmp(expmt.meta.name,handles.parameter_subgui))
                 handles.exp_parameter_pushbutton.Enable = 'on';
             end
-         end
-         catch ME
-            hObject.Enable = 'on';
-            msg=getReport(ME,'extended');
-            errordlg(msg);
         end
+     catch ME
+        hObject.Enable = 'on';
+        msg=getReport(ME,'extended');
+        errordlg(msg);
+    end
     expmt.meta.initialize = true;
 else
     errordlg('Either ROI detection has not been run or no ROIs were detected.')
 end
 
+% reset UI controls
+set(tracking_uictls(strcmp(enable_states,'on')),'Enable','on');
+handles.edit_ref_depth.Enable = 'on';
+
 % Store expmteriment data struct
 toggleMenus(handles, 'on');
+togglePanels(handles, 'on', {'vid';'cam'});
 if isfield(expmt.meta,'sample_im')
     trackDat = initializeTrackDat(expmt);
     trackDat.im = expmt.meta.sample_im;
@@ -1321,8 +1346,26 @@ if ~isfield(expmt.meta.ref,'im')
 end
 
 try   
+    switch expmt.meta.source
+        case 'video'
+            expmt.meta.video.current_frame = 1;
+    end
+
     expmt.meta.initialize = false;
     toggleMenus(handles, 'off');
+    togglePanels(handles, 'off', {'vid';'cam'});
+    tracking_uictls = findall(handles.tracking_uipanel,'-property','Enable');
+    enable_states = get(tracking_uictls,'Enable');
+    set(tracking_uictls,'Enable','off');
+    ref_ctls = {'edit_target_rate';'edit_area_minimum';'edit_area_maximum';...
+        'track_thresh_label';'track_thresh_slider';'disp_track_thresh';...
+        'accept_track_thresh_pushbutton'};
+    ref_ctls = cellfun(@(tag) handles.(tag), ref_ctls, 'UniformOutput', false);
+    ref_ctls = cat(1,ref_ctls{:});
+    set(ref_ctls,'Enable','on');
+    handles.edit_ref_depth.Enable = 'off';
+    set(handles.display_menu.Children,'Enable','on');
+        
     expmt = sampleNoise(handles,expmt);
 
     % Enable downstream controls
@@ -1347,8 +1390,13 @@ catch ME
     errordlg(msg);
 end
 
+% reset UI controls
+set(tracking_uictls(strcmp(enable_states,'on')),'Enable','on');
+handles.edit_ref_depth.Enable = 'on';
+
 % configure gui appearance
 toggleMenus(handles, 'on');
+togglePanels(handles, 'on', {'vid';'cam'});
 if isfield(expmt.meta,'sample_im')
     trackDat = initializeTrackDat(expmt);
     trackDat.im = expmt.meta.sample_im;
@@ -1384,14 +1432,17 @@ switch expmt.meta.source
                 errordlg(['Select valid video path before'...
                     'running ROI detection']);
             return
+        else
+            expmt.meta.video.current_frame = 1;
         end
 end
 
 
 % run ROI detection
-try     
+%try     
     expmt.meta.initialize = false;
     toggleMenus(handles, 'off');
+    togglePanels(handles, 'off', {'vid';'cam'});
     tracking_uictls = findall(handles.tracking_uipanel,'-property','Enable');
     enable_states = get(tracking_uictls,'Enable');
     set(tracking_uictls,'Enable','off');
@@ -1410,12 +1461,12 @@ try
         case 'grid'    
         expmt.meta.roi.mode = 'grid';
         expmt = gridROIs(handles,expmt);   
-        if ~isfield(expmt.meta.roi,'centers')
+        if ~isfield(expmt.meta.roi,'centers') || isempty(expmt.meta.roi.centers)
             msg = 'grid ROI detection aborted';
             gui_notify(msg,handles.disp_note);
             toggleMenus(handles, 'on');
             hObject.Enable = 'on';
-            set(tracking_uictls(strcmp(enable_states,'on'),'Enable','on'));
+            set(tracking_uictls(strcmp(enable_states,'on')),'Enable','on');
             return
         end
             
@@ -1464,15 +1515,16 @@ try
     % re-enable controls
     set(on_objs(ishghandle(on_objs)), 'Enable', 'on');
     
-catch ME
-    hObject.Enable = 'on';
-    msg=getReport(ME,'extended');
-    errordlg(msg);
-end
+% catch ME
+%     hObject.Enable = 'on';
+%     msg=getReport(ME,'extended');
+%     errordlg(msg);
+% end
 
 % Store expmteriment data struct
 set(tracking_uictls(strcmp(enable_states,'on')),'Enable','on');
 toggleMenus(handles, 'on');
+togglePanels(handles, 'on', {'vid';'cam'});
 if isfield(expmt.meta,'sample_im')
     trackDat = initializeTrackDat(expmt);
     trackDat.im = expmt.meta.sample_im;
@@ -2952,10 +3004,13 @@ guidata(hObject,handles);
 function remove_ROI_pushbutton_Callback(hObject, eventdata, handles)
 
 if handles.add_ROI_pushbutton.UserData.nGrids > 1
-    handles = update_grid_UI(handles,'subtract'); 
+    handles = update_grid_UI(handles,'subtract',hObject.UserData);
+else
+   handles.add_ROI_pushbutton.UserData.nGrids = 0; 
 end
 
-guidata(hObject,handles);
+guidata(handles.add_ROI_pushbutton,handles);
+
 
 
 % --- Executes on selection change in ROI_shape_popupmenu1.

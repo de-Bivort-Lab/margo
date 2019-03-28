@@ -67,6 +67,11 @@ if isfield(param_data,'distance_scale')
     set(handles.edit_target_size,'string',param_data.distance_scale.target_size);
     set(handles.edit_mm_per_pixel,'string',round(param_data.distance_scale.mm_per_pixel*100)/100);
     handles.line_handle = imline(handles.input.axes_handle,param_data.distance_scale.Pos);
+    handles.line_handle.Deletable = false;
+    line_props = struct(handles.line_handle);
+    h_vertices = findall(line_props.h_group,'Type','Line');
+    context_menus = get(h_vertices,'UIContextMenu');
+    cellfun(@(hmenu) delete(hmenu), context_menus);
     addNewPositionCallback(handles.line_handle,@line_reposition_Callback);
 
     % Assign current values as default output
@@ -135,6 +140,11 @@ end
 
 % Create new image line object
 handles.line_handle = imline(handles.input.axes_handle);
+handles.line_handle.Deletable = false;
+line_props = struct(handles.line_handle);
+h_vertices = findall(line_props.h_group,'Type','Line');
+context_menus = get(h_vertices,'UIContextMenu');
+cellfun(@(hmenu) delete(hmenu), context_menus);
 addNewPositionCallback(handles.line_handle,@line_reposition_Callback);
 figure(handles.dist_fig);
 

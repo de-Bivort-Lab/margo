@@ -21,7 +21,7 @@ tic
 tElapsed = 0;
 tPrev = toc;
 
-while tElapsed < 1 && any(isnan(tStamps))
+while tElapsed < 1.5 && any(isnan(tStamps))
     tCurr = toc;
     tElapsed = tElapsed + tCurr - tPrev;
     tPrev = tCurr;
