@@ -6,8 +6,10 @@ if exist(expmt_dir,'dir')==7
     error('directory already exists, cannot create: %s', expmt_dir);
 end
 
+
 mkdir(expmt_dir);
-name(name == ' ') = '';
+alphanumeric = ['a':'z' 'A':'Z' sprintf('%i',0:9)];
+name(~ismember(name,alphanumeric)) = '_';
 name(name>64&name<91) = name(name>64&name<91) + 32;
 run_src = [handles.gui_dir 'experiments/Basic Tracking/run_basictracking.m'];
 run_dest = [expmt_dir '/run_' name '.m'];

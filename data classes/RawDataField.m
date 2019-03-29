@@ -74,8 +74,7 @@ classdef RawDataField < dynamicprops
                 % ensure correct dimensions
                 ntrace = obj.Parent.meta.num_traces;
                 nframe = obj.Parent.meta.num_frames;
-                valid_dim = [ntrace nframe 2];
-                obj.dim(~ismember(obj.dim,valid_dim))=[];
+                obj.dim(obj.dim==1)=[];
                 if isempty(obj.dim)
                     obj.dim = [nframe 1];
                     
@@ -203,8 +202,10 @@ classdef RawDataField < dynamicprops
             
             obj.fID = fopen(obj.path,'r');           
             if obj.fID ~= -1
+                dimemsions = fliplr(obj.dim);
                 obj.raw.map.Data.raw = ...
-                    fread(obj.fID,fliplr(obj.dim),'ubit1=>logical');
+                    fread(obj.fID,prod(dimemsions),'ubit1=>logical');
+                obj.raw.map.Data.raw = reshape(obj.raw.map.Data.raw,dimensions);
                 obj.raw.map.Format = {'logical'};
             else
                 error('invalid fileID');
