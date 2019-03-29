@@ -5,14 +5,21 @@ function [expmt] = processCentroid(expmt,opt)
 nf = expmt.meta.num_frames;
 
 del = addRawDataFiles(opt.raw, expmt);
+is_speed = cellfun(@(nf) strcmpi(nf,'speed'), opt.raw);
+opt.raw(is_speed) = {'speed'};
 
 % remove existing raw data fields
-opt.raw(del)=[];
-expmt.meta.options.raw(del) = [];
+for i=1:numel(del)
+    if numel(opt.raw) >= del(i)
+        opt.raw(del)=[];
+    end
+    if numel(expmt.meta.options.raw) >= del(i)
+        expmt.meta.options.raw(del) = [];
+    end
+end
 if isempty(opt.raw) && ~opt.handedness
     return
 end
-
         
 
 % query available memory to determine how many batches to process data in

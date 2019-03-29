@@ -8,6 +8,9 @@ if ~iscell(new_fields)
     new_fields = {new_fields};
 end
 
+is_speed = cellfun(@(nf) strcmpi(nf,'speed'), new_fields);
+new_fields(is_speed) = {'speed'};
+
 % initialize raw data files if necessary
 file_exists = [];
 if ~isempty(new_fields)

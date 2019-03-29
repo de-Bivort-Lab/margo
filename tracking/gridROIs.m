@@ -21,6 +21,7 @@ height = gui_handles.bottom_uipanel.Position(4) + ...
 gui_handles.grid_ROI_uipanel.Position(4) = height;
 y_shift = height - gui_handles.text48.Position(2) - ...
     gui_handles.add_ROI_pushbutton.Position(4)*2;
+gui_handles.grid_ROI_uipanel.UserData(2) = gui_handles.grid_ROI_uipanel.Position(2);
 all_ctls = findobj(gui_handles.grid_ROI_uipanel,'-depth',2,'Type','uicontrol');
 for i=1:numel(all_ctls)
     all_ctls(i).Position(2) =  all_ctls(i).Position(2) + y_shift;

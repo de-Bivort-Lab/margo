@@ -16,8 +16,8 @@ i_src = [];
 i_set = [];
 
 for i = 1:length(set_names)
-    if any(ismember(src_names,set_names(i)))
-        aib = find(ismember(src_names,set_names(i)));
+    if any(strcmpi(src_names,set_names(i)))
+        aib = find(strcmpi(src_names,set_names(i)));
         i_src = [i_src aib];
         i_set = [i_set i];
     end
