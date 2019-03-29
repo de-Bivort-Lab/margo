@@ -333,10 +333,8 @@ if ~isempty(expmt.hardware.cam) && isstruct(expmt.hardware.cam) ...
         colormap('gray');
         tic
         im = [];
-        trackDat = initializeTrackDat(expmt);
         while isempty(im) && toc < 10
-            [trackDat,~] = autoFrame(trackDat,expmt,handles);
-            im = trackDat.im;
+            im = peekdata(expmt.hardware.cam.vid,1);
         end
         if isempty(im)
             errordlg('Camera timed out while waiting for image data');
@@ -362,6 +360,9 @@ if ~isempty(expmt.hardware.cam) && isstruct(expmt.hardware.cam) ...
         
         clean_gui(handles.axes_handle);
         delete(handles.hImage);
+        if size(im,3)>1
+            im = im(:,:,2);
+        end
         handles.hImage = imagesc(im,'Parent',handles.axes_handle);
         set(handles.axes_handle,'Xtick',[],'Ytick',[],'XLabel',[],'YLabel',[],...
             'XColor','k','YColor','k');

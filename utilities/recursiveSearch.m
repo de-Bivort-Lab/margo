@@ -4,6 +4,7 @@ function [fPaths] = recursiveSearch(fDir,varargin)
 
 target_ext = '.mat';
 opts={};
+fPaths = {};
 
 for i=1:length(varargin)
     
@@ -21,6 +22,9 @@ for i=1:length(varargin)
     end
 end
 
+if isempty(fDir)
+   return; 
+end
 if ~iscell(fDir)
    fDir = {fDir}; 
 end
@@ -39,7 +43,6 @@ opts = [opts{:} {'ext',target_ext}];
 
 % get directory info and restrict contents to subdirectories
 %dir_info = cellfun(@(d) dir(d), fDir, 'UniformOutput', false);
-fPaths = {};
 for j=1:numel(fDir)
     
     dir_info = dir(fDir{j});

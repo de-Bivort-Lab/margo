@@ -57,9 +57,8 @@ expmt = varargin{1};
 detach(expmt);
 attach(expmt.data.centroid);
 handles.trace_fig.UserData.expmt = expmt;
-[~,p] = memory;
-mem = p.PhysicalMemory.Available;
-n = mem/(8*expmt.meta.num_frames*2*6) * expmt.meta.num_frames * 0.1;
+bytes_available = bytesAvailableMemory;
+n = bytes_available/(8*expmt.meta.num_frames*2*6) * expmt.meta.num_frames * 0.1;
 if expmt.meta.num_frames > n
     frame_rate = median(expmt.data.time.raw());
     handles.trace_fig.UserData.idx = 1:round(frame_rate):expmt.meta.num_frames;
@@ -295,7 +294,9 @@ end
 handles.trace_fig.UserData.speed(1:numel(s),plot_num) = s;
 ax_tags = arrayfun(@(i) sprintf('speed_axes%i',i), 1:6, 'UniformOutput', false);
 spd_axes = cellfun(@(f) handles.(f), ax_tags, 'UniformOutput', false);
-update_spd_ylim(max(handles.trace_fig.UserData.speed(:)),cat(1,spd_axes{:}));
+new_max = max(handles.trace_fig.UserData.speed(:));
+new_max(isnan(new_max) | ~(new_max>0)) = 1;
+update_spd_ylim(new_max,cat(1,spd_axes{:}));
 
 clear s x y
 colormap(ah,'gray');

@@ -10,9 +10,9 @@ if isfield(video,'fID')
     
 else
     
-    if video.current_frame < video.nFrames
+    if hasFrame(video.vid)
         
-        im = read(video.vid,video.current_frame);
+        im = readFrame(video.vid);
         video.current_frame = video.current_frame + 1;
         
     else
@@ -27,7 +27,7 @@ else
        % update gui popupmenu with current file
        gui_handles.vid_select_popupmenu.Value = mod(video.ct,video.nVids)+1;
 
-       im = read(video.vid,1);
+       im = readFrame(video.vid);
 
     end
     

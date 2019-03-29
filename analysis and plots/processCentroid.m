@@ -16,8 +16,7 @@ end
         
 
 % query available memory to determine how many batches to process data in
-[~,msz] = memory;
-msz = msz.PhysicalMemory.Available;
+bytes_available = bytesAvailableMemory;
 switch expmt.data.centroid.precision
     case 'double'
         cen_prcn = 8;
@@ -26,7 +25,7 @@ switch expmt.data.centroid.precision
 end
 bytes_per = 16;
 rsz = expmt.meta.num_traces * expmt.meta.num_frames * (cen_prcn*2 + bytes_per);
-nBatch = ceil(rsz/msz * 2);
+nBatch = ceil(rsz/bytes_available * 2);
 bsz = ceil(expmt.meta.num_frames/nBatch);
     
 %% calculate track properties

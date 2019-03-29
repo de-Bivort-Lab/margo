@@ -110,35 +110,37 @@ while stop~=1
     % Extract ROIs from thresholded image
     [ROI_bounds,ROI_coords,~,~,binaryimage] = detect_ROIs(trackDat.im,roi_thresh);
 
-    % Calculate coords of ROI centers
-    [xCenters,yCenters]=ROIcenters(binaryimage,ROI_coords);
-    centers=[xCenters,yCenters];
+    if ~isempty(ROI_bounds)
+        % Calculate coords of ROI centers
+        [xCenters,yCenters]=ROIcenters(binaryimage,ROI_coords);
+        centers=[xCenters,yCenters];
 
-    % Define a permutation vector to sort ROIs from top-right to bottom left
-    [centers,ROI_coords,ROI_bounds] = ...
-        sortROIs(expmt.parameters.roi_tol,centers,ROI_coords,ROI_bounds);
+        % Define a permutation vector to sort ROIs from top-right to bottom left
+        [centers,ROI_coords,ROI_bounds] = ...
+            sortROIs(expmt.parameters.roi_tol,centers,ROI_coords,ROI_bounds);
 
-    % detect assymetry about vertical axis
-    mazeOri = getMazeOrientation(binaryimage,ROI_coords);
-    
-    % Display ROIs
-    imh.CData = binaryimage;
-    hPatch = displayROIs(hPatch,ROI_coords);
-    if nROIs > size(ROI_coords,1)
-        idx = numel(hText) - (nROIs - size(ROI_coords,1))+1:numel(hText);
-        delete(hText(idx));
-        hText(idx) = [];
-    elseif nROIs < size(ROI_coords,1)
-        idx = nROIs+1:size(ROI_coords,1);
-        hText(idx) = text(zeros(numel(idx),1),zeros(numel(idx),1),'','Color','b',...
-            'HorizontalAlignment','Center','Parent',gui_handles.axes_handle);
-    end
-    nROIs = size(ROI_coords,1);
-    
-    % update text objects
-    if nROIs
-        cellfun(@updateText,num2cell(hText),num2cell(centers(:,1)'),...
-            num2cell(centers(:,2)'),num2cell(1:nROIs),'UniformOutput',false);
+        % detect assymetry about vertical axis
+        mazeOri = getMazeOrientation(binaryimage,ROI_coords);
+
+        % Display ROIs
+        imh.CData = binaryimage;
+        hPatch = displayROIs(hPatch,ROI_coords);
+        if nROIs > size(ROI_coords,1)
+            idx = numel(hText) - (nROIs - size(ROI_coords,1))+1:numel(hText);
+            delete(hText(idx));
+            hText(idx) = [];
+        elseif nROIs < size(ROI_coords,1)
+            idx = nROIs+1:size(ROI_coords,1);
+            hText(idx) = text(zeros(numel(idx),1),zeros(numel(idx),1),'','Color','b',...
+                'HorizontalAlignment','Center','Parent',gui_handles.axes_handle);
+        end
+        nROIs = size(ROI_coords,1);
+
+        % update text objects
+        if nROIs
+            cellfun(@updateText,num2cell(hText),num2cell(centers(:,1)'),...
+                num2cell(centers(:,2)'),num2cell(1:nROIs),'UniformOutput',false);
+        end
     end
     
     % Report frames per sec to GUI

@@ -68,7 +68,7 @@ if fDir
         for i = 1:length(fName)
             v = VideoReader([fDir fName{i}]);
             dur = dur + v.Duration;
-            nFrames = nFrames + v.Duration * v.FrameRate;
+            nFrames = nFrames + v.NumberOfFrames;
             delete(v);
         end
 

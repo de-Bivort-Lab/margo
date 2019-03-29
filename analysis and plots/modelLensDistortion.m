@@ -28,9 +28,13 @@ spd_thresh = exp(spd_thresh);
 spd_thresh = 0;
 filt = ~isnan(spd) & spd>spd_thresh;
 
-
-lm = fitlm(cam_dist(filt),spd(filt),'linear');
-expmt.meta.speed.model = lm;
+if any(filt)
+    lm = fitlm(cam_dist(filt),spd(filt),'linear');
+    expmt.meta.speed.model = lm;
+else
+    warning('Could not fit speed regression model. Not enough valid data points');
+    return
+end
 
 if (lm.Coefficients{2,4})<0.05
     f = 'regressed_speed';

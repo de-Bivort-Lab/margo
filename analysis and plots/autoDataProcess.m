@@ -71,8 +71,8 @@ end
 %% initialize raw data memmap files
 
 % query available memory
-memInfo=memory;
-nGigs = memInfo.MemAvailableAllArrays/1E9;
+bytes_available = bytesAvailableMemory;
+nGigs = bytes_available/1E9;
 if nGigs < 1
     msg = {['WARNING: low available memory (' num2str(nGigs,2) 'GB)'];...
     'processing times may be slow'};

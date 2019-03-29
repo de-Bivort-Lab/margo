@@ -13,6 +13,12 @@ function [ROI_bounds,ROI_coords,ROI_widths,ROI_heights,binaryimage] = detect_ROI
         improps=regionprops(cc, 'BoundingBox');
         ROI_bounds = cat(1,improps.BoundingBox);
 
+        if isempty(ROI_bounds)
+            ROI_coords = [];
+            ROI_widths = [];
+            ROI_heights = [];
+            return;
+        end
         % Find ROIs that are too large or too small
         ROI_widths = ROI_bounds(:,3);
         ROI_heights = ROI_bounds(:,4);
