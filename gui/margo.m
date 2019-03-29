@@ -644,7 +644,7 @@ function save_path_button1_Callback(hObject, ~, handles)
 
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
-mat_dir = handles.gui_dir(1:strfind(handles.gui_dir,'MATLAB')+6);
+mat_dir = handles.gui_dir(1:strfind(handles.gui_dir,'margo')-1);
 default_path = [mat_dir 'margo_data/'];
 if exist(default_path,'dir') ~= 7
     mkdir(default_path);
