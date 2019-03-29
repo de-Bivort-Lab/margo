@@ -202,9 +202,9 @@ classdef RawDataField < dynamicprops
             
             obj.fID = fopen(obj.path,'r');           
             if obj.fID ~= -1
-                dimemsions = fliplr(obj.dim);
+                dimensions = fliplr(obj.dim);
                 obj.raw.map.Data.raw = ...
-                    fread(obj.fID,prod(dimemsions),'ubit1=>logical');
+                    fread(obj.fID,prod(dimensions),'ubit1=>logical');
                 obj.raw.map.Data.raw = reshape(obj.raw.map.Data.raw,dimensions);
                 obj.raw.map.Format = {'logical'};
             else
