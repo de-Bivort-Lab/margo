@@ -113,7 +113,7 @@ Tracking of fruit fly larvae (left) in a chemotactic gradient and nematodes (rig
 
 ## Reporting issues
 
-MARGO is still a work in progress. Please [report](https://github.com/de-Bivort-Lab/margo/issues) any errors to this repository. To help solve issues quickly, please provide a detailed description of the error, the MATLAB error message, and the MARGO error log file (if possible).
+Although the core functionality has been thoroughly tested, MARGO is still a work in progress. Please [report](https://github.com/de-Bivort-Lab/margo/issues) any errors to this repository. To help solve issues quickly, please provide a detailed description of the error, the MATLAB error message, and the MARGO error log file (if possible).
 
 ## Contributors
 
