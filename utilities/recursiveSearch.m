@@ -22,7 +22,7 @@ for i=1:length(varargin)
     end
 end
 
-if isempty(fDir)
+if isempty(fDir) || ~ischar(fDir) || ~(exist(fDir,'file')==2 || exist(fDir,'dir')==7)
    return; 
 end
 if ~iscell(fDir)

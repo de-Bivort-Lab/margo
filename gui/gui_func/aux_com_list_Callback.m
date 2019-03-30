@@ -1,7 +1,7 @@
 function aux_com_list_Callback(hObject, ~)
 % Callback function for menu items in the aux COM list
 
-gui_fig = hObject.Parent.Parent.Parent;       % get gui_handle
+gui_fig = findall(groot,'Name','margo','Type','figure');       % get gui_handle
 expmt = getappdata(gui_fig,'expmt');          % load master data struct
 
 % update the gui menu and COM list
@@ -30,7 +30,9 @@ switch hObject.Checked
         expmt.hardware.COM.aux = serial(hObject.Label);
         
         % open the COM device
-        fopen(expmt.hardware.COM.aux);
+        if strcmpi(expmt.hardware.COM.aux.status,'closed')
+            fopen(expmt.hardware.COM.aux);
+        end
         
 end
 

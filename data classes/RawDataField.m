@@ -280,7 +280,8 @@ classdef RawDataField < dynamicprops
             end
             
             % scale format spec up to length of row and insert newline
-            format_spec = [repmat(format_spec,1,obj.dim(end)) '\n'];
+            format_spec = repmat(format_spec,1,obj.dim(end));
+            format_spec = [format_spec(1:numel(format_spec)-1) '\n'];
             fID = batch_to_csv(obj, format_spec);
             
         end            
@@ -301,7 +302,7 @@ function fID = batch_to_csv(obj, format_spec)
     switch field      
         % proceess x,y separately since centroid is 3 dimensional
         case 'centroid'
-            fID(1) = fopen([csv_dir '/' csv_name '_x.csv'],'W+');
+            fID(1) = fopen([csv_dir '/' csv_name '_x.csv'],'W');
             fID(2) = fopen([csv_dir '/' csv_name '_y.csv'],'W');
             for i=1:nbatches
                 idx = [(i-1)*frames_per_batch+1 i*frames_per_batch];
@@ -321,9 +322,9 @@ function fID = batch_to_csv(obj, format_spec)
             for i=1:nbatches
                 idx = [(i-1)*frames_per_batch+1 i*frames_per_batch];
                 if idx(2) > sz(1)
-                    batch_dat = obj.raw(idx(1):sz(1),1);
+                    batch_dat = obj.raw(idx(1):sz(1),1:obj.dim(end));
                 else
-                    batch_dat = obj.raw(idx(1):idx(2),1);
+                    batch_dat = obj.raw(idx(1):idx(2),1:obj.dim(end));
                 end
                 fprintf(fID, format_spec, batch_dat);
                 reset(obj);

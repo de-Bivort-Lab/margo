@@ -22,7 +22,7 @@ function varargout = margo(varargin)
 
 % Edit the above text to modify the response to help margo
 
-% Last Modified by GUIDE v2.5 23-Mar-2019 14:59:40
+% Last Modified by GUIDE v2.5 30-Mar-2019 14:13:41
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -259,7 +259,7 @@ end
 function Cam_confirm_pushbutton_Callback(hObject, ~, handles)
 % hObject    handle to Cam_confirm_pushbutton (see GCBO)
 
-
+warning('off','MATLAB:JavaEDTAutoDelegation');
 
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
@@ -1981,11 +1981,12 @@ expmt_new = getappdata(gui_fig,'expmt');        % get expmt data struct
 fPath = uigetfile('.mat','Select ExperimentData file to load settings',...
     sprintf('%s%s',handles.gui_dir,'/profiles/'));
 
-if isempty(fPath)
+if isempty(fPath) || ~ischar(fPath) || ~exist(fPath,'file')==2
     return;
 end
 
 warning('off');
+fPath = cat(2,sprintf('%s%s',handles.gui_dir,'/profiles/'),fPath);
 all_vars = load(fPath);
 warning('on');
 
@@ -3301,8 +3302,13 @@ for i=1:numel(fPaths)
     msg = sprintf('processing file %i of %i',i,numel(fPaths));
     hwb = waitbar((i-1)/numel(fPaths),hwb,msg);
     try
-        load(fPaths{i},'expmt');
-        export_all_csv(expmt);
+        vars = load(fPaths{i},'expmt');
+        var_names = fieldnames(vars);
+        for j=1:numel(var_names)
+            if strcmpi(class(vars.(var_names{j})),'ExperimentData')
+                export_all_csv(vars.(var_names{j}));
+            end
+        end
     catch
         warning(['Failed to export: %s\n'...
             'Path meta data for raw data files may be broken'], fPaths{i});
@@ -3424,3 +3430,20 @@ if strcmp(chk,'off')
     set_display_mode(handles.display_menu,'composite');
 end
     
+
+
+% --------------------------------------------------------------------
+function serial_com_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to serial_com_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function com_settings_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to com_settings_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+expmt = getappdata(handles.gui_fig,'expmt');
+serial_COM_settings_subgui(expmt);

@@ -1,9 +1,31 @@
 function [trackDat,expmt] = autoInitialize(trackDat,expmt,gui_handles)
+% Initialization routine for all MARGO protocols:
+%
+%   - initializes and configures hardware devices with selected settings
+%   - initializes the trackDat struct
+%   - initializes raw binary data files and associated RawDataFields
+%   - initializes labels from the label data
+%   - initializes display handles
+%   - opens the video input source (camera or video file)
 
-
-%% house-keeping intialization - executes even with initialization flag set OFF
-
-% reset the handles state of the gui
+% load COM device settings
+dev_status = expmt.hardware.COM.status;
+com_settings = expmt.hardware.COM.settings;
+for i=1:numel(dev_status)
+    dev = expmt.hardware.COM.devices{i};
+    switch dev_status{i}
+        case 'open'
+            [dev, com_settings, ~] = load_com_settings(dev, i, com_settings);
+            if strcmpi(dev.status,'closed')
+               fopen(dev); 
+            end
+        case 'closed'
+            if strcmpi(dev.status,'open')
+               fclose(dev); 
+            end
+    end
+    expmt.hardware.COM.status{i} = dev.status;
+end
 
 % Initialize infrared and white illuminators
 writeInfraredWhitePanel(expmt.hardware.COM.light,1,...

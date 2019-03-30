@@ -9,7 +9,7 @@ bytes_per = bytes_per_el(precision);
 
 % get total number of bytes (oversize by factor 2) and query available memory
 total_bytes = numel(data) * bytes_per *2;
-bytes_available = getAvailableMemory;
+bytes_available = bytesAvailableMemory;
 
 % calculate batch size and number
 num_batches = ceil(total_bytes/bytes_available);
