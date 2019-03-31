@@ -8,6 +8,10 @@ if isfield(expmt.hardware.cam,'vid')
     expmt.hardware.cam = rmfield(expmt.hardware.cam,'src');
     expmt.hardware.cam = rmfield(expmt.hardware.cam,'vid');
 end
+if isfield(expmt.meta,'video') && isfield(expmt.meta.video,'vid')
+    vidcopy = expmt.meta.video.vid;
+    expmt.meta.video = rmfield(expmt.meta.video,'vid');
+end
 
 expmt.data = orderfields(expmt.data);
 expmt.meta = orderfields(expmt.meta);
@@ -19,6 +23,10 @@ if options.save
     if isfield(options,'handles')
         gui_notify('processed data saved to file',options.handles.disp_note)
     end
+end
+
+if exist('vidcopy','var')
+    expmt.meta.video.vid = vidcopy;
 end
 
 %% Close open files

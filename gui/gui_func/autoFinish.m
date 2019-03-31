@@ -38,6 +38,11 @@ if expmt.meta.finish
                 expmt.hardware.cam = rmfield(expmt.hardware.cam,'src');
                 expmt.hardware.cam = rmfield(expmt.hardware.cam,'vid');
             end
+            if isfield(expmt.meta,'video') && isfield(expmt.meta.video,'vid')
+                vidcopy = expmt.meta.video.vid;
+                expmt.meta.video = rmfield(expmt.meta.video,'vid');
+            end
+            
 
             % re-save updated expmt data struct to file
             save([expmt.meta.path.dir expmt.meta.path.name '.mat'],'expmt','-v7.3');
@@ -45,6 +50,9 @@ if expmt.meta.finish
             
             if exist('camcopy','var')
                 expmt.hardware.cam = camcopy;
+            end
+            if exist('vidcopy','var')
+                expmt.meta.video.vid = vidcopy;
             end
             try
                 attach(expmt);

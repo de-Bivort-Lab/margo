@@ -3248,6 +3248,14 @@ function export_meta_menu_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+% verify matlab release version
+release = version('-release');
+req_ver = '2016b';
+if sum(req_ver - release)>0
+    errordlg('MATLAB 2016b or newer required to export to JSON');
+    return
+end
+
 % set default directory to MARGO_data directory
 dir_breaks = find(unixify(handles.gui_dir)=='/');
 data_dir = handles.gui_dir(1:dir_breaks(end-1));
@@ -3268,7 +3276,7 @@ hwb = waitbar(0,'','Name','Exporting meta data to .json');
 for i=1:numel(fPaths)
     msg = sprintf('processing file %i of %i',i,numel(fPaths));
     hwb = waitbar((i-1)/numel(fPaths),hwb,msg);
-    load(fPaths{i},'expmt');
+    load(fPaths{i});
     export_meta_json(expmt);
     hwb = waitbar(i/numel(fPaths),hwb,msg);
 end

@@ -16,13 +16,16 @@ catch
     % do nothing
 end
 
-
    
 % temporarily remove vid obj/source from struct for saving
 if isfield(expmt.hardware.cam,'vid')
     camcopy = expmt.hardware.cam;
     expmt.hardware.cam = rmfield(expmt.hardware.cam,'src');
     expmt.hardware.cam = rmfield(expmt.hardware.cam,'vid');
+end
+if isfield(expmt.meta,'video') && isfield(expmt.meta.video,'vid')
+    vidcopy = expmt.meta.video.vid;
+    expmt.meta.video = rmfield(expmt.meta.video,'vid');
 end
 
 % update meta data before exiting
@@ -44,5 +47,8 @@ fclose(fid);
 
 if exist('camcopy','var')
     expmt.hardware.cam = camcopy;
+end
+if exist('vidcopy','var')
+    expmt.meta.video.vid = vidcopy;
 end
             

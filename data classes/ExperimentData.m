@@ -247,12 +247,11 @@ classdef ExperimentData < dynamicprops
         
         function export_meta_json(obj)
             
-            % select parameters and meta data to export
-            tmp.meta = obj.meta;
-            tmp.parameters = obj.parameters;
+            % filter out incompatible data types
+            export_obj = recursiveFilterFields(obj,0);
             
             % encode string and write file
-            json_str = jsonencode(tmp);
+            json_str = jsonencode(export_obj);
             json_path = unixify([obj.meta.path.dir obj.meta.path.name '.json']);
             fID = fopen(json_path, 'W');
             if fID== -1, error('Cannot create JSON file'); end
@@ -263,7 +262,7 @@ classdef ExperimentData < dynamicprops
         function delete(obj)
             detach(obj);
             delete(obj);
-        end
+        end       
     end
 
     methods(Static)
