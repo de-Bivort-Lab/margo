@@ -93,6 +93,9 @@ if strcmpi(expmt.meta.source,'video') && ...
         return;
 end
 
+% set tracking option flags
+trackDat = setTrackingOptions(trackDat, expmt);
+
 
 %% initialize display objects
 
@@ -235,10 +238,6 @@ end
 
 
 %% Reset UI properties
-trackDat.t = 0;
-tic
-trackDat.tPrev = toc;
-autoTime(trackDat, expmt, gui_handles);
 
 if expmt.parameters.estimate_trace_num
     

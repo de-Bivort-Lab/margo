@@ -3,7 +3,7 @@ function [trackDat] = autoTime(trackDat, expmt, gui_handles, varargin)
 
 % check last frame against block duration if running in block mode
 % otherwise, check against the experiment duration
-if strcmp(expmt.meta.source,'camera')
+if ~trackDat.has.video
     trackDat.lastFrame = trackDat.t > gui_handles.edit_exp_duration.Value * 3600;
 end
 
@@ -13,11 +13,11 @@ if ~isempty(varargin)
 end
 
 % calculate the interframe interval (ifi)
-if strcmp(expmt.meta.source,'video') && ...
-        isprop(expmt.meta.video.vid,'FrameRate') && false
+if trackDat.has.video_framerate
 
     ifi = 1/expmt.meta.video.vid.FrameRate;
     tCurrent = trackDat.tPrev + ifi;
+    trackDat.tCurr_clock = toc;
 else
     tCurrent = toc;
     ifi = tCurrent - trackDat.tPrev;
@@ -36,7 +36,7 @@ if nargin > 2
         trackDat.tPrev=tCurrent;
 
         % ensure timer is minimally update 1/sec
-        if gui_update_t > 1 && strcmp(expmt.meta.source,'camera') && ~no_plot               
+        if gui_update_t > 1 && ~trackDat.has.video && ~no_plot               
             % report time remaining to reference timeout to GUI
             tRemain = round(gui_handles.edit_exp_duration.Value * 3600 - (trackDat.t+ifi));
             updateTimeString(tRemain, gui_handles.edit_time_remaining);
@@ -82,7 +82,7 @@ end
 % check reference update timer
 trackDat.ref.update = trackDat.ref.t > (1/trackDat.ref.freq) * 60;
 
-if strcmp(expmt.meta.source,'camera') && ~no_plot
+if ~trackDat.has.video && ~no_plot
 
     % report time remaining to reference timeout to GUI
     tRemain = round(gui_handles.edit_exp_duration.Value * 3600 - trackDat.t);
@@ -96,7 +96,12 @@ elseif ~no_plot
 end
 
 % update frame rate in the gui
-gui_handles.edit_frame_rate.String = num2str(round((1/ifi)*10)/10);
+if trackDat.has.video_framerate
+    
+    ifi = trackDat.tCurr_clock - trackDat.tPrev_clock;
+    trackDat.tPrev_clock = trackDat.tCurr_clock;
+end
+gui_handles.edit_frame_rate.String = sprintf('%.1f',1/ifi);
 
     
 

@@ -1,7 +1,7 @@
 function [trackDat, expmt] = autoReference(trackDat,expmt,gui_handles)
 
 % if num pixels above thresh exceeds threshold
-if ~isfield(expmt.parameters,'noise_ref_thresh')
+if ~trackDat.has.noise_ref_thresh
     expmt.parameters.noise_ref_thresh = 10;
 end
 if expmt.parameters.noise_sample

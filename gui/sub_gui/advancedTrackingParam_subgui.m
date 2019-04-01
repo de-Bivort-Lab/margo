@@ -54,7 +54,11 @@ function advancedTrackingParam_subgui_OpeningFcn(hObject, eventdata, handles, va
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to advancedTrackingParam_subgui (see VARARGIN)
 
-expmt = varargin{1};
+if strcmpi(class(varargin{1}),'ExperimentData')
+    expmt = varargin{1};
+else
+    return
+end
 param = expmt.parameters;
 
 in_handles = varargin{2};
@@ -214,7 +218,7 @@ for i = 1:length(display_menu.Children)
 end
 raw_menu = findobj(display_menu,'-depth',2,'Label','raw image'); 
 raw_menu.Checked = 'on';
-display_menu.UserData = 1;
+display_menu.UserData = 'raw';
 display = false;
 
 % Initialize camera and video object
@@ -269,6 +273,10 @@ trackDat.fields={'centroid';'area';'speed'};
 if ~isfield(expmt.meta.roi,'n')
     trackDat.centroid = fliplr(size(imh.CData)./2);
 end
+
+
+% set tracking option flags
+trackDat = setTrackingOptions(trackDat, expmt);
 
 % initialize coords
 d_bounds = zeros(size(trackDat.centroid,1),4);
@@ -476,7 +484,7 @@ end
 
 raw_menu = findobj(display_menu,'-depth',2,'Label','raw image'); 
 raw_menu.Checked = 'on';
-display_menu.UserData = 1;
+display_menu.UserData = 'raw';
 
 %update speed text display
 function updateSpeed(h,pos,spd)
@@ -1086,7 +1094,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-function options_fig_KeyPressFcn(hObject, eventdata, handles)
+function track_fig_KeyPressFcn(hObject, eventdata, handles)
 % hObject    handle to gui_fig (see GCBO)
 % eventdata  structure with the following fields (see MATLAB.UI.FIGURE)
 %	Key: name of the key that was pressed, in lower case

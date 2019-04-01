@@ -2,6 +2,8 @@ function trackDat = initializeTrackDat(expmt)
 
 trackDat.fields={'centroid';'area';'time';'dropped_frames'};  % Define fields for regionprops
 trackDat.t = 0;
+trackDat.tPrev = 0;
+trackDat.tPrev_clock = 0;
 trackDat.ct = 0;
 trackDat.lastFrame = false;
 

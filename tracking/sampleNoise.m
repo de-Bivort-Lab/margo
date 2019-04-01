@@ -32,6 +32,9 @@ expmt.meta.noise = struct;
 trackDat = initializeTrackDat(expmt);
 update_ct = zeros(size(trackDat.drop_ct));
 
+% set tracking option flags
+trackDat = setTrackingOptions(trackDat, expmt);
+
 
 %% Initalize camera and axes
 
@@ -55,7 +58,7 @@ expmt.parameters.target_rate = 100;
 [trackDat,expmt] = autoFrame(trackDat,expmt,gui_handles);
 trackDat = refRawCrossPatch(trackDat, expmt);
 
-while trackDat.ct < pixDistSize;
+while trackDat.ct < pixDistSize
 
     % update time stamps and frame rate
     trackDat = autoTime(trackDat, expmt, gui_handles,1);

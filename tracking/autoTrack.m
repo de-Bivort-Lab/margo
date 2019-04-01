@@ -28,41 +28,15 @@ function [trackDat] = autoTrack(trackDat,expmt,gui_handles)
 %
 % ----------------------------------------------------------------------%
 
-% Split fields into fields going into regionprops and fields 
-% being updated in trackDat
-out_fields = trackDat.fields;
-in_fields = trackDat.fields;
-
-% temporarily remove fields not recognized by regionprops
-prop_fields = {'area';'BoundingBox';'centroid';'Convexarea';'ConvexHull';...
-    'ConvexImage';'Eccentricity';'EquivDiameter';'EulerNumber';'Extent';...
-    'Extrema';'Filledarea';'FilledImage';'Image';'majorAxisLength';...
-    'minorAxisLength';'orientation';'Perimeter';'pixelIdxList';'PixelList';...
-    'Solidity';'SubarrayIdx'};
-remove = ~ismember(in_fields,prop_fields);
-in_fields(remove) = [];
-
-% add centroid and area to the input regionprops fields if not provided
-if ~any(strcmpi('centroid',in_fields)) && ...
-        ~any(strcmpi('weightedCentroid',in_fields))
-    in_fields = [in_fields; {'centroid'}];
-end
-if any(strcmpi('area',in_fields))
-    in_fields(strcmpi('area',in_fields)) = [];
-end
-if any(strcmpi('PixelList',in_fields))
-    in_fields(strcmpi('PixelList',in_fields)) = [];
-end
-
-% add BoundingBox as a field if dilate/erode mode
-if isfield(expmt.parameters,'dilate_element')
-    in_fields = [in_fields; {'BoundingBox'}];
-end
-
-
 % increment frame counter
 trackDat.ct = trackDat.ct + 1;
-trackDat.in_fields = in_fields;
+
+prop_fields = trackDat.prop_fields;
+% add BoundingBox as a field if dilate/erode mode
+if expmt.parameters.dilate_sz > 0 || expmt.parameters.erode_sz > 0
+    prop_fields = [prop_fields; {'BoundingBox'}];
+end
+
 
 % calculate difference image and current for vignetting
 switch expmt.parameters.bg_mode
@@ -85,17 +59,15 @@ end
 
 % threshold difference image
 trackDat.thresh_im = trackDat.diffim > im_thresh;
-if isfield(expmt.meta.roi,'mask')
+if trackDat.has.roi_mask
     % set pixels outside ROIs to zero
     trackDat.thresh_im = trackDat.thresh_im & expmt.meta.roi.mask;
 end
 
 % check image noise and dump frame if noise is too high
 record = true;
-if ~isfield(expmt.parameters,'noise_sample')
-    expmt.parameters.noise_sample = true;
-end
-if isfield(trackDat,'px_dist') && expmt.parameters.noise_sample
+
+if trackDat.has.px_dist && expmt.parameters.noise_sample
 
     % update rolling distribution and calculate deviation from baseline
     idx = mod(trackDat.ct,length(trackDat.px_dist))+1;
@@ -104,7 +76,7 @@ if isfield(trackDat,'px_dist') && expmt.parameters.noise_sample
             expmt.meta.noise.mean)/expmt.meta.noise.std);
 
     % query skip threshold or assign default
-    if ~isfield(expmt.parameters,'noise_skip_thresh')
+    if ~trackDat.has.noise_skip_thresh
         expmt.parameters.noise_skip_thresh = 9;
     end
     if trackDat.px_dev(idx) > expmt.parameters.noise_skip_thresh
@@ -116,7 +88,7 @@ end
 if record
 
     % check optional blob dilation/erosion
-    if isfield(expmt.parameters,'dilate_sz') &&...
+    if trackDat.has.dilate_sz &&...
             (expmt.parameters.dilate_sz || expmt.parameters.erode_sz)
 
         if ~isfield(expmt.parameters,'dilate_element') ||...
@@ -143,7 +115,7 @@ if record
     end
 
     % get region properties
-    cc = bwconncomp(trackDat.thresh_im, 8);
+    cc = bwconncomp(trackDat.thresh_im, 4);
     area = cellfun(@numel,cc.PixelIdxList);
 
     % threshold blobs by area
@@ -159,7 +131,7 @@ if record
     end
 
     % extract blob properties
-    props=regionprops(cc, in_fields);
+    props=regionprops(cc, prop_fields);
 
     % track objects
     switch expmt.meta.track_mode
@@ -203,7 +175,7 @@ if record
             cen_cell = num2cell(single(raw_cen(permutation,:)),2);
             [trackDat.traces(update).cen] = cen_cell{:};
             trackDat.tStamp(update) = trackDat.t;
-            if isfield(props,'WeightedCentroid')
+            if trackDat.record.weightedCentroid
                 raw_cen = reshape([props.WeightedCentroid],2,...
                     length([props.WeightedCentroid])/2)';
                 trackDat.weightedCentroid(update,:) = ...
@@ -211,7 +183,7 @@ if record
             end
 
             % update centroid drop count for objects not updated this frame
-            if isfield(trackDat,'drop_ct')
+            if trackDat.has.drop_ct
                 trackDat.drop_ct(~update) = trackDat.drop_ct(~update) + 1;
             end
 
@@ -236,7 +208,7 @@ end
 % return NaNs if record = false
 expmt.meta.num_frames = trackDat.ct;
 expmt.meta.num_dropped = trackDat.drop_ct;
-if any(strcmpi('speed',out_fields))
+if trackDat.record.speed
     if record
         if exist('speed','var')
             trackDat.speed = single(speed);
@@ -248,7 +220,7 @@ if any(strcmpi('speed',out_fields))
     end
 end
 
-if any(strcmpi('area',out_fields))
+if trackDat.record.area
     tmp_area = NaN(size(trackDat.centroid,1),1);
     if record
         tmp_area(update) = area(permutation);
@@ -256,7 +228,7 @@ if any(strcmpi('area',out_fields))
     trackDat.area = single(tmp_area .* (expmt.parameters.mm_per_pix^2));
 end
 
-if any(strcmpi('Orientation',out_fields))
+if trackDat.record.orientation
     orientation = NaN(size(trackDat.centroid,1),1);
     if record
         orientation(update) = [props(permutation).Orientation];
@@ -264,7 +236,7 @@ if any(strcmpi('Orientation',out_fields))
     trackDat.orientation = single(orientation);
 end
 
-if any(strcmpi('PixelIdxList',out_fields))
+if trackDat.record.pixelIdxList
     pxList = cell(size(trackDat.centroid,1),1);
     if record
         pxList(update) = {props(permutation).PixelIdxList};
@@ -272,7 +244,7 @@ if any(strcmpi('PixelIdxList',out_fields))
     trackDat.pixelIdxList = (pxList);
 end
 
-if any(strcmpi('majorAxisLength',out_fields))
+if trackDat.record.majorAxisLength
     maLength = NaN(size(trackDat.centroid,1),1);
     if record
         maLength(update) =[props(permutation).MajorAxisLength];
@@ -280,7 +252,7 @@ if any(strcmpi('majorAxisLength',out_fields))
     trackDat.majorAxisLength = single(maLength .* expmt.parameters.mm_per_pix);
 end
 
-if any(strcmpi('minorAxisLength',out_fields))
+if trackDat.record.minorAxisLength
     miLength = NaN(size(trackDat.centroid,1),1);
     if record
         miLength(update) =[props(permutation).MinorAxisLength];
@@ -288,15 +260,15 @@ if any(strcmpi('minorAxisLength',out_fields))
     trackDat.minorAxisLength = single(miLength .* expmt.parameters.mm_per_pix);
 end
 
-if any(strcmpi('time',out_fields))
+if trackDat.record.time
     trackDat.time = single(trackDat.ifi);
 end
 
-if any(strcmpi('VideoData',out_fields))
+if trackDat.record.VideoData
     trackDat.VideoData = trackDat.im;
 end
 
-if any(strcmpi('VideoIndex',out_fields))
+if trackDat.record.VideoIndex
     trackDat.VideoIndex = trackDat.ct;
 end
 

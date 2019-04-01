@@ -16,7 +16,7 @@ if trackDat.ct == 1 && ~expmt.meta.initialize
 end
 
 % write raw data to binary files
-for i = 1:length(trackDat.fields)
+for i = 1:numel(trackDat.fields)
     precision = class(trackDat.(trackDat.fields{i}));
     if strcmpi(precision,'logical')
         precision = 'ubit1';
@@ -26,7 +26,7 @@ for i = 1:length(trackDat.fields)
 end
 
 % optional: save vid data to file if record video menu item is checked
-if isfield(expmt.meta,'VideoData') && isfield(expmt.meta,'video_out') ...
+if trackDat.has.video_out_data && trackDat.has.video_out ...
     && expmt.meta.video_out.record
     
     % enforce sub-sampling rate

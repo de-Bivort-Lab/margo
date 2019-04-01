@@ -235,9 +235,13 @@ trackDat.hMark = ...
         'Parent',gui_handles.axes_handle);
 hold off
 
+% set tracking option flags
+trackDat = setTrackingOptions(trackDat, expmt);
+
 % start the timer for the experiment
 tic;
 trackDat.tPrev = toc;
+trackDat.tPrev_clock = trackDat.tPrev;
 trackDat.lastFrame = false;
 gui_notify('tracking initialized',gui_handles.disp_note);
 
