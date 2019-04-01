@@ -67,9 +67,9 @@ trackDat.in_fields = in_fields;
 % calculate difference image and current for vignetting
 switch expmt.parameters.bg_mode
     case 'light'
-        trackDat.diffim = trackDat.ref.im - trackDat.im;
+        diffim = trackDat.ref.im - trackDat.im;
     case 'dark'
-        trackDat.diffim = trackDat.im - trackDat.ref.im;
+        diffim = trackDat.im - trackDat.ref.im;
 end
 
 
@@ -78,16 +78,17 @@ im_thresh = get(gui_handles.track_thresh_slider,'value');
 
 % adjust difference image to enhance contrast
 if expmt.parameters.bg_adjust
-    diffim_upper_bound = double(max(trackDat.diffim(:)));
+    diffim_upper_bound = double(max(diffim(:)));
     diffim_upper_bound(diffim_upper_bound==0) = 255;
-    trackDat.diffim = imadjust(trackDat.diffim, [0 diffim_upper_bound/255], [0 1]);
+    diffim = imadjust(diffim, [0 diffim_upper_bound/255], [0 1]);
 end
+trackDat.diffim = diffim;
 
 % threshold difference image
-trackDat.thresh_im = trackDat.diffim > im_thresh;
+thresh_im = diffim > im_thresh;
 if isfield(expmt.meta.roi,'mask')
     % set pixels outside ROIs to zero
-    trackDat.thresh_im = trackDat.thresh_im & expmt.meta.roi.mask;
+    thresh_im = thresh_im & expmt.meta.roi.mask;
 end
 
 % check image noise and dump frame if noise is too high
@@ -99,7 +100,7 @@ if isfield(trackDat,'px_dist') && expmt.parameters.noise_sample
 
     % update rolling distribution and calculate deviation from baseline
     idx = mod(trackDat.ct,length(trackDat.px_dist))+1;
-    trackDat.px_dist(idx) = sum(trackDat.thresh_im(:));
+    trackDat.px_dist(idx) = sum(thresh_im(:));
     trackDat.px_dev(idx) = ((nanmean(trackDat.px_dist) - ...
             expmt.meta.noise.mean)/expmt.meta.noise.std);
 
@@ -134,16 +135,16 @@ if record
 
         % dilate foreground image blobs
         if expmt.parameters.dilate_sz
-            trackDat.thresh_im = imdilate(trackDat.thresh_im,expmt.parameters.dilate_element);
+            thresh_im = imdilate(thresh_im,expmt.parameters.dilate_element);
         end
         % erode foreground image blobs
         if expmt.parameters.erode_sz
-            trackDat.thresh_im = imerode(trackDat.thresh_im, expmt.parameters.erode_element);
+            thresh_im = imerode(thresh_im, expmt.parameters.erode_element);
         end         
     end
 
     % get region properties
-    cc = bwconncomp(trackDat.thresh_im, 8);
+    cc = bwconncomp(thresh_im, 8);
     area = cellfun(@numel,cc.PixelIdxList);
 
     % threshold blobs by area
@@ -173,7 +174,7 @@ if record
 
         % track one object per roi
         case 'single'
-            raw_cen = cat(1,props.Centroid);
+            raw_cen = cat(;
             % Match centroids to last known centroid positions
             [permutation,update,raw_cen] = sortCentroids(raw_cen,trackDat,expmt);
 
@@ -230,6 +231,8 @@ else
 end
     
 %% Assign outputs
+
+trackDat.thresh_im = thresh_im;
 
 % assign any optional sorted output fields to the trackDat
 % structure if listed in expmt.meta.fields. 
