@@ -50,7 +50,7 @@ addpath(genpath(pwd));
 
 <ins>OR</ins>
 
-Alternatively, permanently add MARGO and all sub folders to the MATLAB path by adding by running:
+Alternatively, permanently add MARGO and all sub folders to the MATLAB path by running:
 
 ```
     pathtool
