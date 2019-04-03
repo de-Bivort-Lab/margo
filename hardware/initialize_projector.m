@@ -85,8 +85,7 @@ if ~isfield(reg_params,'reg_fun')
     return
 end
 
-im = peekdata(expmt.hardware.cam.vid,1);
-[cam_yPixels,cam_xPixels]=size(im);
+[cam_yPixels,cam_xPixels]=size(expmt.meta.sample_im);
 
 if cam_xPixels ~= reg_data.cam_xPixels || cam_yPixels ~= reg_data.cam_yPixels
     

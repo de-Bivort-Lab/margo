@@ -71,13 +71,13 @@ function led_ymaze_parameter_sub_gui_OpeningFcn(hObject, eventdata, handles, var
     params.led_mode = handles.led_mode_popupmenu.String{...
             handles.led_mode_popupmenu.Value};
     
-    handles.figure1.Units = 'points';
+    handles.figure1.Units = 'characters';
     light_uipanel = findobj('Tag','light_uipanel');
     gui_fig = findobj('Name','margo');
     handles.figure1.Position(1) = gui_fig.Position(1) + ...
         sum(light_uipanel.Position([1 3]));
     handles.figure1.Position(2) = gui_fig.Position(2) + ...
-        sum(light_uipanel.Position([2 4])) - handles.figure1.Position(4) - 25;
+        sum(light_uipanel.Position([2 4])) - handles.figure1.Position(4)*1.05;
 
 % Update handles structure
 expmt.parameters = params;

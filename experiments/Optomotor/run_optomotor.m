@@ -139,6 +139,9 @@ switch expmt.parameters.stim_mode
         expmt.meta.sweep.t = 0;
 end
 
+% initialize previous centroid placeholder (this keeps the stimulus
+% constant even if traces die)
+trackDat.prev_cen = NaN(size(trackDat.centroid));
 
 %% Main Experimental Loop
 
@@ -160,6 +163,10 @@ while ~trackDat.lastFrame
     % and sample the number of pixels above the image threshold
     trackDat = autoTrack(trackDat,expmt,gui_handles);
 
+    % update centroid placeholder 
+    update = trackDat.update & ~isnan(trackDat.centroid(:,1));
+    trackDat.prev_cen(update,:) = trackDat.centroid(update,:);
+    
     % update the stimuli
     [trackDat, expmt] = updateOptoStim(trackDat, expmt);
     

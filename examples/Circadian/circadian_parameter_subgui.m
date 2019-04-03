@@ -146,7 +146,7 @@ gui_fig = findobj('Name','margo');
 handles.circ_fig.Position(1) = gui_fig.Position(1) + ...
     sum(light_uipanel.Position([1 3])) - handles.circ_fig.Position(3);
 handles.circ_fig.Position(2) = gui_fig.Position(2) + ...
-    sum(light_uipanel.Position([2 4])) - handles.circ_fig.Position(4);
+    sum(light_uipanel.Position([2 4])) - handles.circ_fig.Position(4)*1.05;
 
 % Update handles structure
 guidata(hObject, handles);
