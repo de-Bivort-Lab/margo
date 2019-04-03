@@ -38,7 +38,7 @@ void setup() {
   }
 
   for (int i=0; i<36; i++){
-  uint16_t init=65535;
+  uint16_t init=0;
   SPI.transfer(init);
   }
   for(int j=0; j<sizeof(lat); j++){

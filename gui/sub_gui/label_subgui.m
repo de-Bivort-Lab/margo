@@ -116,7 +116,7 @@ function labels_table_CreateFcn(hObject, ~, ~)
 % hObject    handle to uitable2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
-data=cell(10,8);
+data=cell(10,11);
 data(:)={''};
 handles.output=data;
 set(hObject, 'Data', data);
@@ -205,7 +205,7 @@ function clear_label_pushbutton_Callback(hObject, eventdata, handles)
 % hObject    handle to clear_label_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-data=cell(5,11);
+data=cell(10,11);
 data(:)={''};
 handles.output=data;
 set(handles.labels_table, 'Data', data);

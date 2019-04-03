@@ -1,6 +1,6 @@
 function labels = defaultLabels(expmt)
 
-labels = cell(5,11);
+labels = cell(10,11);
 labels(:,1:8) = {''};
 labels(:,9:11) = {zeros(1,0)};
 labels(1,4) = {1};
