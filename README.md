@@ -123,7 +123,7 @@ Although the core functionality has been thoroughly tested, MARGO is still a wor
 
 ## Acknowledgements
 
-Support for external display detection and visual stimulus crafting and display is dependent on the [Psychtoolbox](http://psychtoolbox.org/overview.html), originally developed by Mario Kleiner. MARGO's random display registration uses Andriy Myronenko's [Coherent Point Drift](https://sites.google.com/site/myronenko/research/cpd) algorithm and mex implementation. Multispecies tracking example videos provided by: James Crall (bumblebees), Jess Kanwal (fly larvae), and Matt Churgin (C. Elegans). 
+Support for external display detection and visual stimulus crafting and display is dependent on the [Psychtoolbox](http://psychtoolbox.org/overview.html), developed by Mario Kleiner et al. MARGO's random dot display registration uses Andriy Myronenko's [Coherent Point Drift](https://sites.google.com/site/myronenko/research/cpd) algorithm and mex implementation. Multispecies tracking example videos provided by: James Crall (bumblebees), Jess Kanwal (fly larvae), and Matt Churgin (C. Elegans). 
 
 ## License
 
