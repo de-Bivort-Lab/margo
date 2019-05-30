@@ -276,12 +276,12 @@ classdef RawDataField < dynamicprops
             elseif any(strcmp(signed_int,obj.precision))
                 format_spec = '%i,';
             elseif any(strcmp(floating_pt,obj.precision))
-                format_spec = '%.6f,';
+                format_spec = '%0.6f,';
             end
             
             % scale format spec up to length of row and insert newline
             format_spec = repmat(format_spec,1,obj.dim(end));
-            format_spec = [format_spec(1:numel(format_spec)-1) '\n'];
+            format_spec = [format_spec(1:end-1) char(10)];
             fID = batch_to_csv(obj, format_spec);
             
         end            
@@ -304,6 +304,20 @@ function fID = batch_to_csv(obj, format_spec)
         case 'centroid'
             fID(1) = fopen([csv_dir '/' csv_name '_x.csv'],'W');
             fID(2) = fopen([csv_dir '/' csv_name '_y.csv'],'W');
+            
+            % generate headers
+            n = obj.Parent.meta.num_traces;
+            headx = arrayfun(@(i) sprintf('centroid-%i-x',i), 1:n,...
+                    'UniformOutput', false);
+            heady = arrayfun(@(i) sprintf('centroid-%i-y',i), 1:n,...
+                    'UniformOutput', false);
+            hfs = repmat('%s,',1,sz(3));
+            hfs(end) = char(10);
+            
+            fprintf(fID(1), hfs, headx{:});
+            fprintf(fID(2), hfs, heady{:});
+
+            
             for i=1:nbatches
                 idx = [(i-1)*frames_per_batch+1 i*frames_per_batch];
                 if idx(2) > sz(1)
@@ -313,12 +327,27 @@ function fID = batch_to_csv(obj, format_spec)
                     batch_dat_x = obj.raw(idx(1):idx(2),1,:);
                     batch_dat_y = obj.raw(idx(1):idx(2),2,:);
                 end
-                fprintf(fID(1), format_spec, batch_dat_x);
-                fprintf(fID(2), format_spec, batch_dat_y);
+                fprintf(fID(1), format_spec, batch_dat_x');
+                fprintf(fID(2), format_spec, batch_dat_y');
                 reset(obj);
             end
         otherwise
             fID = fopen([csv_dir '/' csv_name '.csv'],'W');
+            
+            % format header
+            n = obj.Parent.meta.num_traces;
+            if any(sz==n)
+                header = arrayfun(@(i) sprintf('%s-%i',obj.get_field_name,i), 1:n,...
+                    'UniformOutput', false);
+                hfs = repmat('%s,',1,n);
+                hfs(end) = char(10);
+                fprintf(fID, hfs, header{:});
+            else
+                header = obj.get_field_name;
+                hfs = ['%s' char(10)];
+                fprintf(fID, hfs, header);
+            end
+            
             for i=1:nbatches
                 idx = [(i-1)*frames_per_batch+1 i*frames_per_batch];
                 if idx(2) > sz(1)
@@ -326,7 +355,7 @@ function fID = batch_to_csv(obj, format_spec)
                 else
                     batch_dat = obj.raw(idx(1):idx(2),1:obj.dim(end));
                 end
-                fprintf(fID, format_spec, batch_dat);
+                fprintf(fID, format_spec, batch_dat');
                 reset(obj);
             end
     end
