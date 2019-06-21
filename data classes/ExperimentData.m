@@ -240,9 +240,11 @@ classdef ExperimentData < dynamicprops
         end
         
         function obj = export_all_csv(obj)
-           for i=1:numel(obj.meta.fields)
+            fprintf('\texporting raw data to csv...\n');
+            for i=1:numel(obj.meta.fields)
                export_to_csv(obj.data.(obj.meta.fields{i}));
-           end
+            end
+            fprintf('\texport complete\n');
         end
         
         function export_meta_json(obj)
