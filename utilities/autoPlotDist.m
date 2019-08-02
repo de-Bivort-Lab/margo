@@ -33,8 +33,8 @@ if min(data) >= 0
     lb = floor(lb/inc)*inc;
     bins = 0:inc:ub;
 else
-    lb = -1;
-    ub = 1;
+    lb = nanstd(data)*-4;
+    ub = nanstd(data)*4;
     bins = -1:0.2:1;
 end
 
