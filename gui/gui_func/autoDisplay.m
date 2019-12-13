@@ -175,6 +175,13 @@ while gui_handles.pause_togglebutton.UserData.Value || ...
     [expmt,trackDat.tPrev,exit] = updatePauseStop(trackDat,expmt,gui_handles);
     if exit
         trackDat.lastFrame = true;
+        expmt.meta.ref = trackDat.ref;
+        expmt.meta.sample_im = trackDat.im;
+        if isfield(trackDat,'px_dist') && expmt.parameters.noise_sample
+            expmt.meta.noise.tracking_dist = sum(trackDat.thresh_im(:));
+            expmt.meta.noise.tracking_dev = ((nanmean(trackDat.px_dist) - ...
+                    expmt.meta.noise.mean)/expmt.meta.noise.std);
+        end
         return
     end
 end
