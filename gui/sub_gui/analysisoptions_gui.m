@@ -22,7 +22,7 @@ function varargout = analysisoptions_gui(varargin)
 
 % Edit the above text to modify the response to help analysisoptions_gui
 
-% Last Modified by GUIDE v2.5 18-Mar-2019 17:29:54
+% Last Modified by GUIDE v2.5 13-Dec-2019 16:15:20
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -118,6 +118,8 @@ function analysisoptions_gui_OpeningFcn(hObject, eventdata, handles, varargin)
             case 'majorAxisLength', h = handles.major_axis_checkbox;
             case 'minorAxisLength', h = handles.minor_axis_checkbox;
             case 'speed', h = handles.speed_checkbox;
+            case 'ref_events', h = handles.ref_events_checkbox;
+            case 'noise_estimate', h = handles.noise_estimate_checkbox;
         end
         
         if exist('h','var')
@@ -485,4 +487,55 @@ end
 
 handles.output.meta.options.raw = r;
 
+guidata(hObject,handles);
+
+
+% --- Executes on button press in ref_events_checkbox.
+function ref_events_checkbox_Callback(hObject, eventdata, handles)
+
+f = handles.output.meta.fields; if size(f,2) > size(f,1), f = f'; end
+if hObject.Value
+     if ~any(strcmp('ref_events',f))
+         f = [f;{'ref_events'}];
+         handles.output.data.ref_events = ...
+             RawDataField('Parent',handles.output);
+     end
+else
+     if any(strcmp('ref_events',f))
+         idx = strcmp('ref_events',f);
+         f(idx) = [];
+         if isfield(handles.output.data,'ref_events')
+            handles.output.data = ...
+                rmfield(handles.output.data,'ref_events');
+         end
+     end
+end
+handles.output.meta.fields = f;
+guidata(hObject,handles);
+
+
+% --- Executes on button press in noise_estimate_checkbox.
+function noise_estimate_checkbox_Callback(hObject, eventdata, handles)
+% hObject    handle to noise_estimate_checkbox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+f = handles.output.meta.fields; if size(f,2) > size(f,1), f = f'; end
+if hObject.Value
+     if ~any(strcmp('noise_estimate',f))
+         f = [f;{'noise_estimate'}];
+         handles.output.data.noise_estimate = ...
+             RawDataField('noise_estimate',handles.output);
+     end
+else
+     if any(strcmp('noise_estimate',f))
+         idx = strcmp('noise_estimate',f);
+         f(idx) = [];
+         if isfield(handles.output.data,'noise_estimate')
+            handles.output.data = ...
+                rmfield(handles.output.data,'noise_estimate');
+         end
+     end
+end
+handles.output.meta.fields = f;
 guidata(hObject,handles);

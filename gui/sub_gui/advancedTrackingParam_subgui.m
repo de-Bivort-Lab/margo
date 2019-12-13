@@ -142,17 +142,16 @@ end
 
 % set noise correction parameters
 if sum(cellfun(@(f) any(strmatch('noise',f)), fieldnames(param))) < 5
-
     param = defaultNoiseCorrectionOptions(param);
-    handles.enable_noise_radiobutton.Value = param.noise_sample;
-    handles.edit_noise_sample_num.String = sprintf('%i',param.noise_sample_num);
-    handles.edit_noise_skip_thresh.String = sprintf('%i',param.noise_skip_thresh);
-    handles.edit_noise_ref_thresh.String = sprintf('%i',param.noise_ref_thresh);
-    if param.noise_estimate_missing
-        handles.empty_roi_resample_popupmenu.Value = param.noise_estimate_missing;
-    else
-        handles.empty_roi_resample_popupmenu.Value = 2;
-    end
+end
+handles.enable_noise_radiobutton.Value = param.noise_sample;
+handles.edit_noise_sample_num.String = sprintf('%i',param.noise_sample_num);
+handles.edit_noise_skip_thresh.String = sprintf('%i',param.noise_skip_thresh);
+handles.edit_noise_ref_thresh.String = sprintf('%i',param.noise_ref_thresh);
+if param.noise_estimate_missing
+    handles.empty_roi_resample_popupmenu.Value = param.noise_estimate_missing;
+else
+    handles.empty_roi_resample_popupmenu.Value = 2;
 end
 
 

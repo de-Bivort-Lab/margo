@@ -35,6 +35,7 @@ if ~isempty(fieldnames(expmt.meta.ref))
     for i=1:numel(tmp)
         trackDat.ref.cen{i}(1:tmp_n(i),:,:) = tmp{i};
     end
+    trackDat.ref_events = false;
 else
     if strcmp(expmt.meta.track_mode,'multitrack') && ...
             expmt.parameters.estimate_trace_num 
@@ -49,7 +50,7 @@ else
     trackDat.ref.t = 0;                             % reference time stamp
     trackDat.ref.last_update = zeros(nROIs,1);
     trackDat.ref.bg_mode = expmt.parameters.bg_mode;                 % set reference mode to dark
-                                                    % obj on light background
+    trackDat.ref_events = false;
 end
 
 % Noise correction vars

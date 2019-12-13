@@ -2,9 +2,10 @@ function [fig_handle, bins] = autoPlotDist(data, filter, varargin)
 
 ah = [];
 plot_opts = {'LineWidth'; 2};
+bins = [];
 for i=1:numel(varargin)
     arg = varargin{i};
-    if any(ishghandle(arg)) && strcmpi(arg.Type,'axes')
+    if all(ishghandle(arg)) && strcmpi(arg.Type,'axes')
         hold on;
         ah = arg;
     end
@@ -13,6 +14,11 @@ for i=1:numel(varargin)
             case 'PlotOptions'
                 i=i+1;
                 plot_opts = varargin{i};
+            case 'Bins'
+                i=i+1;
+                bins = varargin{i};
+                lb = min(bins);
+                ub = max(bins);
         end
     end
 end
@@ -25,24 +31,26 @@ else
 end
 
 % Histogram for stimulus ON period
-if min(data) >= 0
-    mm = nanmean(data) + nanstd(data)*4;
-    inc = (10^(ceil(log10(mm))-1));
-    ub = ceil(mm/inc)*inc;
-    lb = (nanmean(data) - nanstd(data)*4);
-    lb = floor(lb/inc)*inc;
-    bins = 0:inc:ub;
-else
-    lb = nanstd(data)*-4;
-    ub = nanstd(data)*4;
-    bins = -1:0.2:1;
+if isempty(bins)
+    if min(data) >= 0
+        mm = nanmean(data) + nanstd(data)*4;
+        inc = (10^(ceil(log10(mm))-1));
+        ub = ceil(mm/inc)*inc;
+        lb = (nanmean(data) - nanstd(data)*4);
+        lb = floor(lb/inc)*inc;
+        bins = 0:inc:ub;
+    else
+        lb = nanstd(data)*-4;
+        ub = nanstd(data)*4;
+        bins = -1:0.2:1;
+    end
 end
 
 data = data(filter,:);
 [kde, x] = ksdensity(data, linspace(lb,ub,100));
 
 
-lh = plot(x, kde,plot_opts{:});
+lh = plot(x, kde,plot_opts{:},'Parent',ah);
 all_lines = findobj(ah,'-depth',1,'Type','Line');
 xdata = arrayfun(@(l) l.XData, all_lines, 'UniformOutput', false);
 xdata = cat(2,xdata{:});
@@ -56,7 +64,7 @@ x = [x(1) x];
 kde = [0 kde];
 vx = [x x(end) x(1)];
 vy = [kde 0 kde(1)];
-ph = patch(vx,vy,lh.Color,'FaceAlpha',0.3);
+ph = patch(vx,vy,lh.Color,'FaceAlpha',0.3,'Parent',ah);
 uistack(ph,'bottom');
 fig_handle = fh;
 hold off;

@@ -59,7 +59,6 @@ if isfield(expmt.parameters,'dilate_element')
     in_fields = [in_fields; {'BoundingBox'}];
 end
 
-
 % increment frame counter
 trackDat.ct = trackDat.ct + 1;
 trackDat.in_fields = in_fields;
@@ -73,7 +72,6 @@ switch expmt.parameters.bg_mode
         diffim = (trackDat.im - expmt.meta.vignette.im) -...
                     (trackDat.ref.im - expmt.meta.vignette.im);
 end
-
 
 % get current image threshold and use it to extract region properties     
 im_thresh = get(gui_handles.track_thresh_slider,'value');
@@ -105,6 +103,9 @@ if isfield(trackDat,'px_dist') && expmt.parameters.noise_sample
     trackDat.px_dist(idx) = sum(thresh_im(:));
     trackDat.px_dev(idx) = ((nanmean(trackDat.px_dist) - ...
             expmt.meta.noise.mean)/expmt.meta.noise.std);
+    if any(strcmpi('noise_estimate',out_fields))
+        trackDat.noise_estimate = uint32(trackDat.px_dist(idx));
+    end
 
     % query skip threshold or assign default
     if ~isfield(expmt.parameters,'noise_skip_thresh')
@@ -304,4 +305,6 @@ end
 if any(strcmpi('VideoIndex',out_fields))
     trackDat.VideoIndex = trackDat.ct;
 end
+
+
 

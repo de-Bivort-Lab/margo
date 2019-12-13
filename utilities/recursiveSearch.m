@@ -22,12 +22,20 @@ for i=1:length(varargin)
     end
 end
 
-if isempty(fDir) || ~ischar(fDir) || ~(exist(fDir,'file')==2 || exist(fDir,'dir')==7)
-   return; 
-end
 if ~iscell(fDir)
    fDir = {fDir}; 
 end
+
+if isempty(fDir) 
+   error('Directory is not defined.');
+end
+if any(~cellfun(@ischar,fDir))
+   error('All input directories must be character arrays.');
+end
+if any(~cellfun(@(fd) (exist(fd,'file')==2 | exist(fd,'dir')==7), fDir))
+    error('One or more of the input directories does not exist.');
+end
+
 if isempty(fDir)
     fDir = pwd;
 end

@@ -22,6 +22,7 @@ elseif trackDat.ref.freq ~= expmt.parameters.ref_freq &&...
 end
 
 % If noise is above threshold: reset reference stack
+trackDat.ref_events = false;
 if expmt.parameters.noise_sample && ref_reset
 
     ref_stack = repmat(trackDat.im ,1, 1, expmt.parameters.ref_depth);
@@ -52,6 +53,7 @@ if expmt.parameters.noise_sample && ref_reset
         expmt.meta.roi.num_traces, 'UniformOutput', false);
     trackDat.ref.ct = zeros(nROIs, 1);          % Reference number placeholder
     trackDat.ref.t = 0;                         % reference time stamp
+    trackDat.ref_events = true;
 
 
 % add a reference to the reference stack if time since last reference
@@ -64,6 +66,7 @@ elseif trackDat.ref.update
 
        % patch blobs in the reference with the current image
        trackDat = refRawCrossPatch(trackDat, expmt);
+       trackDat.ref_events = true;
        trackDat.ref.update = false;
 
 end
