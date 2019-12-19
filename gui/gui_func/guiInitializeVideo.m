@@ -20,7 +20,7 @@ reInitialize(expmt);
 
 gui_notify('cam settings confirmed',gui_handles.disp_note);
 
-if ~isfield(expmt.meta.roi,'n')
+if ~isfield(expmt.meta.roi,'n') || gui_handles.reacquire_rois
     gui_handles.track_thresh_slider.Enable = 'off';
     gui_handles.accept_track_thresh_pushbutton.Enable = 'off';
     gui_handles.reference_pushbutton.Enable = 'off';

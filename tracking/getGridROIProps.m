@@ -1,4 +1,4 @@
-function expmt = getGridROIProps(grid_struct, n, expmt, gui_handles)
+function [expmt,grid_struct] = getGridROIProps(grid_struct, n, expmt, gui_handles)
 
 % initialize ROI properties
 gridVec = [];

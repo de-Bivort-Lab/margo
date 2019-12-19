@@ -127,4 +127,7 @@ handles.experiments = experiments;
 handles.exp_select_popupmenu.String = ...
     arrayfun(@(e) e.name, experiments, 'UniformOutput', false);
 
+% force roi acquisition
+handles.reacquire_rois = true;
+
 

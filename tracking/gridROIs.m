@@ -239,7 +239,7 @@ end
 
 % hide the grid settings panel
 gui_handles.grid_ROI_uipanel.Visible = 'off';
-expmt = getGridROIProps(hAdd.UserData.grid, nGrids, expmt, gui_handles);
+[expmt,hAdd.UserData.grid] = getGridROIProps(hAdd.UserData.grid, nGrids, expmt, gui_handles);
 delete(hPatch);
 expmt.meta.roi.im = trackDat.im;
 

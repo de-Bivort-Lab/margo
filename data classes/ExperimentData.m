@@ -138,11 +138,11 @@ classdef ExperimentData < dynamicprops
             
             % remove roi, reference, noise and vignette data
             es = struct;
-            if ~nofields(obj.meta.roi)
-                m = obj.meta.roi.mode;
-                obj.meta.roi = es;
-                obj.meta.roi.mode = m;
-            end
+%             if ~nofields(obj.meta.roi)
+%                 m = obj.meta.roi.mode;
+%                 obj.meta.roi = es;
+%                 obj.meta.roi.mode = m;
+%             end
             if ~nofields(obj.meta.vignette)
                 m = obj.meta.vignette.mode;
                 obj.meta.vignette = es;

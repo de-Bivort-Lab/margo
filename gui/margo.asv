@@ -940,7 +940,6 @@ if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n && ~keep_gui_state
         handles.ROI_thresh_label.Enable = 'on';
         handles.disp_ROI_thresh.Enable = 'on';
     end
-    handles.reacquire_rois = true;
 
 elseif keep_gui_state
 
@@ -955,7 +954,6 @@ expmt.meta.finish = true;
         
 % Store expmteriment data struct
 setappdata(handles.gui_fig,'expmt',expmt);
-guidata(hObject,handles);
 
 
 % --- Executes on slider movement.
@@ -1483,7 +1481,6 @@ end
     handles.track_thresh_label.Enable = 'on';
     handles.disp_track_thresh.Enable = 'on';
     handles.man_edit_roi_menu.Enable = 'on';
-    handles.reacquire_rois = false;
     
     % query the Enable states of objects in the gui
     on_objs = findobj('Enable','on');

@@ -39,7 +39,7 @@ if strcmp(expmt.meta.source,'camera') && ...
 end
 
 if isfield(trackDat,'lastFrame') && trackDat.lastFrame
-    if isfield(expmt.meta,'ref')
+    if isfield(expmt.meta,'ref') && isfield(trackDat,'ref')
        expmt.meta.ref = trackDat.ref;
        expmt.meta.sample_im = trackDat.im;
     end
