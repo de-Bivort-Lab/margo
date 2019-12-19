@@ -388,7 +388,7 @@ if ~isempty(expmt.hardware.cam) && isstruct(expmt.hardware.cam) ...
         handles.distance_scale_menu.Enable = 'on';
         handles.vignette_correction_menu.Enable = 'on';
         
-        if ~isfield(expmt.meta.roi,'n') || ~expmt.meta.roi.n
+        if ~isfield(expmt.meta.roi,'n') || ~expmt.meta.roi.n || handles.reacquire_rois
             handles.track_thresh_slider.Enable = 'off';
             handles.accept_track_thresh_pushbutton.Enable = 'off';
             handles.reference_pushbutton.Enable = 'off';
@@ -401,11 +401,11 @@ if ~isempty(expmt.hardware.cam) && isstruct(expmt.hardware.cam) ...
         end
         
         % re-initialize ExperimentData obj
-        if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
+        if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n || handles.reacquire_rois
             expmt = reInitialize(expmt);
-            msgbox(['Cam settings changed: any ROIs, references or ' ...
+            msgbox(['Cam settings changed: references and ' ...
                 'noise statistics have been discarded.']);
-            note = 'ROIs, references, and noise statistics reset';
+            note = 'References noise statistics reset';
             gui_notify(note,handles.disp_note);
         end
         
@@ -2008,6 +2008,7 @@ end
 
 % load new settings in from file
 expmt = load_settings(expmt,expmt_new,handles);
+handles.reacquire_rois = true;
 
 % save loaded settings to master struct
 setappdata(gui_fig,'expmt',expmt);  
