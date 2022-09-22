@@ -53,6 +53,8 @@ if ~isempty(panelNum)
     if strcmpi(lightBoard.Status,'closed')
        fopen(lightBoard); 
     end
+elseif ~isempty(devices)
+    lightBoard = devices{1};
 else
     lightBoard = [];
 end
