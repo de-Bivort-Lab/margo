@@ -1,6 +1,6 @@
 function bs = bootstrap_bout_length(bout_length, nReps, ifi)
 
-avg_bout = cellfun(@nanmean,bout_length);
+avg_bout = cellfun(@nanFilteredMean,bout_length);
 nBouts = cellfun(@numel,bout_length,'UniformOutput',false);
 nBouts = cat(1,nBouts{:});
 nf = numel(nBouts);
@@ -30,7 +30,7 @@ for i=1:nReps
     bs_len = cellfun(@(x,y) arrayfun(@(a,b) ...
         bout_length{a}(b),x,cat(1,y{:})), ...
         bs_ids, bs_idx, 'UniformOutput',false);
-    bs.sim(i,:) = cellfun(@nanmean,bs_len)';
+    bs.sim(i,:) = cellfun(@nanFilteredMean,bs_len)';
     
 end
 

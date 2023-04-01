@@ -70,14 +70,14 @@ switch expmt.meta.roi.mode
         if isfield(expmt.meta.roi,'im')
             roi_sub = expmt.meta.roi.im(roi_coords(2):roi_coords(4),...
                                     roi_coords(1):roi_coords(3));
-            lumOffset = nanmedian(sub_im(roi_sub));
+            lumOffset = nanFilteredMedian(sub_im(roi_sub));
         else
-            lumOffset = nanmedian(sub_im(:));
+            lumOffset = nanFilteredMedian(sub_im(:));
         end
         
     case 'grid'
-        lum_mu = nanmean(sub_im(:));
-        lum_std = nanstd(double(sub_im(:)));
+        lum_mu = nanFilteredMean(sub_im(:));
+        lum_std = nanFilteredStd(double(sub_im(:)));
         lumOffset = lum_mu + lum_std;
 end
 

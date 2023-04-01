@@ -52,7 +52,7 @@ trackDat.tPrev = toc;
 old_rate = expmt.parameters.target_rate;
 expmt.parameters.target_rate = 100;
 
-while sample_ct < n;
+while sample_ct < n
 
     % update time stamps and frame rate
     trackDat = autoTime(trackDat, expmt, gui_handles,1);
@@ -65,7 +65,7 @@ while sample_ct < n;
     [trackDat] = autoTrack(trackDat,expmt,gui_handles);
     
     if ~exist('area_thresh','var') || isnan(area_thresh)
-        area_thresh = nanmedian(trackDat.area);
+        area_thresh = nanFilteredMedian(trackDat.area);
     end
     
     % identify objects with good separation from background
@@ -123,9 +123,9 @@ gui_notify('noise sampling complete',gui_handles.disp_note);
 
 % Assign outputs
 expmt.meta.noise.dist = pixelDist;
-expmt.meta.noise.std = nanstd(pixelDist);
-expmt.meta.noise.mean = nanmean(pixelDist);
+expmt.meta.noise.std = nanFilteredStd(pixelDist);
+expmt.meta.noise.mean = nanFilteredMean(pixelDist);
 expmt.meta.noise.roi_dist = roiDist;
-expmt.meta.noise.roi_std = nanstd(roiDist(roiDist>4));
-expmt.meta.noise.roi_mean = nanmean(roiDist(roiDist>4));
+expmt.meta.noise.roi_std = nanFilteredStd(roiDist(roiDist>4));
+expmt.meta.noise.roi_mean = nanFilteredMean(roiDist(roiDist>4));
 

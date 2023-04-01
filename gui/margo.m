@@ -55,88 +55,29 @@ function margo_OpeningFcn(hObject, ~, handles, varargin)
 % hObject    handle to figure
 % varargin   command line arguments to margo (see VARARGIN)
 
-%
-% % set bottom uipanel and disp note font size to point for accurate resizing
-set(findall(handles.bottom_uipanel,'-property','FontUnits'),'FontUnits','points');
-set(findall(handles.grid_ROI_uipanel,'-property','FontUnits'),'FontUnits','points');
-
-% disable object/struct conversion warning
-warning off MATLAB:structOnObject
-
-% get gui directory and ensure all dependencies are added to path
-handles.gui_dir = which('margo');
-[par_dir,~,~] = fileparts(handles.gui_dir);
-[par_dir,~,~] = fileparts(par_dir);
-addpath([genpath(par_dir) '/']);
-handles.gui_dir = [par_dir '/'];
-handles.gui_dir = unixify(handles.gui_dir);
-addpath(genpath(handles.gui_dir));
-if ~exist([handles.gui_dir 'profiles/'],'dir')
-    mkdir([handles.gui_dir 'profiles/']);
-end
-if ~exist([handles.gui_dir 'hardware/projector_fit/'],'dir')
-    mkdir([handles.gui_dir 'hardware/projector_fit/']);
-end
-
-% configure the figure window, display, and handles
-handles = defaultConfigureGUI(handles);
-
-% initialize ExperimentData obj
-expmt = ExperimentData;
-
-% cam setup
-expmt.meta.source = 'camera';       % set the source mode to camera by default
-[expmt.hardware.cam,handles.cam_list] = ...
-        refresh_cam_list(handles);  % query available cameras and camera info
-
-cam_dir = [handles.gui_dir '/hardware/camera_calibration/'];
-handles.cam_calibrate_menu.UserData = false;
-expmt.hardware.cam.calibrate = false;
-
-if exist(cam_dir,'dir')==7
+try
+    %
+    % % set bottom uipanel and disp note font size to point for accurate resizing
+    set(findall(handles.bottom_uipanel, '-property', 'FontUnits'), 'FontUnits', 'points');
+    set(findall(handles.grid_ROI_uipanel, '-property', 'FontUnits'), 'FontUnits', 'points');
     
-    cam_files = recursiveSearch(cam_dir);
-    var_names = cell(length(cam_files),1);
-    for i=1:length(cam_files)
-        vn = {who('-file',cam_files{i})};
-        var_names(i) = vn;
-        load(cam_files{i});
-    end
-    allvars = whos;
+    % disable object/struct conversion warning
+    warning off MATLAB:structOnObject
     
-    if any(strcmp('cameraParameters',{allvars.class}))
-        target_name = allvars(find(strcmp('cameraParameters',{allvars.class}),1,'first')).name;
-        target_file = cellfun(@(x) strcmp(target_name,x),var_names,'UniformOutput',false);
-        target_file = target_file{find(~cellfun(@isempty,target_file),1,'first')};
-        param_obj = load(cam_files{target_file},target_name);
-        expmt.hardware.cam.calibration = param_obj.(target_name);
-    end
+    [expmt, handles] = setupMargo(handles);
     
+    % set analysis options
+    [~,expmt.meta.options] = defaultAnalysisOptions;
+    
+    
+    setappdata(handles.gui_fig,'expmt',expmt);
+    
+    % Update handles structure
+    guidata(hObject,handles);
+catch exception
+    close(findall(groot, 'Type', 'figure', 'Name', 'margo'));
+    throw(exception);
 end
-
-% query ports and initialize COM objects
-[expmt, handles] = refreshCOM(expmt, handles);
-
-% Initialize experiment parameters from text boxes in the GUI
-p = expmt.parameters;
-handles.edit_ref_depth.Value  = p.ref_depth;
-handles.edit_ref_freq.Value = p.ref_freq;
-handles.edit_exp_duration.Value = p.duration;
-handles.ROI_thresh_slider.Value = ceil(p.roi_thresh);
-handles.track_thresh_slider.Value = ceil(p.track_thresh);
-handles.disp_ROI_thresh.String = num2str(handles.ROI_thresh_slider.Value);
-handles.disp_track_thresh.String = num2str(handles.track_thresh_slider.Value);
-handles.edit_target_rate.String = num2str(p.target_rate);
-handles.edit_area_maximum.String = num2str(p.area_max);
-
-% set analysis options
-[~,expmt.meta.options] = defaultAnalysisOptions;
-
-
-setappdata(handles.gui_fig,'expmt',expmt);
-
-% Update handles structure
-guidata(hObject,handles);
 
 % UIWAIT makes margo wait for user response (see UIRESUME)
 % uiwait(handles.gui_fig);
@@ -145,8 +86,6 @@ guidata(hObject,handles);
 function varargout = margo_OutputFcn(hObject, ~, handles) 
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
-
-
 
 % Get default command line output from handles structure
 varargout{1} = [];
@@ -552,32 +491,32 @@ guidata(hObject,handles);
 
 
 % --- Executes on selection change in microcontroller_popupmenu.
-function microcontroller_popupmenu_Callback(hObject,~,handles)
+function microcontroller_popupmenu_Callback(hObject, ~, handles)
 
 % initialize new light COM
-expmt = getappdata(handles.gui_fig,'expmt');
+expmt = getappdata(handles.gui_fig, 'expmt');
 
 com_str = hObject.String;
 if ~iscell(com_str)
     com_str = {com_str};
 end
 
-if ~strcmpi(com_str{hObject.Value},'No COM detected')
-    if strcmp(expmt.hardware.COM.light.status,'open')
-        fclose(expmt.hardware.COM.light);
+if ~strcmpi(com_str{hObject.Value}, 'No COM detected')
+    if strcmp(expmt.hardware.COM.light.status, 'open')
+        clear(expmt.hardware.COM.light);
     end
     delete(expmt.hardware.COM.light);
-    expmt.hardware.COM.light = serial(com_str{hObject.Value});
+    expmt.hardware.COM.light = serialport(com_str{hObject.Value});
 end
-setappdata(handles.gui_fig,'expmt',expmt);
-guidata(hObject,handles);
+setappdata(handles.gui_fig, 'expmt', expmt);
+guidata(hObject, handles);
 
 
 
 
 
 % --- Executes during object creation, after setting all properties.
-function microcontroller_popupmenu_CreateFcn(hObject,~,~)
+function microcontroller_popupmenu_CreateFcn(hObject, ~, ~)
 
 if ispc && isequal(get(hObject,'BackgroundColor'), ...
         get(0,'defaultUicontrolBackgroundColor'))
@@ -870,15 +809,7 @@ catch ME
     
     % update db_lab server if applicable
     if isfield(handles,'deviceID')
-        try
-        [~,status]=urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=3']);
-        catch
-            status = false;
-        end
-        if ~status
-            gui_notify(['unable to connect to'...
-                ' http://lab.debivort.org'],handles.disp_note);
-        end
+        updateMonitor(handles.deviceID, MonitorStatuses.ERROR)
     end
     
     % try to close any open PTB windows
@@ -888,28 +819,21 @@ catch ME
     end
     
     % get error report
-    gui_notify('error encountered - tracking stopped',handles.disp_note);
+    gui_notify('error encountered - tracking stopped', handles.disp_note);
     keep_gui_state = true;
     title = 'Error encountered - tracking stopped';
-    msg=getReport(ME,'extended','hyperlinks','off');
+    msg = getReport(ME, 'extended', 'hyperlinks', 'off');
  
     % update meta data and output log file
     expmt = autoFinish_error(expmt, handles, msg);
     
     % report error to the GUI
-    errordlg(msg,title);
+    errordlg(msg, title);
 end
 
 % update db_lab server if applicable
 if isfield(handles,'deviceID')
-    try
-    [~,status]=urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=2']);
-    catch
-        status = false;
-    end
-    if ~status
-        gui_notify('unable to connect to http://lab.debivort.org',handles.disp_note);
-    end
+    updateMonitor(handles.deviceID, MonitorStatuses.IDLE)
 end
     
 % re-Enable control set to off during experiment
@@ -1211,7 +1135,7 @@ function save_params_pushbutton_Callback(hObject, ~, handles)
 % hObject    handle to save_params_pushbutton (see GCBO)
 
 % import expmteriment data struct
-expmt = getappdata(handles.gui_fig,'expmt');  %#ok<NASGU>
+expmt = getappdata(handles.gui_fig,'expmt');
 
 % set profile save path
 save_path = [handles.gui_dir 'profiles/'];
@@ -2370,10 +2294,8 @@ save_path = [handles.gui_dir 'profiles/'];
 [FileName,PathName] = uiputfile('*.mat','Enter name for new profile',save_path);
 
 if any(FileName)
-    
-    replace = exist(strcat(PathName,FileName),'file')==2;
+    exist(strcat(PathName, FileName), 'file');
     save(strcat(PathName,FileName),'expmt');
-
 end
 
 switch expmt.meta.source
@@ -2958,15 +2880,9 @@ function gui_fig_CreateFcn(~, ~, ~)
 % --- Executes when user attempts to close gui_fig.
 function gui_fig_CloseRequestFcn(hObject, ~, handles)
 
+% update db_lab server if applicable
 if isfield(handles,'deviceID')
-    try
-    [~,status]=urlread(['http://lab.debivort.org/mu.php?id=' handles.deviceID '&st=0']);
-    catch
-        status = false;
-    end
-    if ~status
-        gui_notify('unable to connect to http://lab.debivort.org',handles.disp_note);
-    end
+    updateMonitor(handles.deviceID, MonitorStatuses.OFFLINE)
 end
 
 % Hint: delete(hObject) closes the figure

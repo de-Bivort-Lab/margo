@@ -21,7 +21,7 @@ obs = obs - (1-obs);
 idx = sub2ind(size(obs),block_sub,fly_sub);
 occ = obs(idx);
 occ = reshape(occ,nb,expmt.meta.num_traces,nReps);
-occ = squeeze(nanmean(occ,1));
+occ = squeeze(nanFilteredMean(occ,1));
 
 % create histogram of occupancy scores
 bins = -1:0.05:1;
@@ -38,7 +38,7 @@ plot(x1, bs_kde,'b','LineWidth',2);
 set(gca,'Xtick',-1:0.5:1,'XLim',[-1 1],'YLim',[0 max(bs_kde(:))]);
 
 % plot observed data
-obs = nanmean(obs);
+obs = nanFilteredMean(obs);
 [obs_kde, x2] = ksdensity(obs(:));
 plot(x2, obs_kde,'r','LineWidth',2);
 legend({['bootstrapped (nReps = ' num2str(nReps) ')'];'observed'});

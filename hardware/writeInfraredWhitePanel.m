@@ -1,16 +1,16 @@
-function writeInfraredWhitePanel(COM_obj,panel,level)
+function writeInfraredWhitePanel(comDevice, panel, level)
 
 % Write intensity values to either the infrared or white light channels of 
 % the dual infrared/white LED illumination panels
 
 % PANEL=0=IR, PANEL=1=White
 
-if ~isempty(COM_obj)
+if ~isempty(comDevice)
     
     % open com device if it is currently close
-    if strcmp(COM_obj.status,'closed')
-        fclose(COM_obj);
-        fopen(COM_obj);
+    if strcmp(comDevice.Status, 'closed')
+        fclose(comDevice);
+        fopen(comDevice);
     end
     
     % choose pin to write to
@@ -21,7 +21,7 @@ if ~isempty(COM_obj)
     end
 
     % send data
-    writeData=char([level panel]);
-    fwrite(COM_obj,writeData,'uchar');
+    writeData = char([level panel]);
+    write(comDevice, writeData, 'char');
     
 end

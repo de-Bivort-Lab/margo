@@ -109,9 +109,9 @@ end
 
 % Assign outputs
 expmt.meta.noise.dist = pixelDist;
-expmt.meta.noise.std = nanstd(pixelDist);
-expmt.meta.noise.mean = nanmean(pixelDist);
+expmt.meta.noise.std = nanFilteredStd(pixelDist);
+expmt.meta.noise.mean = nanFilteredMean(pixelDist);
 expmt.meta.noise.roi_dist = roiDist;
-expmt.meta.noise.roi_std = nanstd(roiDist(roiDist>4));
-expmt.meta.noise.roi_mean = nanmean(roiDist(roiDist>4));
+expmt.meta.noise.roi_std = nanFilteredStd(roiDist(roiDist>4));
+expmt.meta.noise.roi_mean = nanFilteredMean(roiDist(roiDist>4));
 

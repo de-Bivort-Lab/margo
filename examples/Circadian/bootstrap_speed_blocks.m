@@ -18,7 +18,7 @@ function [varargout]=bootstrap_speed_blocks(expmt,blocks,nReps)
 nf = expmt.meta.num_traces;
 spd = expmt.data.speed.raw();
 reset(expmt.data.speed);
-active = nanmean(spd) > expmt.data.speed.thresh;
+active = nanFilteredMean(spd) > expmt.data.speed.thresh;
 active_ids = find(active);
 blocks = blocks(active);
 nBouts = cellfun(@size,blocks,'UniformOutput',false);
@@ -30,7 +30,7 @@ nBouts(nBouts==0)=[];
 % get bout lengths
 bout_length = cellfun(@(x) diff(x,[],2)+1,blocks,'UniformOutput',false);
 
-avg = nanmean(cellfun(@nanmean,bout_length));       % mean bout length   
+avg = nanFilteredMean(cellfun(@nanFilteredMean,bout_length));       % mean bout length   
 target = expmt.meta.num_frames*nf;                  % target frame num
 
 
@@ -82,10 +82,10 @@ for i = 1:nReps
         tmp_speed = cat(1,tmp_speed{:});
         tmp_speed=tmp_speed(1:floor(target/nBatch/nf)*nf);
         tmp_speed = reshape(tmp_speed,numel(tmp_speed)/nf,nf);
-        batch_spd(j,:) = nanmean(tmp_speed);
+        batch_spd(j,:) = nanFilteredMean(tmp_speed);
         clear tmp_speed
     end
-    bs_speeds(i,:) = nanmean(batch_spd);
+    bs_speeds(i,:) = nanFilteredMean(batch_spd);
     
     if ishghandle(h)
         waitbar(i/nReps,h,['iteration ' num2str(i) ' out of ' num2str(nReps)]);
@@ -103,7 +103,7 @@ end
 %%
 
 dim = find(size(expmt.data.speed.raw) == expmt.meta.num_frames);
-bs.obs = log(nanmean(expmt.data.speed.raw(),dim));
+bs.obs = log(nanFilteredMean(expmt.data.speed.raw(),dim));
 bs.include = active;
 bs.sim = log(bs_speeds);
 

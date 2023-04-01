@@ -70,7 +70,7 @@ scor(:,3) = Fx(rcor(:,3), rcor(:,4));
 scor(:,4) = Fy(rcor(:,3), rcor(:,4));
 
 % add a buffer to stim bounding box to ensure entire ROI is covered
-sbbuf = nanmean([scor(:,3)-scor(:,1), scor(:,4)-scor(:,2)],2)*0.05;
+sbbuf = nanFilteredMean([scor(:,3)-scor(:,1), scor(:,4)-scor(:,2)],2)*0.05;
 scor(:,[1 3]) = [scor(:,1)-sbbuf, scor(:,3)+sbbuf];
 scor(:,[2 4]) = [scor(:,2)-sbbuf, scor(:,4)+sbbuf];
 
@@ -78,7 +78,7 @@ scor(:,[2 4]) = [scor(:,2)-sbbuf, scor(:,4)+sbbuf];
 %% Pre-allocate stimulus image for texture making
 
 % Determine stimulus size
-pin_sz=round(nanmean(nanmean([scor(:,3)-scor(:,1) scor(:,4)-scor(:,2)]))*4);
+pin_sz=round(nanFilteredMean(nanFilteredMean([scor(:,3)-scor(:,1) scor(:,4)-scor(:,2)]))*4);
 nCycles = expmt.parameters.num_cycles;            % num dark-light cycles in 360 degrees
 mask_r = expmt.parameters.mask_r;                 % radius of center circle dark mask (as fraction of stim_size)
 ang_vel = expmt.parameters.ang_per_frame;         % angular velocity of stimulus (degrees/frame)

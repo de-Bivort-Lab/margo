@@ -5,7 +5,7 @@ function varargout = getSlidingWindow(expmt,f,win_sz,stp_sz,sampling_rate,vararg
 
 %% parse inputs
 
-fh = str2func('nanmean');
+fh = str2func('nanFilteredMean');
 frame_range = [1 expmt.meta.num_frames];
 for i = 1:length(varargin)
     
@@ -34,7 +34,7 @@ h = waitbar(0,['iteration 0 out of ' num2str(expmt.meta.num_traces)]);
 h.Name = ['Sliding ' f ' window'];
 
 % calculate frame_rate
-fr = nanmedian(expmt.data.time.raw(1:1000));
+fr = nanFilteredMedian(expmt.data.time.raw(1:1000));
 win_sz = round(win_sz/fr*60);
 stp_sz = round(stp_sz/fr*60);
 s = round(sampling_rate/fr*60);

@@ -15,7 +15,7 @@ function [varargout]=bootstrap_speed(expmt,trackProps,nReps)
 %% bootstrap sample data
 
 nf = expmt.meta.num_traces;
-active = nanmean(trackProps.speed)>0.01;
+active = nanFilteredMean(trackProps.speed)>0.01;
 trackProps.speed = trackProps.speed(:,active);
 batch_sz = 5000;
 max_idx = numel(trackProps.speed);
@@ -30,7 +30,7 @@ for j = 1:nReps
     
     rand_frames = uint32(randi([1 max_idx],batch_sz*nf,1));
     rand_speeds = reshape(trackProps.speed(rand_frames),batch_sz,nf);
-    bs_speeds(j,:) = nanmean(rand_speeds);
+    bs_speeds(j,:) = nanFilteredMean(rand_speeds);
 
     clearvars rand_frames rand_speeds
     
@@ -40,7 +40,7 @@ toc
 
 %%
 
-data = log(nanmean(trackProps.speed));
+data = log(nanFilteredMean(trackProps.speed));
 
 lg_speeds = log(bs_speeds);
 

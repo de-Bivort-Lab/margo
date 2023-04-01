@@ -210,7 +210,7 @@ while trackDat.t < expmt.parameters.duration*3600 &&...
         % select appropriate reference mode
         if ~any(isnan(dDifference(:)))
            
-            avg_deltaDiff = nanmean(dDifference);
+            avg_deltaDiff = nanFilteredMean(dDifference);
             if avg_deltaDiff(1) > avg_deltaDiff(2)
                 trackDat.ref.bg_mode = 'light';
                 expmt.parameters.bg_mode = 'light';

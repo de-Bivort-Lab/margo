@@ -13,7 +13,7 @@ for i = 1:length(varargin)
     end
 end
 
-optoplots=squeeze(nanmedian(cumang(:,:,:),2));
+optoplots=squeeze(nanFilteredMedian(cumang(:,:,:),2));
 t0 = round(length(optoplots)/2);
 tOFF = t0 + round((parameters.stim_duration/win_sz)*size(optoplots,1)/2);
 nTracks = size(optoplots,2);
@@ -27,8 +27,8 @@ for i=1:nTracks
 end
 
 hold on
-plot(1:t0-1,nanmean(optoplots(1:t0-1,active),2),'k-','LineWidth',3);
-plot(t0+1:length(optoplots),nanmean(optoplots(t0+1:end,active),2),'k-','LineWidth',4);
+plot(1:t0-1,nanFilteredMean(optoplots(1:t0-1,active),2),'k-','LineWidth',3);
+plot(t0+1:length(optoplots),nanFilteredMean(optoplots(t0+1:end,active),2),'k-','LineWidth',4);
 plot([t0 t0],[min(min(optoplots)) max(max(optoplots))],'k--','LineWidth',2);
 hold off
 set(gca,'Xtick',linspace(1,size(optoplots,1),7),'XtickLabel',round(linspace(-win_sz,win_sz,7)*10)/10);

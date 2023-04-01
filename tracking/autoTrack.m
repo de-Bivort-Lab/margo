@@ -103,7 +103,7 @@ if isfield(trackDat,'px_dist') && expmt.parameters.noise_sample
     % update rolling distribution and calculate deviation from baseline
     idx = mod(trackDat.ct,length(trackDat.px_dist))+1;
     trackDat.px_dist(idx) = sum(thresh_im(:));
-    trackDat.px_dev(idx) = ((nanmean(trackDat.px_dist) - ...
+    trackDat.px_dev(idx) = ((nanFilteredMean(trackDat.px_dist) - ...
             expmt.meta.noise.mean)/expmt.meta.noise.std);
 
     % query skip threshold or assign default

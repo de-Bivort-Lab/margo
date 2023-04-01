@@ -5,25 +5,14 @@ warning('off','imaq:peekdata:tooManyFramesRequested');
 set(handles.gui_fig,'doublebuffer','off');
 
 if exist([handles.gui_dir 'profiles/deviceID.txt'],'file')
+
     fID = fopen([handles.gui_dir 'profiles/deviceID.txt']);
-    handles.deviceID=char(fread(fID))';
+    handles.deviceID = fread(fID, '*char');
     fclose(fID);
     
-    webop = weboptions('Timeout',0.25);
-    status=true;
-    try
-        webread(['http://lab.debivort.org/mu.php?id=' ...
-            handles.deviceID '&st=2'],webop);
-    catch
-        status = false;
-    end
-    if ~status
-        gui_notify(...
-            'unable to connect to http://lab.debivort.org',handles.disp_note);
-    end
-    
-    
+    updateMonitor(handles.deviceID, MonitorStatuses.ACTIVE)
 end
+
 handles.display_menu.UserData = 'raw';     
 gui_notify('welcome to margo',handles.disp_note);
 

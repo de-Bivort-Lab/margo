@@ -24,7 +24,7 @@ win_start=NaN(size(iONr,1),expmt.meta.num_traces);
 win_stop=NaN(size(iOFFr,1),expmt.meta.num_traces);
 tElapsed = cumsum(expmt.data.time.raw());                         % time elapsed @ each frame
 tElapsed = tElapsed(mod(1:length(tElapsed),dec_scale)==0);
-search_win = round(win_sz/nanmean(expmt.data.time.raw())*1.5);    % window around stim Off->On index to search for best tStamp
+search_win = round(win_sz/nanFilteredMean(expmt.data.time.raw())*1.5);    % window around stim Off->On index to search for best tStamp
 
 
 % Start by finding tStamps win_sz on either side of stim ON->OFF index
@@ -93,8 +93,8 @@ on_spd=NaN(expmt.meta.num_traces,1);
 
 for i=1:expmt.meta.num_traces
     
-    off_spd(i)=nanmean(expmt.data.speed.raw(~inc(:,i),i));
-    on_spd(i)=nanmean(expmt.data.speed.raw(inc(:,i),i));
+    off_spd(i)=nanFilteredMean(expmt.data.speed.raw(~inc(:,i),i));
+    on_spd(i)=nanFilteredMean(expmt.data.speed.raw(inc(:,i),i));
     
     % Integrate change in heading angle over the entire stimulus bout
     for j=1:sum(~isnan(win_start(:,i)))
@@ -106,7 +106,7 @@ for i=1:expmt.meta.num_traces
 
         if ~isempty(tmpTurn)
             tmpTurn=interp1(1:length(tmpTurn),tmpTurn,linspace(1,length(tmpTurn),nPts));
-            if nanmean(expmt.data.speed.raw(win_start(j,i):win_stop(j,i),i))>0.1
+            if nanFilteredMean(expmt.data.speed.raw(win_start(j,i):win_stop(j,i),i))>0.1
             cumang(1:t0,j,i)=cumsum(tmpTurn(1:t0));
             cumang(t0+1:end,j,i)=cumsum(tmpTurn(t0+1:end));
             end
@@ -129,8 +129,8 @@ end
 %{
 function [cumang,opto_index]=getOptoIndex(t,inc,wst,wsp,spd,nPts,t0)
 
-off_spd = nanmean(spd{:}(~inc{:}));
-on_spd = nanmean(spd{:}(inc{:}));
+off_spd = nanFilteredMean(spd{:}(~inc{:}));
+on_spd = nanFilteredMean(spd{:}(inc{:}));
 
 idx = num2cell([wst{:}(~isnan(wst{:})) wsp{:}(~isnan(wsp{:}))],2);
 [cumang,opto_index] = arrayfun(@(k) extractSingleBout(k,t,spd,nPts,t0),...
@@ -148,7 +148,7 @@ if ~isempty(tmp_t)
     tmp_t=interp1(1:length(tmp_t),tmp_t,linspace(1,length(tmp_t),nPts));
     cumang = NaN(size(tmp_t));
     
-    if nanmean(spd{:}(idx{:}(1):idx{:}(2)))>0.1
+    if nanFilteredMean(spd{:}(idx{:}(1):idx{:}(2)))>0.1
         cumang(1:t0)=cumsum(tmp_t(1:t0));
         cumang(t0+1:end)=cumsum(tmp_t(t0+1:end));
         tmp_r = nansum(tmp_t);

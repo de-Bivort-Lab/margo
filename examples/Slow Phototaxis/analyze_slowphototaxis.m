@@ -103,9 +103,9 @@ end
 
 tTotal = cellfun(@nansum, expmt.meta.Light.tInc);
 btTotal = cellfun(@nansum, expmt.meta.Blank.tInc);
-locc = cellfun(@nanmean, expmt.meta.Light.occ);
+locc = cellfun(@nanFilteredMean, expmt.meta.Light.occ);
 locc = (locc - (1-locc));
-bocc = cellfun(@nanmean, expmt.meta.Blank.occ);
+bocc = cellfun(@nanFilteredMean, expmt.meta.Blank.occ);
 bocc = (bocc - (1-bocc));
 min_active_period = 0.2 * ...
     nansum(expmt.data.time.raw(expmt.data.Texture.raw(:)))/3600; 

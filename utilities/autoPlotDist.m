@@ -26,15 +26,15 @@ end
 
 % Histogram for stimulus ON period
 if min(data) >= 0
-    mm = nanmean(data) + nanstd(data)*4;
+    mm = nanFilteredMean(data) + nanFilteredStd(data)*4;
     inc = (10^(ceil(log10(mm))-1));
     ub = ceil(mm/inc)*inc;
-    lb = (nanmean(data) - nanstd(data)*4);
+    lb = (nanFilteredMean(data) - nanFilteredStd(data)*4);
     lb = floor(lb/inc)*inc;
     bins = 0:inc:ub;
 else
-    lb = nanstd(data)*-4;
-    ub = nanstd(data)*4;
+    lb = nanFilteredStd(data)*-4;
+    ub = nanFilteredStd(data)*4;
     bins = -1:0.2:1;
 end
 

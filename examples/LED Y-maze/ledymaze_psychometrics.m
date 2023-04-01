@@ -32,7 +32,7 @@ for i=1:numel(pwm_vals)
     mask = is_turn & (pwm==pwm_vals(i));
     
     % calculate individual means
-    psy_curv(i,:) = cellfun(@(lc,m) nanmean(lc(m)), choice_cell, num2cell(mask,1));
+    psy_curv(i,:) = cellfun(@(lc,m) nanFilteredMean(lc(m)), choice_cell, num2cell(mask,1));
     
     % filter out low sampling
     psy_curve(i,sum(mask)<10) = NaN;

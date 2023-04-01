@@ -1,3 +1,4 @@
 profiles/*
 hardware/projector_fit/*
 hardware/camera_calibration/*
+*.asv

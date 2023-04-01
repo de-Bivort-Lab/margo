@@ -26,11 +26,11 @@ expmt.data.LightStatus.n = NaN(expmt.meta.num_traces,1);
 expmt.data.LightStatus.iti = NaN(expmt.meta.num_traces,1);
 for i = 1:expmt.meta.num_traces
     expmt.data.LightStatus.trans(i) = {r(c==i)};
-    expmt.data.LightStatus.iti(i) = mean(diff(expmt.data.LightStatus.trans{i})).*nanmean(expmt.data.time.raw());
+    expmt.data.LightStatus.iti(i) = mean(diff(expmt.data.LightStatus.trans{i})).*nanFilteredMean(expmt.data.time.raw());
     expmt.data.LightStatus.n(i) = length(expmt.data.LightStatus.trans{i});
 end
 
-expmt.data.LightStatus.occ = nanmean(expmt.data.LightStatus.raw());
+expmt.data.LightStatus.occ = nanFilteredMean(expmt.data.LightStatus.raw());
 
 %{
 % get indices of stim endings
@@ -119,11 +119,11 @@ end
 
 % Minimum time spent off the boundary divider (hours)
 min_active_period = 0.2 * nansum(expmt.data.time.raw()(expmt.Texture.data))/3600;        
-active = nanmean(trackProps.speed) > 0.1;
+active = nanFilteredMean(trackProps.speed) > 0.1;
 tTotal = nansum(cell2mat(expmt.Light.tInc));
 btTotal = nansum(cell2mat(expmt.Blank.tInc));
-locc = nanmean(cell2mat(expmt.Light.occ));
-bocc = nanmean(cell2mat(expmt.Blank.occ));
+locc = nanFilteredMean(cell2mat(expmt.Light.occ));
+bocc = nanFilteredMean(cell2mat(expmt.Blank.occ));
 
 % Histogram for stimulus ON period
 f=figure();

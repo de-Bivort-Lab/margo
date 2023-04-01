@@ -88,10 +88,10 @@ circ.bin_idx = hr - repmat((1:24)',1,size(hr,2)) == 0;
 
 % average speed for each animal in each time bin
 for i=1:24
-    circ.avg_spd(i,:) = nanmean(win_dat(circ.bin_idx(i,:),:));
+    circ.avg_spd(i,:) = nanFilteredMean(win_dat(circ.bin_idx(i,:),:));
 end
 
-circ.avg = nanmean(win_dat);
+circ.avg = nanFilteredMean(win_dat);
 circ.data = win_dat;
 expmt.meta.Circadian = circ;
     

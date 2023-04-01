@@ -75,7 +75,7 @@ scor(:,3) = Fx(rcor(:,3), rcor(:,4));
 scor(:,4) = Fy(rcor(:,3), rcor(:,4));
 
 % add a buffer to stim bounding box to ensure entire ROI is covered
-sbbuf = nanmean([scor(:,3)-scor(:,1), scor(:,4)-scor(:,2)],2)*0.05;
+sbbuf = nanFilteredMean([scor(:,3)-scor(:,1), scor(:,4)-scor(:,2)],2)*0.05;
 scor(:,[1 3]) = [scor(:,1)-sbbuf, scor(:,3)+sbbuf];
 scor(:,[2 4]) = [scor(:,2)-sbbuf, scor(:,4)+sbbuf];
 
@@ -83,7 +83,7 @@ scor(:,[2 4]) = [scor(:,2)-sbbuf, scor(:,4)+sbbuf];
 %% Pre-allocate stimulus image for texture making
 
 % Determine stimulus size by calculating mean ROI edge length
-stmsz=round(nanmean(nanmean([scor(:,3)-scor(:,1) scor(:,4)-scor(:,2)])));
+stmsz=round(nanFilteredMean(nanFilteredMean([scor(:,3)-scor(:,1) scor(:,4)-scor(:,2)])));
 src_edge_length = stmsz;
 stmsz=sqrt(stmsz^2+stmsz^2);
 

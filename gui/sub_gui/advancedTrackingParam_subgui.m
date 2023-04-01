@@ -483,11 +483,11 @@ function updateSpeed(h,pos,spd)
 
 % update display
 h.Position = [pos{:}(1) pos{:}(2)+5];
-if isnan(round(nanmean(spd{:})*10)/10)
+if isnan(round(nanFilteredMean(spd{:})*10)/10)
     h.String = '';
 else
-    u = num2str(round(nanmean(spd{:})*10)/100);
-    st_dev = num2str(round(nanstd(spd{:})*10)/10);
+    u = num2str(round(nanFilteredMean(spd{:})*10)/100);
+    % st_dev = num2str(round(nanFilteredStd(spd{:})*10)/10);
     h.String = [u ' ' char(177) ' ' st_dev];
 end
 
@@ -508,11 +508,11 @@ if ~any(isnan(minb{:}))
     hma.Position = maxb{:};
 end
 ht.Position = [pos{:}(1) pos{:}(2)+20];
-if isnan(round(nanmean(area{:})*10)/10)
+if isnan(round(nanFilteredMean(area{:})*10)/10)
     ht.String = '';
 else
-    u = num2str(round(nanmean(area{:})*10)/10);
-    st_dev = num2str(round(nanstd(area{:})*10)/10);
+    u = num2str(round(nanFilteredMean(area{:})*10)/10);
+    st_dev = num2str(round(nanFilteredStd(area{:})*10)/10);
     ht.String = [u ' ' char(177) ' ' st_dev];
 end
 
