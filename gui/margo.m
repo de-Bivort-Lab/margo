@@ -805,7 +805,7 @@ try
     end
 
 % re-establish gui state prior to tracking error is encountered
-catch ME
+catch exception
     
     % update db_lab server if applicable
     if isfield(handles,'deviceID')
@@ -822,13 +822,14 @@ catch ME
     gui_notify('error encountered - tracking stopped', handles.disp_note);
     keep_gui_state = true;
     title = 'Error encountered - tracking stopped';
-    msg = getReport(ME, 'extended', 'hyperlinks', 'off');
+    msg = getReport(exception, 'extended', 'hyperlinks', 'off');
  
     % update meta data and output log file
     expmt = autoFinish_error(expmt, handles, msg);
     
     % report error to the GUI
     errordlg(msg, title);
+    throw(exception);
 end
 
 % update db_lab server if applicable
@@ -1228,10 +1229,11 @@ if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
                 handles.exp_parameter_pushbutton.Enable = 'on';
             end
         end
-     catch ME
+     catch exception
         hObject.Enable = 'on';
-        msg=getReport(ME,'extended');
+        msg=getReport(exception,'extended');
         errordlg(msg);
+        rethrow(exception);
     end
     expmt.meta.initialize = true;
 else

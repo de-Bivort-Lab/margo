@@ -40,7 +40,7 @@ classdef NanFilteredStatistic
 
         function dimension = getDimension(this, args)
         
-            dimension = -1;
+            dimension = 1;
             if isempty(args)
                 return;
             end
