@@ -15,6 +15,11 @@ if ~isempty(ports)
 
         try
             serialPortObj = serialport(ports{i}, BAUD_RATE);    % Create Serial Object
+            if ~strcmpi(get(serialPortObj, "Status"), "open")
+                ports{i} = strcat(ports{i}, ' (unavailable)');
+                continue;
+            end
+
             devices{i} = serialPortObj;
     
             writeData = char([HANDSHAKE_LEVEL_VAL HANDSHAKE_PANEL_VAL 23 23]);

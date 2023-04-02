@@ -76,9 +76,7 @@ for i = 1:nReps
         end
 
         % create speed vector
-        tmp_speed = arrayfun(@(id,b) ...
-            spd(blocks{id}(b,1):blocks{id}(b,2), active_ids(id)),...
-                ids, bouts, 'UniformOutput',false);
+        tmp_speed = arrayfun(@(id,b) spd(blocks{id}(b,1):blocks{id}(b,2), active_ids(id)), ids, bouts, 'UniformOutput',false);
         tmp_speed = cat(1,tmp_speed{:});
         tmp_speed=tmp_speed(1:floor(target/nBatch/nf)*nf);
         tmp_speed = reshape(tmp_speed,numel(tmp_speed)/nf,nf);

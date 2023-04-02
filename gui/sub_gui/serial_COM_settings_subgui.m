@@ -12,8 +12,7 @@ end
 com_ports = cellfun(@(dev) dev.Port, com_devices, 'UniformOutput', false);
 
 % get com device status
-expmt.hardware.COM.status = ...
-    cellfun(@(dev) dev.status, com_devices, 'UniformOutput', false);
+expmt.hardware.COM.status = cellfun(@(device) get(device, "Status"), com_devices, 'UniformOutput', false);
 
 % set the default device to AUX com (if selected) or the first available port
 if ~isempty(expmt.hardware.COM.aux)
@@ -25,8 +24,7 @@ else
 end
 
 % load saved settings for the device
-[default_device, expmt.hardware.COM.settings, prop_names] = ...
-    load_com_settings(default_device, device_idx, expmt.hardware.COM.settings);
+[default_device, expmt.hardware.COM.settings, prop_names] = load_com_settings(default_device, device_idx, expmt.hardware.COM.settings);
 
 %% Determine the size of the UI based on how many elements need to be populated
 nControls = 0;
@@ -351,7 +349,7 @@ function com_settings_subguiCloseRequestFcn(src,event)
 % reset device status
 expmt = src.UserData.expmt;
 devices = expmt.hardware.COM.devices;
-status = expmt.hardware.COM.status;
+status = get(expmt.hardware.COM, "Status");
 
 for i=1:numel(status)
     switch status{i}

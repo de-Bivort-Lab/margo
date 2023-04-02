@@ -64,7 +64,6 @@ moving = int8(moving);
 shift_mov = [moving(2:size(moving,1),:); int8(zeros(1,size(moving,2)))];
 transitions = shift_mov - moving;
 clear moving shift_mov
-transitions = cat(1,zeros(1,size(transitions,2)),transitions);
 transitions = num2cell(transitions,1);
 
 % get activity bout stops and starts

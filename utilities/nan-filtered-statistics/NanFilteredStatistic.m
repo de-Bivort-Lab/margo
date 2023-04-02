@@ -35,13 +35,24 @@ classdef NanFilteredStatistic
     methods (Access = private)
 
         function value = applyToSingleDimension(this, x)
-            value = this.functionHandle(x(~isnan(x)));
+            mask = isnan(x);
+            if all(mask)
+                value = cast(NaN, class(x));
+                return;
+            end
+            value = this.functionHandle(x(~mask));
         end
 
         function dimension = getDimension(this, args)
         
-            dimension = 1;
+            
+            if isempty(args) && sum(size(this.data) > 1) <= 1
+                dimension = -1;
+                return;
+            end
+
             if isempty(args)
+                dimension = 1;
                 return;
             end
         

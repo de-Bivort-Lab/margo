@@ -281,12 +281,12 @@ classdef ExperimentData < dynamicprops
                     '\t\t\tUnsuccessful repair will result in non-functional raw '...
                     'data maps']);
                 
-                if ~strcmp(lastwarn,msg)
-                    warning('off','backtrace');
-                    disp(sprintf('\n'))
+                if ~strcmp(lastwarn, msg)
+                    warning('off', 'backtrace');
+                    disp(newline)
                     warning(msg);
-                    disp(sprintf('\n'))
-                    warning('on','backtrace');
+                    disp(newline)
+                    warning('on', 'backtrace');
                 end
             end
 
@@ -298,12 +298,12 @@ classdef ExperimentData < dynamicprops
                 catch ME
                     callStackDetails = getReport(ME);
                 end
-                if any(strfind(callStackDetails,'uiimport')) &&...
-                     ~any(strfind(callStackDetails,'runImportdata'))
+                if any(strfind(callStackDetails, 'uiimport')) &&...
+                     ~any(strfind(callStackDetails, 'runImportdata'))
                     return
                 end
                 callStr = regexp(callStackDetails,...
-                    '(?<=Error in [^\n]*\n)[^\n]*','match','once');
+                    '(?<=Error in [^\n]*\n)[^\n]*', 'match', 'once');
                 callStr = strtrim(callStr);
                 
                 if any(strfind(callStr,'load('))
@@ -323,7 +323,7 @@ classdef ExperimentData < dynamicprops
                     end
 
                     if any(isfile)
-                        fpath = input_str{find(isfile)};
+                        fpath = input_str{isfile};
                         if testPath(fpath, obj.meta.date)
                             obj = updatepaths(obj,fpath);
                             return
@@ -434,7 +434,7 @@ function status = testPath(fpath, date_label)
         fpath = fpath{1};
     end
     [~,name,~] = fileparts(fpath);
-    status = ~isempty(strfind(name, date_label));
+    status = contains(name, date_label);
     
 end
 
@@ -504,7 +504,7 @@ if any(strfind(callStr,'load('))
         isfile = cellfun(@(p) exist(p,'file'),input_str{:});
 
         if any(isfile)
-            tmp_path = input_str{find(isfile)};
+            tmp_path = input_str{isfile};
             if testPath(tmp_path, date_label)
                 fpath = tmp_path;
                 return

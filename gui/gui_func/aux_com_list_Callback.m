@@ -30,7 +30,7 @@ switch hObject.Checked
         expmt.hardware.COM.aux = serial(hObject.Label);
         
         % open the COM device
-        if strcmpi(expmt.hardware.COM.aux.status,'closed')
+        if strcmpi(get(expmt.hardware.COM.aux, "Status"), 'closed')
             fopen(expmt.hardware.COM.aux);
         end
         

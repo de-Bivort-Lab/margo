@@ -31,6 +31,7 @@ roiDist=NaN(pixDistSize,expmt.meta.roi.n);  % Distribution of total number of pi
 expmt.meta.noise = struct;
 trackDat = initializeTrackDat(expmt);
 update_ct = zeros(size(trackDat.drop_ct));
+sampleImages = nan([size(expmt.meta.ref.im), pixDistSize]);
 
 
 %% Initalize camera and axes
@@ -87,6 +88,9 @@ while trackDat.ct < pixDistSize;
    roiDist(idx,:) = ...
        cellfun(@(x) sum(trackDat.thresh_im(x)),expmt.meta.roi.pixIdx);
    update_ct(trackDat.update) = update_ct(trackDat.update) + 1;
+
+   % Record difference image for calculating baseline image statistics
+   sampleImages(:, :, idx) = trackDat.diffim;
    
 end
 
@@ -114,4 +118,12 @@ expmt.meta.noise.mean = nanFilteredMean(pixelDist);
 expmt.meta.noise.roi_dist = roiDist;
 expmt.meta.noise.roi_std = nanFilteredStd(roiDist(roiDist>4));
 expmt.meta.noise.roi_mean = nanFilteredMean(roiDist(roiDist>4));
+expmt.meta.noise.diffim.mean = mean(sampleImages, 3);
+expmt.meta.noise.diffim.std = computeStdDiffIm(sampleImages);
+
+
+function std_diffim = computeStdDiffIm(sampleImages)
+
+std_diffim = std(sampleImages, 0, 3);
+std_diffim(std_diffim == 0) = min(std_diffim(std_diffim > 0));
 

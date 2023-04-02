@@ -88,6 +88,7 @@ trackDat.diffim = diffim;
 
 % threshold difference image
 thresh_im = diffim > im_thresh;
+
 if isfield(expmt.meta.roi,'mask')
     % set pixels outside ROIs to zero
     thresh_im = thresh_im & expmt.meta.roi.mask;

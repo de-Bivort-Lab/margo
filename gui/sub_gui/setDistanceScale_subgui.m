@@ -61,24 +61,22 @@ param_data = varargin{2};
 handles.output=[];
 
 
-if isfield(param_data,'distance_scale')
+if isfield(param_data, 'distance_scale')
     
     % Set GUI strings with input parameters
-    set(handles.edit_target_size,'string',param_data.distance_scale.target_size);
-    set(handles.edit_mm_per_pixel,'string',round(param_data.distance_scale.mm_per_pixel*100)/100);
-    handles.line_handle = imline(handles.input.axes_handle,param_data.distance_scale.Pos);
-    handles.line_handle.Deletable = false;
-    line_props = struct(handles.line_handle);
-    h_vertices = findall(line_props.h_group,'Type','Line');
-    context_menus = get(h_vertices,'UIContextMenu');
-    cellfun(@(hmenu) delete(hmenu), context_menus);
-    addNewPositionCallback(handles.line_handle,@line_reposition_Callback);
+    set(handles.edit_target_size, 'string', param_data.distance_scale.target_size);
+    set(handles.edit_mm_per_pixel,'string',round(param_data.distance_scale.mm_per_pixel * 100) / 100);
+    handles.line_handle = drawLineWithPosition(param_data.distance_scale.Pos, handles.input.axes_handle);
 
     % Assign current values as default output
-    handles.dist_fig.UserData.target_size=str2num(get(handles.edit_target_size,'string'));
-    handles.dist_fig.UserData.mm_per_pixel=str2num(get(handles.edit_mm_per_pixel,'string'));
+    handles.dist_fig.UserData.target_size = str2double(get(handles.edit_target_size, 'string'));
+    handles.dist_fig.UserData.mm_per_pixel = str2double(get(handles.edit_mm_per_pixel, 'string'));
     handles.dist_fig.UserData.Pos = param_data.distance_scale.Pos;
-    
+else
+    % Assign current values as default output
+    handles.dist_fig.UserData.target_size = NaN;
+    handles.dist_fig.UserData.mm_per_pixel = NaN;
+    handles.dist_fig.UserData.Pos = NaN(2,2);
 end
 
 handles.dist_fig.Position(1) = gui_fig.Position(1) + ...
@@ -89,6 +87,21 @@ handles.dist_fig.Position(2) = gui_fig.Position(2) + ...
 % Update handles structure
 guidata(hObject, handles);
 
+
+% Create a new line
+function lineHandle = drawNewLine(axesHandle)
+lineHandle = drawline(axesHandle);
+setLineHandleProperies(lineHandle);
+
+
+function lineHandle = drawLineWithPosition(pos, axesHandle)
+lineHandle = drawline("Position", pos, "Axes", axesHandle);
+setLineHandleProperies(lineHandle);
+
+
+function setLineHandleProperies(lineHandle)
+lineHandle.Deletable = false;
+addlistener(lineHandle, 'ROIMoved', @line_reposition_Callback);
 
 
 % --- Outputs from this function are returned to the command line.
@@ -139,21 +152,15 @@ if isfield(handles,'line_handle')
 end
 
 % Create new image line object
-handles.line_handle = imline(handles.input.axes_handle);
-handles.line_handle.Deletable = false;
-line_props = struct(handles.line_handle);
-h_vertices = findall(line_props.h_group,'Type','Line');
-context_menus = get(h_vertices,'UIContextMenu');
-cellfun(@(hmenu) delete(hmenu), context_menus);
-addNewPositionCallback(handles.line_handle,@line_reposition_Callback);
+handles.line_handle = drawNewLine(handles.input.axes_handle);
 figure(handles.dist_fig);
 
-if isfield(handles.dist_fig.UserData,'target_size')
-    pos = handles.line_handle.getPosition();
+if isfield(handles.dist_fig.UserData, 'target_size')
+    pos = handles.line_handle.Position;
     handles.dist_fig.UserData.Pos = pos;
-    d = sqrt((pos(1,1)-pos(2,1))^2+(pos(2,2)-pos(1,2))^2);
-    handles.dist_fig.UserData.mm_per_pixel = handles.dist_fig.UserData.target_size/d;
-    set(handles.edit_mm_per_pixel,'string',num2str(round(handles.dist_fig.UserData.mm_per_pixel*1000)/1000));
+    d = sqrt((pos(1, 1) - pos(2, 1)) ^2 + (pos(2, 2) - pos(1, 2)) ^2);
+    handles.dist_fig.UserData.mm_per_pixel = handles.dist_fig.UserData.target_size / d;
+    set(handles.edit_mm_per_pixel, 'string', num2str(round(handles.dist_fig.UserData.mm_per_pixel * 1000) / 1000));
 end
 
 figure(handles.dist_fig);
@@ -229,9 +236,9 @@ function help_button_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-msg_title=['Set Distance Scale'];
-spc=[' '];
-item1=['\bfDescription\rm - This function estimates the pixel to millimeter ' ...
+msg_title = 'Set Distance Scale';
+spc = ' ';
+item1 = ['\bfDescription\rm - This function estimates the pixel to millimeter ' ...
     'ratio by comparing the length of a line drawn in the main camera window.  '...
     'For this to work, a target object (eg. an ROI or the length of tracking '...
     'platform) of known size must be within the field of view of the camera '...
@@ -246,12 +253,12 @@ item3 = ['\bfDraw new line\rm - draw a line along a previously measured'...
     'in the camera window to initiate drawing. The mm/pixel conversion '...
     'factor will automatically be calculated and displayed.'];
 
-item5=['Close the utility to accept the mm/pixel conversion'];
+item4 = 'Close the utility to accept the mm/pixel conversion';
 
 closing = ['\itSee manual for additional tips and details on estimating absolute' ...
     ' distance from pixel distance.'];
 
-message={spc item1 spc item2 spc item3 spc item4 spc item5 spc closing};
+message={spc item1 spc item2 spc item3 spc item4 spc closing};
 
 % Display info
 Opt.Interpreter='tex';
@@ -259,26 +266,22 @@ Opt.WindowStyle='normal';
 waitfor(msgbox(message,msg_title,'none',Opt));
 
 
-function line_reposition_Callback(pos)
+function line_reposition_Callback(source, ~)
 
+pos = source.Position;
 dist_fig = findobj('Tag','dist_fig','Type','figure');
 edit_mm_per_pixel = findall(dist_fig,'Tag','edit_mm_per_pixel');
 figure(dist_fig);
 dist_fig.UserData.Pos = pos;
 d = sqrt((pos(1,1)-pos(2,1))^2+(pos(2,2)-pos(1,2))^2);
 dist_fig.UserData.mm_per_pixel = dist_fig.UserData.target_size/d;
-edit_mm_per_pixel.String = ...
-    sprintf('%0.3f',dist_fig.UserData.mm_per_pixel);
+edit_mm_per_pixel.String = sprintf('%0.3f',dist_fig.UserData.mm_per_pixel);
 
 
 
 %*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*%
 %*-*-*-*-*-*-*-*-*-*-* GUI OBJECT CREATION *-*-*-*-*-*-*-*-*-*-*-*-*-*-*%
 %*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*%
-
-
-
-
 
 
 

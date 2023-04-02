@@ -7,12 +7,6 @@ function writeInfraredWhitePanel(comDevice, panel, level)
 
 if ~isempty(comDevice)
     
-    % open com device if it is currently close
-    if strcmp(comDevice.Status, 'closed')
-        fclose(comDevice);
-        fopen(comDevice);
-    end
-    
     % choose pin to write to
     if panel==0
         panel=10;   % infrared light pin

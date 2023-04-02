@@ -68,15 +68,14 @@ try
     
     % set analysis options
     [~,expmt.meta.options] = defaultAnalysisOptions;
-    
-    
+
     setappdata(handles.gui_fig,'expmt',expmt);
     
     % Update handles structure
     guidata(hObject,handles);
 catch exception
     close(findall(groot, 'Type', 'figure', 'Name', 'margo'));
-    throw(exception);
+    rethrow(exception);
 end
 
 % UIWAIT makes margo wait for user response (see UIRESUME)
@@ -502,7 +501,7 @@ if ~iscell(com_str)
 end
 
 if ~strcmpi(com_str{hObject.Value}, 'No COM detected')
-    if strcmp(expmt.hardware.COM.light.status, 'open')
+    if strcmp(get(expmt.hardware.COM.light, "Status"), 'open')
         clear(expmt.hardware.COM.light);
     end
     delete(expmt.hardware.COM.light);
@@ -829,7 +828,7 @@ catch exception
     
     % report error to the GUI
     errordlg(msg, title);
-    throw(exception);
+    rethrow(exception);
 end
 
 % update db_lab server if applicable
@@ -1780,8 +1779,8 @@ elseif (isfield(expmt.hardware.cam,'vid') && ...
     
 end
 
-tmp=setDistanceScale_subgui(handles,expmt.parameters);
-delete(findobj('Tag','imline'));
+tmp = setDistanceScale_subgui(handles, expmt.parameters);
+delete(findobj('Tag', 'imline'));
 if ~isempty(tmp)
     
     expmt.parameters.distance_scale = tmp;

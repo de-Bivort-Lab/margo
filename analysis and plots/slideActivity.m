@@ -5,6 +5,11 @@ stp_sz = 1;             % step size between windows (minutes)
 sampling_rate = 0.05;    % sampling rate (minutes)
 [win_dat,win_idx] = getSlidingWindow(expmt,'speed',win_sz,stp_sz,sampling_rate);
 
+if isempty(win_idx)
+    warning("Skipping step sliding activity window. Not enough data.");
+    return;
+end
+
 %%
 % get mean and 95% CI
 alpha = 0.05;

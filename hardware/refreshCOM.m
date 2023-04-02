@@ -21,7 +21,7 @@ end
 % automatically select light COM if detected
 if ~isempty(expmt.hardware.COM.light)
     handles.microcontroller_popupmenu.Value = ...
-        find(strcmp(expmt.hardware.COM.ports,expmt.hardware.COM.light.Port));
+        find(strcmp(expmt.hardware.COM.ports, get(expmt.hardware.COM.light, "Port")));
 end
         
 
@@ -65,6 +65,6 @@ for i = 1:length(expmt.hardware.COM.ports)
 end
 
 if ~isempty(expmt.hardware.COM.light)
-    isLightPort = strcmp(expmt.hardware.COM.light.port, expmt.hardware.COM.ports);
+    isLightPort = strcmp(get(expmt.hardware.COM.light, "Port"), expmt.hardware.COM.ports);
     menuItems(isLightPort).Enable = 'off';
 end

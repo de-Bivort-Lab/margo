@@ -176,11 +176,12 @@ if isfield(expmt.data,'speed') && isattached(expmt.data.speed) ...
         end
         disp('resampling speed data, may take a few minutes');
     
-        addprop(expmt.data.speed,'bootstrap');
+        if ~isprop(expmt.data.speed, "bootstrap")
+            addprop(expmt.data.speed,'bootstrap');
+        end
         
         % bootstrap resample speed data to generate null distribution
-        [expmt.data.speed.bootstrap,f] = ...
-            bootstrap_speed_blocks(expmt,block_indices,100);
+        [expmt.data.speed.bootstrap, f] = bootstrap_speed_blocks(expmt, block_indices, 100);
 
         % save bootstrap figure to file
         fname = [expmt.meta.path.fig expmt.meta.date '_bs_logspeed'];
