@@ -120,6 +120,7 @@ expmt.meta.noise.roi_std = nanFilteredStd(roiDist(roiDist>4));
 expmt.meta.noise.roi_mean = nanFilteredMean(roiDist(roiDist>4));
 expmt.meta.noise.diffim.mean = mean(sampleImages, 3);
 expmt.meta.noise.diffim.std = computeStdDiffIm(sampleImages);
+expmt.meta.noise.diffim.thresh = expmt.meta.noise.diffim.mean + expmt.meta.noise.diffim.std .* 6;
 
 
 function std_diffim = computeStdDiffIm(sampleImages)

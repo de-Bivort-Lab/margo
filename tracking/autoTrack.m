@@ -87,7 +87,12 @@ end
 trackDat.diffim = diffim;
 
 % threshold difference image
-thresh_im = diffim > im_thresh;
+if isfield(expmt.meta.noise, "diffim") && isfield(expmt.meta.noise.diffim, "thresh")
+    thresh_im = double(diffim) > (expmt.meta.noise.diffim.mean + expmt.meta.noise.diffim.std .* 120);
+else
+    thresh_im = diffim > im_thresh;
+end
+
 
 if isfield(expmt.meta.roi,'mask')
     % set pixels outside ROIs to zero
