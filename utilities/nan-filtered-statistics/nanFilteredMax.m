@@ -3,7 +3,7 @@ function out = nanFilteredMax(x, varargin)
 %   Detailed explanation goes here
 
 FUNCTION_ID = "NANFILTEREDMAX";
-out = NanFilteredStatistic(@max, FUNCTION_ID, x, varargin{:}).apply();
+out = NanFilteredStatistic("max", FUNCTION_ID, x, varargin{:}).apply();
 
 end
 

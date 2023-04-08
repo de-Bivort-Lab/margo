@@ -8,13 +8,19 @@ classdef NanFilteredStatistic
         data;
         dimensionToApply;
     end
+
+    properties(Constant)
+        NAN_FUNCTIONS_DEPRECATED_RELEASE = "R2020a";
+        NAN_FUNCTION_PREFIX = "nan";
+        OMIT_NAN_FLAG = "omitnan"
+    end
     
     methods (Access = public)
 
-        function this = NanFilteredStatistic(functionHandle, functionId, data, varargin)
+        function this = NanFilteredStatistic(functionName, functionId, data, varargin)
             %NANFILTEREDSTATISTIC Construct an instance of this class
             %   Detailed explanation goes here
-            this.functionHandle = functionHandle;
+            this.functionHandle = getFunctionHandle(functionName);
             this.functionId = functionId;
             this.data = data;
             this.dimensionToApply = this.getDimension(varargin);
@@ -22,26 +28,34 @@ classdef NanFilteredStatistic
 
         function out = apply(this)
 
-            if this.dimensionToApply < 0
-                out = this.applyToSingleDimension(this.data);
-                return;
+            if isDeprecated()
+                out = this.functionHandle(this.data, this.dimensionToApply, NanFilteredStatistic.OMIT_NAN_FLAG);
+            else
+                out = this.functionHandle(this.data, this.dimensionToApply);
             end
-            
-            out = cellfun(@(x) this.applyToSingleDimension(x), num2cell(this.data, this.dimensionToApply));
         end
         
     end
 
+    methods (Static)
+
+        function isDeprecated = isDeprecated()
+            isDeprecated = isMATLABReleaseOlderThan(NanFilteredStatistic.NAN_FUNCTIONS_DEPRECATED_RELEASE);
+        end
+
+        function functionHandle = getFunctionHandle(functionName)
+            if isDeprecated()
+                functionName = NanFilteredStatistic.NAN_FUNCTION_PREFIX + functionName;
+            end
+
+            functionHandle = str2func(functionName);
+        end
+
+    end
+
     methods (Access = private)
 
-        function value = applyToSingleDimension(this, x)
-            mask = isnan(x);
-            if all(mask)
-                value = cast(NaN, class(x));
-                return;
-            end
-            value = this.functionHandle(x(~mask));
-        end
+        
 
         function dimension = getDimension(this, args)
         
