@@ -10,7 +10,7 @@ classdef NanFilteredStatistic
     end
 
     properties(Constant)
-        NAN_FUNCTIONS_DEPRECATED_RELEASE = string('R2020a');
+        NAN_FUNCTIONS_DEPRECATED_RELEASE = string('2020a');
         NAN_FUNCTION_PREFIX = string('nan');
         OMIT_NAN_FLAG = string('omitnan');
     end

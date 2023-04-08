@@ -3,6 +3,7 @@ function [lightBoard, ports, devices]=identifyMicrocontrollers
 LIGHT_PANEL_HANDSHAKE = [1 1 0 0 1 0 1]';
 
 % Detect available ports
+SerialDevice.closeOpenConnections();
 ports = SerialDevice.getAvailablePorts();
 panelNum=[];
 devices = cell(numel(ports),1);
@@ -24,7 +25,7 @@ if ~isempty(ports)
             pause(0.1);
     
             if serialDevice.bytesAvailable == numel(LIGHT_PANEL_HANDSHAKE)
-                handshake = serialDevice.read(numel(LIGHT_PANEL_HANDSHAKE));
+                handshake = serialDevice.read(numel(LIGHT_PANEL_HANDSHAKE), 'uint8');
                 if all(handshake == LIGHT_PANEL_HANDSHAKE)
                     panelNum = i;
                 end

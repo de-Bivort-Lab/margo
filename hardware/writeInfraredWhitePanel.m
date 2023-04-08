@@ -16,6 +16,6 @@ if ~isempty(serialDevice)
 
     % send data
     writeData = char([level panel]);
-    serialDevice.write(writeData, "char");
+    serialDevice.write(writeData, 'char');
     
 end

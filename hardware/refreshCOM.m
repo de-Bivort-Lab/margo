@@ -6,7 +6,7 @@ expmt.hardware.COM.light = light_COM;
 expmt.hardware.COM.ports = ports;
 expmt.hardware.COM.devices = all_COM_devices;
 expmt.hardware.COM.settings = cell(numel(all_COM_devices), 1);
-expmt.hardware.COM.status = cellfun(@(dev) dev.Status, all_COM_devices, 'UniformOutput', false);
+expmt.hardware.COM.status = cellfun(@(dev) dev.status, all_COM_devices, 'UniformOutput', false);
 
 unavailable = cellfun(@(p) any(strfind(p,'(unavailable)')), expmt.hardware.COM.ports);
 ports = expmt.hardware.COM.ports(~unavailable);

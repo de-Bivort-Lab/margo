@@ -3,13 +3,13 @@ classdef SerialDevice < SerialDeviceInterface
     %   Detailed explanation goes here
     
     properties(Access = private)
-        deviceConstructor function_handle = getConstructor();
-        device handle;
+        deviceConstructor function_handle = SerialDevice.getConstructor();
+        device;
     end
 
-    properties(Constant)
-        SERIAL_FIRST_RELEASE = string('R2006a');
-        SERIAL_DEPRECATED_RELEASE = string('R2022a');
+    properties(Constant, Access = private)
+        SERIAL_FIRST_RELEASE = string('2006a');
+        SERIAL_DEPRECATED_RELEASE = string('2022a');
     end
 
     methods
@@ -29,10 +29,12 @@ classdef SerialDevice < SerialDeviceInterface
         
         function this = open(this)
             this.device.open();
+            this.updateStatus();
         end
 
         function this = close(this)
             this.device.close();
+            this.updateStatus();
         end
 
         function write(this, data, dataType)
@@ -41,6 +43,25 @@ classdef SerialDevice < SerialDeviceInterface
 
         function out = read(this, numBytes, dataType)
             out = this.device.read(numBytes, dataType);
+        end
+        
+        function out = bytesAvailable(this)
+            
+           if this.isClosed() || this.device.isClosed()
+               warning('No bytes available on serial port: %s because the port is not open.', this.port);
+               out = 0;
+               return;
+           end
+           
+           if SerialDevice.isSerialDeprecated()
+               out = this.device.bytesAvailable;
+           else
+               out = this.device.bytesAvailable;
+           end
+        end
+        
+        function updateStatus(this)
+            this.status = this.device.status;
         end
     end
 
@@ -70,7 +91,7 @@ classdef SerialDevice < SerialDeviceInterface
                 ports = serialportlist();
             else
                 serialInfo = instrhwinfo('serial');
-                ports = serialInfo.AvailableSerialPorts;
+                ports = serialInfo.SerialPorts;
             end
         end
         
@@ -80,6 +101,12 @@ classdef SerialDevice < SerialDeviceInterface
 
         function isSerialDeprecated = isSerialDeprecated()
             isSerialDeprecated = ~MatlabVersionChecker.isReleaseOlderThan(SerialDevice.SERIAL_DEPRECATED_RELEASE);
+        end
+        
+        function closeOpenConnections()
+           if ~SerialDevice.isSerialDeprecated()
+               delete(instrfindall);
+           end
         end
     end
 end

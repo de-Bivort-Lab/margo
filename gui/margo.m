@@ -54,7 +54,7 @@ end
 function margo_OpeningFcn(hObject, ~, handles, varargin)
 % hObject    handle to figure
 % varargin   command line arguments to margo (see VARARGIN)
-
+a = 1;
 try
     %
     % % set bottom uipanel and disp note font size to point for accurate resizing
@@ -501,7 +501,7 @@ if ~iscell(com_str)
 end
 
 if ~strcmpi(com_str{hObject.Value}, 'No COM detected')
-    if strcmp(get(expmt.hardware.COM.light, "Status"), 'open')
+    if expmt.hardware.COM.light.status == SerialDeviceStatuses.OPEN
         clear(expmt.hardware.COM.light);
     end
     delete(expmt.hardware.COM.light);

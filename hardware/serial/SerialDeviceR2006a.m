@@ -3,7 +3,7 @@ classdef SerialDeviceR2006a < SerialDeviceInterface
     %   Detailed explanation goes here
     
     properties(Access = private)
-        serialDevice handle;
+        serialDevice;
     end
 
     methods
@@ -22,7 +22,7 @@ classdef SerialDeviceR2006a < SerialDeviceInterface
             end
 
             try
-                this.serialDevice = serial(this.port, 'BaudRate', this.baudRate);
+                this.serialDevice = serial(this.port.char, 'BaudRate', this.baudRate);
                 fopen(this.serialDevice);
                 this.status = SerialDeviceStatuses.OPEN;
             catch exception
@@ -53,7 +53,7 @@ classdef SerialDeviceR2006a < SerialDeviceInterface
             end
 
             try
-                frwrite(this.serialDevice, data, dataType);
+                fwrite(this.serialDevice, data, dataType);
             catch exception
                 warning('Serial write failed on port: %s.', this.port);
                 rethrow(exception);
@@ -77,7 +77,7 @@ classdef SerialDeviceR2006a < SerialDeviceInterface
         end
 
         function out = bytesAvailable(this)
-            out = this.serialDevice.numBytesAvailable;
+            out = this.serialDevice.BytesAvailable;
         end
     end
 end
