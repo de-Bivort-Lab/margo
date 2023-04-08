@@ -3,7 +3,7 @@ function out = nanFilteredMin(x, varargin)
 %   Detailed explanation goes here
 
 FUNCTION_ID = "NANFILTEREDMIN";
-out = NanFilteredStatistic(@min, FUNCTION_ID, x, varargin{:}).apply();
+out = NanFilteredStatistic("min", FUNCTION_ID, x, varargin{:}).apply();
 
 end
 

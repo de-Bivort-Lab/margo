@@ -3,7 +3,7 @@ function out = nanFilteredMean(x, varargin)
 %   Detailed explanation goes here
 
 FUNCTION_ID = "NANFILTEREDMEAN";
-out = NanFilteredStatistic(@mean, FUNCTION_ID, x, varargin{:}).apply();
+out = NanFilteredStatistic("mean", FUNCTION_ID, x, varargin{:}).apply();
 
 end
 
