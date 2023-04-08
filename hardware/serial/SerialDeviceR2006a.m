@@ -75,6 +75,10 @@ classdef SerialDeviceR2006a < SerialDeviceInterface
             end
             
         end
+
+        function out = bytesAvailable(this)
+            out = this.serialDevice.numBytesAvailable;
+        end
     end
 end
 

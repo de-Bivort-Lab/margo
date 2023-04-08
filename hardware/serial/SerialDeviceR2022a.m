@@ -74,6 +74,10 @@ classdef SerialDeviceR2022a < SerialDeviceInterface
             end
             
         end
+
+        function out = bytesAvailable(this)
+            out = this.serialDevice.NumBytesAvailable;
+        end
     end
 end
 

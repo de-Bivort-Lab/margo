@@ -48,15 +48,29 @@ classdef SerialDevice < SerialDeviceInterface
 
         function constructor = getConstructor()
 
-            if isSerialUnsupported()
-                error("Cannot instantation serial device. Serial not supported prior to %s", ...
+            if SerialDevice.isSerialUnsupported()
+                error("Cannot instantiate serial device. Serial not supported prior to %s", ...
                     SerialDevice.SERIAL_FIRST_RELEASE);
             end
 
-            if isSerialDeprecated()
+            if SerialDevice.isSerialDeprecated()
                 constructor = @SerialDeviceR2022a;
             else
                 constructor = @SerialDeviceR2006a;
+            end
+        end
+
+        function ports = getAvailablePorts()
+            if SerialDevice.isSerialUnsupported()
+                error("Cannot list serial devices. Serial not supported prior to %s", ...
+                    SerialDevice.SERIAL_FIRST_RELEASE);
+            end
+
+            if SerialDevice.isSerialDeprecated()
+                ports = serialportlist();
+            else
+                serialInfo = instrhwinfo('serial');
+                ports = serialInfo.AvailableSerialPorts;
             end
         end
         
@@ -65,7 +79,7 @@ classdef SerialDevice < SerialDeviceInterface
         end
 
         function isSerialDeprecated = isSerialDeprecated()
-            isSerialDeprecated = isMATLABReleaseOlderThan(SerialDevice.SERIAL_DEPRECATED_RELEASE);
+            isSerialDeprecated = ~isMATLABReleaseOlderThan(SerialDevice.SERIAL_DEPRECATED_RELEASE);
         end
     end
 end

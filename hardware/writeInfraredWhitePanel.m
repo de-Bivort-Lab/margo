@@ -1,11 +1,11 @@
-function writeInfraredWhitePanel(comDevice, panel, level)
+function writeInfraredWhitePanel(serialDevice, panel, level)
 
 % Write intensity values to either the infrared or white light channels of 
 % the dual infrared/white LED illumination panels
 
 % PANEL=0=IR, PANEL=1=White
 
-if ~isempty(comDevice)
+if ~isempty(serialDevice)
     
     % choose pin to write to
     if panel==0
@@ -16,6 +16,6 @@ if ~isempty(comDevice)
 
     % send data
     writeData = char([level panel]);
-    write(comDevice, writeData, 'char');
+    serialDevice.write(writeData, "char");
     
 end
