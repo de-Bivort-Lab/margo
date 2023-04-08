@@ -22,7 +22,7 @@ function varargout = advancedTrackingParam_subgui(varargin)
 
 % Edit the above text to modify the response to help advancedTrackingParam_subgui
 
-% Last Modified by GUIDE v2.5 24-Nov-2018 10:51:20
+% Last Modified by GUIDE v2.5 07-Apr-2023 20:51:19
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -1325,6 +1325,29 @@ function edit_erode_sz_CreateFcn(hObject, eventdata, handles)
 % handles    empty - handles not created until after all CreateFcns called
 
 % Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on selection change in threshold_type_popupmenu.
+function threshold_type_popupmenu_Callback(hObject, eventdata, handles)
+% hObject    handle to threshold_type_popupmenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+expmt = getappdata(handles.options_fig.UserData.gui_handles.gui_fig,'expmt');
+expmt.parameters.threshold_type = ThresholdTypes(hObject.String{hObject.Value});
+
+
+
+% --- Executes during object creation, after setting all properties.
+function threshold_type_popupmenu_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to threshold_type_popupmenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');

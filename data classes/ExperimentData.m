@@ -203,6 +203,7 @@ classdef ExperimentData < dynamicprops
             p.noise_estimate_missing= true;
             p.ref_mode              = 'live';
             p.ref_fun               = 'median';
+            p.threshold_type        = ThresholdTypes.FLAT;
         end
         
         function obj = trimParameters(obj)

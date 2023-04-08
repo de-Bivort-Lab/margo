@@ -76,7 +76,7 @@ end
 
 
 % get current image threshold and use it to extract region properties     
-im_thresh = get(gui_handles.track_thresh_slider,'value');
+im_thresh = get(gui_handles.track_thresh_slider, 'value');
 
 % adjust difference image to enhance contrast
 if expmt.parameters.bg_adjust
@@ -87,8 +87,8 @@ end
 trackDat.diffim = diffim;
 
 % threshold difference image
-if isfield(expmt.meta.noise, "diffim") && isfield(expmt.meta.noise.diffim, "thresh")
-    thresh_im = double(diffim) > (expmt.meta.noise.diffim.mean + expmt.meta.noise.diffim.std .* 120);
+if expmt.parameters.threshold_type == ThresholdTypes.DYNAMIC
+    thresh_im = double(diffim) > (expmt.meta.noise.diffim.mean + expmt.meta.noise.diffim.std .* im_thresh);
 else
     thresh_im = diffim > im_thresh;
 end
