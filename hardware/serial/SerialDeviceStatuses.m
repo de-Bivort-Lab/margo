@@ -3,7 +3,7 @@ classdef SerialDeviceStatuses
     %   Detailed explanation goes here
     
     properties
-        status (1,1) string;
+        status string;
     end
     
     methods

@@ -3,7 +3,7 @@ classdef SerialDeviceR2022a < SerialDeviceInterface
     %   Detailed explanation goes here
     
     properties(Access = private)
-        serialDevice (1,1) handle;
+        serialDevice handle;
     end
 
     methods

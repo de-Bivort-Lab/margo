@@ -3,9 +3,9 @@ classdef SerialDeviceInterface < handle
     %   Detailed explanation goes here
     
     properties
-        port (1,1) string;
-        baudRate (1,1) double = 9600;
-        status (1,1) SerialDeviceStatuses = SerialDeviceStatuses.CLOSED;
+        port string;
+        baudRate double = 9600;
+        status SerialDeviceStatuses = SerialDeviceStatuses.CLOSED;
     end
     
     methods (Abstract)

@@ -7,7 +7,7 @@ classdef MonitorStatuses
     end
 
     properties
-        code (1,1) uint32;
+        code uint32;
     end
 
     methods

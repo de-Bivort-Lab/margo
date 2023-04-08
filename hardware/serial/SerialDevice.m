@@ -3,8 +3,8 @@ classdef SerialDevice < SerialDeviceInterface
     %   Detailed explanation goes here
     
     properties(Access = private)
-        deviceConstructor (1,1) function_handle = getConstructor();
-        device (1,1) handle;
+        deviceConstructor function_handle = getConstructor();
+        device handle;
     end
 
     properties(Constant)
@@ -75,11 +75,11 @@ classdef SerialDevice < SerialDeviceInterface
         end
         
         function isSerialUnsupported = isSerialUnsupported()
-            isSerialUnsupported = isMATLABReleaseOlderThan(SerialDevice.SERIAL_FIRST_RELEASE);
+            isSerialUnsupported = MatlabVersionChecker.isReleaseOlderThan(SerialDevice.SERIAL_FIRST_RELEASE);
         end
 
         function isSerialDeprecated = isSerialDeprecated()
-            isSerialDeprecated = ~isMATLABReleaseOlderThan(SerialDevice.SERIAL_DEPRECATED_RELEASE);
+            isSerialDeprecated = ~MatlabVersionChecker.isReleaseOlderThan(SerialDevice.SERIAL_DEPRECATED_RELEASE);
         end
     end
 end

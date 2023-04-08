@@ -3,10 +3,10 @@ classdef NanFilteredStatistic
     %   Detailed explanation goes here
     
     properties (Access = private)
-        functionHandle;
-        functionId;
-        data;
-        dimensionToApply;
+        functionHandle function_handle;
+        functionId string;
+        data numerictype;
+        dimensionToApply numerictype;
     end
 
     properties(Constant)
@@ -44,7 +44,8 @@ classdef NanFilteredStatistic
     methods (Static)
 
         function isDeprecated = isDeprecated()
-            isDeprecated = ~isMATLABReleaseOlderThan(NanFilteredStatistic.NAN_FUNCTIONS_DEPRECATED_RELEASE);
+            isDeprecated = ~MatlabVersionChecker.isReleaseOlderThan( ...
+                NanFilteredStatistic.NAN_FUNCTIONS_DEPRECATED_RELEASE);
         end
 
         function functionHandle = getFunctionHandle(functionName)
