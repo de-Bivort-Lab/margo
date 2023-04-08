@@ -280,8 +280,8 @@ if isempty(lh) || eb.UserData ~= roi
     ph=plot(ah,s(:),'k','LineWidth',0.75);
     ah.XTick = [];
     ah.XTickLabel = [];
-    if nanFilteredMax(s) > 0
-        ah.YLim = [0 ceil(nanFilteredMax(s))];
+    if max(s) > 0
+        ah.YLim = [0 ceil(max(s))];
         ah.YTick = ah.YLim;
         ah.YTickLabel = ah.YLim;
     end

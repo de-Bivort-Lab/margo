@@ -138,21 +138,34 @@ if isfield(param,'ref_mode')
     
     % set diffim adjustment
     handles.diffim_adjust_checkbox.Value = param.bg_adjust;
+
+    % set threshold type
+    idx = find(cellfun(@(s) any(strmatch(param.threshold_type.name, s)),...
+        handles.threshold_type_popupmenu.String));
+    handles.threshold_type_popupmenu.Value = idx;
 end
 
 % set noise correction parameters
-if sum(cellfun(@(f) any(strmatch('noise',f)), fieldnames(param))) < 5
+defaultNoiseParams = defaultNoiseCorrectionOptions(param);
 
-    param = defaultNoiseCorrectionOptions(param);
+if isfield(param, "noise_sample")
     handles.enable_noise_radiobutton.Value = param.noise_sample;
-    handles.edit_noise_sample_num.String = sprintf('%i',param.noise_sample_num);
-    handles.edit_noise_skip_thresh.String = sprintf('%i',param.noise_skip_thresh);
-    handles.edit_noise_ref_thresh.String = sprintf('%i',param.noise_ref_thresh);
-    if param.noise_estimate_missing
-        handles.empty_roi_resample_popupmenu.Value = param.noise_estimate_missing;
-    else
-        handles.empty_roi_resample_popupmenu.Value = 2;
-    end
+else
+    handles.enable_noise_radiobutton.Value = defaultNoiseParams.noise_sample;
+end
+
+if isfield(param, "noise_sample_num")
+    handles.edit_noise_sample_num.String = param.noise_sample_num;
+else
+    handles.edit_noise_sample_num.String = defaultNoiseParams.noise_sample_num;
+end
+
+handles.edit_noise_skip_thresh.String = sprintf('%i',param.noise_skip_thresh);
+handles.edit_noise_ref_thresh.String = sprintf('%i',param.noise_ref_thresh);
+if param.noise_estimate_missing
+    handles.empty_roi_resample_popupmenu.Value = param.noise_estimate_missing;
+else
+    handles.empty_roi_resample_popupmenu.Value = 2;
 end
 
 

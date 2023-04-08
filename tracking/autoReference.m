@@ -63,7 +63,7 @@ elseif trackDat.ref.update
        [expmt,trackDat] = refUpdateIdx(expmt,trackDat);
 
        % patch blobs in the reference with the current image
-       trackDat = refRawCrossPatch(trackDat, expmt);
+       %trackDat = refRawCrossPatch(trackDat, expmt);
        trackDat.ref.update = false;
 
 end

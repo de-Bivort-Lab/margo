@@ -87,7 +87,7 @@ end
 trackDat.diffim = diffim;
 
 % threshold difference image
-if expmt.parameters.threshold_type == ThresholdTypes.DYNAMIC
+if expmt.parameters.threshold_type == ThresholdTypes.DYNAMIC && isfield(expmt.meta.noise, "diffim")
     thresh_im = double(diffim) > (expmt.meta.noise.diffim.mean + expmt.meta.noise.diffim.std .* im_thresh);
 else
     thresh_im = diffim > im_thresh;
