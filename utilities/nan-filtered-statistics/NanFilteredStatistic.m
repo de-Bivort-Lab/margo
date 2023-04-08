@@ -20,7 +20,7 @@ classdef NanFilteredStatistic
         function this = NanFilteredStatistic(functionName, functionId, data, varargin)
             %NANFILTEREDSTATISTIC Construct an instance of this class
             %   Detailed explanation goes here
-            this.functionHandle = getFunctionHandle(functionName);
+            this.functionHandle = NanFilteredStatistic.getFunctionHandle(functionName);
             this.functionId = functionId;
             this.data = data;
             this.dimensionToApply = this.getDimension(varargin);
@@ -28,10 +28,14 @@ classdef NanFilteredStatistic
 
         function out = apply(this)
 
-            if isDeprecated()
+            if NanFilteredStatistic.isDeprecated() && this.dimensionToApply > 0
                 out = this.functionHandle(this.data, this.dimensionToApply, NanFilteredStatistic.OMIT_NAN_FLAG);
-            else
+            elseif NanFilteredStatistic.isDeprecated() && this.dimensionToApply < 0
+                out = this.functionHandle(this.data(:), NanFilteredStatistic.OMIT_NAN_FLAG);
+            elseif this.dimensionToApply > 0
                 out = this.functionHandle(this.data, this.dimensionToApply);
+            else
+                out = this.functionHandle(this.data(:));
             end
         end
         
@@ -40,11 +44,12 @@ classdef NanFilteredStatistic
     methods (Static)
 
         function isDeprecated = isDeprecated()
-            isDeprecated = isMATLABReleaseOlderThan(NanFilteredStatistic.NAN_FUNCTIONS_DEPRECATED_RELEASE);
+            isDeprecated = ~isMATLABReleaseOlderThan(NanFilteredStatistic.NAN_FUNCTIONS_DEPRECATED_RELEASE);
         end
 
         function functionHandle = getFunctionHandle(functionName)
-            if isDeprecated()
+
+            if ~NanFilteredStatistic.isDeprecated()
                 functionName = NanFilteredStatistic.NAN_FUNCTION_PREFIX + functionName;
             end
 
@@ -55,10 +60,7 @@ classdef NanFilteredStatistic
 
     methods (Access = private)
 
-        
-
         function dimension = getDimension(this, args)
-        
             
             if isempty(args) && sum(size(this.data) > 1) <= 1
                 dimension = -1;
