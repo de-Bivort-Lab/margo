@@ -8,8 +8,8 @@ classdef SerialDevice < SerialDeviceInterface
     end
 
     properties(Constant)
-        SERIAL_FIRST_RELEASE = "R2006a";
-        SERIAL_DEPRECATED_RELEASE = "R2022a";
+        SERIAL_FIRST_RELEASE = string('R2006a');
+        SERIAL_DEPRECATED_RELEASE = string('R2022a');
     end
 
     methods
@@ -49,7 +49,7 @@ classdef SerialDevice < SerialDeviceInterface
         function constructor = getConstructor()
 
             if SerialDevice.isSerialUnsupported()
-                error("Cannot instantiate serial device. Serial not supported prior to %s", ...
+                error('Cannot instantiate serial device. Serial not supported prior to %s', ...
                     SerialDevice.SERIAL_FIRST_RELEASE);
             end
 
@@ -62,7 +62,7 @@ classdef SerialDevice < SerialDeviceInterface
 
         function ports = getAvailablePorts()
             if SerialDevice.isSerialUnsupported()
-                error("Cannot list serial devices. Serial not supported prior to %s", ...
+                error('Cannot list serial devices. Serial not supported prior to %s', ...
                     SerialDevice.SERIAL_FIRST_RELEASE);
             end
 

@@ -13,7 +13,7 @@ classdef SerialDeviceStatuses
     end
 
     enumeration
-        OPEN("open"), CLOSED("closed");
+        OPEN(string('open')), CLOSED(string('closed'));
     end
 end
 

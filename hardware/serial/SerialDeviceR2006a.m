@@ -22,11 +22,11 @@ classdef SerialDeviceR2006a < SerialDeviceInterface
             end
 
             try
-                this.serialDevice = serial(this.port, "BaudRate", this.baudRate);
+                this.serialDevice = serial(this.port, 'BaudRate', this.baudRate);
                 fopen(this.serialDevice);
                 this.status = SerialDeviceStatuses.OPEN;
             catch exception
-                warning("Failed to open serial device on port: %s", this.port);
+                warning('Failed to open serial device on port: %s', this.port);
                 rethrow(exception);
             end
         end
@@ -41,7 +41,7 @@ classdef SerialDeviceR2006a < SerialDeviceInterface
                 fclose(this.serialDevice);
                 this.status = SerialDeviceStatuses.CLOSED;
             catch exception
-                warning("Failed to close serial device on port: %s", this.port);
+                warning('Failed to close serial device on port: %s', this.port);
                 rethrow(exception);
             end
         end
@@ -49,13 +49,13 @@ classdef SerialDeviceR2006a < SerialDeviceInterface
         function write(this, data, dataType)
 
             if this.isClosed()
-                error("Cannot write data over serial port: %s. Connection is closed.", this.port);
+                error('Cannot write data over serial port: %s. Connection is closed.', this.port);
             end
 
             try
                 frwrite(this.serialDevice, data, dataType);
             catch exception
-                warning("Serial write failed on port: %s.", this.port);
+                warning('Serial write failed on port: %s.', this.port);
                 rethrow(exception);
             end
             
@@ -64,13 +64,13 @@ classdef SerialDeviceR2006a < SerialDeviceInterface
         function out = read(this, numBytes, dataType)
 
             if this.isClosed()
-                error("Cannot read data over serial port: %s. Connection is closed.", this.port);
+                error('Cannot read data over serial port: %s. Connection is closed.', this.port);
             end
 
             try
                 out = fread(this.serialDevice, numBytes, dataType);
             catch exception
-                warning("Serial read failed on port: %s.", this.port);
+                warning('Serial read failed on port: %s.', this.port);
                 rethrow(exception);
             end
             

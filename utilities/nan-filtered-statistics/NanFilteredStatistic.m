@@ -10,9 +10,9 @@ classdef NanFilteredStatistic
     end
 
     properties(Constant)
-        NAN_FUNCTIONS_DEPRECATED_RELEASE = "R2020a";
-        NAN_FUNCTION_PREFIX = "nan";
-        OMIT_NAN_FLAG = "omitnan"
+        NAN_FUNCTIONS_DEPRECATED_RELEASE = string('R2020a');
+        NAN_FUNCTION_PREFIX = string('nan');
+        OMIT_NAN_FLAG = string('omitnan');
     end
     
     methods (Access = public)
@@ -73,20 +73,20 @@ classdef NanFilteredStatistic
             end
         
             if numel(args) > 1
-                msg = sprintf("Unsupported number of inputs: %d", numel(args));
-                throw(this.buildException("unsupportedInput", msg));
+                msg = sprintf('Unsupported number of inputs: %d', numel(args));
+                throw(this.buildException('unsupportedInput', msg));
             end
         
             if ~isnumeric(args{1})
-                msg = sprintf("Unsupported data type: %d for dimension argument", class(args{1}));
-                throw(this.buildException("invalidDimensionType", msg));
+                msg = sprintf('Unsupported data type: %d for dimension argument', class(args{1}));
+                throw(this.buildException('invalidDimensionType', msg));
             end
         
             dimension = args{1};
         end
 
         function exception = buildException(this, errorId, message)
-            exception = MException(strcat(this.functionId, ":", errorId), message);
+            exception = MException(strcat(this.functionId, ':', errorId), message);
         end
     end
 end

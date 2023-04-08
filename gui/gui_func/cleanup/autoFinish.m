@@ -69,13 +69,13 @@ end
 
 function [expmt, handles, comCopy] = cleanupComDevices(expmt, handles)
     comCopy = expmt.hardware.COM;
-    if isfield(expmt.hardware.COM, "light")
+    if isfield(expmt.hardware.COM, 'light')
         expmt.hardware.COM.light = [];
     end
-    if isfield(expmt.hardware.COM, "aux")
+    if isfield(expmt.hardware.COM, 'aux')
         expmt.hardware.COM.aux = [];
     end
-    if isfield(expmt.hardware.COM, "devices")
+    if isfield(expmt.hardware.COM, 'devices')
         expmt.hardware.COM.devices = {};
     end
 end
@@ -84,7 +84,7 @@ end
 function [expmt, handles, vidCopy] = cleanupVideo(expmt, handles)
 
     % set time string to zero
-    if strcmpi(expmt.meta.source, "video")
+    if strcmpi(expmt.meta.source, 'video')
         handles.edit_time_remaining.String = '-';
         handles.edit_video_dir.String = '';
         handles.vid_select_popupmenu.Value = 1;
@@ -105,7 +105,7 @@ end
 function [expmt, handles, camCopy] = cleanupCamera(expmt, handles)
 
     % set time string to zero
-    if strcmpi(expmt.meta.source, "camera")
+    if strcmpi(expmt.meta.source, 'camera')
         handles.edit_time_remaining.String = '00:00:00';
     end
 

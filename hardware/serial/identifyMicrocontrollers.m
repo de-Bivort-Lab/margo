@@ -20,7 +20,7 @@ if ~isempty(ports)
             devices{i} = serialDevice;
     
             writeData = char([HANDSHAKE_LEVEL_VAL HANDSHAKE_PANEL_VAL 23 23]);
-            serialDevice.write(writeData, "char");
+            serialDevice.write(writeData, 'char');
             pause(0.1);
     
             if serialDevice.bytesAvailable == numel(LIGHT_PANEL_HANDSHAKE)
