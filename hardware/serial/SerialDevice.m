@@ -88,10 +88,10 @@ classdef SerialDevice < SerialDeviceInterface
             end
 
             if SerialDevice.isSerialDeprecated()
-                ports = serialportlist();
+                ports = arrayfun(@char, serialportlist('available'), 'UniformOutput', false);
             else
                 serialInfo = instrhwinfo('serial');
-                ports = serialInfo.SerialPorts;
+                ports = serialInfo.AvailableSerialPorts;
             end
         end
         

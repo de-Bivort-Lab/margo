@@ -502,10 +502,9 @@ end
 
 if ~strcmpi(com_str{hObject.Value}, 'No COM detected')
     if expmt.hardware.COM.light.status == SerialDeviceStatuses.OPEN
-        clear(expmt.hardware.COM.light);
+        expmt.hardware.COM.light.close();
     end
-    delete(expmt.hardware.COM.light);
-    expmt.hardware.COM.light = serialport(com_str{hObject.Value});
+    expmt.hardware.COM.light.open();
 end
 setappdata(handles.gui_fig, 'expmt', expmt);
 guidata(hObject, handles);
@@ -536,8 +535,7 @@ expmt.hardware.light.infrared = str2double(get(handles.edit_IR_intensity,'string
 % Convert intensity percentage to uint8 PWM value 0-255
 expmt.hardware.light.infrared = uint8((expmt.hardware.light.infrared/100)*255);
 
-writeInfraredWhitePanel(expmt.hardware.COM.light,1,...
-    expmt.hardware.light.infrared);
+expmt.hardware.COM.writeLightPanel(LightPanelPins.INFRARED, expmt.hardware.light.infrared);
 
 % Store expmteriment data struct
 setappdata(handles.gui_fig,'expmt',expmt);
@@ -560,8 +558,7 @@ White_intensity = str2double(get(handles.edit_White_intensity,'string'));
 
 % Convert intensity percentage to uint8 PWM value 0-255
 expmt.hardware.light.white = uint8((White_intensity/100)*255);
-writeInfraredWhitePanel(expmt.hardware.COM.light,0,...
-    expmt.hardware.light.white);
+expmt.hardware.COM.writeLightPanel(LightPanelPins.WHITE, expmt.hardware.light.white);
 
 % Store expmteriment data struct
 setappdata(handles.gui_fig,'expmt',expmt);
@@ -1605,8 +1602,8 @@ end
 
 if isfield(expmt.hardware.projector,'reg_params')
     % Turn infrared and white background illumination off during registration
-    writeInfraredWhitePanel(expmt.hardware.COM.light,1,0);
-    writeInfraredWhitePanel(expmt.hardware.COM.light,0,0);
+    expmt.hardware.COM.writeLightPanel(LightPanelPins.WHITE, 0);
+    expmt.hardware.COM.writeLightPanel(LightPanelPins.INFRARED, 0);
 
     msg_title = ['Projector Registration Tips'];
     spc = [' '];
@@ -1637,10 +1634,8 @@ if isfield(expmt.hardware.projector,'reg_params')
     
 
     % Reset infrared and white lights to prior values
-    writeInfraredWhitePanel(expmt.hardware.COM.light,1,...
-        expmt.hardware.light.infrared);
-    writeInfraredWhitePanel(expmt.hardware.COM.light,0,...
-        expmt.hardware.light.white);
+    expmt.hardware.COM.writeLightPanel(LightPanelPins.INFRARED, expmt.hardware.light.infrared);
+    expmt.hardware.COM.writeLightPanel(LightPanelPins.WHITE, expmt.hardware.light.white);
 
 else
     errordlg('Please set registration parameters before running registration');
@@ -1699,8 +1694,8 @@ if exist([handles.gui_dir 'hardware/projector_fit/'],'dir') == 7 &&...
         isfield(expmt.hardware.projector,'reg_params')
     
     % Turn infrared and white background illumination off during registration
-    expmt.hardware.COM.light = writeInfraredWhitePanel(expmt.hardware.COM.light,1,0);
-    expmt.hardware.COM.light = writeInfraredWhitePanel(expmt.hardware.COM.light,0,0);
+    expmt.hardware.COM.writeLightPanel(LightPanelPins.WHITE, 0);
+    expmt.hardware.COM.writeLightPanel(LightPanelPins.INFRARED, 0);
 
     msg_title = ['Registration Error Measurment']; %#ok<*NBRAK>
     spc = [' '];
@@ -1722,8 +1717,8 @@ if exist([handles.gui_dir 'hardware/projector_fit/'],'dir') == 7 &&...
     projector_testFit(expmt,handles);
 
     % Reset infrared and white lights to prior values
-    expmt.hardware.COM.light = writeInfraredWhitePanel(expmt.hardware.COM.light,1,expmt.hardware.light.infrared);
-    expmt.hardware.COM.light = writeInfraredWhitePanel(expmt.hardware.COM.light,0,expmt.hardware.light.white);
+    expmt.hardware.COM.writeLightPanel(LightPanelPins.WHITE, expmt.hardware.light.white);
+    expmt.hardware.COM.writeLightPanel(LightPanelPins.INFRARED ,expmt.hardware.light.infrared);
 else
     errordlg('Set registration parameters and run projector registration before measuring registration error.');
 end

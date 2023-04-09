@@ -20,7 +20,6 @@ function expmt = autoFinish(expmt, handles)
 
         [expmt, handles, camCopy] = cleanupCamera(expmt, handles);
         [expmt, handles, vidCopy] = cleanupVideo(expmt, handles);
-        [expmt, handles, comCopy] = cleanupComDevices(expmt, handles);
 
         % re-save updated expmt data struct to file
         save([expmt.meta.path.dir expmt.meta.path.name '.mat'],'expmt','-v7.3');
@@ -29,7 +28,6 @@ function expmt = autoFinish(expmt, handles)
         % Add device objects back to expmt after saving
         expmt.hardware.cam = camCopy;
         expmt.meta.video.vid = vidCopy;
-        expmt.hardware.COM = comCopy;
 
         try
             attach(expmt);
@@ -67,20 +65,6 @@ function expmt = autoFinish(expmt, handles)
 end
 
 
-function [expmt, handles, comCopy] = cleanupComDevices(expmt, handles)
-    comCopy = expmt.hardware.COM;
-    if isfield(expmt.hardware.COM, 'light')
-        expmt.hardware.COM.light = [];
-    end
-    if isfield(expmt.hardware.COM, 'aux')
-        expmt.hardware.COM.aux = [];
-    end
-    if isfield(expmt.hardware.COM, 'devices')
-        expmt.hardware.COM.devices = {};
-    end
-end
-
-
 function [expmt, handles, vidCopy] = cleanupVideo(expmt, handles)
 
     % set time string to zero
@@ -97,6 +81,8 @@ function [expmt, handles, vidCopy] = cleanupVideo(expmt, handles)
     if isfield(expmt.meta,'video') && isfield(expmt.meta.video,'vid')
         vidCopy = expmt.meta.video.vid;
         expmt.meta.video = rmfield(expmt.meta.video,'vid');
+    else
+        vidCopy = struct();
     end
 
 end

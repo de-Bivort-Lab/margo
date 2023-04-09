@@ -1,19 +1,11 @@
 function [expmt, handles] = refreshCOM(expmt, handles)
 
 % Attempt handshake with light panel teensy
-[light_COM, ports, all_COM_devices] = identifyMicrocontrollers();
-expmt.hardware.COM.light = light_COM;
-expmt.hardware.COM.ports = ports;
-expmt.hardware.COM.devices = all_COM_devices;
-expmt.hardware.COM.settings = cell(numel(all_COM_devices), 1);
-expmt.hardware.COM.status = cellfun(@(dev) dev.status, all_COM_devices, 'UniformOutput', false);
-
-unavailable = cellfun(@(p) any(strfind(p,'(unavailable)')), expmt.hardware.COM.ports);
-ports = expmt.hardware.COM.ports(~unavailable);
+expmt.hardware.COM.findDevices();
 
 % Update GUI menus with port names
-if ~isempty(ports)
-    handles.microcontroller_popupmenu.String = ports;
+if ~isempty(expmt.hardware.COM.ports)
+    handles.microcontroller_popupmenu.String = expmt.hardware.COM.ports;
 else
     handles.microcontroller_popupmenu.String = 'No COM detected';
 end
@@ -34,8 +26,8 @@ expmt.hardware.light.infrared = uint8((infraredIntensity / 100) * 255);
 expmt.hardware.light.white = uint8((whiteIntensity / 100) * 255);
 
 % Write values to microcontroller
-writeInfraredWhitePanel(expmt.hardware.COM.light, 1, expmt.hardware.light.infrared);
-writeInfraredWhitePanel(expmt.hardware.COM.light, 0, expmt.hardware.light.white);
+expmt.hardware.COM.writeLightPanel(LightPanelPins.WHITE, expmt.hardware.light.white);
+expmt.hardware.COM.writeLightPanel(LightPanelPins.INFRARED, expmt.hardware.light.infrared);
 
 % generate menu items for AUX COMs and config their callbacks
 hParent = findobj('Tag', 'aux_com_menu');
@@ -58,9 +50,6 @@ for i = 1:length(expmt.hardware.COM.ports)
         'Callback',@aux_com_list_Callback);
     if i ==1
         menuItems(i).Separator = 'on';
-    end
-    if unavailable(i)
-        menuItems(i).Enable = 'off';
     end
 end
 

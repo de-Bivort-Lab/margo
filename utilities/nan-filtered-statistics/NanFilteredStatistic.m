@@ -5,8 +5,8 @@ classdef NanFilteredStatistic
     properties (Access = private)
         functionHandle function_handle;
         functionId string;
-        data numerictype;
-        dimensionToApply numerictype;
+        data double;
+        dimensionToApply int32;
     end
 
     properties(Constant)

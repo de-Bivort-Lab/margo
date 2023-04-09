@@ -60,8 +60,7 @@ if trackDat.ramp.stat && trackDat.ramp.ct > 0 && ...
     if trackDat.ramp.stat == 1
 
         trackDat.Light = uint8(trackDat.ramp.ct);
-        writeInfraredWhitePanel(...
-            expmt.hardware.COM.light,0,uint8(trackDat.ramp.ct));
+        expmt.hardware.COM.writeLightPanel(LightPanelPins.WHITE, uint8(trackDat.ramp.ct));
         trackDat.ramp.t = toc;
         trackDat.ramp.ct = trackDat.ramp.ct+1;
 
@@ -90,7 +89,7 @@ if trackDat.ramp.stat && trackDat.ramp.ct > 0 && ...
     if trackDat.ramp.stat == -1
 
         trackDat.Light = uint8(expmt.hardware.light.white-trackDat.ramp.ct);
-        writeInfraredWhitePanel(expmt.hardware.COM.light,0,trackDat.Light);
+        expmt.hardware.COM.writeLightPanel(LightPanelPins.WHITE, trackDat.Light);
         trackDat.ramp.t = toc;
         trackDat.ramp.ct = trackDat.ramp.ct+1;
 

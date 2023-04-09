@@ -8,11 +8,9 @@ function [trackDat,expmt] = autoInitialize(trackDat, expmt, gui_handles)
 %   - initializes display handles
 %   - opens the video input source (camera or video file)
 
-% Initialize infrared and white illuminators
-writeInfraredWhitePanel(expmt.hardware.COM.light,1,...
-                        expmt.hardware.light.infrared);
-writeInfraredWhitePanel(expmt.hardware.COM.light,0,...
-                        expmt.hardware.light.white);
+% Write values to microcontroller
+expmt.hardware.COM.writeLightPanel(LightPanelPins.WHITE, expmt.hardware.light.white);
+expmt.hardware.COM.writeLightPanel(LightPanelPins.INFRARED, expmt.hardware.light.infrared);
 
 % clear any objects drawn to gui window
 clean_gui(gui_handles.axes_handle);

@@ -3,97 +3,83 @@ classdef ExperimentData < dynamicprops
 % experiment meta data and memmaps for raw data files
     
     properties
-        data;
-        meta;
-        parameters;
-        hardware;
+        data struct;
+        meta struct;
+        parameters struct;
+        hardware MargoHardware;
     end
     properties(Hidden=true)
         trackDat;
     end
     methods
         % construct new ExperimentData obj with default values
-        function obj = ExperimentData
+        function this = ExperimentData()
             
             es = struct;
-            obj.data = struct('centroid',RawDataField('Parent',obj),...
-                'time',RawDataField('Parent',obj));
-            obj.meta = struct('name','Basic Tracking','fields',[],'path',es,...
+            this.data = struct('centroid',RawDataField('Parent', this),...
+                'time',RawDataField('Parent', this));
+            this.meta = struct('name','Basic Tracking','fields',[],'path',es,...
                             'source','camera','roi',es,'ref',es,'noise',es,...
                             'date','','strain','','treatment','','sex','',...
                             'labels',[],'labels_table',table,'video',es,...
                             'vignette',es,'num_frames',0,'num_dropped',0);
-            obj.hardware = struct('cam',es,'COM',es,...
-                                'light',es,'projector',es);
-            obj.meta.fields = fieldnames(obj.data);
-            obj.parameters = initialize_parameters(obj);
+            this.hardware = MargoHardware();
+            this.meta.fields = fieldnames(this.data);
+            this.parameters = initialize_parameters(this);
             
             % assign default meta data
-            obj.meta.path.dir = '';
-            obj.meta.path.name = '';
-            obj.meta.roi.mode = 'grid';
-            obj.meta.vignette.mode = 'auto';
-            obj.meta.track_mode = 'single';
-            obj.meta.initialize = true;
-            obj.meta.finish = true;
-            obj.meta.exp_id = 1;
+            this.meta.path.dir = '';
+            this.meta.path.name = '';
+            this.meta.roi.mode = 'grid';
+            this.meta.vignette.mode = 'auto';
+            this.meta.track_mode = 'single';
+            this.meta.initialize = true;
+            this.meta.finish = true;
+            this.meta.exp_id = 1;
             
             % assign trackDat placeholder
-            obj.trackDat = es;
+            this.trackDat = es;
 
         end
         
         % automatically repair master container and raw data file paths
-        function obj = updatepaths(obj,fpath,varargin)
+        function this = updatepaths(this, fpath, varargin)
             
             if ~exist('fpath','var')
-                fpath = [obj.meta.path.dir obj.meta.path.name];
+                fpath = [this.meta.path.dir this.meta.path.name];
             end
             if iscell(fpath)
                 fpath = fpath{1};
             end
             
             [dir,name,~] = fileparts(fpath);
-            obj.meta.path.dir   =   [dir '/'];
-            obj.meta.path.name  =   name;
+            this.meta.path.dir   =   [dir '/'];
+            this.meta.path.name  =   name;
 
             % query raw data file status
             path_status = cellfun(@(f) ...
-                exist(obj.data.(f).path,'file')==2,obj.meta.fields);
+                exist(this.data.(f).path,'file')==2,this.meta.fields);
             if all(path_status)
                 if isempty(varargin) ||  varargin{1}
-                    attach(obj);
+                    attach(this);
                 end
                 return
             end
 
             % get binary files
             rawpaths = ...
-                recursiveSearch(dir,'ext','.bin','keyword',obj.meta.date);
+                recursiveSearch(dir,'ext','.bin','keyword',this.meta.date);
             [~,rawnames] = ...
                 cellfun(@fileparts, rawpaths,'UniformOutput',false);
-                                    
-            if isempty(rawpaths)
-%                 prompt = sprintf(['Raw data files for %s not found, please'...
-%                     ' select the raw data directory'],name);
-%                 rawdir = uigetdir(obj.meta.path.dir,prompt);
-%                 if all(~rawdir)
-%                     rawdir = '';
-%                 end
-%                 rawpaths = ...
-%                     recursiveSearch(rawdir,'ext','.bin','keyword',obj.meta.date);
-%                 [~,rawnames] = ...
-%                     cellfun(@fileparts, rawpaths,'UniformOutput',false);
-            end
                     
-            for i=1:length(obj.meta.fields) 
+            for i=1:length(this.meta.fields) 
                 % match to time/date and field name
-                f = obj.meta.fields{i};
+                f = this.meta.fields{i};
                 match = cellfun(@(x) ...
-                    any(strcmpi(x,[obj.meta.date '_' f])),rawnames);
+                    any(strcmpi(x,[this.meta.date '_' f])),rawnames);
                 if any(match)
                     match_idx = find(match,1,'first');
-                    obj.data.(f).path = rawpaths{match_idx};
+                    this.data.(f).path = rawpaths{match_idx};
                 else
                     warning('off','backtrace');
                     warning('raw data file for field %s not found',f);
@@ -106,7 +92,7 @@ classdef ExperimentData < dynamicprops
             end
             
             % attach obj by default
-            attach(obj);
+            attach(this);
         end
         
         % initialize all raw data maps
@@ -120,51 +106,51 @@ classdef ExperimentData < dynamicprops
         end
         
         % de-initialize all raw data maps
-        function obj = detach(obj) 
-            fn = fieldnames(obj.data);
-            for i=1:length(obj.meta.fields)
-                detach(obj.data.(fn{i}));
+        function this = detach(this) 
+            fn = fieldnames(this.data);
+            for i=1:length(this.meta.fields)
+                detach(this.data.(fn{i}));
             end
         end
         
         % re-initialize all raw data maps
-        function obj = reset(obj)
-            detach(obj);
-            attach(obj);
+        function this = reset(this)
+            detach(this);
+            attach(this);
         end
         
         % reset experiment specific properties for new session
-        function obj = reInitialize(obj)
+        function this = reInitialize(this)
             
             % remove roi, reference, noise and vignette data
             es = struct;
-            if ~nofields(obj.meta.roi)
-                m = obj.meta.roi.mode;
-                obj.meta.roi = es;
-                obj.meta.roi.mode = m;
+            if ~nofields(this.meta.roi)
+                m = this.meta.roi.mode;
+                this.meta.roi = es;
+                this.meta.roi.mode = m;
             end
-            if ~nofields(obj.meta.vignette)
-                m = obj.meta.vignette.mode;
-                obj.meta.vignette = es;
-                obj.meta.vignette.mode = m;
+            if ~nofields(this.meta.vignette)
+                m = this.meta.vignette.mode;
+                this.meta.vignette = es;
+                this.meta.vignette.mode = m;
             end
 
-            obj.meta.labels = {};
-            obj.meta.ref= es;
-            obj.meta.noise = es;
-            obj.meta.num_traces = 0;
-            obj.meta.num_frames = 0;
+            this.meta.labels = {};
+            this.meta.ref= es;
+            this.meta.noise = es;
+            this.meta.num_traces = 0;
+            this.meta.num_frames = 0;
             
             % re-initialize data fields
-            f = obj.meta.fields;
+            f = this.meta.fields;
             new_fields = cell(2,numel(f));
             new_fields(1,:) = f;
-            obj.data = struct(new_fields{:});
+            this.data = struct(new_fields{:});
             for i = 1:numel(f)
-                obj.data.(f{i}) = RawDataField('Parent',obj);
+                this.data.(f{i}) = RawDataField('Parent',this);
             end
             
-            obj = trimParameters(obj);
+            this = trimParameters(this);
         end
         
         % define default experiment parameter values

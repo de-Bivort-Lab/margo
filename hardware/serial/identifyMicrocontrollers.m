@@ -1,4 +1,4 @@
-function [lightBoard, ports, devices]=identifyMicrocontrollers
+function [lightBoard, ports, devices] = identifyMicrocontrollers(expmt)
 
 LIGHT_PANEL_HANDSHAKE = [1 1 0 0 1 0 1]';
 

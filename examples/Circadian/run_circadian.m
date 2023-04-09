@@ -60,16 +60,16 @@ if expmt.parameters.lights_ON(1)<=t(1) && expmt.parameters.lights_OFF(1)>=t(1)
     
     if turn_ON
         trackDat.Light = uint8(expmt.hardware.light.white);
-        writeInfraredWhitePanel(expmt.hardware.COM.light,0,trackDat.Light);
+        expmt.hardware.COM.writeLightPanel(LightPanelPins.WHITE, trackDat.Light);
         trackDat.light.stat=1;
     else
         trackDat.Light = uint8(0);
-        writeInfraredWhitePanel(expmt.hardware.COM.light,0,0);
+        expmt.hardware.COM.writeLightPanel(LightPanelPins.WHITE, 0);
         trackDat.light.stat=0;
     end
 else
         trackDat.Light = uint8(0);
-        writeInfraredWhitePanel(expmt.hardware.COM.light,0,0);
+        expmt.hardware.COM.writeLightPanel(LightPanelPins.WHITE, 0);
         trackDat.light.stat=0;
 end
 
