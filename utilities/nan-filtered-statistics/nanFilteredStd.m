@@ -3,7 +3,7 @@ function out = nanFilteredStd(x, varargin)
 %   Detailed explanation goes here
 
 FUNCTION_ID = string('NANFILTEREDSTDDEV');
-out = NanFilteredStatistic(string('std'), FUNCTION_ID, x, varargin{:}).apply();
+out = NanFilteredStatistic('std', FUNCTION_ID, x, varargin{:}).apply();
 
 end
 

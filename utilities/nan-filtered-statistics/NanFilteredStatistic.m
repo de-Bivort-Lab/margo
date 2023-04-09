@@ -11,8 +11,8 @@ classdef NanFilteredStatistic
 
     properties(Constant)
         NAN_FUNCTIONS_DEPRECATED_RELEASE = string('2020a');
-        NAN_FUNCTION_PREFIX = string('nan');
-        OMIT_NAN_FLAG = string('omitnan');
+        NAN_FUNCTION_PREFIX = 'nan';
+        OMIT_NAN_FLAG = 'omitnan';
     end
     
     methods (Access = public)
@@ -51,7 +51,7 @@ classdef NanFilteredStatistic
         function functionHandle = getFunctionHandle(functionName)
 
             if ~NanFilteredStatistic.isDeprecated()
-                functionName = NanFilteredStatistic.NAN_FUNCTION_PREFIX + functionName;
+                functionName = strcat(NanFilteredStatistic.NAN_FUNCTION_PREFIX,functionName);
             end
 
             functionHandle = str2func(functionName);

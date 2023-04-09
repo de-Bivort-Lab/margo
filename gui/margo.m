@@ -528,7 +528,7 @@ function edit_IR_intensity_Callback(hObject, ~, handles)
 % Initialize light panel at default values
 
 % import expmteriment data struct
-expmt = getappdata(handles.gui_fig,'expmt');
+expmt = getappdata(handles.gui_fig, 'expmt');
 
 expmt.hardware.light.infrared = str2double(get(handles.edit_IR_intensity,'string'));
 

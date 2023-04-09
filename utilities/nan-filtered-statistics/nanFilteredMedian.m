@@ -3,7 +3,7 @@ function out = nanFilteredMedian(x, varargin)
 %   Detailed explanation goes here
 
 FUNCTION_ID = string('NANFILTEREDMEDIAN');
-out = NanFilteredStatistic(string('median'), FUNCTION_ID, x, varargin{:}).apply();
+out = NanFilteredStatistic('median', FUNCTION_ID, x, varargin{:}).apply();
 
 end
 
