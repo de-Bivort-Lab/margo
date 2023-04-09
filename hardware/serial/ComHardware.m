@@ -88,7 +88,7 @@ classdef ComHardware < handle
 
                 handshake = device.read(numel(ComHardware.HANDSHAKE), 'uint8');
                 device.close();
-                isHandshakeSuccessful = all(handshake == ComHardware.HANDSHAKE);
+                isHandshakeSuccessful = all(handshake(:) == ComHardware.HANDSHAKE(:));
             catch exception
                 warning('Serial device handshake failed on port: %s. Skipping port.', device.port);
                 device.close();

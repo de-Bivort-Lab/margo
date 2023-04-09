@@ -7,8 +7,8 @@ classdef LightPanelPins
     end
 
     properties(Constant, Access = private)
-        WHITE_LIGHT_PIN_NUMBER uint32 = 9;
-        INFRARED_LIGHT_PIN_NUMBER uint32 = 10; 
+        WHITE_LIGHT_PIN_NUMBER uint32 = 10;
+        INFRARED_LIGHT_PIN_NUMBER uint32 = 9; 
     end
     
     methods

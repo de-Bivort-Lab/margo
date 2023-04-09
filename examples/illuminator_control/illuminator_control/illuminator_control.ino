@@ -1,5 +1,5 @@
-uint8_t WHITE_LIGHT_PIN = 9;
-uint8_t IR_LIGHT_PIN = 10;
+uint8_t WHITE_LIGHT_PIN = 10;
+uint8_t IR_LIGHT_PIN = 9;
 const size_t NUM_READ_BYTES = 2;
 byte readBuf[NUM_READ_BYTES];
 uint8_t HANDSHAKE_PIN_FLAG = 2;
@@ -12,8 +12,8 @@ void setup() {
   Serial.begin(9600);
   pinMode(WHITE_LIGHT_PIN, OUTPUT);
   pinMode(IR_LIGHT_PIN, OUTPUT);
-  //analogWriteFrequency(WHITE_LIGHT_PIN, 187500);
-  //analogWriteFrequency(IR_LIGHT_PIN, 187500);
+  analogWriteFrequency(WHITE_LIGHT_PIN, 187500);
+  analogWriteFrequency(IR_LIGHT_PIN, 187500);
 
   analogWrite(WHITE_LIGHT_PIN, 40);
   analogWrite(IR_LIGHT_PIN, 40);
