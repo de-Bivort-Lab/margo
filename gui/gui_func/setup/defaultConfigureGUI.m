@@ -10,7 +10,7 @@ if exist([handles.gui_dir 'profiles/deviceID.txt'],'file')
     handles.deviceID = fread(fID, '*char');
     fclose(fID);
     
-    updateMonitor(handles.deviceID, MonitorStatuses.ACTIVE)
+    updateMonitor(handles.deviceID, MonitorStatuses.ACTIVE, handles.disp_note)
 end
 
 handles.display_menu.UserData = 'raw';     

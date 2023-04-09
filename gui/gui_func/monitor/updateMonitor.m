@@ -1,4 +1,4 @@
-function updateMonitor(deviceId, monitorStatus)
+function updateMonitor(deviceId, monitorStatus, notificationsLogHandle)
 %UPDATEMONITOR Updates the debivort.org monitor page
 
 MONITOR_URI = 'http://lab.debivort.org/mu.php';
@@ -18,7 +18,7 @@ catch
 end
 
 if ~status
-    gui_notify(sprintf('unable to connect to %s', MONITOR_URI), handles.disp_note);
+    gui_notify(sprintf('unable to connect to %s', MONITOR_URI), notificationsLogHandle);
 end
 
 end

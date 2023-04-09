@@ -805,7 +805,7 @@ catch exception
     
     % update db_lab server if applicable
     if isfield(handles,'deviceID')
-        updateMonitor(handles.deviceID, MonitorStatuses.ERROR)
+        updateMonitor(handles.deviceID, MonitorStatuses.ERROR, handles.disp_note)
     end
     
     % try to close any open PTB windows
@@ -830,7 +830,7 @@ end
 
 % update db_lab server if applicable
 if isfield(handles,'deviceID')
-    updateMonitor(handles.deviceID, MonitorStatuses.IDLE)
+    updateMonitor(handles.deviceID, MonitorStatuses.IDLE, handles.disp_note)
 end
     
 % re-Enable control set to off during experiment
@@ -2878,7 +2878,7 @@ function gui_fig_CloseRequestFcn(hObject, ~, handles)
 
 % update db_lab server if applicable
 if isfield(handles,'deviceID')
-    updateMonitor(handles.deviceID, MonitorStatuses.OFFLINE)
+    updateMonitor(handles.deviceID, MonitorStatuses.OFFLINE, handles.disp_note)
 end
 
 % Hint: delete(hObject) closes the figure
