@@ -20,18 +20,15 @@ switch hObject.Checked
         % uncheck other items in list and remove COM obj
         hParent = hObject.Parent;
         set(hParent.Children,'Checked','off');
-        if ~isempty(expmt.hardware.COM.aux) && isvalid(expmt.hardware.COM.aux)
-            fclose(expmt.hardware.COM.aux);
-        end
-        expmt.hardware.COM.aux = [];
+        expmt.hardware.COM.aux.close();
         
         % initialize new obj
         hObject.Checked = 'on';
-        expmt.hardware.COM.aux = serial(hObject.Label);
+        expmt.hardware.COM.aux = SerialDevice(hObject.Label);
         
         % open the COM device
-        if strcmpi(get(expmt.hardware.COM.aux, "Status"), 'closed')
-            fopen(expmt.hardware.COM.aux);
+        if expmt.hardware.COM.aux.isClosed()
+            expmt.hardware.COM.aux.open();
         end
         
 end

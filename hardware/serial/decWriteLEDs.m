@@ -1,4 +1,4 @@
-function [numActive]=decWriteLEDs(serialObject,trackDat)
+function [numActive]=decWriteLEDs(serialDevice,trackDat)
 
 
 led_pwm= repmat(trackDat.led_pwm,1,3);
@@ -40,8 +40,8 @@ dataString(mod(1:size(dataString,1),4)==0)=ledNums;
 dataString=char(dataString);                            % Convert to ASCII character array
 
 % Write the data in 2 different batches so that the Serial Buffer does not overflow
-fwrite(serialObject,dataString(1:size(dataString,1)/2),'uchar');
-fwrite(serialObject,dataString(size(dataString,1)/2+1:end),'uchar');
+serialDevice.write(dataString(1:size(dataString,1)/2), 'char');
+serialDevice.write(dataString(size(dataString,1)/2+1:end), 'char');
 
 numActive=sum(trackDat.LEDs);
 

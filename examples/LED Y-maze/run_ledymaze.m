@@ -47,6 +47,8 @@ trackDat.lastFrame = false;
 
 %% Y-maze specific parameters
 
+LED_YMAZE_TEENSY_BAUD_RATE = 76800;
+
 % Calculate coordinates of end of each maze arm
 trackDat.arm = zeros(expmt.meta.roi.n,2,6);                              % Placeholder
 w = expmt.meta.roi.bounds(:,3);                                  % width of each ROI
@@ -84,24 +86,13 @@ nTurns = zeros(size(expmt.meta.roi.centers,1),1);
 
 % Detect available ports
 if ~isempty(expmt.hardware.COM.aux)
-    
-    ser_objs = instrfindall();
-    aux_port = expmt.hardware.COM.aux.Port;
-    ports = arrayfun(@(s) s.Port, ser_objs, 'UniformOutput', false);
-    fclose(ser_objs(strcmp(aux_port,ports)));
-    delete(ser_objs(strcmp(aux_port,ports)));
-    expmt.hardware.COM.aux = serial(aux_port);    % Create Serial Object
-    fopen(expmt.hardware.COM.aux);
-    
+    expmt.hardware.COM.aux.close();
+    expmt.hardware.COM.aux = SerialDevice(expmt.hardware.COM.aux.port,...
+        LED_YMAZE_TEENSY_BAUD_RATE);
+    expmt.hardware.COM.aux.open();
 elseif isempty(expmt.hardware.COM.aux)
-    
     error('no AUX COM object selected');
-    
 end
-
-% Initialize serial object
-serial_obj = expmt.hardware.COM.aux;
-set(serial_obj,'BaudRate',76800);                         % Set baud rate
 
 % Set LED permutation vector that converts LED number by maze
 % into a unique address for each LED driver board on the teensy
@@ -139,7 +130,7 @@ trackDat.pLED = [1 24 2 23 3 22 4 21 5 20 6 ...
 trackDat.led_pwm = repmat(uint16(4095),expmt.meta.roi.n,1);
 for i=1:6
     trackDat.LEDs = ones(expmt.meta.roi.n,3).*mod(i,2);              
-    decWriteLEDs(serial_obj,trackDat);
+    decWriteLEDs(expmt.hardware.COM.aux, trackDat);
     pause(0.2);
 end
 
@@ -148,13 +139,13 @@ prev_LEDs = trackDat.LEDs;
 trackDat.led_mode = expmt.parameters.led_mode;
 
 switch trackDat.led_mode
-    case 'random',
+    case 'random'
         max_pwm = expmt.parameters.led_max_pwm;
         trackDat.pwm_scale = ...
             unique(uint16(2.^linspace(0,log2(max_pwm),20)-1))';
         pwm_idx = randi(numel(trackDat.pwm_scale),[expmt.meta.roi.n 1]);
         trackDat.led_pwm = trackDat.pwm_scale(pwm_idx);
-    case 'constant',
+    case 'constant'
         trackDat.led_pwm = repmat(uint16(expmt.parameters.led_max_pwm), ...
             expmt.meta.roi.n, 1); 
 end
@@ -170,15 +161,14 @@ while ~trackDat.lastFrame
     [trackDat] = autoTime(trackDat, expmt, gui_handles);
 
     % query next frame and optionally correct lens distortion
-    [trackDat,expmt] = autoFrame(trackDat,expmt,gui_handles);
-
+    [trackDat,expmt] = autoFrame(trackDat, expmt, gui_handles);
 
     % track, sort to ROIs, and output optional fields to sorted fields,
     % and sample the number of pixels above the image threshold
-    trackDat = autoTrack(trackDat,expmt,gui_handles);
+    trackDat = autoTrack(trackDat,expmt, gui_handles);
 
     % Determine if fly has changed to a new arm
-    trackDat = detectArmChange(trackDat,expmt);
+    trackDat = detectArmChange(trackDat, expmt);
 
     % Create placeholder for arm change vector to write to file
     trackDat.Turns=int16(zeros(expmt.meta.roi.n,1));
@@ -190,7 +180,7 @@ while ~trackDat.lastFrame
 
     if any(trackDat.changed_arm)
         trackDat = updateLEDs(trackDat);               % Choose a new LED for flies that just made a turn
-        numActive = decWriteLEDs(serial_obj,trackDat);      % Write new LED values to teensy
+        numActive = decWriteLEDs(expmt.hardware.COM.aux, trackDat);      % Write new LED values to teensy
     end
 
     % output data to binary files
