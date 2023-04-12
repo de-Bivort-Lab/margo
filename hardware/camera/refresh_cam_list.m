@@ -49,7 +49,7 @@ if ~isempty(c.InstalledAdaptors)
         set(handles.cam_mode_popupmenu,'String','No camera modes available');
     end
 else
-    camInfo=[];
+    camInfo= struct();
     cam_list = {};
     set(handles.cam_select_popupmenu, 'String', 'No camera adaptors installed');
     set(handles.cam_mode_popupmenu, 'String', 'No camera detected');
