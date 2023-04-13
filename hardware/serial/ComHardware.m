@@ -28,7 +28,7 @@ classdef ComHardware < handle
             this.closeOpenConnections();
             this.updatePortsList();
             
-            for i = 1:size(this.ports, 2)
+            for i = 1:size(this.ports, 1)
                 this.devices(i) = SerialDevice(this.ports{i});
                 isSuccessful = ComHardware.handshakeDevice(this.devices(i));
                 if isSuccessful
@@ -48,6 +48,7 @@ classdef ComHardware < handle
 
         function updatePortsList(this)
             this.ports = SerialDevice.getAvailablePorts();
+            this.ports = this.ports(:);
         end
 
         function writeLightPanel(this, lightPanel, value)
