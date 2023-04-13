@@ -76,9 +76,9 @@ classdef ComHardware < handle
             try
                 device.open();
                 writeData = char([ComHardware.HANDSHAKE_LEVEL ComHardware.HANDSHAKE_PANEL 0 0]);
-                pause(5);
-                device.write(writeData, 'char');
                 pause(2);
+                device.write(writeData, 'char');
+                pause(0.5);
         
                 if device.bytesAvailable ~= numel(ComHardware.HANDSHAKE)
                     isHandshakeSuccessful = false;

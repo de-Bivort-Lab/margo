@@ -1,7 +1,8 @@
 function label_table = labelMaker(expmt)
 
 %%
-varnames = {'Strain' 'Sex' 'Treatment' 'ID' 'Day' 'Box' 'Tray' 'Comments'};
+COLUMN_HEADERS = {'Strain' 'Sex' 'Treatment' 'ID' 'Day' 'Box' 'Tray' 'Comments'};
+COLUMN_DEFAULTS = {'' '' '' NaN NaN NaN NaN ''};
 labels = expmt.meta.labels;
 
 %Turns labels cell array with sex, strain, treatment, maze start/end
@@ -38,8 +39,8 @@ else
 end
 
 mazeEnds(isnan(mazeEnds)) = [];
-newLabel = cell(sum(mazeEnds-mazeStarts+1),sum(active_fields)-3);
 active_fields(4:6)=[];
+newLabel = repmat(COLUMN_DEFAULTS(active_fields), expmt.meta.roi.n, 1);
 iCol = 1;
 nRows = numel(mazeStarts);  
 
@@ -49,24 +50,24 @@ for i = 1:nRows
     d = mazeEnds(i) - mazeStarts(i);
     
     % strain info
-    if any(strcmpi('Strain',varnames(active_fields)))
+    if any(strcmpi('Strain',COLUMN_HEADERS(active_fields)))
         newLabel(mazeStarts(i):mazeEnds(i),iCol) = repmat(labels(i,1), d+1, 1);
         iCol = iCol+1;
     end
     % sex
-    if any(strcmpi('Sex',varnames(active_fields)))
+    if any(strcmpi('Sex',COLUMN_HEADERS(active_fields)))
         newLabel(mazeStarts(i):mazeEnds(i),iCol) = repmat(labels(i,2), d+1, 1);
         iCol = iCol+1;
     end
     % treatment
-    if any(strcmpi('Treatment',varnames(active_fields)))
+    if any(strcmpi('Treatment',COLUMN_HEADERS(active_fields)))
         newLabel(mazeStarts(i):mazeEnds(i),iCol) = repmat(labels(i,3), d+1, 1);
         iCol = iCol+1;
     end
     
     % IDs
     if ~isempty(labels{i,6}) && ~isempty(labels{i,7}) &&...
-            any(strcmpi('ID',varnames(active_fields)))
+            any(strcmpi('ID',COLUMN_HEADERS(active_fields)))
         if ischar(labels{i,6})
             f = str2double(labels{i,6});
         else
@@ -82,7 +83,7 @@ for i = 1:nRows
     end
     
     
-    if any(strcmpi('Day',varnames(active_fields)))
+    if any(strcmpi('Day',COLUMN_HEADERS(active_fields)))
         if ischar(labels{i,8})
             f = str2double(labels{i,8});
         else
@@ -92,7 +93,7 @@ for i = 1:nRows
         iCol = iCol+1;
     end
     
-    if ~isempty(labels{i,9}) && any(strcmpi('Box',varnames(active_fields)))
+    if ~isempty(labels{i,9}) && any(strcmpi('Box',COLUMN_HEADERS(active_fields)))
         if ischar(labels{i,9})
             f = str2double(labels{i,9});
         else
@@ -102,7 +103,7 @@ for i = 1:nRows
         iCol = iCol+1;
     end
     
-    if any(strcmpi('Tray',varnames(active_fields)))
+    if any(strcmpi('Tray',COLUMN_HEADERS(active_fields)))
         if ischar(labels{i,10})
             f = str2double(labels{i,10});
         else
@@ -112,7 +113,7 @@ for i = 1:nRows
         iCol = iCol+1;
     end
     
-    if any(strcmpi('Comments',varnames(active_fields)))
+    if any(strcmpi('Comments',COLUMN_HEADERS(active_fields)))
         newLabel(mazeStarts(i):mazeEnds(i),iCol) = repmat(labels(i,11),d+1,1);
         iCol = iCol+1;
     end
@@ -120,4 +121,7 @@ for i = 1:nRows
     iCol = 1;
 end
 
-label_table = cell2table(newLabel,'VariableNames',varnames(active_fields));
+emptyRows = all(cellfun(@isempty, newLabel), 2);
+newLabel(emptyRows, :) = [];
+
+label_table = cell2table(newLabel,'VariableNames',COLUMN_HEADERS(active_fields));
