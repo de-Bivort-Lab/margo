@@ -29,7 +29,7 @@ if isfield(camInfo,'settings')
                         set_prop = true;
                     end
                 case 'bounded'
-                    if val > constr(1) && val < constr(2)
+                    if all(val(:) > constr(1)) && all(val(:) < constr(2))
                         set_prop = true;
                     end
             end

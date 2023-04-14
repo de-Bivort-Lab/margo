@@ -31,7 +31,7 @@ if ~isempty(c.InstalledAdaptors)
 
 
     % Set the device to default format and populate mode pop-up menu
-    if ~isempty(camInfo.DeviceInfo);
+    if ~isempty(camInfo.DeviceInfo)
         set(handles.cam_mode_popupmenu,'String',camInfo.DeviceInfo(1).SupportedFormats);
         default_format = camInfo.DeviceInfo.DefaultFormat;
 
