@@ -260,12 +260,12 @@ cam_y=cam_y(include);
 interp_Fx=scatteredInterpolant(cam_x,cam_y,proj_x);
 inter_Fy=scatteredInterpolant(cam_x,cam_y,proj_y);
 
-[poly_Fx, poly_Fy] = fit_adjust_proj_models(cam_x, cam_y, proj_x, proj_y);
+%[poly_Fx, poly_Fy] = fit_adjust_proj_models(cam_x, cam_y, proj_x, proj_y);
 
 reg_data.interp_Fx = interp_Fx;
 reg_data.interp_Fy = inter_Fy;
-reg_data.poly_Fx = poly_Fx;
-reg_data.poly_Fy = poly_Fy;
+%reg_data.poly_Fx = poly_Fx;
+%reg_data.poly_Fy = poly_Fy;
 reg_data.cam_xPixels = reg_xPixels;
 reg_data.cam_yPixels = reg_yPixels;
 reg_data.cam_xCoords = cam_x;

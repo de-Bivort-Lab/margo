@@ -283,5 +283,5 @@ def_params.name = 'Registration Parameters';
 def_params.pixel_step_size = 20;
 def_params.spot_r = 10;
 def_params.screen_num = 0;
-def_params.reg_fun = '2D polynomial';
+def_params.reg_fun = 'scattered interpolant';
 def_params.reg_mode = 'raster grid';

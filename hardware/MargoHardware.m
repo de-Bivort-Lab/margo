@@ -7,6 +7,7 @@ classdef MargoHardware < handle
         COM ComHardware;
         light struct = struct();
         projector struct = struct();
+        screen struct = struct();
     end
     
     methods
