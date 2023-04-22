@@ -106,8 +106,8 @@ stim.ct = 0;                          % Counter for number of looming stim displ
 trackDat.LightStatus = false(nROIs,1);
 trackDat.StimAngle = round(rand(nROIs,1).*360);
 stim.prev_ori=NaN(nROIs,1);
-stim.dir = boolean(ones(nROIs,1));    % Direction of rotation for the light
-trackDat.Texture = boolean(1);              % active texture (dark or light)
+stim.dir = true(nROIs,1);    % Direction of rotation for the light
+trackDat.Texture = true;              % active texture (dark or light)
 stim.corners = scor;
 stim.centers = scen;
 

@@ -21,7 +21,7 @@ end
 if mode==1
     
         nFlies=size(stim_angles,1);
-        lightStat = boolean(zeros(size(stim_angles)));
+        lightStat = false(size(stim_angles));
         div_dist = zeros(size(stim_angles));
         
         tmp_angles = stim_angles;
@@ -40,7 +40,7 @@ if mode==1
         fly_angle = atan2(tmp_y-stim_centers(:,2),tmp_x-stim_centers(:,1)).*180./pi;
 
         % Determine if the fly was in the light or dark
-        tmp_lightStat = boolean(zeros(size(fly_angle)));
+        tmp_lightStat = false(size(fly_angle));
         tmp_lightStat(bound1>0) = fly_angle(bound1>0) < bound1(bound1>0) & fly_angle(bound1>0) > bound2(bound1>0);
         tmp_lightStat(bound1<0) = fly_angle(bound1<0) < bound1(bound1<0) | fly_angle(bound1<0) > bound2(bound1<0);
 
@@ -80,7 +80,7 @@ function [div_dist,in_light] = getDistStatus(x,y,ang,stimcen)
         fly_angle = atan2(y-stimcen(2),x-stimcen(1)).*180./pi;
 
         % Determine if the fly was in the light or dark
-        tmp_lightStat = boolean(zeros(size(fly_angle)));
+        tmp_lightStat = false(size(fly_angle));
         tmp_lightStat(bound1>0) = fly_angle(bound1>0) < bound1(bound1>0) & fly_angle(bound1>0) > bound2(bound1>0);
         tmp_lightStat(bound1<0) = fly_angle(bound1<0) < bound1(bound1<0) | fly_angle(bound1<0) > bound2(bound1<0);
 
