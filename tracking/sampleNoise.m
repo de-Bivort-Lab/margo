@@ -118,12 +118,4 @@ expmt.meta.noise.mean = nanFilteredMean(pixelDist);
 expmt.meta.noise.roi_dist = roiDist;
 expmt.meta.noise.roi_std = nanFilteredStd(roiDist(roiDist>4));
 expmt.meta.noise.roi_mean = nanFilteredMean(roiDist(roiDist>4));
-expmt.meta.noise.diffim.mean = mean(sampleImages, 3);
-expmt.meta.noise.diffim.std = computeStdDiffIm(sampleImages);
-
-
-function std_diffim = computeStdDiffIm(sampleImages)
-
-std_diffim = std(sampleImages, 0, 3);
-std_diffim(std_diffim == 0) = min(std_diffim(std_diffim > 0));
 
