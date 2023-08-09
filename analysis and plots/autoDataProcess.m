@@ -176,7 +176,7 @@ if isfield(expmt.data,'speed') && isattached(expmt.data.speed) ...
         end
         disp('resampling speed data, may take a few minutes');
     
-        if ~isprop(expmt.data.speed, "bootstrap")
+        if ~isprop(expmt.data.speed, 'bootstrap')
             addprop(expmt.data.speed,'bootstrap');
         end
         
