@@ -32,7 +32,7 @@ props = {'n';'t';'sequence';'switchiness';'clumpiness';'rBias';'active'};
 addprops(expmt.data.Turns, props);
 props = {'n';'sequence';'switchiness';'pBias';'active'};
 addprops(expmt.data.LightChoice, props);
-expmt.data.Turns.n = sum(turn_idx)-1;
+expmt.data.Turns.n = sum(turns~=0)-1;
 expmt.data.Turns.t = NaN(max(expmt.data.Turns.n),expmt.meta.num_traces);
 expmt.data.Turns.sequence = ...
     NaN(max(expmt.data.Turns.n),expmt.meta.num_traces);
@@ -71,9 +71,10 @@ for i=1:expmt.meta.num_traces
 end
 
 % Calculate right turn probability from tSeq
+expmt.data.Turns.n = nansum(~isnan(expmt.data.Turns.sequence));
 expmt.data.Turns.rBias = ...
-    nansum(expmt.data.Turns.sequence) ./ ...
-    nansum(~isnan(expmt.data.Turns.sequence));
+    nansum(expmt.data.Turns.sequence) ./ expmt.data.Turns.n;
+
 
 % Calculate clumpiness and switchiness
 expmt.data.Turns.switchiness = NaN(expmt.meta.num_traces,1);
