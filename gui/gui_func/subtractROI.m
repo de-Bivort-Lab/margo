@@ -30,6 +30,7 @@ end
 
 % remove reference and noise info for roi if set
 if isfield(expmt.meta.ref,'cen')
+    idx = idx(idx < size(expmt.meta.ref.cen, 1));
     expmt.meta.ref.cen(idx) = [];
     expmt.meta.ref.ct(idx) = [];
     expmt.meta.ref.last_update(idx) = [];
