@@ -14,4 +14,8 @@ switch OS
         [~,out]=unix('vm_stat | grep free');
         spaces=strfind(out,' ');
         mem = str2double(out(spaces(end):numel(out)))*4096;
+    case 'MACA64'
+        [~,out]=unix('vm_stat | grep free');
+        spaces=strfind(out,' ');
+        mem = str2double(out(spaces(end):numel(out)))*4096;
 end
