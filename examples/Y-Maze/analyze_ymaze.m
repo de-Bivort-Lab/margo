@@ -64,9 +64,9 @@ for i=1:expmt.meta.num_traces
 end
 
 % Calculate right turn probability from tSeq
-expmt.data.Turns.n = nansum(~isnan(expmt.data.Turns.sequence));
+expmt.data.Turns.n = sum(~isnan(expmt.data.Turns.sequence), 'omitnan');
 expmt.data.Turns.rBias = ...
-    nansum(expmt.data.Turns.sequence) ./ expmt.data.Turns.n;
+    sum(expmt.data.Turns.sequence, 'omitnan') ./ expmt.data.Turns.n;
 
 % Calculate clumpiness and switchiness
 expmt.data.Turns.switchiness = NaN(expmt.meta.num_traces,1);
@@ -94,7 +94,7 @@ if isfield(options,'handles')
 end
 
 clearvars -except expmt options
-
+disp("Try saving as csv")
 
 %% Generate plots
 
@@ -102,9 +102,9 @@ clearvars -except expmt options
 inc=0.05;
 bins=-inc/2:inc:1+inc/2;   % Bins centered from 0 to 1 
 
-c=histc(expmt.data.Turns.rBias(expmt.data.Turns.n>40),bins); % turn histogram
-mad(expmt.data.Turns.rBias(expmt.data.Turns.n>40))           % MAD of right turn prob
-c=c./(sum(c));
+c=histcounts(expmt.data.Turns.rBias(expmt.data.Turns.n>40),bins); % turn histogram
+% % mad(expmt.data.Turns.rBias(expmt.data.Turns.n>40))           % MAD of right turn prob
+c=c./(sum(c, 'omitnan'));
 c(end)=[];
 
 f=figure();
@@ -138,6 +138,8 @@ if ~isempty(expmt.meta.path.fig) && options.save
     close(f);
 end
 
+% disp("converttocsv")
+ymazetocsv(expmt);
 clearvars -except expmt options
 
 %% Clean up files and wrap up analysis

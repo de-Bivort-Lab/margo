@@ -60,7 +60,7 @@ for j = 1:nReps
         
     end
     
-    opto_index(j,:) = nansum(sd)./nansum(td);
+    opto_index(j,:) = sum(sd,'omitnan')./sum(td,'omitnan');
     clearvars sd td tmp trial_sub fly_sub idx
     
 end

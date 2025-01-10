@@ -71,9 +71,9 @@ for i=1:expmt.meta.num_traces
 end
 
 % Calculate right turn probability from tSeq
-expmt.data.Turns.n = nansum(~isnan(expmt.data.Turns.sequence));
+expmt.data.Turns.n = sum(~isnan(expmt.data.Turns.sequence), "omitnan");
 expmt.data.Turns.rBias = ...
-    nansum(expmt.data.Turns.sequence) ./ expmt.data.Turns.n;
+    sum(expmt.data.Turns.sequence, 'omitnan') ./ expmt.data.Turns.n;
 
 
 % Calculate clumpiness and switchiness
@@ -198,10 +198,10 @@ end
 
 legendLabel(1)={['Turn Choice: ' strain ' ' treatment ...
     ' (u=' num2str(nanFilteredMean(expmt.data.Turns.rBias(expmt.data.Turns.active)))...
-    ', n=' num2str(nansum(expmt.data.Turns.active)) ')']};
+    ', n=' num2str(sum(expmt.data.Turns.active, 'omitnan')) ')']};
 legendLabel(2)={['Light Choice: ' strain ' ' treatment ...
     ' (u=' num2str(nanFilteredMean(expmt.data.LightChoice.pBias(expmt.data.Turns.active)))...
-    ', n=' num2str(nansum(expmt.data.Turns.active)) ')']};
+    ', n=' num2str(sum(expmt.data.Turns.active, 'omitnan')) ')']};
 legend(legendLabel);
 
 title('Phototaxis and Right Turn Histogram');

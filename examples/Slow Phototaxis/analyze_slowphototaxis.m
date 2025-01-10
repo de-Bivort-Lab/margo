@@ -108,7 +108,7 @@ locc = (locc - (1-locc));
 bocc = cellfun(@nanFilteredMean, expmt.meta.Blank.occ);
 bocc = (bocc - (1-bocc));
 min_active_period = 0.2 * ...
-    nansum(expmt.data.time.raw(expmt.data.Texture.raw(:)))/3600; 
+    sum(expmt.data.time.raw(expmt.data.Texture.raw(:)), 'omitnan')/3600; 
 clearvars -except expmt tTotal btTotal locc bocc options min_active_period
 
 
