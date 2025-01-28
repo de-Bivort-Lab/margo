@@ -4,9 +4,11 @@ function autoFinishAnalysis(expmt,options)
 %% Clean up the workspace
 
 % temporarily remove vid obj/source from struct for saving
-if isfield(expmt.hardware.cam,'vid')
-    expmt.hardware.cam = rmfield(expmt.hardware.cam,'src');
-    expmt.hardware.cam = rmfield(expmt.hardware.cam,'vid');
+try %try catches case where expmt.hardware is empty
+    if isfield(expmt.hardware.cam,'vid') 
+        expmt.hardware.cam = rmfield(expmt.hardware.cam,'src');
+        expmt.hardware.cam = rmfield(expmt.hardware.cam,'vid');
+    end
 end
 if isfield(expmt.meta,'video') && isfield(expmt.meta.video,'vid')
     vidcopy = expmt.meta.video.vid;

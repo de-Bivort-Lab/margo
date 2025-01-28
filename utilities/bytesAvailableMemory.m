@@ -13,5 +13,17 @@ switch OS
     case 'MACI64'
         [~,out]=unix('vm_stat | grep free');
         spaces=strfind(out,' ');
-        mem = str2double(out(spaces(end):numel(out)))*4096;
+        mem_free=str2double(out(spaces(end):numel(out)))*4096;
+        [~,out]=unix('vm_stat | grep inactive');
+        spaces=strfind(out,' ');
+        mem_inactive = str2double(out(spaces(end):numel(out)))*4096;
+        mem=mem_free+mem_inactive;
+    case 'MACA64'
+        [~,out]=unix('vm_stat | grep free');
+        spaces=strfind(out,' ');
+        mem_free=str2double(out(spaces(end):numel(out)))*4096;
+        [~,out]=unix('vm_stat | grep inactive');
+        spaces=strfind(out,' ');
+        mem_inactive = str2double(out(spaces(end):numel(out)))*4096;
+        mem=mem_free+mem_inactive;
 end

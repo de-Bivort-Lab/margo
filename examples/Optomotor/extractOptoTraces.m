@@ -79,8 +79,8 @@ turning(tex&inc)=-turning(tex&inc);
 
 tdist = turning;
 tdist(~inc)=NaN;
-tmp_r = nansum(tdist);
-tmp_tot = nansum(abs(tdist));
+tmp_r = sum(tdist, 'omitnan');
+tmp_tot = sum(abs(tdist), 'omitnan');
 avg_index = tmp_r./tmp_tot;
 total_dist=NaN(size(win_start,1),expmt.meta.num_traces);
 stimdir_dist=NaN(size(win_start,1),expmt.meta.num_traces);
@@ -101,8 +101,8 @@ for i=1:expmt.meta.num_traces
         
         tmpTurn=turning(win_start(j,i):win_stop(j,i),i);
         tmp_tdist=tdist(win_start(j,i):win_stop(j,i),i);
-        stimdir_dist(j,i) = nansum(tmp_tdist);
-        total_dist(j,i) = nansum(abs(tmp_tdist));
+        stimdir_dist(j,i) = sum(tmp_tdist, 'omitnan');
+        total_dist(j,i) = sum(abs(tmp_tdist), 'omitnan');
 
         if ~isempty(tmpTurn)
             tmpTurn=interp1(1:length(tmpTurn),tmpTurn,linspace(1,length(tmpTurn),nPts));
@@ -151,8 +151,8 @@ if ~isempty(tmp_t)
     if nanFilteredMean(spd{:}(idx{:}(1):idx{:}(2)))>0.1
         cumang(1:t0)=cumsum(tmp_t(1:t0));
         cumang(t0+1:end)=cumsum(tmp_t(t0+1:end));
-        tmp_r = nansum(tmp_t);
-        tmp_tot = nansum(abs(tmp_t));
+        tmp_r = sum(tmp_t, 'omitnan');
+        tmp_tot = sum(abs(tmp_t), 'omitnan');
         opto_index = tmp_r./tmp_tot;
     else
         cumang = [];
