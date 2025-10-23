@@ -56,6 +56,10 @@ function margo_OpeningFcn(hObject, ~, handles, varargin)
 % varargin   command line arguments to margo (see VARARGIN)
 a = 1;
 try
+
+    % Manually set window style for MATLAB 2025a compatibility
+    set(groot, "defaultFigureWindowStyle", "normal")
+
     %
     % % set bottom uipanel and disp note font size to point for accurate resizing
     set(findall(handles.bottom_uipanel, '-property', 'FontUnits'), 'FontUnits', 'points');
