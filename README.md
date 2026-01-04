@@ -1,6 +1,8 @@
 MARGO
 =====
 
+## NOTE: MARGO is not currently compatible with MATLAB 2025 --- We are assessing whether to make it compatible with MATLAB 2025 etc., re-implement it in python or suspend updates. Happily it still works effectively in MATLAB 2024b.
+
 ## Description
 
 The Massively Automated Real-time GUI for Object-tracking (MARGO) is a MATLAB based tracking platform designed with an emphasis on high-throughput tracking of large groups of animals and tracking applications requiring closed-loop hardware control. See below for examples of MARGO applications.
@@ -19,7 +21,7 @@ The Massively Automated Real-time GUI for Object-tracking (MARGO) is a MATLAB ba
 
 **MATLAB**
 
-For best results, use MARGO with **MATLAB 2016b** or newer. MARGO has generally been designed to be backwards compatible with older versions of MATLAB. In addition to the base installation of MATLAB, MARGO requires the following toolboxes:
+For best results, use MARGO with **MATLAB** releases between **2016b** and **2024b**. MARGO is currently **incompatible with MATLAB 2025x** MARGO has generally been designed to be backwards compatible with older versions of MATLAB. In addition to the base installation of MATLAB, MARGO requires the following toolboxes:
 - image acquisition toolbox
 - image processing toolbox
 - computer vision system toolbox
